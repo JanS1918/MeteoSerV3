@@ -28,6 +28,38 @@ function Send-Telegram {
     }
 }
 
+# Outlook / SMTP helper: preferir email si está configurado
+if (-not $Env:OUTLOOK_SMTP_SERVER) { $Env:OUTLOOK_SMTP_SERVER = 'smtp.office365.com' }
+if (-not $Env:OUTLOOK_SMTP_PORT) { $Env:OUTLOOK_SMTP_PORT = '587' }
+$Env:OUTLOOK_USERNAME = $Env:OUTLOOK_USERNAME
+$Env:OUTLOOK_PASSWORD = $Env:OUTLOOK_PASSWORD
+$Env:ALERT_EMAIL_TO = $Env:ALERT_EMAIL_TO
+
+function Send-Email {
+    param(
+        [string]$subject,
+        [string]$body
+    )
+    if (-not $Env:OUTLOOK_USERNAME -or -not $Env:OUTLOOK_PASSWORD -or -not $Env:ALERT_EMAIL_TO) { return }
+    try {
+        $secure = ConvertTo-SecureString $Env:OUTLOOK_PASSWORD -AsPlainText -Force
+        $cred = New-Object System.Management.Automation.PSCredential ($Env:OUTLOOK_USERNAME, $secure)
+        Send-MailMessage -SmtpServer $Env:OUTLOOK_SMTP_SERVER -Port ([int]$Env:OUTLOOK_SMTP_PORT) -UseSsl -Credential $cred -From $Env:OUTLOOK_USERNAME -To $Env:ALERT_EMAIL_TO -Subject $subject -Body $body -BodyAsHtml $false
+    } catch {
+        Write-Host "[WARN] Falló envío Email: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+# Wrapper: usa email si está configurado, Telegram como fallback
+function Send-Alert {
+    param($text)
+    if ($Env:OUTLOOK_USERNAME -and $Env:OUTLOOK_PASSWORD -and $Env:ALERT_EMAIL_TO) {
+        Send-Email -subject "[MeteoSer] Alerta" -body $text
+    } else {
+        Send-Telegram $text
+    }
+}
+
 $healthUrl = "$BaseUrl/estado"
 try {
     $state = Invoke-RestMethod -Uri $healthUrl -UseBasicParsing -TimeoutSec 10
@@ -36,7 +68,7 @@ try {
     Show-Panel "[OK] API responde" "Status: $sensorCount sensores listados."
 } catch {
     Show-Panel "[ERROR] /estado" $_.Exception.Message
-    Send-Telegram "[MeteoSer] ERROR /estado: $($_.Exception.Message)"
+    Send-Alert "[MeteoSer] ERROR /estado: $($_.Exception.Message)"
     exit 2
 }
 
@@ -68,7 +100,7 @@ $errors = $recentLines | Select-String -Pattern $pattern
 if ($errors) {
     $msg = "[MeteoSer] ALERTA: $($errors.Count) respuestas 5xx en las últimas $LinesToCheck líneas. Último: $($errors[-1].Line)"
     Show-Panel "[ALERTA] $($errors.Count) respuestas 5xx en las últimas $LinesToCheck líneas" "Último: $($errors[-1].Line)"
-    Send-Telegram $msg
+    Send-Alert $msg
     exit 3
 } else {
     Show-Panel "No se detectaron 5xx recientes" "Revisadas $LinesToCheck líneas de logs."
