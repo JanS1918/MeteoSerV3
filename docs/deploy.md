@@ -43,3 +43,36 @@ Backups y restauración:
 Notas de seguridad:
 
 - No almacenes claves en el repo. Usa GitHub Secrets para CI o `meteoser_configuracion.txt` con permisos restringidos en el host.
+
+Variables de entorno para alertas y monitorización
+
+Para que `tools/monitor_health.ps1` envíe alertas por correo (preferente) o por Telegram (fallback), define las siguientes variables de entorno en el host (Task Scheduler / System Environment):
+
+- Email (Outlook / Office365):
+	- `OUTLOOK_SMTP_SERVER` (por defecto: `smtp.office365.com`)
+	- `OUTLOOK_SMTP_PORT` (por defecto: `587`)
+	- `OUTLOOK_USERNAME` (tu cuenta de correo completa)
+	- `OUTLOOK_PASSWORD` (usa contraseña de aplicación cuando sea posible)
+	- `ALERT_EMAIL_TO` (dirección o lista separada por comas donde enviar alertas)
+
+- Telegram (opcional, fallback):
+	- `TELEGRAM_BOT_TOKEN`
+	- `TELEGRAM_CHAT_ID`
+
+Cómo probar `tools/monitor_health.ps1` localmente (PowerShell):
+
+```powershell
+# En la sesión de PowerShell (no persistente)
+$Env:OUTLOOK_SMTP_SERVER = 'smtp.office365.com'
+$Env:OUTLOOK_SMTP_PORT = '587'
+$Env:OUTLOOK_USERNAME = 'tucorreo@dominio.com'
+$Env:OUTLOOK_PASSWORD = 'TuPasswordApp'
+$Env:ALERT_EMAIL_TO = 'mi@email.com'
+
+# Ejecutar el monitor (ajusta BaseUrl si tu API corre en otra parte)
+.\tools\monitor_health.ps1 -BaseUrl 'http://127.0.0.1:8080' -LinesToCheck 40
+```
+
+Si no quieres usar email, solo exporta `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID` y el script usará Telegram.
+
+Consejo de seguridad: guarda `OUTLOOK_PASSWORD` como secreto del sistema (no en texto plano). En servidores Windows, configura la variable de entorno del sistema o usa el Task Scheduler para pasar credenciales de forma segura.
