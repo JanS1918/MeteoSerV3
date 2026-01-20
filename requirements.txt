@@ -7,3 +7,4 @@ zeroconf
 paho-mqtt
 feedparser
 pyttsx3
+httpx
