@@ -28,36 +28,10 @@ function Send-Telegram {
     }
 }
 
-# Outlook / SMTP helper: preferir email si está configurado
-if (-not $Env:OUTLOOK_SMTP_SERVER) { $Env:OUTLOOK_SMTP_SERVER = 'smtp.office365.com' }
-if (-not $Env:OUTLOOK_SMTP_PORT) { $Env:OUTLOOK_SMTP_PORT = '587' }
-$Env:OUTLOOK_USERNAME = $Env:OUTLOOK_USERNAME
-$Env:OUTLOOK_PASSWORD = $Env:OUTLOOK_PASSWORD
-$Env:ALERT_EMAIL_TO = $Env:ALERT_EMAIL_TO
-
-function Send-Email {
-    param(
-        [string]$subject,
-        [string]$body
-    )
-    if (-not $Env:OUTLOOK_USERNAME -or -not $Env:OUTLOOK_PASSWORD -or -not $Env:ALERT_EMAIL_TO) { return }
-    try {
-        $secure = ConvertTo-SecureString $Env:OUTLOOK_PASSWORD -AsPlainText -Force
-        $cred = New-Object System.Management.Automation.PSCredential ($Env:OUTLOOK_USERNAME, $secure)
-        Send-MailMessage -SmtpServer $Env:OUTLOOK_SMTP_SERVER -Port ([int]$Env:OUTLOOK_SMTP_PORT) -UseSsl -Credential $cred -From $Env:OUTLOOK_USERNAME -To $Env:ALERT_EMAIL_TO -Subject $subject -Body $body -BodyAsHtml $false
-    } catch {
-        Write-Host "[WARN] Falló envío Email: $($_.Exception.Message)" -ForegroundColor Yellow
-    }
-}
-
-# Wrapper: usa email si está configurado, Telegram como fallback
+# Wrapper: enviar alertas por Telegram (único canal)
 function Send-Alert {
     param($text)
-    if ($Env:OUTLOOK_USERNAME -and $Env:OUTLOOK_PASSWORD -and $Env:ALERT_EMAIL_TO) {
-        Send-Email -subject "[MeteoSer] Alerta" -body $text
-    } else {
-        Send-Telegram $text
-    }
+    Send-Telegram $text
 }
 
 $healthUrl = "$BaseUrl/estado"
