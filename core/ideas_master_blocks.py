@@ -3,90 +3,61 @@ Bloques funcionales de MeteoSer según el manifiesto y las ideas propuestas.
 Cada bloque es una clase independiente y extensible.
 """
 
-
 class BloqueA:
     """Descubrimiento y registro de sensores."""
-
     def escanear_sensores(self):
         return "Escaneo USB, BLE, LAN, APIs, MQTT, HID, serie."
-
     def registrar_sensor(self, sensor_id):
         return f"Sensor {sensor_id} registrado."
 
-
 class BloqueB:
     """Motor de reglas y acciones inteligentes."""
-
     def ejecutar_regla(self, regla):
         return f"Regla ejecutada: {regla}"
-
     def consejo_contextual(self, contexto):
         return f"Consejo para {contexto}: ventila ligeramente."
 
-
 class BloqueC:
     """IA y aprendizaje de hábitos y patrones."""
-
     def aprender_habito(self, habito):
         return f"Hábito aprendido: {habito}"
-
     def detectar_anomalia(self, datos):
         return f"Anomalía detectada en {datos}"
 
-
 class BloqueD:
     """Watchdog, salud y autocuración."""
-
     def monitorizar_proceso(self, proceso):
         return f"Proceso {proceso} monitorizado."
-
     def reiniciar_automatico(self):
         return "Reinicio automático ejecutado."
 
-
 class BloqueE:
     """Hardening y gestión de secretos."""
-
     def recomendaciones_hardening(self):
-        return [
-            "Limitar permisos de ficheros",
-            "Usar contenedores/sandboxes",
-            "Restringir salidas de red",
-        ]
-
+        return ["Limitar permisos de ficheros", "Usar contenedores/sandboxes", "Restringir salidas de red"]
     def gestionar_secreto(self, clave, valor):
         return f"Secreto {clave} gestionado."
 
-
 class BloqueF:
     """Motor conversacional y UI."""
-
     def iniciar_sesion(self, usuario):
         return f"Sesión iniciada para {usuario}"
-
     def responder_dialogo(self, texto):
         return f"Respuesta generada: {texto}"
 
-
 class BloqueG:
     """Cluster y alta disponibilidad."""
-
     def iniciar_failover(self, nodo):
         return f"Failover iniciado para nodo {nodo}"
-
     def replicar_estado(self):
         return "Estado replicado en todos los nodos."
 
-
 class BloqueH:
     """Integración, backup/restore y swap."""
-
     def crear_backup(self, nombre):
         return f"Backup {nombre} creado."
-
     def realizar_swap(self, backup_id):
         return f"Swap realizado con backup {backup_id}."
-
 
 class BloqueMeteoSerTotal:
     """
@@ -103,12 +74,12 @@ class BloqueMeteoSerTotal:
         Ejemplo: "¿Cuánto crees que durará la lluvia?"
         """
         pregunta = pregunta.lower()
-        indices = getattr(self.system, "indices", {})
-        sensores = getattr(self.system, "sensores", {})
+        indices = getattr(self.system, 'indices', {})
+        sensores = getattr(self.system, 'sensores', {})
         # Ejemplo para lluvia
         if "lluvia" in pregunta:
-            prob_lluvia = indices.get("prob_lluvia", {}).get("valor", None)
-            lluvia_rate = sensores.get("lluvia", None)
+            prob_lluvia = indices.get('prob_lluvia', {}).get('valor', None)
+            lluvia_rate = sensores.get('lluvia', None)
             if prob_lluvia and lluvia_rate:
                 if prob_lluvia > 70 and lluvia_rate > 0:
                     return "La lluvia actual podría durar entre 30 y 90 minutos según los patrones recientes."
@@ -119,7 +90,7 @@ class BloqueMeteoSerTotal:
             return "No tengo datos suficientes para estimar la duración de la lluvia ahora mismo."
         # Otros ejemplos de razonamiento
         if "viento" in pregunta:
-            viento = sensores.get("viento", None)
+            viento = sensores.get('viento', None)
             if viento:
                 if viento > 30:
                     return "El viento fuerte podría persistir durante varias horas según el historial local."
@@ -133,9 +104,7 @@ class BloqueMeteoSerTotal:
         # Descubrimiento y registro real de sensores
         sensores_detectados = self.system.bloque_a.escanear_sensores()
         for sensor in sensores_detectados:
-            self.system.registrar_sensor_metadata(
-                sensor["id"], tipo=sensor["type"], unidad=sensor.get("unit")
-            )
+            self.system.registrar_sensor_metadata(sensor['id'], tipo=sensor['type'], unidad=sensor.get('unit'))
         return sensores_detectados
 
     def ejecutar_reglas_inteligentes(self):
@@ -182,18 +151,17 @@ class BloqueMeteoSerTotal:
 
     def organizar_tareas_eventos(self, tarea):
         # Añade y lista tareas reales
-        if hasattr(self.system, "organizer"):
+        if hasattr(self.system, 'organizer'):
             self.system.organizer.add_task(tarea)
             return self.system.organizer.list_tasks()
         return []
 
     def configurar_alarma(self, hora):
         # Configura alarma real
-        if hasattr(self.system, "alarms"):
+        if hasattr(self.system, 'alarms'):
             self.system.alarms.set_alarm(hora)
             return f"Alarma configurada para {hora}"
         return "No hay motor de alarmas."
-
 
 # Instancias globales de cada bloque funcional
 bloque_a = BloqueA()
@@ -208,11 +176,9 @@ bloque_h = BloqueH()
 # Instancia global del bloque total
 bloque_total = None
 
-
 def inicializar_bloque_total(system_core):
     global bloque_total
     bloque_total = BloqueMeteoSerTotal(system_core)
     return bloque_total
-
 
 # Cada bloque puede ser extendido y conectado con el sistema principal.

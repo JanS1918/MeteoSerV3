@@ -19,7 +19,6 @@ from core.logging.log_engine import LogEngine
 # SENSOR MANAGER
 # ============================================================
 
-
 class SensorManager:
     """
     Gestiona sensores reales, su disponibilidad y su fiabilidad.
@@ -29,9 +28,7 @@ class SensorManager:
         self._log = log_engine
         self._sensores: Dict[str, Dict[str, Any]] = {}
 
-    def registrar_sensor(
-        self, nombre: str, tipo: str, fiabilidad: float = 100.0
-    ) -> None:
+    def registrar_sensor(self, nombre: str, tipo: str, fiabilidad: float = 100.0) -> None:
         """
         Registra un sensor real.
         """
@@ -41,9 +38,7 @@ class SensorManager:
             "activo": True,
         }
         if self._log:
-            self._log.log(
-                "info", f"[SensorManager] Registrado sensor {nombre} ({tipo})"
-            )
+            self._log.log("info", f"[SensorManager] Registrado sensor {nombre} ({tipo})")
 
     def desactivar_sensor(self, nombre: str) -> None:
         if nombre in self._sensores:
@@ -65,15 +60,12 @@ class SensorManager:
 # AUTOCONFIGURACIÓN
 # ============================================================
 
-
 class AutoConfigEngine:
     """
     Detecta qué funciones están disponibles según los sensores reales.
     """
 
-    def __init__(
-        self, sensor_manager: SensorManager, log_engine: Optional[LogEngine] = None
-    ):
+    def __init__(self, sensor_manager: SensorManager, log_engine: Optional[LogEngine] = None):
         self._sensor_manager = sensor_manager
         self._log = log_engine
         self._funciones_activas: Dict[str, bool] = {}
@@ -82,10 +74,7 @@ class AutoConfigEngine:
         sensores = self._sensor_manager.obtener_sensores_activos()
 
         self._funciones_activas = {
-            "confort": all(
-                s in sensores
-                for s in ["temperatura_interior", "humedad_interior", "co2"]
-            ),
+            "confort": all(s in sensores for s in ["temperatura_interior", "humedad_interior", "co2"]),
             "edificio": "humedad_interior" in sensores,
             "meteorologia": "temperatura_exterior" in sensores,
             "ventilacion": "co2" in sensores,
@@ -93,9 +82,7 @@ class AutoConfigEngine:
         }
 
         if self._log:
-            self._log.log(
-                "info", f"[AutoConfig] Funciones activas: {self._funciones_activas}"
-            )
+            self._log.log("info", f"[AutoConfig] Funciones activas: {self._funciones_activas}")
 
     def funcion_activa(self, nombre: str) -> bool:
         return self._funciones_activas.get(nombre, False)
@@ -104,7 +91,6 @@ class AutoConfigEngine:
 # ============================================================
 # FUSIÓN DE SENSORES
 # ============================================================
-
 
 class SensorFusionEngine:
     """
@@ -115,9 +101,7 @@ class SensorFusionEngine:
     - NO generar valores sin base
     """
 
-    def __init__(
-        self, sensor_manager: SensorManager, log_engine: Optional[LogEngine] = None
-    ):
+    def __init__(self, sensor_manager: SensorManager, log_engine: Optional[LogEngine] = None):
         self._sensor_manager = sensor_manager
         self._log = log_engine
 
@@ -160,9 +144,7 @@ class SensorFusionEngine:
         total_peso = sum(pesos)
         fusion = sum(v * p for v, p in zip(valores, pesos)) / total_peso
 
-        self._log_debug(
-            f"[FusionTemp] valores={valores}, pesos={pesos}, fusion={fusion}"
-        )
+        self._log_debug(f"[FusionTemp] valores={valores}, pesos={pesos}, fusion={fusion}")
         return fusion
 
     # ------------------------------------------------------------
@@ -196,9 +178,7 @@ class SensorFusionEngine:
     # SENSORES VIRTUALES PERMITIDOS
     # ------------------------------------------------------------
 
-    def estimar_punto_rocio(
-        self, temperatura: float, humedad: float
-    ) -> Optional[float]:
+    def estimar_punto_rocio(self, temperatura: float, humedad: float) -> Optional[float]:
         """
         Sensor virtual permitido: punto de rocío.
         Basado en fórmula científica real.
@@ -207,7 +187,6 @@ class SensorFusionEngine:
             return None
 
         import math
-
         a, b = 17.27, 237.7
         alpha = ((a * temperatura) / (b + temperatura)) + math.log(humedad / 100.0)
         return (b * alpha) / (a - alpha)
@@ -235,7 +214,6 @@ class SensorFusionEngine:
 # ============================================================
 # ENVOLVENTE PRINCIPAL
 # ============================================================
-
 
 class SensorSystem:
     """

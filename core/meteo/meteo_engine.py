@@ -1,12 +1,5 @@
-from core.meteo.meteo_model import (
-    MeteoSnapshot,
-    SensorRaw,
-    DerivedMetric,
-    normalize_sensor,
-    compute_derived,
-)
+from core.meteo.meteo_model import MeteoSnapshot, SensorRaw, SensorNormalized, DerivedMetric, normalize_sensor, compute_derived
 import time
-
 
 def get_full_meteo_snapshot(system) -> dict:
     """
@@ -41,9 +34,7 @@ def get_full_meteo_snapshot(system) -> dict:
             valor_num = float(valor)
         except Exception:
             continue
-        sensores_raw[nombre] = SensorRaw(
-            value=valor_num, unit=unit, ts=ts, source=meta.get("fuente") or "sistema"
-        )
+        sensores_raw[nombre] = SensorRaw(value=valor_num, unit=unit, ts=ts, source=meta.get("fuente") or "sistema")
     # Normalizar
     sensores_norm = {k: normalize_sensor(k, v) for k, v in sensores_raw.items()}
     # Snapshot
@@ -88,14 +79,12 @@ def get_full_meteo_snapshot(system) -> dict:
             if nombre == "uv_derivado":
                 real = system.obtener_sensor("uv")
                 if real is not None:
-                    system.auto_improvement_engine.registrar_error(
-                        "uv_derivado", float(real), float(metrica.value)
-                    )
+                    system.auto_improvement_engine.registrar_error("uv_derivado", float(real), float(metrica.value))
         except Exception:
             pass
     # Serializar a dict
     return {
         "ts": snapshot.ts,
         "sensores": {k: vars(v) for k, v in snapshot.sensors.items()},
-        "derivadas": {k: vars(v) for k, v in snapshot.derived.items()},
+        "derivadas": {k: vars(v) for k, v in snapshot.derived.items()}
     }

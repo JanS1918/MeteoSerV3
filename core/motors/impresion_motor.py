@@ -1,6 +1,5 @@
 from typing import Dict, Any
 
-
 class MotorImpresion:
     def imprimir(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         # Lógica real: cola de impresión local

@@ -12,10 +12,7 @@ from typing import Dict, List, Optional, Tuple
 
 # Intentamos importar componentes auxiliares si existen
 try:
-    from ..integration.integration_manager import (
-        SensorIntegrationManager,
-        SensorRegistry,
-    )
+    from ..integration.integration_manager import SensorIntegrationManager, SensorRegistry
 except Exception:
     SensorIntegrationManager = None
     SensorRegistry = None
@@ -32,13 +29,11 @@ except Exception:
 def mean(xs: List[float]) -> float:
     return sum(xs) / len(xs) if xs else 0.0
 
-
 def variance(xs: List[float]) -> float:
     if not xs:
         return 0.0
     m = mean(xs)
     return sum((x - m) ** 2 for x in xs) / len(xs)
-
 
 def pearson_corr(xs: List[float], ys: List[float]) -> float:
     if not xs or not ys or len(xs) != len(ys):
@@ -109,13 +104,11 @@ class LearningEngine:
     - exporta/importa modelos y metadatos
     """
 
-    def __init__(
-        self,
-        base_path: str,
-        registry: Optional[SensorRegistry] = None,
-        virtual_manager: Optional[VirtualSensorManager] = None,
-        history_len: int = 1440,
-    ):
+    def __init__(self,
+                 base_path: str,
+                 registry: Optional[SensorRegistry] = None,
+                 virtual_manager: Optional[VirtualSensorManager] = None,
+                 history_len: int = 1440):
         """
         base_path: carpeta donde guardar modelos y metadatos
         history_len: número máximo de muestras por sensor (por defecto 1440)
@@ -126,13 +119,9 @@ class LearningEngine:
         self.history_len = history_len
 
         # series: sensor_id -> deque(values)
-        self.series: Dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=self.history_len)
-        )
+        self.series: Dict[str, deque] = defaultdict(lambda: deque(maxlen=self.history_len))
         # timestamps: sensor_id -> deque(timestamps)
-        self.timestamps: Dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=self.history_len)
-        )
+        self.timestamps: Dict[str, deque] = defaultdict(lambda: deque(maxlen=self.history_len))
 
         # modelos: target_sensor -> OnlineLinearModel
         self.models: Dict[str, OnlineLinearModel] = {}
@@ -152,9 +141,7 @@ class LearningEngine:
     # ------------------------------------------------------------
     # INGESTA DE DATOS
     # ------------------------------------------------------------
-    def ingest(
-        self, sensor_values: Dict[str, float], timestamp: Optional[float] = None
-    ):
+    def ingest(self, sensor_values: Dict[str, float], timestamp: Optional[float] = None):
         """
         Ingesta un diccionario sensor->valor en el motor.
         Actualiza series, calcula correlaciones básicas y detecta anomalías.
@@ -220,9 +207,7 @@ class LearningEngine:
         if target_sensor not in self.models:
             self.models[target_sensor] = OnlineLinearModel(lr=lr)
 
-    def train_online(
-        self, target_sensor: str, feature_sensors: List[str], lr: float = 0.001
-    ):
+    def train_online(self, target_sensor: str, feature_sensors: List[str], lr: float = 0.001):
         """
         Entrena online el modelo para predecir target_sensor usando feature_sensors.
         Usa la última muestra disponible si hay datos alineados.
@@ -250,9 +235,7 @@ class LearningEngine:
         model.update(features, target_value)
         return True
 
-    def predict(
-        self, target_sensor: str, feature_values: Dict[str, float]
-    ) -> Optional[float]:
+    def predict(self, target_sensor: str, feature_values: Dict[str, float]) -> Optional[float]:
         if target_sensor not in self.models:
             return None
         return self.models[target_sensor].predict(feature_values)
@@ -276,28 +259,24 @@ class LearningEngine:
             # desviación z
             z = (v - m) / (std + 1e-6)
             if abs(z) > 4.0:
-                self.anomalies.append(
-                    {
-                        "sensor": s,
-                        "value": v,
-                        "type": "outlier_z",
-                        "z": z,
-                        "ts": time.time(),
-                    }
-                )
+                self.anomalies.append({
+                    "sensor": s,
+                    "value": v,
+                    "type": "outlier_z",
+                    "z": z,
+                    "ts": time.time()
+                })
             # salto brusco respecto a anterior
             if len(seq) >= 2:
                 prev = seq[-2]
                 if prev != 0 and abs((v - prev) / (abs(prev) + 1e-6)) > 0.5:
-                    self.anomalies.append(
-                        {
-                            "sensor": s,
-                            "value": v,
-                            "type": "sudden_jump",
-                            "prev": prev,
-                            "ts": time.time(),
-                        }
-                    )
+                    self.anomalies.append({
+                        "sensor": s,
+                        "value": v,
+                        "type": "sudden_jump",
+                        "prev": prev,
+                        "ts": time.time()
+                    })
 
     # ------------------------------------------------------------
     # EXPORT / IMPORT MODELOS Y METADATOS
@@ -322,7 +301,7 @@ class LearningEngine:
             "sensors": {s: len(self.series[s]) for s in self.series},
             "correlations_count": len(self.correlations),
             "anomalies_count": len(self.anomalies),
-            "models": list(self.models.keys()),
+            "models": list(self.models.keys())
         }
         with open(self._meta_file, "w") as f:
             json.dump(meta, f, indent=2)
@@ -367,7 +346,6 @@ class LearningEngine:
                 self.ensure_model(vid)
                 # intentar entrenar online si hay datos
                 self.train_online(vid, features)
-
 
 # ============================================================
 # FIN DEL MÓDULO

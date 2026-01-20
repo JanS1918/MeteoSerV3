@@ -1,6 +1,5 @@
 from typing import Dict, Any
 
-
 class MotorConfort:
     def calcular_indice(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         # Lógica real: calcular confort usando índices

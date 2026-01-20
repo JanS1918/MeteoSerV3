@@ -15,14 +15,12 @@ class AutoImprovementEngine:
 
     def registrar(self, nombre, funcion):
         versiones = self.algoritmos.get(nombre, [])
-        versiones.append(
-            {
-                "version": len(versiones) + 1,
-                "funcion": funcion,
-                "errores": [],
-                "aciertos": [],
-            }
-        )
+        versiones.append({
+            "version": len(versiones) + 1,
+            "funcion": funcion,
+            "errores": [],
+            "aciertos": []
+        })
         self.algoritmos[nombre] = versiones
 
     def mejor(self, nombre):
@@ -61,9 +59,7 @@ class AutoImprovementEngine:
                 "metricas": self.metricas,
                 "ts": time.time(),
             }
-            self._data_path.write_text(
-                json.dumps(payload, ensure_ascii=False), encoding="utf-8"
-            )
+            self._data_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         except Exception:
             pass
 

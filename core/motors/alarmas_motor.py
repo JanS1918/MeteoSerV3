@@ -1,6 +1,5 @@
 from typing import Dict, Any
 
-
 class MotorAlarmas:
     def gestionar(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         # Lógica real: devolver alarmas registradas localmente

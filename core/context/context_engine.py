@@ -54,9 +54,11 @@ class ContextEngine:
         indices = self.ambiental.analizar(contexto_ambiental)
 
         # 3. Auto-mejora
-        self.auto.registrar_evento(
-            {"tipo": "ciclo", "indice_relacionado": None, "aceptado": True}
-        )
+        self.auto.registrar_evento({
+            "tipo": "ciclo",
+            "indice_relacionado": None,
+            "aceptado": True
+        })
         auto = self.auto.ciclo()
 
         # 4. Construcción del contexto final

@@ -14,17 +14,14 @@ from typing import Dict, List, Optional, Tuple
 # UTILIDADES
 # ------------------------------------------------------------
 
-
 def mean(xs: List[float]) -> float:
     return sum(xs) / len(xs) if xs else 0.0
-
 
 def variance(xs: List[float]) -> float:
     if not xs:
         return 0.0
     m = mean(xs)
     return sum((x - m) ** 2 for x in xs) / len(xs)
-
 
 def pearson_corr(xs: List[float], ys: List[float]) -> float:
     if not xs or not ys or len(xs) != len(ys):
@@ -37,15 +34,12 @@ def pearson_corr(xs: List[float], ys: List[float]) -> float:
         return 0.0
     return num / (denx * deny)
 
-
 def clamp(x: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, x))
-
 
 # ------------------------------------------------------------
 # MODELO LINEAL ONLINE
 # ------------------------------------------------------------
-
 
 class OnlineLinearModel:
     def __init__(self, lr: float = 0.001):
@@ -78,21 +72,12 @@ class OnlineLinearModel:
         m.bias = d.get("bias", 0.0)
         return m
 
-
 # ------------------------------------------------------------
 # MODELO PREDICTIVO SIMPLE
 # ------------------------------------------------------------
 
-
 class SimplePredictiveModel:
-    def __init__(
-        self,
-        name: str,
-        weights: Dict[str, float],
-        bias: float = 0.0,
-        trend_alpha: float = 0.1,
-        noise_std: float = 0.0,
-    ):
+    def __init__(self, name: str, weights: Dict[str, float], bias: float = 0.0, trend_alpha: float = 0.1, noise_std: float = 0.0):
         self.name = name
         self.weights = dict(weights)
         self.bias = bias
@@ -104,36 +89,27 @@ class SimplePredictiveModel:
         s = self.bias
         for k, w in self.weights.items():
             s += w * inputs.get(k, 0.0)
-        trend = self.last_trend * (1 - self.trend_alpha) + self.trend_alpha * (
-            s - self.last_trend
-        )
+        trend = self.last_trend * (1 - self.trend_alpha) + self.trend_alpha * (s - self.last_trend)
         self.last_trend = trend
         noise = 0.0
         if self.noise_std > 0.0:
             import random
-
             u1 = random.random() or 1e-6
             u2 = random.random()
             z0 = math.sqrt(-2 * math.log(u1)) * math.cos(2 * math.pi * u2)
             noise = z0 * self.noise_std * math.sqrt(dt_seconds / 60.0)
         return float(s + trend + noise)
 
-
 # ------------------------------------------------------------
 # LEARNING ENGINE
 # ------------------------------------------------------------
-
 
 class LearningEngine:
     def __init__(self, base_path: str, history_len: int = 1440):
         self.base_path = base_path
         self.history_len = history_len
-        self.series: Dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=self.history_len)
-        )
-        self.timestamps: Dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=self.history_len)
-        )
+        self.series: Dict[str, deque] = defaultdict(lambda: deque(maxlen=self.history_len))
+        self.timestamps: Dict[str, deque] = defaultdict(lambda: deque(maxlen=self.history_len))
         self.models: Dict[str, OnlineLinearModel] = {}
         self.correlations: Dict[Tuple[str, str], float] = {}
         self.anomalies: List[Dict] = []
@@ -142,14 +118,12 @@ class LearningEngine:
         self._meta_file = os.path.join(self.base_path, "learning_meta.json")
         self._load_models()
 
-    def ingest(
-        self, sensor_values: Dict[str, float], timestamp: Optional[float] = None
-    ):
+    def ingest(self, sensor_values: Dict[str, float], timestamp: Optional[float] = None):
         ts = timestamp or time.time()
         for s, v in sensor_values.items():
             try:
                 fv = float(v)
-            except (TypeError, ValueError):
+            except:
                 continue
             self.series[s].append(fv)
             self.timestamps[s].append(ts)
@@ -186,9 +160,7 @@ class LearningEngine:
         if target_sensor not in self.models:
             self.models[target_sensor] = OnlineLinearModel(lr=lr)
 
-    def train_online(
-        self, target_sensor: str, feature_sensors: List[str], lr: float = 0.001
-    ):
+    def train_online(self, target_sensor: str, feature_sensors: List[str], lr: float = 0.001):
         self.ensure_model(target_sensor, lr=lr)
         model = self.models[target_sensor]
         lengths = [len(self.series[s]) for s in feature_sensors + [target_sensor]]
@@ -214,27 +186,11 @@ class LearningEngine:
             std = math.sqrt(variance(window))
             z = (v - m) / (std + 1e-6)
             if abs(z) > 4.0:
-                self.anomalies.append(
-                    {
-                        "sensor": s,
-                        "value": v,
-                        "type": "outlier_z",
-                        "z": z,
-                        "ts": time.time(),
-                    }
-                )
+                self.anomalies.append({"sensor": s, "value": v, "type": "outlier_z", "z": z, "ts": time.time()})
             if len(seq) >= 2:
                 prev = seq[-2]
                 if prev != 0 and abs((v - prev) / (abs(prev) + 1e-6)) > 0.5:
-                    self.anomalies.append(
-                        {
-                            "sensor": s,
-                            "value": v,
-                            "type": "sudden_jump",
-                            "prev": prev,
-                            "ts": time.time(),
-                        }
-                    )
+                    self.anomalies.append({"sensor": s, "value": v, "type": "sudden_jump", "prev": prev, "ts": time.time()})
 
     def _load_models(self):
         if os.path.exists(self._models_file):
@@ -243,7 +199,7 @@ class LearningEngine:
                     data = json.load(f)
                     for target, md in data.get("models", {}).items():
                         self.models[target] = OnlineLinearModel.from_dict(md)
-            except (OSError, json.JSONDecodeError):
+            except:
                 pass
 
     def save_models(self):
@@ -251,18 +207,14 @@ class LearningEngine:
         with open(self._models_file, "w") as f:
             json.dump(data, f, indent=2)
 
-
 # ------------------------------------------------------------
 # SIMULATION ENGINE
 # ------------------------------------------------------------
 
-
 class SimulationEngine:
     MODELS_FILE = "simulation_models.json"
 
-    def __init__(
-        self, base_path: str, learning_engine: Optional[LearningEngine] = None
-    ):
+    def __init__(self, base_path: str, learning_engine: Optional[LearningEngine] = None):
         self.base_path = base_path
         self.learning_engine = learning_engine
         self.models: Dict[str, SimplePredictiveModel] = {}
@@ -270,33 +222,15 @@ class SimulationEngine:
         self._models_path = os.path.join(self.base_path, self.MODELS_FILE)
         self._load_models()
 
-    def add_model(
-        self,
-        name: str,
-        weights: Dict[str, float],
-        bias: float = 0.0,
-        trend_alpha: float = 0.1,
-        noise_std: float = 0.0,
-    ):
-        self.models[name] = SimplePredictiveModel(
-            name, weights, bias, trend_alpha, noise_std
-        )
+    def add_model(self, name: str, weights: Dict[str, float], bias: float = 0.0, trend_alpha: float = 0.1, noise_std: float = 0.0):
+        self.models[name] = SimplePredictiveModel(name, weights, bias, trend_alpha, noise_std)
         self._save_models()
 
     def list_models(self):
         return list(self.models.keys())
 
     def _save_models(self):
-        data = {
-            n: {
-                "weights": m.weights,
-                "bias": m.bias,
-                "trend_alpha": m.trend_alpha,
-                "noise_std": m.noise_std,
-                "last_trend": m.last_trend,
-            }
-            for n, m in self.models.items()
-        }
+        data = {n: {"weights": m.weights, "bias": m.bias, "trend_alpha": m.trend_alpha, "noise_std": m.noise_std, "last_trend": m.last_trend} for n, m in self.models.items()}
         with open(self._models_path, "w") as f:
             json.dump(data, f, indent=2)
 
@@ -307,16 +241,10 @@ class SimulationEngine:
             with open(self._models_path, "r") as f:
                 data = json.load(f)
                 for n, md in data.items():
-                    m = SimplePredictiveModel(
-                        n,
-                        md.get("weights", {}),
-                        md.get("bias", 0.0),
-                        md.get("trend_alpha", 0.1),
-                        md.get("noise_std", 0.0),
-                    )
+                    m = SimplePredictiveModel(n, md.get("weights", {}), md.get("bias", 0.0), md.get("trend_alpha", 0.1), md.get("noise_std", 0.0))
                     m.last_trend = md.get("last_trend", 0.0)
                     self.models[n] = m
-        except (OSError, json.JSONDecodeError):
+        except:
             pass
 
     def step(self, real_inputs: Dict[str, float], dt_seconds: float = 60.0):
@@ -334,7 +262,7 @@ class SimulationEngine:
                         maxv = 1e9
                     pred = clamp(pred, float(minv), float(maxv))
                 predictions[name] = float(pred)
-            except Exception:
+            except:
                 predictions[name] = float("nan")
         return predictions
 
@@ -350,10 +278,7 @@ class SimulationEngine:
             for other, corr in top:
                 weights[other] = corr / total
             if sensor not in self.models:
-                self.add_model(
-                    sensor, weights, bias=0.0, trend_alpha=0.05, noise_std=0.0
-                )
-
+                self.add_model(sensor, weights, bias=0.0, trend_alpha=0.05, noise_std=0.0)
 
 # ============================================================
 # FIN DEL MÓDULO

@@ -1,15 +1,8 @@
 import math
-from core.meteo.meteo_model import (
-    SensorRaw,
-    SensorNormalized,
-    DerivedMetric,
-    MeteoSnapshot,
-)
-
+from core.meteo.meteo_model import SensorRaw, SensorNormalized, DerivedMetric, MeteoSnapshot
 
 def f_to_c(temp_f: float) -> float:
     return (temp_f - 32.0) * 5.0 / 9.0
-
 
 def normalize_sensor(name: str, raw: SensorRaw) -> SensorNormalized:
     v = raw.value
@@ -24,9 +17,7 @@ def normalize_sensor(name: str, raw: SensorRaw) -> SensorNormalized:
         elif unit and unit.upper() == "C":
             unit = "C"
         else:
-            return SensorNormalized(
-                value=v, unit=unit, ts=raw.ts, source=raw.source, quality="sospechoso"
-            )
+            return SensorNormalized(value=v, unit=unit, ts=raw.ts, source=raw.source, quality="sospechoso")
     elif name.startswith("humedad"):
         unit = "%"
     elif "viento" in name:
@@ -43,10 +34,7 @@ def normalize_sensor(name: str, raw: SensorRaw) -> SensorNormalized:
         unit = "hpa"
     elif name == "co2":
         unit = "ppm"
-    return SensorNormalized(
-        value=v, unit=unit, ts=raw.ts, source=raw.source, quality="ok"
-    )
-
+    return SensorNormalized(value=v, unit=unit, ts=raw.ts, source=raw.source, quality="ok")
 
 def compute_derived(snapshot: MeteoSnapshot) -> dict:
     # Ejemplo: punto de rocío y sensación térmica
@@ -61,15 +49,11 @@ def compute_derived(snapshot: MeteoSnapshot) -> dict:
         a, b = 17.27, 237.7
         alpha = ((a * temp.value) / (b + temp.value)) + math.log(rh.value / 100.0)
         dp = (b * alpha) / (a - alpha)
-        derived["punto_rocio"] = DerivedMetric(
-            name="punto_rocio", value=dp, unit="C", ts=ts
-        )
+        derived["punto_rocio"] = DerivedMetric(name="punto_rocio", value=dp, unit="C", ts=ts)
     if temp and rh and viento:
         # Sensación térmica simple
         st = temp.value - (viento.value * 0.7)
-        derived["sensacion_termica"] = DerivedMetric(
-            name="sensacion_termica", value=st, unit="C", ts=ts
-        )
+        derived["sensacion_termica"] = DerivedMetric(name="sensacion_termica", value=st, unit="C", ts=ts)
     if radiacion and (snapshot.sensors.get("uv") is None):
         if radiacion.value is not None:
             uv_est = min(12.0, max(0.0, radiacion.value / 25.0))

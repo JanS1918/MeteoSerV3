@@ -3,7 +3,11 @@ class IndexRegistry:
         self.indices = {}
 
     def set(self, nombre, valor, escala=None, meta=None):
-        self.indices[nombre] = {"valor": valor, "escala": escala, "meta": meta or {}}
+        self.indices[nombre] = {
+            "valor": valor,
+            "escala": escala,
+            "meta": meta or {}
+        }
 
     def get(self, nombre):
         return self.indices.get(nombre)

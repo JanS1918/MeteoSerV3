@@ -1,10 +1,4 @@
-from datetime import datetime
-from typing import Any, Dict
-
-import math
-
-from core.indices.cetreria.cetreria_indices import calcular_cetreria
-
+from typing import Dict
 
 # ------------------------------------------------------------
 # ALERTA DE FRÍO EXTREMO
@@ -23,7 +17,6 @@ def indice_alerta_polvo(pm25: float, viento: float) -> float:
         riesgo = 0
     return riesgo
 
-
 def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float) -> float:
     """
     Índice de alerta de frío extremo basado en:
@@ -40,8 +33,6 @@ def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float) -> fl
     if humedad < 40:
         score += min(30, (40 - humedad) * 0.5)
     return max(0.0, min(100.0, score))
-
-
 # ------------------------------------------------------------
 # ALERTA DE CALOR EXTREMO
 # ------------------------------------------------------------
@@ -67,22 +58,14 @@ def indice_alerta_calor_extremo(temp: float, uv: float, humedad: float) -> float
 # ÍNDICES AVANZADOS DE SENSACIÓN TÉRMICA Y AIRE
 # ------------------------------------------------------------
 
-
 def indice_heat_index_c(temp_c: float, humedad: float) -> float:
     # NOAA Heat Index (en °C)
     t_f: float = temp_c * 9 / 5 + 32
     rh: float = humedad
-    hi_f: float = (
-        -42.379
-        + 2.04901523 * t_f
-        + 10.14333127 * rh
-        - 0.22475541 * t_f * rh
-        - 0.00683783 * t_f * t_f
-        - 0.05481717 * rh * rh
-        + 0.00122874 * t_f * t_f * rh
-        + 0.00085282 * t_f * rh * rh
-        - 0.00000199 * t_f * t_f * rh * rh
-    )
+    hi_f: float = (-42.379 + 2.04901523 * t_f + 10.14333127 * rh - 0.22475541 * t_f * rh
+            - 0.00683783 * t_f * t_f - 0.05481717 * rh * rh
+            + 0.00122874 * t_f * t_f * rh + 0.00085282 * t_f * rh * rh
+            - 0.00000199 * t_f * t_f * rh * rh)
     hi_c: float = (hi_f - 32) * 5 / 9
     return hi_c
 
@@ -92,19 +75,17 @@ def indice_wind_chill_c(temp_c: float, viento_kmh: float) -> float:
     v: float = max(viento_kmh, 0.0)
     if temp_c > 10 or v < 4.8:
         return temp_c
-    return 13.12 + 0.6215 * temp_c - 11.37 * (v**0.16) + 0.3965 * temp_c * (v**0.16)
+    return 13.12 + 0.6215 * temp_c - 11.37 * (v ** 0.16) + 0.3965 * temp_c * (v ** 0.16)
 
 
 def indice_bulbo_humedo_c(temp_c: float, humedad: float) -> float:
     # Aproximación Stull (2011)
     rh: float = max(1.0, min(100.0, humedad))
-    return (
-        temp_c * math.atan(0.151977 * (rh + 8.313659) ** 0.5)
-        + math.atan(temp_c + rh)
-        - math.atan(rh - 1.676331)
-        + 0.00391838 * rh**1.5 * math.atan(0.023101 * rh)
-        - 4.686035
-    )
+    return (temp_c * math.atan(0.151977 * (rh + 8.313659) ** 0.5)
+            + math.atan(temp_c + rh)
+            - math.atan(rh - 1.676331)
+            + 0.00391838 * rh ** 1.5 * math.atan(0.023101 * rh)
+            - 4.686035)
 
 
 def indice_humidex(temp_c: float, humedad: float) -> float:
@@ -130,9 +111,7 @@ def indice_vpd_kpa(temp_c: float, humedad: float) -> float:
     return max(0.0, es - ea)
 
 
-def indice_entalpia_kjkg(
-    temp_c: float, humedad: float, presion_kpa: float = 101.325
-) -> float:
+def indice_entalpia_kjkg(temp_c: float, humedad: float, presion_kpa: float = 101.325) -> float:
     # Entalpía del aire húmedo (kJ/kg)
     es: float = 0.6108 * math.exp((17.27 * temp_c) / (temp_c + 237.3))
     ea: float = es * (humedad / 100.0)
@@ -140,9 +119,7 @@ def indice_entalpia_kjkg(
     return 1.006 * temp_c + w * (2501 + 1.86 * temp_c)
 
 
-def indice_wbgt(
-    temp_c: float, humedad: float, radiacion: float = 0.0, viento_kmh: float = 0.0
-) -> float:
+def indice_wbgt(temp_c: float, humedad: float, radiacion: float = 0.0, viento_kmh: float = 0.0) -> float:
     # WBGT aproximado con bulbo húmedo y globo estimado
     tw: float = indice_bulbo_humedo_c(temp_c, humedad)
     tg: float = temp_c + (radiacion / 1000.0) * 12.0 - (viento_kmh * 0.5)
@@ -150,14 +127,12 @@ def indice_wbgt(
     return 0.7 * tw + 0.2 * tg + 0.1 * temp_c
 
 
-def indice_pmv_ppd_simple(
-    temp_c: float, humedad: float, viento_kmh: float = 0.0
-) -> Dict[str, float]:
+def indice_pmv_ppd_simple(temp_c: float, humedad: float, viento_kmh: float = 0.0) -> Dict[str, float]:
     # Aproximación simple basada en temperatura/HR/viento
     v: float = viento_kmh / 3.6
     pmv: float = (temp_c - 24) / 4 + (humedad - 50) / 100 - v * 0.2
     pmv: float = max(-3.0, min(3.0, pmv))
-    ppd: float = 100.0 - 95.0 * math.exp(-0.03353 * pmv**4 - 0.2179 * pmv**2)
+    ppd: float = 100.0 - 95.0 * math.exp(-0.03353 * pmv ** 4 - 0.2179 * pmv ** 2)
     return {"pmv": round(pmv, 2), "ppd": round(ppd, 1)}
 
 
@@ -173,7 +148,7 @@ def indice_aqi_pm25(pm25: float) -> float:
         (350.5, 500.4, 401, 500),
     ]
     c: float = max(0.0, pm25)
-    for cl, ch, il, ih in breakpoints:
+    for (cl, ch, il, ih) in breakpoints:
         if cl <= c <= ch:
             return (ih - il) / (ch - cl) * (c - cl) + il
     return 500.0
@@ -192,22 +167,13 @@ def _media_ponderada(valores: list, pesos: list) -> float:
     return total / total_w
 
 
-def _clamp_range(
-    value: float, min_value: float = 0.0, max_value: float = 100.0
-) -> float:
+def _clamp_range(value: float, min_value: float = 0.0, max_value: float = 100.0) -> float:
     return max(min(value, max_value), min_value)
 
 
-def _calcular_nubosidad_estimada(
-    temp: float | None,
-    dew: float | None,
-    rh: float | None,
-    viento: float | None,
-    rad_real: float | None,
-    rad_teorica: float | None,
-    temp_esperada_nocturna: float | None,
-    es_dia: bool,
-) -> float | None:
+def _calcular_nubosidad_estimada(temp: float | None, dew: float | None, rh: float | None, viento: float | None,
+                                 rad_real: float | None, rad_teorica: float | None, temp_esperada_nocturna: float | None,
+                                 es_dia: bool) -> float | None:
     if temp is None or dew is None or rh is None or viento is None:
         return None
     delta_t = max(min(temp - dew, 10.0), 0.0)
@@ -220,7 +186,10 @@ def _calcular_nubosidad_estimada(
         delta_n = max(min(temp - temp_esperada_nocturna, 5.0), -5.0)
         manta_factor = delta_n / 5.0 if delta_n >= 0 else 0.0
     nub_atmos = (
-        0.4 * sat_factor + 0.3 * rh_factor + 0.2 * viento_factor + 0.1 * manta_factor
+        0.4 * sat_factor +
+        0.3 * rh_factor +
+        0.2 * viento_factor +
+        0.1 * manta_factor
     ) * 100.0
     nub_atmos = _clamp_range(nub_atmos)
     if es_dia and rad_teorica and rad_teorica > 0:
@@ -233,15 +202,9 @@ def _calcular_nubosidad_estimada(
     return _clamp_range(nub_final)
 
 
-def _calcular_transparencia_atmosferica(
-    rh: float | None,
-    temp: float | None,
-    dew: float | None,
-    nub: float | None,
-    rad_real: float | None,
-    rad_teorica: float | None,
-    es_dia: bool,
-) -> float | None:
+def _calcular_transparencia_atmosferica(rh: float | None, temp: float | None, dew: float | None,
+                                        nub: float | None, rad_real: float | None, rad_teorica: float | None,
+                                        es_dia: bool) -> float | None:
     if rh is None or temp is None or dew is None or nub is None:
         return None
     delta_t = max(min(temp - dew, 15.0), 0.0)
@@ -255,14 +218,16 @@ def _calcular_transparencia_atmosferica(
     else:
         rad_factor = 1.0
     transparencia = (
-        0.35 * sequedad + 0.35 * rh_factor + 0.20 * nub_factor + 0.10 * rad_factor
+        0.35 * sequedad +
+        0.35 * rh_factor +
+        0.20 * nub_factor +
+        0.10 * rad_factor
     ) * 100.0
     return _clamp_range(transparencia)
 
 
-def _calcular_riesgo_empaniamiento_optica(
-    temp: float | None, dew: float | None, rh: float | None, viento: float | None
-) -> float | None:
+def _calcular_riesgo_empaniamiento_optica(temp: float | None, dew: float | None, rh: float | None,
+                                         viento: float | None) -> float | None:
     if temp is None or dew is None or rh is None or viento is None:
         return None
     delta_t = max(min(temp - dew, 5.0), 0.0)
@@ -270,31 +235,30 @@ def _calcular_riesgo_empaniamiento_optica(
     rh_factor = max(min(rh, 100.0), 0.0) / 100.0
     viento_clamp = max(min(viento, 4.0), 0.0)
     viento_factor = 1.0 - (viento_clamp / 4.0)
-    riesgo = (0.5 * roc_factor + 0.3 * rh_factor + 0.2 * viento_factor) * 100.0
+    riesgo = (
+        0.5 * roc_factor +
+        0.3 * rh_factor +
+        0.2 * viento_factor
+    ) * 100.0
     return _clamp_range(riesgo)
 
 
-def _calcular_seeing_termico_basico(
-    var_t_5min: float | None, viento: float | None
-) -> float | None:
+def _calcular_seeing_termico_basico(var_t_5min: float | None, viento: float | None) -> float | None:
     if var_t_5min is None or viento is None:
         return None
     var_t = max(min(var_t_5min, 3.0), 0.0)
     viento_clamp = max(min(viento, 8.0), 0.0)
     var_factor = var_t / 3.0
     viento_factor = viento_clamp / 8.0
-    seeing_malo = (0.6 * var_factor + 0.4 * viento_factor) * 100.0
+    seeing_malo = (
+        0.6 * var_factor +
+        0.4 * viento_factor
+    ) * 100.0
     return _clamp_range(seeing_malo)
 
 
-def _calcular_cielo_observable_nocturno(
-    nub: float | None,
-    transp: float | None,
-    niebla: float | None,
-    emp: float | None,
-    seeing: float | None,
-    fase_lunar: float | None,
-) -> float | None:
+def _calcular_cielo_observable_nocturno(nub: float | None, transp: float | None, niebla: float | None,
+                                      emp: float | None, seeing: float | None, fase_lunar: float | None) -> float | None:
     if nub is None or transp is None or niebla is None or emp is None or seeing is None:
         return None
     nub_n = nub / 100.0
@@ -321,9 +285,7 @@ def _calcular_cielo_observable_nocturno(
     return _clamp_range(calidad * 100.0)
 
 
-def _calcular_ventana_observacion_nocturna(
-    cielo: float | None, duracion_noche: float | None
-) -> float | None:
+def _calcular_ventana_observacion_nocturna(cielo: float | None, duracion_noche: float | None) -> float | None:
     if cielo is None or duracion_noche is None:
         return None
     horas = duracion_noche * (cielo / 100.0)
@@ -340,12 +302,14 @@ def _clasificar_indice_cielo(valor: float | None) -> str:
     return "mala"
 
 
+from datetime import datetime
+from typing import Dict, Any
+import math
+
 # ------------------------------------------------------------
 # ALERTA DE TORMENTA
 # ------------------------------------------------------------
-def indice_alerta_tormenta(
-    uv: float, radiacion: float, presion: float, tendencia_presion: float, rayos: float
-) -> float:
+def indice_alerta_tormenta(uv: float, radiacion: float, presion: float, tendencia_presion: float, rayos: float) -> float:
     """
     Índice de alerta de tormenta basado en:
     - UV bajo
@@ -370,7 +334,6 @@ def indice_alerta_tormenta(
         score += min(20, rayos * 2)
     return max(0.0, min(100.0, score))
 
-
 # ============================================================
 # MÓDULO B — ÍNDICES METEOROLÓGICOS AVANZADOS
 # ============================================================
@@ -385,6 +348,12 @@ EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
 REAL_ONLY_SENSORS = False
 
 
+from typing import Dict, Any
+import math
+import time
+from core.indices.cetreria.cetreria_indices import calcular_cetreria
+
+
 class EnvironmentalIndices:
     def indice_sonometro(self):
         """
@@ -392,15 +361,11 @@ class EnvironmentalIndices:
         """
         ruido = self._get_sensor("ruido")
         if ruido["valor"] is None:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Sin datos de sonómetro",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Sin datos de sonómetro"}
         return {
             "valor": round(float(ruido["valor"]), 2),
             "estimado": ruido["estimado"],
-            "explicacion": "Nivel de ruido ambiente (dB)",
+            "explicacion": "Nivel de ruido ambiente (dB)"
         }
 
     def indice_sismografo(self):
@@ -412,28 +377,20 @@ class EnvironmentalIndices:
         except Exception:
             sismo = {"valor": None, "estimado": True}
         if sismo.get("valor") is None:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Sin datos de sismógrafo",
-            }
-        return {
-            "valor": round(float(sismo["valor"]), 2),
-            "estimado": sismo.get("estimado", False),
-            "explicacion": "Actividad sísmica relativa",
-        }
+            return {"valor": None, "estimado": True, "explicacion": "Sin datos de sismógrafo"}
+        return {"valor": round(float(sismo["valor"]), 2), "estimado": sismo.get("estimado", False), "explicacion": "Actividad sísmica relativa"}
 
     def radiacion_teorica(self):
         """
         Calcula la radiación solar teórica en superficie horizontal (W/m2) según la hora y latitud.
         Devuelve un dict con valor, estimado y explicación.
         """
+        import math
+        from datetime import datetime
         # Constante solar (W/m2)
         S = 1367
         # Obtener latitud
-        lat, lon = (
-            self._get_location() if hasattr(self, "_get_location") else (None, None)
-        )
+        lat, lon = self._get_location() if hasattr(self, '_get_location') else (None, None)
         if lat is None:
             return {"valor": None, "estimado": True, "explicacion": "Falta latitud"}
         # Día del año
@@ -448,23 +405,12 @@ class EnvironmentalIndices:
         # Elevación solar
         lat_rad: float = math.radians(lat)
         decl_rad: float = math.radians(decl)
-        elev: float = math.asin(
-            math.sin(lat_rad) * math.sin(decl_rad)
-            + math.cos(lat_rad) * math.cos(decl_rad) * math.cos(omega)
-        )
+        elev: float = math.asin(math.sin(lat_rad) * math.sin(decl_rad) + math.cos(lat_rad) * math.cos(decl_rad) * math.cos(omega))
         if elev <= 0:
-            return {
-                "valor": 0.0,
-                "estimado": True,
-                "explicacion": "Sol bajo el horizonte",
-            }
+            return {"valor": 0.0, "estimado": True, "explicacion": "Sol bajo el horizonte"}
         # Atmósfera clara, sin nubes
         rad: float = S * math.sin(elev)
-        return {
-            "valor": round(rad, 2),
-            "estimado": True,
-            "explicacion": "Modelo teórico sin nubes",
-        }
+        return {"valor": round(rad, 2), "estimado": True, "explicacion": "Modelo teórico sin nubes"}
 
     def _get_location(self):
         """
@@ -499,15 +445,10 @@ class EnvironmentalIndices:
         elif not validar_sismo_externo:
             explicacion_sismo_externa = "No disponible módulo validación externa sismos"
         else:
-            explicacion_sismo_externa = (
-                "No disponible lat/lon para validación externa sismos"
-            )
+            explicacion_sismo_externa = "No disponible lat/lon para validación externa sismos"
         # Aquí iría el cálculo y retorno de los índices, por ejemplo:
-        indices = {
-            "sismo": sismos,
-            "sismo_externo_confirmado": sismo_externo_confirma,
-            "explicacion_sismo_externa": explicacion_sismo_externa,
-        }
+        indices = {}
+        # Ejemplo: indices["sismo"] = sismos
         return indices
 
     def nubosidad_estimada(self):
@@ -523,18 +464,14 @@ class EnvironmentalIndices:
         viento_val = float(viento["valor"]) if viento["valor"] is not None else 0.0
         uv_val = float(uv["valor"]) if uv["valor"] is not None else 0.0
         rad_val = float(rad_real["valor"]) if rad_real["valor"] is not None else None
-        rad_teor_val = (
-            float(rad_teor["valor"]) if rad_teor["valor"] is not None else None
-        )
+        rad_teor_val = float(rad_teor["valor"]) if rad_teor["valor"] is not None else None
 
         # Punto de rocío
         dew = None
         if temp_val is not None and humedad_val is not None:
             try:
                 a, b = 17.27, 237.7
-                alpha = ((a * temp_val) / (b + temp_val)) + math.log(
-                    max(1e-6, humedad_val) / 100.0
-                )
+                alpha = ((a * temp_val) / (b + temp_val)) + math.log(max(1e-6, humedad_val) / 100.0)
                 dew = (b * alpha) / (a - alpha)
             except Exception:
                 dew = None
@@ -567,21 +504,16 @@ class EnvironmentalIndices:
                     nub = 50.0
             else:
                 nub = 50.0
-        explicacion = (
-            "Nubosidad día/noche (radiación + atmósfera)"
-            if es_dia
-            else "Nubosidad nocturna (atmósfera)"
-        )
+        explicacion = "Nubosidad día/noche (radiación + atmósfera)" if es_dia else "Nubosidad nocturna (atmósfera)"
         return {
             "valor": round(float(nub), 2),
             "estimado": True,
-            "explicacion": explicacion,
+            "explicacion": explicacion
         }
 
     def fase_lunar(self):
         try:
             import datetime
-
             # Epoch: new moon 2000-01-06 18:14 UTC
             epoch = datetime.datetime(2000, 1, 6, 18, 14)
             now = datetime.datetime.utcnow()
@@ -593,15 +525,10 @@ class EnvironmentalIndices:
             return {
                 "valor": round(illum * 100.0, 2),
                 "estimado": True,
-                "explicacion": "Fase lunar estimada (iluminación %)",
+                "explicacion": "Fase lunar estimada (iluminación %)"
             }
         except Exception:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Fase lunar no disponible",
-            }
-
+            return {"valor": None, "estimado": True, "explicacion": "Fase lunar no disponible"}
     def riesgo_niebla(self):
         """
         Índice de riesgo de niebla: alta humedad, baja temperatura, poca radiación y poco viento.
@@ -617,11 +544,7 @@ class EnvironmentalIndices:
             r = float(radiacion["valor"])
             v = float(viento["valor"])
         except Exception:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Faltan sensores para niebla",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Faltan sensores para niebla"}
         score = 0.0
         if h > 90:
             score += (h - 90) * 2
@@ -631,11 +554,7 @@ class EnvironmentalIndices:
             score += (50 - r) * 0.5
         if v < 2:
             score += (2 - v) * 5
-        return {
-            "valor": min(100, round(score, 2)),
-            "estimado": temp["estimado"] or humedad["estimado"],
-            "explicacion": f"HR={h}%, T={t}C, Rad={r}W/m2, V={v}m/s",
-        }
+        return {"valor": min(100, round(score, 2)), "estimado": temp["estimado"] or humedad["estimado"], "explicacion": f"HR={h}%, T={t}C, Rad={r}W/m2, V={v}m/s"}
 
     def evapotranspiracion(self):
         """
@@ -651,26 +570,16 @@ class EnvironmentalIndices:
             h = float(humedad["valor"])
             if radiacion["valor"] is None:
                 rad_teor = self.radiacion_teorica()
-                r: float | None = (
-                    float(rad_teor["valor"]) if rad_teor["valor"] is not None else None
-                )
+                r: float | None = float(rad_teor["valor"]) if rad_teor["valor"] is not None else None
                 rad_estimado = True
             else:
                 r = float(radiacion["valor"])
                 rad_estimado = radiacion["estimado"]
             v = float(viento["valor"])
         except Exception:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Faltan sensores para ET",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Faltan sensores para ET"}
         if r is None:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Falta radiación para ET",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Falta radiación para ET"}
         # Fórmula FAO PM simplificada (no incluye presión ni todos los factores)
         # ETo = 0.408*Delta*(Rn-G) + gamma*(900/(T+273))*u2*(es-ea) / (Delta+gamma*(1+0.34*u2))
         # Simplificamos: Rn=radiación neta (W/m2), u2=viento (m/s), T=ºC, HR=%, es-ea=deficit presión vapor
@@ -679,14 +588,8 @@ class EnvironmentalIndices:
         delta: float = 4098 * es / ((t + 237.3) ** 2)
         gamma: float = 0.665e-3 * 101.3  # kPa/ºC, presión estándar
         rn: float = r * 0.0864 / 2.45  # MJ/m2/día a mm/día (aprox)
-        eto: float = (
-            0.408 * delta * rn + gamma * (900 / (t + 273)) * v * (es - ea)
-        ) / (delta + gamma * (1 + 0.34 * v))
-        return {
-            "valor": round(max(0, eto), 2),
-            "estimado": temp["estimado"] or humedad["estimado"] or rad_estimado,
-            "explicacion": f"T={t}C, HR={h}%, Rad={r}W/m2, V={v}m/s",
-        }
+        eto: float = (0.408 * delta * rn + gamma * (900 / (t + 273)) * v * (es - ea)) / (delta + gamma * (1 + 0.34 * v))
+        return {"valor": round(max(0, eto), 2), "estimado": temp["estimado"] or humedad["estimado"] or rad_estimado, "explicacion": f"T={t}C, HR={h}%, Rad={r}W/m2, V={v}m/s"}
 
     """
     Motor unificado de índices meteorológicos y ambientales.
@@ -694,6 +597,9 @@ class EnvironmentalIndices:
     Si falta un sensor, estima usando física/histórico y marca como 'estimado'.
     Devuelve todos los índices relevantes con trazabilidad de fuente y estimación.
     """
+
+    def __init__(self, system_core) -> None:
+        self.system = system_core
 
     def _get_sensor(self, nombre, fallback=None):
         v = self.system.obtener_sensor(nombre)
@@ -714,9 +620,7 @@ class EnvironmentalIndices:
         base = nombres[0] if nombres else "sensor"
         return {"valor": None, "estimado": True, "fuente": f"no_disponible_{base}"}
 
-    def _rain_accumulated(
-        self, nombres: list[str], window_s: int
-    ) -> tuple[float | None, bool]:
+    def _rain_accumulated(self, nombres: list[str], window_s: int) -> tuple[float | None, bool]:
         estimado = True
         for nombre in nombres:
             try:
@@ -727,7 +631,6 @@ class EnvironmentalIndices:
                 continue
             estimado = False
             import time as _time
-
             now: float = _time.time()
             samples = [(t, v) for t, v in historial if (now - t) <= window_s]
             if len(samples) < 2:
@@ -765,18 +668,7 @@ class EnvironmentalIndices:
         for ch in ("_", "-", "/", ".", ",", ":"):
             s = s.replace(ch, " ")
         tokens = {t for t in s.split() if t}
-        stop = {
-            "indice",
-            "índice",
-            "riesgo",
-            "alerta",
-            "prediccion",
-            "predicción",
-            "compuesto",
-            "compuesta",
-            "estimado",
-            "estimada",
-        }
+        stop = {"indice", "índice", "riesgo", "alerta", "prediccion", "predicción", "compuesto", "compuesta", "estimado", "estimada"}
         return {t for t in tokens if t not in stop}
 
     def _relacionados(self, nombre_a: str, nombre_b: str) -> bool:
@@ -798,9 +690,7 @@ class EnvironmentalIndices:
             return 0.35
         return 0.45
 
-    def reforzar_indices(
-        self, indices: Dict[str, Any], predicciones: Dict[str, Any] | None = None
-    ) -> Dict[str, Any]:
+    def reforzar_indices(self, indices: Dict[str, Any], predicciones: Dict[str, Any] | None = None) -> Dict[str, Any]:
         if not isinstance(indices, dict) or not indices:
             return indices
         try:
@@ -815,9 +705,7 @@ class EnvironmentalIndices:
         for nombre, info in list(indices.items()):
             if not isinstance(info, dict):
                 continue
-            meta = (
-                INDEX_CATALOG.get(nombre, {}) if isinstance(INDEX_CATALOG, dict) else {}
-            )
+            meta = INDEX_CATALOG.get(nombre, {}) if isinstance(INDEX_CATALOG, dict) else {}
             sensores_esperados = meta.get("sensores") or []
 
             refuerzos = []
@@ -825,19 +713,13 @@ class EnvironmentalIndices:
             for sensor in sensores_esperados:
                 if sensor in sensores:
                     sensores_presentes += 1
-                    refuerzos.append(
-                        {"tipo": "sensor", "nombre": sensor, "estado": "real"}
-                    )
+                    refuerzos.append({"tipo": "sensor", "nombre": sensor, "estado": "real"})
                 elif sensor in sensores_derivados:
                     sensores_presentes += 1
-                    refuerzos.append(
-                        {"tipo": "sensor", "nombre": sensor, "estado": "derivado"}
-                    )
+                    refuerzos.append({"tipo": "sensor", "nombre": sensor, "estado": "derivado"})
                 elif sensor in indices:
                     sensores_presentes += 1
-                    refuerzos.append(
-                        {"tipo": "indice", "nombre": sensor, "estado": "derivado"}
-                    )
+                    refuerzos.append({"tipo": "indice", "nombre": sensor, "estado": "derivado"})
 
             formula_refuerzos = 0
             if isinstance(formulas, dict) and formulas:
@@ -845,46 +727,23 @@ class EnvironmentalIndices:
                     if nombre_formula not in indices:
                         continue
                     entradas = cfg.get("entradas") or []
-                    if set(entradas) & set(sensores_esperados) or self._relacionados(
-                        nombre_formula, nombre
-                    ):
+                    if set(entradas) & set(sensores_esperados) or self._relacionados(nombre_formula, nombre):
                         formula_refuerzos += 1
-                        refuerzos.append(
-                            {
-                                "tipo": "formula",
-                                "nombre": nombre_formula,
-                                "estado": "apoyo",
-                            }
-                        )
+                        refuerzos.append({"tipo": "formula", "nombre": nombre_formula, "estado": "apoyo"})
 
             pred_refuerzos = 0
             if isinstance(predicciones, dict) and predicciones:
                 for nombre_pred in predicciones.keys():
                     if self._relacionados(nombre_pred, nombre):
                         pred_refuerzos += 1
-                        refuerzos.append(
-                            {
-                                "tipo": "prediccion",
-                                "nombre": nombre_pred,
-                                "estado": "apoyo",
-                            }
-                        )
+                        refuerzos.append({"tipo": "prediccion", "nombre": nombre_pred, "estado": "apoyo"})
 
             ratio = 0.0
             if sensores_esperados:
                 ratio = sensores_presentes / max(1, len(sensores_esperados))
 
             base = self._confianza_score_base(info.get("confianza"))
-            score = min(
-                100.0,
-                max(
-                    0.0,
-                    base * 100.0
-                    + ratio * 30.0
-                    + formula_refuerzos * 4.0
-                    + pred_refuerzos * 7.0,
-                ),
-            )
+            score = min(100.0, max(0.0, base * 100.0 + ratio * 30.0 + formula_refuerzos * 4.0 + pred_refuerzos * 7.0))
 
             info["refuerzos"] = refuerzos
             info["confianza_detalle"] = {
@@ -905,7 +764,6 @@ class EnvironmentalIndices:
         if not historial or len(historial) < 2:
             return None
         import time as _time
-
         now: float = _time.time()
         recent = [(t, v) for t, v in historial if (now - t) <= window_s]
         if len(recent) < 2:
@@ -927,7 +785,6 @@ class EnvironmentalIndices:
         if not historial or len(historial) < 2:
             return 0.0
         import time as _time
-
         now: float = _time.time()
         samples = [(t, v) for t, v in historial if (now - t) <= window_s]
         if len(samples) < 2:
@@ -948,7 +805,6 @@ class EnvironmentalIndices:
         if not historial or len(historial) < 2:
             return 0.0
         import time as _time
-
         now: float = _time.time()
         samples = [(t, v) for t, v in historial if (now - t) <= window_s]
         if len(samples) < 2:
@@ -969,7 +825,6 @@ class EnvironmentalIndices:
         if not historial:
             return None
         import time as _time
-
         now: float = _time.time()
         samples = [v for t, v in historial if (now - t) <= window_s and v is not None]
         if not samples:
@@ -980,19 +835,11 @@ class EnvironmentalIndices:
         temp = self._get_sensor("temperatura")
         viento = self._get_sensor("viento", fallback=0)
         if temp["valor"] is None:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Sin sensor de temperatura",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Sin sensor de temperatura"}
         try:
             t_val = float(temp["valor"])
         except (TypeError, ValueError):
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Valor de temperatura no numérico",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Valor de temperatura no numérico"}
         try:
             v_val = float(viento["valor"])
         except (TypeError, ValueError):
@@ -1001,7 +848,7 @@ class EnvironmentalIndices:
         return {
             "valor": round(st, 2),
             "estimado": temp["estimado"] or viento["estimado"],
-            "explicacion": f"{'Estimado' if temp['estimado'] or viento['estimado'] else 'Directo'}: T={t_val}C, V={v_val}m/s",
+            "explicacion": f"{'Estimado' if temp['estimado'] or viento['estimado'] else 'Directo'}: T={t_val}C, V={v_val}m/s"
         }
 
     def indice_uv(self):
@@ -1018,18 +865,12 @@ class EnvironmentalIndices:
                         return {
                             "valor": round(uv_val_est, 2),
                             "estimado": True,
-                            "explicacion": "UV estimado por radiación solar (sensor UV=0, radiación>10). Apoyo entre sensores.",
+                            "explicacion": "UV estimado por radiación solar (sensor UV=0, radiación>10). Apoyo entre sensores."
                         }
                 except (TypeError, ValueError):
                     pass
             # Siempre mostrar el valor, aunque sea 0
-            return {
-                "valor": uv_val,
-                "estimado": uv["estimado"],
-                "explicacion": "Sensor UV directo"
-                if not uv["estimado"]
-                else "Estimado por ausencia de sensor UV",
-            }
+            return {"valor": uv_val, "estimado": uv["estimado"], "explicacion": "Sensor UV directo" if not uv["estimado"] else "Estimado por ausencia de sensor UV"}
         except (TypeError, ValueError):
             pass
         # Estimación física básica si no hay sensor UV
@@ -1041,40 +882,28 @@ class EnvironmentalIndices:
                 return {
                     "valor": round(uv_val, 2),
                     "estimado": True,
-                    "explicacion": "UV estimado por radiación solar. Apoyo entre sensores.",
+                    "explicacion": "UV estimado por radiación solar. Apoyo entre sensores."
                 }
             # Si hay radiación pero no suficiente, mostrar 0
             return {
                 "valor": 0,
                 "estimado": True,
-                "explicacion": "UV estimado: radiación baja o sensor UV=0",
+                "explicacion": "UV estimado: radiación baja o sensor UV=0"
             }
         except (TypeError, ValueError):
             pass
         # Si no hay radiación ni UV, mostrar 0
-        return {
-            "valor": 0,
-            "estimado": True,
-            "explicacion": "Sin sensor UV ni radiación",
-        }
+        return {"valor": 0, "estimado": True, "explicacion": "Sin sensor UV ni radiación"}
 
     def riesgo_lluvia(self):
         humedad = self._get_sensor("humedad")
         lluvia = self._get_sensor("lluvia", fallback=0)
         if humedad["valor"] is None:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Sin sensor de humedad",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Sin sensor de humedad"}
         try:
             h_val = float(humedad["valor"])
         except (TypeError, ValueError):
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Valor de humedad no numérico",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Valor de humedad no numérico"}
         try:
             l_val = float(lluvia["valor"])
         except (TypeError, ValueError):
@@ -1083,41 +912,29 @@ class EnvironmentalIndices:
         return {
             "valor": min(100, round(riesgo, 2)),
             "estimado": humedad["estimado"] or lluvia["estimado"],
-            "explicacion": f"{'Estimado' if humedad['estimado'] or lluvia['estimado'] else 'Directo'}: HR={h_val}%, Lluvia={l_val}mm",
+            "explicacion": f"{'Estimado' if humedad['estimado'] or lluvia['estimado'] else 'Directo'}: HR={h_val}%, Lluvia={l_val}mm"
         }
 
     def punto_rocio(self):
         temp = self._get_sensor("temperatura")
         rh = self._get_sensor("humedad")
         if temp["valor"] is None or rh["valor"] is None:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Faltan sensores para punto de rocío",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Faltan sensores para punto de rocío"}
         try:
             t_val = float(temp["valor"])
             rh_val = float(rh["valor"])
         except (TypeError, ValueError):
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Valores no numéricos para punto de rocío",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Valores no numéricos para punto de rocío"}
         a, b = 17.27, 237.7
         try:
             alpha: float = ((a * t_val) / (b + t_val)) + math.log(rh_val / 100.0)
             dp: float = (b * alpha) / (a - alpha)
         except Exception:
-            return {
-                "valor": None,
-                "estimado": True,
-                "explicacion": "Error en cálculo de punto de rocío",
-            }
+            return {"valor": None, "estimado": True, "explicacion": "Error en cálculo de punto de rocío"}
         return {
             "valor": round(dp, 2),
             "estimado": temp["estimado"] or rh["estimado"],
-            "explicacion": f"{'Estimado' if temp['estimado'] or rh['estimado'] else 'Directo'}: T={t_val}C, HR={rh_val}%",
+            "explicacion": f"{'Estimado' if temp['estimado'] or rh['estimado'] else 'Directo'}: T={t_val}C, HR={rh_val}%"
         }
 
     def obtener_todos(self) -> Dict[str, Any]:
@@ -1139,6 +956,7 @@ class EnvironmentalIndices:
         radiacion = self._get_sensor("radiacion", fallback=0)
         suelo = self._get_sensor("wh51")
         rayos = self._get_sensor("rayos")
+        lightning_num = self._get_sensor("lightning_num")
         lightning_time = self._get_sensor("lightning_time")
 
         # --- Validación externa de rayos ---
@@ -1164,9 +982,7 @@ class EnvironmentalIndices:
         # Siempre incluir el índice de niebla, aunque sea 0 o None
         if niebla["valor"] is None:
             niebla["valor"] = 0
-            niebla["explicacion"] = niebla.get(
-                "explicacion", "Sin datos suficientes para niebla"
-            )
+            niebla["explicacion"] = niebla.get("explicacion", "Sin datos suficientes para niebla")
         niebla["confianza"] = self._confianza(niebla.get("estimado", True), fiable=True)
         indices["riesgo_niebla"] = niebla
         # Índice de evapotranspiración
@@ -1223,7 +1039,7 @@ class EnvironmentalIndices:
                 "valor": round(transp, 2),
                 "estimado": True,
                 "confianza": "derivado_fiable",
-                "explicacion": "Transparencia atmosférica (sequedad + nubosidad + radiación)",
+                "explicacion": "Transparencia atmosférica (sequedad + nubosidad + radiación)"
             }
 
         emp = _calcular_riesgo_empaniamiento_optica(
@@ -1237,20 +1053,18 @@ class EnvironmentalIndices:
                 "valor": round(emp, 2),
                 "estimado": True,
                 "confianza": "derivado_fiable",
-                "explicacion": "Riesgo de empañamiento óptico por rocío/HR/viento",
+                "explicacion": "Riesgo de empañamiento óptico por rocío/HR/viento"
             }
 
         trend_t = self._trend("temperatura", window_s=600)
         var_t_5min = abs(trend_t) / 12.0 if trend_t is not None else 0.0
-        seeing = _calcular_seeing_termico_basico(
-            var_t_5min, float(viento["valor"]) if viento["valor"] is not None else 0.0
-        )
+        seeing = _calcular_seeing_termico_basico(var_t_5min, float(viento["valor"]) if viento["valor"] is not None else 0.0)
         if seeing is not None:
             indices["seeing_termico_basico"] = {
                 "valor": round(seeing, 2),
                 "estimado": True,
                 "confianza": "derivado_fiable",
-                "explicacion": "Seeing térmico básico (variación T + viento)",
+                "explicacion": "Seeing térmico básico (variación T + viento)"
             }
 
         fase = self.fase_lunar()
@@ -1271,7 +1085,7 @@ class EnvironmentalIndices:
                 "valor": round(cielo, 2),
                 "estimado": True,
                 "confianza": "derivado_fiable",
-                "explicacion": "Cielo observable nocturno (nubosidad + transparencia + riesgos + luna)",
+                "explicacion": "Cielo observable nocturno (nubosidad + transparencia + riesgos + luna)"
             }
         # Humedad de suelo (WH51)
         if suelo["valor"] is not None:
@@ -1279,7 +1093,7 @@ class EnvironmentalIndices:
                 "valor": suelo["valor"],
                 "estimado": suelo["estimado"],
                 "confianza": self._confianza(suelo["estimado"], fiable=True),
-                "explicacion": "Sensor WH51",
+                "explicacion": "Sensor WH51"
             }
             trend_suelo = self._trend("wh51")
             if trend_suelo is not None:
@@ -1287,7 +1101,7 @@ class EnvironmentalIndices:
                     "valor": round(trend_suelo, 3),
                     "estimado": True,
                     "confianza": "derivado_fiable",
-                    "explicacion": "Tendencia humedad suelo (%/h) desde histórico real",
+                    "explicacion": "Tendencia humedad suelo (%/h) desde histórico real"
                 }
             # Índice de sequía del suelo (0-100)
             try:
@@ -1304,7 +1118,7 @@ class EnvironmentalIndices:
                     "valor": round(sequia, 2),
                     "estimado": True,
                     "confianza": "derivado_fiable",
-                    "explicacion": "Sequía por humedad suelo + tendencia + ET",
+                    "explicacion": "Sequía por humedad suelo + tendencia + ET"
                 }
             except Exception:
                 pass
@@ -1323,20 +1137,16 @@ class EnvironmentalIndices:
             lluvia_detectada = False
             try:
                 import datetime
-
+                ahora = datetime.datetime.now()
                 # Obtener fecha/hora del último rayo
                 rayo_time = None
                 if lightning_time["valor"] is not None:
                     # Se asume formato timestamp o string ISO
                     try:
                         if isinstance(lightning_time["valor"], (int, float)):
-                            rayo_time = datetime.datetime.fromtimestamp(
-                                float(lightning_time["valor"])
-                            )
+                            rayo_time = datetime.datetime.fromtimestamp(float(lightning_time["valor"]))
                         else:
-                            rayo_time = datetime.datetime.fromisoformat(
-                                str(lightning_time["valor"])
-                            )
+                            rayo_time = datetime.datetime.fromisoformat(str(lightning_time["valor"]))
                     except Exception:
                         rayo_time = None
                 if rayo_time:
@@ -1347,12 +1157,10 @@ class EnvironmentalIndices:
                     # Buscar lluvia prevista +/-1h (si hay predicción disponible)
                     # Se asume que el sistema puede tener un método obtener_prediccion_lluvia(hora)
                     if hasattr(self.system, "obtener_prediccion_lluvia"):
-                        for delta_h in range(-1, 2):
+                        for delta_h in range(-1,2):
                             hora_pred = rayo_time + datetime.timedelta(hours=delta_h)
                             try:
-                                pred_lluvia = self.system.obtener_prediccion_lluvia(
-                                    hora_pred
-                                )
+                                pred_lluvia = self.system.obtener_prediccion_lluvia(hora_pred)
                                 if pred_lluvia and float(pred_lluvia) > 0:
                                     lluvia_detectada = True
                                     break
@@ -1373,21 +1181,16 @@ class EnvironmentalIndices:
             indices["contador_rayos"] = {
                 "valor": rayos["valor"] if rayo_valido else 0,
                 "estimado": rayos["estimado"] or not rayo_valido,
-                "explicacion": explicacion_rayos.strip(),
+                "explicacion": explicacion_rayos.strip()
             }
         else:
             indices["contador_rayos"] = {
                 "valor": 0,
                 "estimado": True,
-                "explicacion": "No se detectaron rayos por sensores internos. "
-                + (f"[{explicacion_externa}]" if explicacion_externa else ""),
+                "explicacion": "No se detectaron rayos por sensores internos. " + (f"[{explicacion_externa}]" if explicacion_externa else "")
             }
         if lightning_time["valor"] is not None:
-            indices["ultimo_rayo"] = {
-                "valor": lightning_time["valor"],
-                "estimado": lightning_time["estimado"],
-                "explicacion": "Fecha/hora del último rayo",
-            }
+            indices["ultimo_rayo"] = {"valor": lightning_time["valor"], "estimado": lightning_time["estimado"], "explicacion": "Fecha/hora del último rayo"}
 
         # Fórmulas personalizadas
         formulas: Any | Dict[Any, Any] = getattr(self.system, "formulas", {}) or {}
@@ -1411,7 +1214,7 @@ class EnvironmentalIndices:
                         "valor": round(float(valor), 3),
                         "estimado": False,
                         "confianza": "real",
-                        "explicacion": cfg.get("descripcion", "Fórmula personalizada"),
+                        "explicacion": cfg.get("descripcion", "Fórmula personalizada")
                     }
                 except Exception:
                     continue
@@ -1429,14 +1232,9 @@ class EnvironmentalIndices:
             temp_val = float(temp["valor"]) if temp["valor"] is not None else None
             hum_val = float(humedad["valor"]) if humedad["valor"] is not None else None
             viento_val = float(viento["valor"]) if viento["valor"] is not None else None
-            rad_val = (
-                float(radiacion["valor"]) if radiacion["valor"] is not None else None
-            )
+            rad_val = float(radiacion["valor"]) if radiacion["valor"] is not None else None
 
-            rachas = self._get_sensor_any(
-                ["rachas", "racha", "viento_racha", "wind_gust", "gust"],
-                fallback=viento_val,
-            )
+            rachas = self._get_sensor_any(["rachas", "racha", "viento_racha", "wind_gust", "gust"], fallback=viento_val)
             rachas_val = float(rachas["valor"]) if rachas["valor"] is not None else None
 
             dew_val = None
@@ -1447,9 +1245,7 @@ class EnvironmentalIndices:
             elif temp_val is not None and hum_val is not None:
                 try:
                     a, b = 17.27, 237.7
-                    alpha = ((a * temp_val) / (b + temp_val)) + math.log(
-                        max(1e-6, hum_val) / 100.0
-                    )
+                    alpha = ((a * temp_val) / (b + temp_val)) + math.log(max(1e-6, hum_val) / 100.0)
                     dew_val = (b * alpha) / (a - alpha)
                     dew_est = True
                 except Exception:
@@ -1458,69 +1254,48 @@ class EnvironmentalIndices:
 
             nub_info = indices.get("nubosidad_estimada")
             nub_val = nub_info.get("valor") if isinstance(nub_info, dict) else nub_info
-            nub_est = (
-                nub_info.get("estimado", True) if isinstance(nub_info, dict) else True
-            )
+            nub_est = nub_info.get("estimado", True) if isinstance(nub_info, dict) else True
 
             trend_5m = self._trend("temperatura", window_s=300)
             var_t_5min = abs(trend_5m) / 12.0 if trend_5m is not None else 0.0
 
             lluvia_1h_val = None
             lluvia_1h_est = True
-            lluvia_1h = self._get_sensor_any(
-                ["lluvia_1h", "rain_1h", "lluvia_h", "rain_hour"]
-            )
+            lluvia_1h = self._get_sensor_any(["lluvia_1h", "rain_1h", "lluvia_h", "rain_hour"])
             if lluvia_1h["valor"] is not None:
                 lluvia_1h_val = float(lluvia_1h["valor"])
                 lluvia_1h_est = lluvia_1h["estimado"]
             else:
-                lluvia_1h_val, lluvia_1h_est = self._rain_accumulated(
-                    ["lluvia", "rain", "rainfall"], 3600
-                )
+                lluvia_1h_val, lluvia_1h_est = self._rain_accumulated(["lluvia", "rain", "rainfall"], 3600)
 
             lluvia_24h_val = None
             lluvia_24h_est = True
-            lluvia_24h = self._get_sensor_any(
-                ["lluvia_24h", "rain_24h", "lluvia_dia", "rain_day"]
-            )
+            lluvia_24h = self._get_sensor_any(["lluvia_24h", "rain_24h", "lluvia_dia", "rain_day"])
             if lluvia_24h["valor"] is not None:
                 lluvia_24h_val = float(lluvia_24h["valor"])
                 lluvia_24h_est = lluvia_24h["estimado"]
             else:
-                lluvia_24h_val, lluvia_24h_est = self._rain_accumulated(
-                    ["lluvia", "rain", "rainfall"], 86400
-                )
+                lluvia_24h_val, lluvia_24h_est = self._rain_accumulated(["lluvia", "rain", "rainfall"], 86400)
 
             st_val = st.get("valor") if isinstance(st, dict) else None
-            estimado_cetreria = any(
-                [
-                    temp["estimado"],
-                    humedad["estimado"],
-                    viento["estimado"],
-                    radiacion["estimado"],
-                    rachas["estimado"],
-                    nub_est,
-                    dew_est,
-                    lluvia_1h_est,
-                    lluvia_24h_est,
-                ]
-            )
+            estimado_cetreria = any([
+                temp["estimado"], humedad["estimado"], viento["estimado"], radiacion["estimado"],
+                rachas["estimado"], nub_est, dew_est, lluvia_1h_est, lluvia_24h_est
+            ])
 
-            cetreria = calcular_cetreria(
-                {
-                    "viento_medio": viento_val,
-                    "rachas": rachas_val,
-                    "temperatura": temp_val,
-                    "punto_rocio": dew_val,
-                    "humedad": hum_val,
-                    "nubosidad_estimada": nub_val,
-                    "radiacion": rad_val,
-                    "var_t_5min": var_t_5min,
-                    "lluvia_24h": lluvia_24h_val,
-                    "lluvia_1h": lluvia_1h_val,
-                    "sensacion_termica": st_val,
-                }
-            )
+            cetreria = calcular_cetreria({
+                "viento_medio": viento_val,
+                "rachas": rachas_val,
+                "temperatura": temp_val,
+                "punto_rocio": dew_val,
+                "humedad": hum_val,
+                "nubosidad_estimada": nub_val,
+                "radiacion": rad_val,
+                "var_t_5min": var_t_5min,
+                "lluvia_24h": lluvia_24h_val,
+                "lluvia_1h": lluvia_1h_val,
+                "sensacion_termica": st_val,
+            })
 
             def _push_cet(nombre, valor, explicacion):
                 if valor is None:
@@ -1532,52 +1307,16 @@ class EnvironmentalIndices:
                     "explicacion": explicacion,
                 }
 
-            _push_cet(
-                "viento_cetreria",
-                cetreria.get("viento_cetreria"),
-                "Viento apto para cetrería",
-            )
-            _push_cet(
-                "visibilidad_terreno",
-                cetreria.get("visibilidad_terreno"),
-                "Visibilidad sobre terreno",
-            )
-            _push_cet(
-                "termales_probabilidad",
-                cetreria.get("termales_probabilidad"),
-                "Probabilidad de térmicas",
-            )
-            _push_cet(
-                "barro_campo",
-                cetreria.get("barro_campo"),
-                "Barro en campo (lluvia y secado)",
-            )
-            _push_cet(
-                "confort_ave", cetreria.get("confort_ave"), "Confort térmico del ave"
-            )
-            _push_cet(
-                "indice_viento_cetreria",
-                cetreria.get("indice_viento_cetreria"),
-                "Índice viento cetrería",
-            )
-            _push_cet(
-                "indice_visibilidad_cetreria",
-                cetreria.get("indice_visibilidad_cetreria"),
-                "Índice visibilidad cetrería",
-            )
-            _push_cet(
-                "indice_termales", cetreria.get("indice_termales"), "Índice de térmicas"
-            )
-            _push_cet(
-                "indice_seguridad_vuelo",
-                cetreria.get("indice_seguridad_vuelo"),
-                "Índice seguridad de vuelo",
-            )
-            _push_cet(
-                "indice_cetreria",
-                cetreria.get("indice_cetreria"),
-                "Índice final de cetrería",
-            )
+            _push_cet("viento_cetreria", cetreria.get("viento_cetreria"), "Viento apto para cetrería")
+            _push_cet("visibilidad_terreno", cetreria.get("visibilidad_terreno"), "Visibilidad sobre terreno")
+            _push_cet("termales_probabilidad", cetreria.get("termales_probabilidad"), "Probabilidad de térmicas")
+            _push_cet("barro_campo", cetreria.get("barro_campo"), "Barro en campo (lluvia y secado)")
+            _push_cet("confort_ave", cetreria.get("confort_ave"), "Confort térmico del ave")
+            _push_cet("indice_viento_cetreria", cetreria.get("indice_viento_cetreria"), "Índice viento cetrería")
+            _push_cet("indice_visibilidad_cetreria", cetreria.get("indice_visibilidad_cetreria"), "Índice visibilidad cetrería")
+            _push_cet("indice_termales", cetreria.get("indice_termales"), "Índice de térmicas")
+            _push_cet("indice_seguridad_vuelo", cetreria.get("indice_seguridad_vuelo"), "Índice seguridad de vuelo")
+            _push_cet("indice_cetreria", cetreria.get("indice_cetreria"), "Índice final de cetrería")
         except Exception:
             pass
 
@@ -1588,81 +1327,76 @@ class EnvironmentalIndices:
                 h = float(humedad["valor"])
                 v = float(viento["valor"] or 0.0)
                 r = float(radiacion["valor"] or 0.0)
-                estimado = (
-                    temp["estimado"]
-                    or humedad["estimado"]
-                    or viento["estimado"]
-                    or radiacion["estimado"]
-                )
+                estimado = temp["estimado"] or humedad["estimado"] or viento["estimado"] or radiacion["estimado"]
 
                 hi: float = indice_heat_index_c(t, h)
                 indices["sensacion_calor"] = {
                     "valor": round(hi, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "Heat Index (NOAA)",
+                    "explicacion": "Heat Index (NOAA)"
                 }
                 wc: float = indice_wind_chill_c(t, v)
                 indices["sensacion_frio"] = {
                     "valor": round(wc, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "Wind Chill (frío por viento)",
+                    "explicacion": "Wind Chill (frío por viento)"
                 }
                 wb: float = indice_bulbo_humedo_c(t, h)
                 indices["bulbo_humedo"] = {
                     "valor": round(wb, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "Bulbo húmedo (aprox.)",
+                    "explicacion": "Bulbo húmedo (aprox.)"
                 }
                 hdx: float = indice_humidex(t, h)
                 indices["humidex"] = {
                     "valor": round(hdx, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "Humidex (sensación de calor)",
+                    "explicacion": "Humidex (sensación de calor)"
                 }
                 wbgt: float = indice_wbgt(t, h, r, v)
                 indices["wbgt"] = {
                     "valor": round(wbgt, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "WBGT aproximado",
+                    "explicacion": "WBGT aproximado"
                 }
                 abs_h: float = indice_humedad_absoluta_gm3(t, h)
                 indices["humedad_absoluta"] = {
                     "valor": round(abs_h, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "Humedad absoluta (g/m3)",
+                    "explicacion": "Humedad absoluta (g/m3)"
                 }
                 vpd: float = indice_vpd_kpa(t, h)
                 indices["vpd"] = {
                     "valor": round(vpd, 3),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "Déficit de presión de vapor (kPa)",
+                    "explicacion": "Déficit de presión de vapor (kPa)"
                 }
                 ent: float = indice_entalpia_kjkg(t, h)
                 indices["entalpia_aire"] = {
                     "valor": round(ent, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "Entalpía aire húmedo (kJ/kg)",
+                    "explicacion": "Entalpía aire húmedo (kJ/kg)"
                 }
                 pmv_ppd: Dict[str, float] = indice_pmv_ppd_simple(t, h, v)
                 indices["pmv"] = {
                     "valor": pmv_ppd["pmv"],
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "PMV (aprox.)",
+                    "explicacion": "PMV (aprox.)"
                 }
                 indices["ppd"] = {
                     "valor": pmv_ppd["ppd"],
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "PPD (aprox.)",
+                    "explicacion": "PPD (aprox.)"
                 }
         except Exception:
             pass
@@ -1674,16 +1408,14 @@ class EnvironmentalIndices:
                     "valor": round(aqi, 1),
                     "estimado": pm25["estimado"],
                     "confianza": self._confianza(pm25["estimado"], fiable=True),
-                    "explicacion": "AQI US EPA (PM2.5)",
+                    "explicacion": "AQI US EPA (PM2.5)"
                 }
             except Exception:
                 pass
 
         # Índices compuestos (fusión de fórmulas)
         try:
-            t_ext: float | None = (
-                float(temp["valor"]) if temp["valor"] is not None else None
-            )
+            t_ext: float | None = float(temp["valor"]) if temp["valor"] is not None else None
             modo = "templado"
             if t_ext is not None and t_ext >= 20:
                 modo = "calor"
@@ -1709,19 +1441,17 @@ class EnvironmentalIndices:
                 pesos: list[float] = [0.3, 0.3, 0.4]
             comp: float = _media_ponderada(vals, pesos)
             if comp is not None:
-                estimado: bool = any(
-                    [
-                        indices.get("sensacion_calor", {}).get("estimado"),
-                        indices.get("sensacion_frio", {}).get("estimado"),
-                        indices.get("humidex", {}).get("estimado"),
-                        indices.get("wbgt", {}).get("estimado"),
-                    ]
-                )
+                estimado: bool = any([
+                    indices.get("sensacion_calor", {}).get("estimado"),
+                    indices.get("sensacion_frio", {}).get("estimado"),
+                    indices.get("humidex", {}).get("estimado"),
+                    indices.get("wbgt", {}).get("estimado"),
+                ])
                 indices["sensacion_termica_compuesta"] = {
                     "valor": round(comp, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": f"Fusión {modo}: heat index/humidex/wbgt/wind chill",
+                    "explicacion": f"Fusión {modo}: heat index/humidex/wbgt/wind chill"
                 }
         except Exception:
             pass
@@ -1737,18 +1467,16 @@ class EnvironmentalIndices:
             pesos: list[float] = [0.4, 0.35, 0.25]
             comp: float = _media_ponderada(vals, pesos)
             if comp is not None:
-                estimado: bool = any(
-                    [
-                        indices.get("aqi_pm25", {}).get("estimado"),
-                        indices.get("aire_cargado", {}).get("estimado"),
-                        indices.get("aire_enrarecido", {}).get("estimado"),
-                    ]
-                )
+                estimado: bool = any([
+                    indices.get("aqi_pm25", {}).get("estimado"),
+                    indices.get("aire_cargado", {}).get("estimado"),
+                    indices.get("aire_enrarecido", {}).get("estimado"),
+                ])
                 indices["calidad_aire_compuesta"] = {
                     "valor": round(comp, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "Fusión AQI+CO2+PM2.5",
+                    "explicacion": "Fusión AQI+CO2+PM2.5"
                 }
         except Exception:
             pass
@@ -1761,18 +1489,16 @@ class EnvironmentalIndices:
             pesos: list[float] = [0.5, 0.3, 0.2]
             comp: float = _media_ponderada(vals, pesos)
             if comp is not None:
-                estimado: bool = any(
-                    [
-                        indices.get("ventilacion_ideal", {}).get("estimado"),
-                        indices.get("aire_cargado", {}).get("estimado"),
-                        indices.get("aire_enrarecido", {}).get("estimado"),
-                    ]
-                )
+                estimado: bool = any([
+                    indices.get("ventilacion_ideal", {}).get("estimado"),
+                    indices.get("aire_cargado", {}).get("estimado"),
+                    indices.get("aire_enrarecido", {}).get("estimado"),
+                ])
                 indices["ventilacion_compuesta"] = {
                     "valor": round(comp, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "Fusión ventilación ideal + aire cargado/enrarecido",
+                    "explicacion": "Fusión ventilación ideal + aire cargado/enrarecido"
                 }
         except Exception:
             pass
@@ -1793,7 +1519,7 @@ class EnvironmentalIndices:
                 "valor": round(trend_t, 3),
                 "estimado": True,
                 "confianza": "derivado_fiable",
-                "explicacion": "Tendencia T_ext (C/h) desde histórico real",
+                "explicacion": "Tendencia T_ext (C/h) desde histórico real"
             }
         trend_h = self._trend("humedad")
         if trend_h is not None:
@@ -1801,7 +1527,7 @@ class EnvironmentalIndices:
                 "valor": round(trend_h, 3),
                 "estimado": True,
                 "confianza": "derivado_fiable",
-                "explicacion": "Tendencia HR_ext (%/h) desde histórico real",
+                "explicacion": "Tendencia HR_ext (%/h) desde histórico real"
             }
         trend_p = self._trend("presion")
         if trend_p is not None:
@@ -1809,7 +1535,7 @@ class EnvironmentalIndices:
                 "valor": round(trend_p, 3),
                 "estimado": True,
                 "confianza": "derivado_fiable",
-                "explicacion": "Tendencia presión (hPa/h) desde histórico real",
+                "explicacion": "Tendencia presión (hPa/h) desde histórico real"
             }
 
         # Estabilidad térmica (si hay tendencia)
@@ -1820,7 +1546,7 @@ class EnvironmentalIndices:
                     "valor": round(estabilidad, 2),
                     "estimado": True,
                     "confianza": "derivado_fiable",
-                    "explicacion": "Estabilidad térmica basada en tendencia de T_ext",
+                    "explicacion": "Estabilidad térmica basada en tendencia de T_ext"
                 }
             except Exception:
                 pass
@@ -1836,17 +1562,13 @@ class EnvironmentalIndices:
                 alt_nub = None
                 if humedad["valor"] is not None:
                     h = float(humedad["valor"])
-                    alt_nub: float = _clamp_0_100(
-                        (h - 60) * 1.8 + max(0.0, -float(trend_p_val)) * 25.0
-                    )
+                    alt_nub: float = _clamp_0_100((h - 60) * 1.8 + max(0.0, -float(trend_p_val)) * 25.0)
                 comp: float = _media_ponderada([nub_base, alt_nub], [0.7, 0.3])
                 if comp is not None:
                     indices["nubosidad_estimada"]["base"] = nub_base
                     indices["nubosidad_estimada"]["fusion"] = round(comp, 2)
                     indices["nubosidad_estimada"]["valor"] = round(comp, 2)
-                    indices["nubosidad_estimada"]["explicacion"] = (
-                        "Fusión radiación+HR+tendencia presión"
-                    )
+                    indices["nubosidad_estimada"]["explicacion"] = "Fusión radiación+HR+tendencia presión"
         except Exception:
             pass
 
@@ -1860,19 +1582,13 @@ class EnvironmentalIndices:
             alt = None
             if humedad["valor"] is not None:
                 h = float(humedad["valor"])
-                alt: float = _clamp_0_100(
-                    (h - 60) * 1.4
-                    + max(0.0, -float(trend_p_val)) * 20.0
-                    + (float(nub or 0.0) * 0.3)
-                )
+                alt: float = _clamp_0_100((h - 60) * 1.4 + max(0.0, -float(trend_p_val)) * 20.0 + (float(nub or 0.0) * 0.3))
             comp: float = _media_ponderada([rl, rm, at, alt], [0.4, 0.2, 0.2, 0.2])
             if comp is not None and "riesgo_lluvia" in indices:
                 indices["riesgo_lluvia"]["base"] = rl
                 indices["riesgo_lluvia"]["fusion"] = round(comp, 2)
                 indices["riesgo_lluvia"]["valor"] = round(comp, 2)
-                indices["riesgo_lluvia"]["explicacion"] = (
-                    "Fusión HR/lluvia + micro + tormenta + presión"
-                )
+                indices["riesgo_lluvia"]["explicacion"] = "Fusión HR/lluvia + micro + tormenta + presión"
         except Exception:
             pass
 
@@ -1884,19 +1600,13 @@ class EnvironmentalIndices:
             alt = None
             if humedad["valor"] is not None:
                 h = float(humedad["valor"])
-                alt: float = _clamp_0_100(
-                    (h - 70) * 1.8
-                    + max(0.0, -float(trend_p_val)) * 15.0
-                    + (float(nub or 0.0) * 0.25)
-                )
+                alt: float = _clamp_0_100((h - 70) * 1.8 + max(0.0, -float(trend_p_val)) * 15.0 + (float(nub or 0.0) * 0.25))
             comp: float = _media_ponderada([rm, alt], [0.6, 0.4])
             if comp is not None and "riesgo_micro_lluvias" in indices:
                 indices["riesgo_micro_lluvias"]["base"] = rm
                 indices["riesgo_micro_lluvias"]["fusion"] = round(comp, 2)
                 indices["riesgo_micro_lluvias"]["valor"] = round(comp, 2)
-                indices["riesgo_micro_lluvias"]["explicacion"] = (
-                    "Fusión HR + presión + nubosidad"
-                )
+                indices["riesgo_micro_lluvias"]["explicacion"] = "Fusión HR + presión + nubosidad"
         except Exception:
             pass
 
@@ -1908,20 +1618,14 @@ class EnvironmentalIndices:
                 t_ext = float(temp["valor"])
                 dp = float(pr["valor"])
                 rad_val = self._get_sensor("radiacion", fallback=0)["valor"]
-                rad_noc: float = (
-                    0.8 if rad_val is not None and float(rad_val) < 20 else 0.1
-                )
-                alt: float = _clamp_0_100(
-                    (2 - t_ext) * 10 + (0 - dp) * 4 + rad_noc * 25
-                )
+                rad_noc: float = 0.8 if rad_val is not None and float(rad_val) < 20 else 0.1
+                alt: float = _clamp_0_100((2 - t_ext) * 10 + (0 - dp) * 4 + rad_noc * 25)
             comp: float = _media_ponderada([rh, alt], [0.7, 0.3])
             if comp is not None and "riesgo_helada_local" in indices:
                 indices["riesgo_helada_local"]["base"] = rh
                 indices["riesgo_helada_local"]["fusion"] = round(comp, 2)
                 indices["riesgo_helada_local"]["valor"] = round(comp, 2)
-                indices["riesgo_helada_local"]["explicacion"] = (
-                    "Fusión helada: punto rocío + T_ext + radiación"
-                )
+                indices["riesgo_helada_local"]["explicacion"] = "Fusión helada: punto rocío + T_ext + radiación"
         except Exception:
             pass
 
@@ -1935,9 +1639,7 @@ class EnvironmentalIndices:
                     indices["aire_cargado"]["base"] = base
                     indices["aire_cargado"]["fusion"] = round(comp, 2)
                     indices["aire_cargado"]["valor"] = round(comp, 2)
-                    indices["aire_cargado"]["explicacion"] = (
-                        "Fusión CO2 + tiempo sin ventilar"
-                    )
+                    indices["aire_cargado"]["explicacion"] = "Fusión CO2 + tiempo sin ventilar"
         except Exception:
             pass
 
@@ -1957,11 +1659,7 @@ class EnvironmentalIndices:
 
         try:
             # Bochorno real: base + alt por heat index interior
-            if (
-                "bochorno_real" in indices
-                and tempint["valor"] is not None
-                and humedadint["valor"] is not None
-            ):
+            if "bochorno_real" in indices and tempint["valor"] is not None and humedadint["valor"] is not None:
                 t_i = float(tempint["valor"])
                 h_i = float(humedadint["valor"])
                 hi_i: float = indice_heat_index_c(t_i, h_i)
@@ -1972,19 +1670,13 @@ class EnvironmentalIndices:
                     indices["bochorno_real"]["base"] = base
                     indices["bochorno_real"]["fusion"] = round(comp, 2)
                     indices["bochorno_real"]["valor"] = round(comp, 2)
-                    indices["bochorno_real"]["explicacion"] = (
-                        "Fusión bochorno + heat index interior"
-                    )
+                    indices["bochorno_real"]["explicacion"] = "Fusión bochorno + heat index interior"
         except Exception:
             pass
 
         try:
             # Aire pegajoso: base + alt por humidex interior
-            if (
-                "aire_pegajoso" in indices
-                and tempint["valor"] is not None
-                and humedadint["valor"] is not None
-            ):
+            if "aire_pegajoso" in indices and tempint["valor"] is not None and humedadint["valor"] is not None:
                 t_i = float(tempint["valor"])
                 h_i = float(humedadint["valor"])
                 hdx_i: float = indice_humidex(t_i, h_i)
@@ -1995,9 +1687,7 @@ class EnvironmentalIndices:
                     indices["aire_pegajoso"]["base"] = base
                     indices["aire_pegajoso"]["fusion"] = round(comp, 2)
                     indices["aire_pegajoso"]["valor"] = round(comp, 2)
-                    indices["aire_pegajoso"]["explicacion"] = (
-                        "Fusión HR/OT + humidex interior"
-                    )
+                    indices["aire_pegajoso"]["explicacion"] = "Fusión HR/OT + humidex interior"
         except Exception:
             pass
 
@@ -2020,11 +1710,7 @@ class EnvironmentalIndices:
 
         try:
             # Deshidratación: base + alt por VPD interior
-            if (
-                "deshidratacion_ambiental" in indices
-                and tempint["valor"] is not None
-                and humedadint["valor"] is not None
-            ):
+            if "deshidratacion_ambiental" in indices and tempint["valor"] is not None and humedadint["valor"] is not None:
                 t_i = float(tempint["valor"])
                 h_i = float(humedadint["valor"])
                 vpd_i: float = indice_vpd_kpa(t_i, h_i)
@@ -2035,19 +1721,13 @@ class EnvironmentalIndices:
                     indices["deshidratacion_ambiental"]["base"] = base
                     indices["deshidratacion_ambiental"]["fusion"] = round(comp, 2)
                     indices["deshidratacion_ambiental"]["valor"] = round(comp, 2)
-                    indices["deshidratacion_ambiental"]["explicacion"] = (
-                        "Fusión HR baja + VPD"
-                    )
+                    indices["deshidratacion_ambiental"]["explicacion"] = "Fusión HR baja + VPD"
         except Exception:
             pass
 
         try:
             # Moho: base + alt por proximidad del punto de rocío interior
-            if (
-                "riesgo_moho" in indices
-                and tempint["valor"] is not None
-                and humedadint["valor"] is not None
-            ):
+            if "riesgo_moho" in indices and tempint["valor"] is not None and humedadint["valor"] is not None:
                 t_i = float(tempint["valor"])
                 h_i = float(humedadint["valor"])
                 a, b = 17.27, 237.7
@@ -2061,19 +1741,13 @@ class EnvironmentalIndices:
                     indices["riesgo_moho"]["base"] = base
                     indices["riesgo_moho"]["fusion"] = round(comp, 2)
                     indices["riesgo_moho"]["valor"] = round(comp, 2)
-                    indices["riesgo_moho"]["explicacion"] = (
-                        "Fusión HR/tiempo + punto rocío interior"
-                    )
+                    indices["riesgo_moho"]["explicacion"] = "Fusión HR/tiempo + punto rocío interior"
         except Exception:
             pass
 
         try:
             # Condensación ventanas: base + alt por ΔT vs punto de rocío interior
-            if (
-                "riesgo_condensacion_ventanas" in indices
-                and tempint["valor"] is not None
-                and humedadint["valor"] is not None
-            ):
+            if "riesgo_condensacion_ventanas" in indices and tempint["valor"] is not None and humedadint["valor"] is not None:
                 t_i = float(tempint["valor"])
                 h_i = float(humedadint["valor"])
                 a, b = 17.27, 237.7
@@ -2086,32 +1760,22 @@ class EnvironmentalIndices:
                     indices["riesgo_condensacion_ventanas"]["base"] = base
                     indices["riesgo_condensacion_ventanas"]["fusion"] = round(comp, 2)
                     indices["riesgo_condensacion_ventanas"]["valor"] = round(comp, 2)
-                    indices["riesgo_condensacion_ventanas"]["explicacion"] = (
-                        "Fusión condensación + punto rocío interior"
-                    )
+                    indices["riesgo_condensacion_ventanas"]["explicacion"] = "Fusión condensación + punto rocío interior"
         except Exception:
             pass
 
         try:
             # Olor a cerrado: base + alt por CO2 + tiempo sin ventilar
-            if (
-                "riesgo_olor_cerrado" in indices
-                and humedadint["valor"] is not None
-                and co2["valor"] is not None
-            ):
+            if "riesgo_olor_cerrado" in indices and humedadint["valor"] is not None and co2["valor"] is not None:
                 tiempo_sin_ventilar_h = self._hours_over_threshold("co2", 800)
-                alt: float = _clamp_0_100(
-                    (float(co2["valor"]) - 800) * 0.03 + tiempo_sin_ventilar_h * 5
-                )
+                alt: float = _clamp_0_100((float(co2["valor"]) - 800) * 0.03 + tiempo_sin_ventilar_h * 5)
                 base = indices["riesgo_olor_cerrado"]["valor"]
                 comp: float = _media_ponderada([base, alt], [0.6, 0.4])
                 if comp is not None:
                     indices["riesgo_olor_cerrado"]["base"] = base
                     indices["riesgo_olor_cerrado"]["fusion"] = round(comp, 2)
                     indices["riesgo_olor_cerrado"]["valor"] = round(comp, 2)
-                    indices["riesgo_olor_cerrado"]["explicacion"] = (
-                        "Fusión HR+tiempo + CO2"
-                    )
+                    indices["riesgo_olor_cerrado"]["explicacion"] = "Fusión HR+tiempo + CO2"
         except Exception:
             pass
 
@@ -2128,9 +1792,7 @@ class EnvironmentalIndices:
                     indices["estabilidad_termica"]["base"] = base
                     indices["estabilidad_termica"]["fusion"] = round(comp, 2)
                     indices["estabilidad_termica"]["valor"] = round(comp, 2)
-                    indices["estabilidad_termica"]["explicacion"] = (
-                        "Fusión estabilidad exterior+interior"
-                    )
+                    indices["estabilidad_termica"]["explicacion"] = "Fusión estabilidad exterior+interior"
         except Exception:
             pass
 
@@ -2141,62 +1803,48 @@ class EnvironmentalIndices:
                 valor: float = indice_riesgo_moho(
                     float(humedadint["valor"]),
                     float(tiempo_hr_alta_h),
-                    float(tempint["valor"]),
+                    float(tempint["valor"])
                 )
                 indices["riesgo_moho"] = {
                     "valor": round(valor, 2),
                     "estimado": humedadint["estimado"] or tempint["estimado"],
-                    "explicacion": "Moho: HR_int + tiempo HR alta + T_int",
+                    "explicacion": "Moho: HR_int + tiempo HR alta + T_int"
                 }
             except Exception:
                 pass
 
         # Confort interior (si hay datos suficientes)
-        if (
-            tempint["valor"] is not None
-            and humedadint["valor"] is not None
-            and co2["valor"] is not None
-        ):
+        if tempint["valor"] is not None and humedadint["valor"] is not None and co2["valor"] is not None:
             try:
-                confort: float = indice_confort_general(
-                    float(tempint["valor"]),
-                    float(humedadint["valor"]),
-                    float(co2["valor"]),
-                )
+                confort: float = indice_confort_general(float(tempint["valor"]), float(humedadint["valor"]), float(co2["valor"]))
                 indices["confort_general"] = {
                     "valor": round(confort, 2),
-                    "estimado": tempint["estimado"]
-                    or humedadint["estimado"]
-                    or co2["estimado"],
-                    "explicacion": "Confort: T_int, HR_int, CO2",
+                    "estimado": tempint["estimado"] or humedadint["estimado"] or co2["estimado"],
+                    "explicacion": "Confort: T_int, HR_int, CO2"
                 }
-                bochorno: float = indice_bochorno_real(
-                    float(tempint["valor"]), float(humedadint["valor"])
-                )
+                bochorno: float = indice_bochorno_real(float(tempint["valor"]), float(humedadint["valor"]))
                 indices["bochorno_real"] = {
                     "valor": round(bochorno, 2),
                     "estimado": tempint["estimado"] or humedadint["estimado"],
-                    "explicacion": "Bochorno: T_int, HR_int",
+                    "explicacion": "Bochorno: T_int, HR_int"
                 }
                 aire_seco: float = indice_aire_seco(float(humedadint["valor"]))
                 indices["aire_seco"] = {
                     "valor": round(aire_seco, 2),
                     "estimado": humedadint["estimado"],
-                    "explicacion": "Aire seco: HR_int",
+                    "explicacion": "Aire seco: HR_int"
                 }
-                aire_pegajoso: float = indice_aire_pegajoso(
-                    float(humedadint["valor"]), float(tempint["valor"])
-                )
+                aire_pegajoso: float = indice_aire_pegajoso(float(humedadint["valor"]), float(tempint["valor"]))
                 indices["aire_pegajoso"] = {
                     "valor": round(aire_pegajoso, 2),
                     "estimado": humedadint["estimado"] or tempint["estimado"],
-                    "explicacion": "Aire pegajoso: HR_int, T_int",
+                    "explicacion": "Aire pegajoso: HR_int, T_int"
                 }
                 frio_incomodo: float = indice_frio_incomodo(float(tempint["valor"]))
                 indices["frio_incomodo"] = {
                     "valor": round(frio_incomodo, 2),
                     "estimado": tempint["estimado"],
-                    "explicacion": "Frío incómodo: T_int",
+                    "explicacion": "Frío incómodo: T_int"
                 }
             except Exception:
                 pass
@@ -2205,35 +1853,25 @@ class EnvironmentalIndices:
         if co2["valor"] is not None:
             try:
                 tiempo_sin_ventilar_h = self._hours_over_threshold("co2", 800)
-                aire_cargado: float = indice_aire_cargado(
-                    float(co2["valor"]), float(tiempo_sin_ventilar_h)
-                )
+                aire_cargado: float = indice_aire_cargado(float(co2["valor"]), float(tiempo_sin_ventilar_h))
                 indices["aire_cargado"] = {
                     "valor": round(aire_cargado, 2),
                     "estimado": co2["estimado"],
-                    "explicacion": "Aire cargado: CO2 + tiempo sin ventilar",
+                    "explicacion": "Aire cargado: CO2 + tiempo sin ventilar"
                 }
                 if pm25["valor"] is not None:
-                    aire_enrarecido: float = indice_aire_enrarecido(
-                        float(co2["valor"]), float(pm25["valor"])
-                    )
+                    aire_enrarecido: float = indice_aire_enrarecido(float(co2["valor"]), float(pm25["valor"]))
                     indices["aire_enrarecido"] = {
                         "valor": round(aire_enrarecido, 2),
                         "estimado": co2["estimado"] or pm25["estimado"],
-                        "explicacion": "Aire enrarecido: CO2 + PM2.5",
+                        "explicacion": "Aire enrarecido: CO2 + PM2.5"
                     }
                 if tempint["valor"] is not None and humedadint["valor"] is not None:
-                    vent_ideal: float = indice_ventilacion_ideal(
-                        float(co2["valor"]),
-                        float(humedadint["valor"]),
-                        float(tempint["valor"]),
-                    )
+                    vent_ideal: float = indice_ventilacion_ideal(float(co2["valor"]), float(humedadint["valor"]), float(tempint["valor"]))
                     indices["ventilacion_ideal"] = {
                         "valor": round(vent_ideal, 2),
-                        "estimado": co2["estimado"]
-                        or humedadint["estimado"]
-                        or tempint["estimado"],
-                        "explicacion": "Ventilación ideal: CO2, HR_int, T_int",
+                        "estimado": co2["estimado"] or humedadint["estimado"] or tempint["estimado"],
+                        "explicacion": "Ventilación ideal: CO2, HR_int, T_int"
                     }
             except Exception:
                 pass
@@ -2242,33 +1880,23 @@ class EnvironmentalIndices:
         if humedadint["valor"] is not None:
             try:
                 tiempo_baja_hr = self._hours_under_threshold("humedad_interior", 40)
-                deshid: float = indice_deshidratacion_ambiental(
-                    float(humedadint["valor"]), float(tiempo_baja_hr)
-                )
+                deshid: float = indice_deshidratacion_ambiental(float(humedadint["valor"]), float(tiempo_baja_hr))
                 indices["deshidratacion_ambiental"] = {
                     "valor": round(deshid, 2),
                     "estimado": humedadint["estimado"],
-                    "explicacion": "Deshidratación: HR baja sostenida",
+                    "explicacion": "Deshidratación: HR baja sostenida"
                 }
             except Exception:
                 pass
 
         # Confort nocturno
-        if (
-            tempint["valor"] is not None
-            and ruido["valor"] is not None
-            and luz["valor"] is not None
-        ):
+        if tempint["valor"] is not None and ruido["valor"] is not None and luz["valor"] is not None:
             try:
-                confort_noct: float = indice_confort_nocturno(
-                    float(tempint["valor"]), float(ruido["valor"]), float(luz["valor"])
-                )
+                confort_noct: float = indice_confort_nocturno(float(tempint["valor"]), float(ruido["valor"]), float(luz["valor"]))
                 indices["confort_nocturno"] = {
                     "valor": round(confort_noct, 2),
-                    "estimado": tempint["estimado"]
-                    or ruido["estimado"]
-                    or luz["estimado"],
-                    "explicacion": "Confort nocturno: T_int, ruido, luz",
+                    "estimado": tempint["estimado"] or ruido["estimado"] or luz["estimado"],
+                    "explicacion": "Confort nocturno: T_int, ruido, luz"
                 }
             except Exception:
                 pass
@@ -2276,13 +1904,11 @@ class EnvironmentalIndices:
         # Aire pegajoso exterior (si hay datos)
         if temp["valor"] is not None and humedad["valor"] is not None:
             try:
-                aire_pegajoso_ext: float = indice_aire_pegajoso(
-                    float(humedad["valor"]), float(temp["valor"])
-                )
+                aire_pegajoso_ext: float = indice_aire_pegajoso(float(humedad["valor"]), float(temp["valor"]))
                 indices["aire_pegajoso_exterior"] = {
                     "valor": round(aire_pegajoso_ext, 2),
                     "estimado": temp["estimado"] or humedad["estimado"],
-                    "explicacion": "Aire pegajoso exterior: HR_ext, T_ext",
+                    "explicacion": "Aire pegajoso exterior: HR_ext, T_ext"
                 }
             except Exception:
                 pass
@@ -2291,13 +1917,11 @@ class EnvironmentalIndices:
         if humedadint["valor"] is not None:
             try:
                 tiempo_sin_ventilar_h = self._hours_over_threshold("co2", 800)
-                valor: float = indice_riesgo_olor_cerrado(
-                    float(humedadint["valor"]), float(tiempo_sin_ventilar_h)
-                )
+                valor: float = indice_riesgo_olor_cerrado(float(humedadint["valor"]), float(tiempo_sin_ventilar_h))
                 indices["riesgo_olor_cerrado"] = {
                     "valor": round(valor, 2),
                     "estimado": humedadint["estimado"],
-                    "explicacion": "Olor a cerrado: HR_int + tiempo CO2 alto",
+                    "explicacion": "Olor a cerrado: HR_int + tiempo CO2 alto"
                 }
             except Exception:
                 pass
@@ -2307,64 +1931,46 @@ class EnvironmentalIndices:
             humedad_media = self._mean_history("humedad_interior")
             if humedad_media is not None:
                 tiempo_hr_alta_h = self._hours_over_threshold("humedad_interior", 60)
-                valor: float = indice_salud_edificio(
-                    float(humedad_media), float(tiempo_hr_alta_h), 0
-                )
+                valor: float = indice_salud_edificio(float(humedad_media), float(tiempo_hr_alta_h), 0)
                 indices["salud_edificio"] = {
                     "valor": round(valor, 2),
                     "estimado": False,
-                    "explicacion": "Salud edificio: HR media + tiempo HR alta",
+                    "explicacion": "Salud edificio: HR media + tiempo HR alta"
                 }
         except Exception:
             pass
 
         # Riesgo de condensación en ventanas (interior vs exterior)
-        if (
-            tempint["valor"] is not None
-            and humedadint["valor"] is not None
-            and temp["valor"] is not None
-        ):
+        if tempint["valor"] is not None and humedadint["valor"] is not None and temp["valor"] is not None:
             try:
                 valor: float = indice_riesgo_condensacion_ventanas(
                     float(tempint["valor"]),
                     float(humedadint["valor"]),
-                    float(temp["valor"]),
+                    float(temp["valor"])
                 )
                 indices["riesgo_condensacion_ventanas"] = {
                     "valor": round(valor, 2),
-                    "estimado": tempint["estimado"]
-                    or humedadint["estimado"]
-                    or temp["estimado"],
-                    "explicacion": "Condensación: T_int, HR_int, T_ext",
+                    "estimado": tempint["estimado"] or humedadint["estimado"] or temp["estimado"],
+                    "explicacion": "Condensación: T_int, HR_int, T_ext"
                 }
             except Exception:
                 pass
 
         # Riesgo de helada local (si hay datos suficientes)
-        if (
-            pr["valor"] is not None
-            and temp["valor"] is not None
-            and viento["valor"] is not None
-        ):
+        if pr["valor"] is not None and temp["valor"] is not None and viento["valor"] is not None:
             try:
                 radiacion_val = self._get_sensor("radiacion", fallback=0)["valor"]
-                radiacion_nocturna: float = (
-                    0.8
-                    if radiacion_val is not None and float(radiacion_val) < 20
-                    else 0.1
-                )
+                radiacion_nocturna: float = 0.8 if radiacion_val is not None and float(radiacion_val) < 20 else 0.1
                 valor: float = indice_riesgo_helada_local(
                     float(pr["valor"]),
                     float(temp["valor"]),
                     float(radiacion_nocturna),
-                    float(viento["valor"]),
+                    float(viento["valor"])
                 )
                 indices["riesgo_helada_local"] = {
                     "valor": round(valor, 2),
-                    "estimado": pr["estimado"]
-                    or temp["estimado"]
-                    or viento["estimado"],
-                    "explicacion": "Helada: punto de rocío, T_ext, radiación nocturna, viento",
+                    "estimado": pr["estimado"] or temp["estimado"] or viento["estimado"],
+                    "explicacion": "Helada: punto de rocío, T_ext, radiación nocturna, viento"
                 }
             except Exception:
                 pass
@@ -2380,13 +1986,11 @@ class EnvironmentalIndices:
                 if presion_tendencia is None:
                     presion_tendencia = 0.0
                 irll_base: float = max(0.0, hr_ext - 70.0)
-                valor: float = indice_riesgo_micro_lluvias(
-                    hr_ext, irll_base, float(cambio_viento), float(presion_tendencia)
-                )
+                valor: float = indice_riesgo_micro_lluvias(hr_ext, irll_base, float(cambio_viento), float(presion_tendencia))
                 indices["riesgo_micro_lluvias"] = {
                     "valor": round(valor, 2),
                     "estimado": humedad["estimado"],
-                    "explicacion": "Micro-lluvias: HR, cambio viento, tendencia presión",
+                    "explicacion": "Micro-lluvias: HR, cambio viento, tendencia presión"
                 }
             except Exception:
                 pass
@@ -2399,7 +2003,7 @@ class EnvironmentalIndices:
                 indices["riesgo_rachas_peligrosas"] = {
                     "valor": round(riesgo_rachas, 2),
                     "estimado": viento["estimado"],
-                    "explicacion": "Rachas peligrosas: viento exterior",
+                    "explicacion": "Rachas peligrosas: viento exterior"
                 }
             except Exception:
                 pass
@@ -2412,7 +2016,7 @@ class EnvironmentalIndices:
                 indices["viento_incomodo_dormir"] = {
                     "valor": round(riesgo, 2),
                     "estimado": viento["estimado"],
-                    "explicacion": "Viento incómodo para dormir: viento exterior",
+                    "explicacion": "Viento incómodo para dormir: viento exterior"
                 }
             except Exception:
                 pass
@@ -2425,7 +2029,7 @@ class EnvironmentalIndices:
                 "valor": round(vis, 2),
                 "estimado": True,
                 "confianza": "derivado_fiable",
-                "explicacion": "Visibilidad local inversa a riesgo de niebla",
+                "explicacion": "Visibilidad local inversa a riesgo de niebla"
             }
         except Exception:
             pass
@@ -2435,13 +2039,11 @@ class EnvironmentalIndices:
             try:
                 t_ext = float(temp["valor"])
                 h_ext = float(humedad["valor"])
-                stress: float = max(
-                    0.0, min(100.0, (t_ext - 26) * 4 + (h_ext - 60) * 0.6)
-                )
+                stress: float = max(0.0, min(100.0, (t_ext - 26) * 4 + (h_ext - 60) * 0.6))
                 indices["estres_termico_exterior"] = {
                     "valor": round(stress, 2),
                     "estimado": temp["estimado"] or humedad["estimado"],
-                    "explicacion": "Estrés térmico: T_ext y HR_ext",
+                    "explicacion": "Estrés térmico: T_ext y HR_ext"
                 }
             except Exception:
                 pass
@@ -2454,7 +2056,7 @@ class EnvironmentalIndices:
                 indices["inversion_termica"] = {
                     "valor": round(inversion, 2),
                     "estimado": temp["estimado"] or tempint["estimado"],
-                    "explicacion": "Inversión térmica: T_int - T_ext",
+                    "explicacion": "Inversión térmica: T_int - T_ext"
                 }
             except Exception:
                 pass
@@ -2468,7 +2070,7 @@ class EnvironmentalIndices:
                     "valor": round(micro_rafaga, 2),
                     "estimado": True,
                     "confianza": "derivado_fiable",
-                    "explicacion": "Micro-ráfagas: cambio rápido de viento",
+                    "explicacion": "Micro-ráfagas: cambio rápido de viento"
                 }
             except Exception:
                 pass
@@ -2482,7 +2084,7 @@ class EnvironmentalIndices:
                 indices["niebla_adveccion"] = {
                     "valor": round(adv, 2),
                     "estimado": humedad["estimado"] or viento["estimado"],
-                    "explicacion": "Niebla advección: HR alta + viento",
+                    "explicacion": "Niebla advección: HR alta + viento"
                 }
             except Exception:
                 pass
@@ -2495,29 +2097,23 @@ class EnvironmentalIndices:
                 "pm25": pm25["valor"],
                 "ruido": ruido["valor"],
                 "luz": luz["valor"],
-                "tiempo_sin_ventilar_h": self._get_sensor(
-                    "tiempo_sin_ventilar_h", fallback=0
-                )["valor"],
-                "tiempo_hr_baja_h": self._get_sensor("tiempo_hr_baja_h", fallback=0)[
-                    "valor"
-                ],
+                "tiempo_sin_ventilar_h": self._get_sensor("tiempo_sin_ventilar_h", fallback=0)["valor"],
+                "tiempo_hr_baja_h": self._get_sensor("tiempo_hr_baja_h", fallback=0)["valor"],
             }
             indices_interior: Dict[str, Any] = evaluar_indices_ambientales(contexto)
-            estimado_interior: bool = any(
-                [
-                    tempint["estimado"],
-                    humedadint["estimado"],
-                    co2["estimado"],
-                    pm25["estimado"],
-                    ruido["estimado"],
-                    luz["estimado"],
-                ]
-            )
+            estimado_interior: bool = any([
+                tempint["estimado"],
+                humedadint["estimado"],
+                co2["estimado"],
+                pm25["estimado"],
+                ruido["estimado"],
+                luz["estimado"],
+            ])
             for nombre, valor in indices_interior.items():
                 indices[nombre] = {
                     "valor": round(float(valor), 2),
                     "estimado": estimado_interior,
-                    "explicacion": "Índice interior derivado de sensores",
+                    "explicacion": "Índice interior derivado de sensores"
                 }
         except Exception:
             pass
@@ -2530,59 +2126,25 @@ class EnvironmentalIndices:
             uv_val = uv["valor"] if uv["valor"] is not None else 0.0
             radiacion_val = self._get_sensor("radiacion")["valor"] or 0.0
             presion_val = self._get_sensor("presion")["valor"] or 1013.0
-            tendencia_presion_val = (
-                self._get_sensor("tendencia_presion")["valor"] or 0.0
-            )
+            tendencia_presion_val = self._get_sensor("tendencia_presion")["valor"] or 0.0
             rayos_val = self._get_sensor("rayos")["valor"] or 0.0
-            alerta_tormenta: float = indice_alerta_tormenta(
-                float(uv_val),
-                float(radiacion_val),
-                float(presion_val),
-                float(tendencia_presion_val),
-                float(rayos_val),
-            )
-            indices["alerta_tormenta"] = {
-                "valor": round(alerta_tormenta, 2),
-                "estimado": False,
-                "explicacion": "Alerta de tormenta: UV, radiación, presión, tendencia y rayos",
-            }
+            alerta_tormenta: float = indice_alerta_tormenta(float(uv_val), float(radiacion_val), float(presion_val), float(tendencia_presion_val), float(rayos_val))
+            indices["alerta_tormenta"] = {"valor": round(alerta_tormenta,2), "estimado": False, "explicacion": "Alerta de tormenta: UV, radiación, presión, tendencia y rayos"}
             # Alerta de calor extremo
             temp_val = temp["valor"] if temp["valor"] is not None else 0.0
             humedad_val = humedad["valor"] if humedad["valor"] is not None else 0.0
-            alerta_calor: float = indice_alerta_calor_extremo(
-                float(temp_val), float(uv_val), float(humedad_val)
-            )
-            indices["alerta_calor_extremo"] = {
-                "valor": round(alerta_calor, 2),
-                "estimado": False,
-                "explicacion": "Alerta de calor extremo: T, UV, HR",
-            }
+            alerta_calor: float = indice_alerta_calor_extremo(float(temp_val), float(uv_val), float(humedad_val))
+            indices["alerta_calor_extremo"] = {"valor": round(alerta_calor,2), "estimado": False, "explicacion": "Alerta de calor extremo: T, UV, HR"}
             # Alerta de frío extremo
             viento_val = viento["valor"] if viento["valor"] is not None else 0.0
-            alerta_frio: float = indice_alerta_frio_extremo(
-                float(temp_val), float(viento_val), float(humedad_val)
-            )
-            indices["alerta_frio_extremo"] = {
-                "valor": round(alerta_frio, 2),
-                "estimado": False,
-                "explicacion": "Alerta de frío extremo: T, viento, HR",
-            }
+            alerta_frio: float = indice_alerta_frio_extremo(float(temp_val), float(viento_val), float(humedad_val))
+            indices["alerta_frio_extremo"] = {"valor": round(alerta_frio,2), "estimado": False, "explicacion": "Alerta de frío extremo: T, viento, HR"}
             # Alerta de polvo/suciedad
             pm25_val = pm25["valor"] if pm25["valor"] is not None else 0.0
-            alerta_polvo: float = indice_alerta_polvo(
-                float(pm25_val), float(viento_val)
-            )
-            indices["alerta_polvo"] = {
-                "valor": round(alerta_polvo, 2),
-                "estimado": False,
-                "explicacion": "Alerta de polvo/suciedad: PM2.5 y viento",
-            }
+            alerta_polvo: float = indice_alerta_polvo(float(pm25_val), float(viento_val))
+            indices["alerta_polvo"] = {"valor": round(alerta_polvo,2), "estimado": False, "explicacion": "Alerta de polvo/suciedad: PM2.5 y viento"}
         except Exception as e:
-            indices["error_indices_avanzados"] = {
-                "valor": None,
-                "estimado": True,
-                "explicacion": f"Error en índices avanzados: {e}",
-            }
+            indices["error_indices_avanzados"] = {"valor": None, "estimado": True, "explicacion": f"Error en índices avanzados: {e}"}
         # Sonógrafo y sismógrafo siempre presentes
         indices["sonometro"] = self.indice_sonometro()
         indices["sismografo"] = self.indice_sismografo()
@@ -2591,8 +2153,6 @@ class EnvironmentalIndices:
         except Exception:
             pass
         return indices
-
-
 """
 Módulo unificado de índices ambientales MeteoSer.
 
@@ -2605,6 +2165,9 @@ Incluye:
 Todos los índices devuelven un valor 0–100.
 """
 
+from typing import Dict, Any
+import math
+
 
 def _clamp_0_100(value: float) -> float:
     return max(0.0, min(100.0, value))
@@ -2613,7 +2176,6 @@ def _clamp_0_100(value: float) -> float:
 # ------------------------------------------------------------
 # CONFORT HUMANO
 # ------------------------------------------------------------
-
 
 def indice_confort_general(ot: float, humedad: float, co2: float) -> float:
     """
@@ -2782,10 +2344,9 @@ def indice_ventilacion_ideal(co2: float, humedad: float, ot: float) -> float:
 # DIAGNÓSTICO DEL EDIFICIO
 # ------------------------------------------------------------
 
-
-def indice_salud_edificio(
-    humedad_media: float, tiempo_hr_alta_h: float, condensacion_eventos: int
-) -> float:
+def indice_salud_edificio(humedad_media: float,
+                          tiempo_hr_alta_h: float,
+                          condensacion_eventos: int) -> float:
     """
     Salud del edificio: inverso de humedad crónica + condensación.
     - humedad_media: %
@@ -2800,9 +2361,8 @@ def indice_salud_edificio(
     return _clamp_0_100(100.0 - _clamp_0_100(riesgo))
 
 
-def indice_riesgo_moho(
-    humedad: float, tiempo_hr_alta_h: float, temperatura: float
-) -> float:
+def indice_riesgo_moho(humedad: float, tiempo_hr_alta_h: float,
+                       temperatura: float) -> float:
     """
     Riesgo de moho: HR alta + tiempo + T moderada.
     - humedad: %
@@ -2817,9 +2377,9 @@ def indice_riesgo_moho(
     return _clamp_0_100(base)
 
 
-def indice_riesgo_condensacion_ventanas(
-    t_int: float, hr_int: float, t_ext: float
-) -> float:
+def indice_riesgo_condensacion_ventanas(t_int: float,
+                                        hr_int: float,
+                                        t_ext: float) -> float:
     """
     Condensación en ventanas: punto de rocío interior vs T de vidrio (aprox T_ext).
     - t_int: temperatura interior (°C)
@@ -2837,7 +2397,8 @@ def indice_riesgo_condensacion_ventanas(
     return _clamp_0_100(delta * 10)
 
 
-def indice_riesgo_olor_cerrado(humedad: float, tiempo_sin_ventilar_h: float) -> float:
+def indice_riesgo_olor_cerrado(humedad: float,
+                               tiempo_sin_ventilar_h: float) -> float:
     """
     Olor a cerrado: HR + tiempo sin ventilación.
     - humedad: %
@@ -2854,10 +2415,10 @@ def indice_riesgo_olor_cerrado(humedad: float, tiempo_sin_ventilar_h: float) -> 
 # METEOROLOGÍA LOCAL AVANZADA
 # ------------------------------------------------------------
 
-
-def indice_riesgo_helada_local(
-    punto_rocio: float, t_ext: float, radiacion_nocturna: float, viento: float
-) -> float:
+def indice_riesgo_helada_local(punto_rocio: float,
+                               t_ext: float,
+                               radiacion_nocturna: float,
+                               viento: float) -> float:
     """
     IRHL: riesgo de helada local.
     - punto_rocio: °C
@@ -2877,9 +2438,10 @@ def indice_riesgo_helada_local(
     return _clamp_0_100(base)
 
 
-def indice_riesgo_micro_lluvias(
-    hr_ext: float, irll_base: float, cambio_viento: float, presion_tendencia: float
-) -> float:
+def indice_riesgo_micro_lluvias(hr_ext: float,
+                                irll_base: float,
+                                cambio_viento: float,
+                                presion_tendencia: float) -> float:
     """
     IRLL: riesgo de micro-lluvias (sprinkles).
     - hr_ext: humedad exterior (%)
@@ -2899,10 +2461,10 @@ def indice_riesgo_micro_lluvias(
 # ÍNDICES DERIVADOS AVANZADOS
 # ------------------------------------------------------------
 
-
-def indice_estabilidad_termica_futura(
-    estabilidad_actual: float, ireav: float, delta_t_in_out: float, viento_ext: float
-) -> float:
+def indice_estabilidad_termica_futura(estabilidad_actual: float,
+                                      ireav: float,
+                                      delta_t_in_out: float,
+                                      viento_ext: float) -> float:
     """
     IETF: predice si la vivienda mantendrá su temperatura.
     - estabilidad_actual: %
@@ -2918,9 +2480,10 @@ def indice_estabilidad_termica_futura(
     return _clamp_0_100(score)
 
 
-def indice_condensacion_oculta_armarios(
-    irsh: float, irin: float, ersf: float, historial_nocturno: float
-) -> float:
+def indice_condensacion_oculta_armarios(irsh: float,
+                                        irin: float,
+                                        ersf: float,
+                                        historial_nocturno: float) -> float:
     """
     IRCA: riesgo de condensación oculta en armarios.
     """
@@ -2937,18 +2500,18 @@ def indice_condensacion_oculta_armarios(
     except Exception:
         ersf = 0.0
     try:
-        historial_nocturno = (
-            float(historial_nocturno) if historial_nocturno is not None else 0.0
-        )
+        historial_nocturno = float(historial_nocturno) if historial_nocturno is not None else 0.0
     except Exception:
         historial_nocturno = 0.0
     base: float = irsh * 0.4 + irin * 0.3 + ersf * 0.2 + historial_nocturno * 0.1
     return _clamp_0_100(base)
 
 
-def indice_renovacion_efectiva_aire(
-    co2: float, pm25: float, irin: float, irae: float, actividad_humana: float
-) -> float:
+def indice_renovacion_efectiva_aire(co2: float,
+                                    pm25: float,
+                                    irin: float,
+                                    irae: float,
+                                    actividad_humana: float) -> float:
     """
     IREA: cuánto se ha renovado realmente el aire.
     0 = nada, 100 = renovación excelente.
@@ -2964,9 +2527,11 @@ def indice_renovacion_efectiva_aire(
     return _clamp_0_100(score)
 
 
-def indice_ritmo_circadiano_ambiental(
-    ot: float, luz: float, ruido: float, estabilidad_termica: float, irin: float
-) -> float:
+def indice_ritmo_circadiano_ambiental(ot: float,
+                                      luz: float,
+                                      ruido: float,
+                                      estabilidad_termica: float,
+                                      irin: float) -> float:
     """
     IRCA-HUMANO: si el ambiente favorece sueño o vigilia.
     0 = muy activador, 100 = muy propicio para dormir.
@@ -3020,7 +2585,6 @@ def indice_ritmo_circadiano_ambiental(
 # ENVOLVENTE PRINCIPAL PARA CONTEXTO
 # ------------------------------------------------------------
 
-
 def evaluar_indices_ambientales(contexto: Dict[str, Any]) -> Dict[str, Any]:
     """
     Evalúa un conjunto de índices clave a partir de un contexto MeteoSer.
@@ -3043,9 +2607,7 @@ def evaluar_indices_ambientales(contexto: Dict[str, Any]) -> Dict[str, Any]:
         resultados["aire_pegajoso"] = indice_aire_pegajoso(hr, ot)
         resultados["confort_nocturno"] = indice_confort_nocturno(ot, ruido, luz)
         resultados["frio_incomodo"] = indice_frio_incomodo(ot)
-        resultados["aire_cargado"] = indice_aire_cargado(
-            co2, contexto.get("tiempo_sin_ventilar_h", 0.0)
-        )
+        resultados["aire_cargado"] = indice_aire_cargado(co2, contexto.get("tiempo_sin_ventilar_h", 0.0))
         resultados["deshidratacion_ambiental"] = indice_deshidratacion_ambiental(
             hr, contexto.get("tiempo_hr_baja_h", 0.0)
         )

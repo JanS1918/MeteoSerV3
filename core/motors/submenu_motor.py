@@ -1,6 +1,5 @@
 from typing import Dict, Any
 
-
 class MotorSubmenu:
     def obtener_detalle(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         # Submenú detallado real: causas, acciones, historial y algoritmos
@@ -21,11 +20,7 @@ class MotorSubmenu:
             causas.append("CO2 alto sostenido")
             acciones.append("Ventilar")
 
-        historial = {
-            k: sensores.get(k)
-            for k in ["temperatura", "humedad", "co2", "pm25", "viento", "lluvia"]
-            if k in sensores
-        }
+        historial = {k: sensores.get(k) for k in ["temperatura", "humedad", "co2", "pm25", "viento", "lluvia"] if k in sensores}
         algoritmos = list(auto_mejora.keys()) if isinstance(auto_mejora, dict) else []
 
         return {
@@ -34,5 +29,5 @@ class MotorSubmenu:
             "acciones": acciones,
             "historial": historial,
             "predicciones": predicciones,
-            "algoritmos": algoritmos,
+            "algoritmos": algoritmos
         }

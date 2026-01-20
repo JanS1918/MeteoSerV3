@@ -1,32 +1,3 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-.Python
-env/
-venv/
-.venv/
-
-# Virtualenv
-/.venv/
-/.env
-
-# Byte-compiled / logs / runtime
-*.log
-logs/
-service_stdout.log
-service_stderr.log
-
-# Data
-data/*.json
-
-# OS
-Thumbs.db
-.DS_Store
-
-# IDEs
-.vscode/
-.idea/
 .vscode/
 .venv/
 archive/logs/

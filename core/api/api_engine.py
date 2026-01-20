@@ -19,9 +19,7 @@ class ApiEngine:
     API interna y externa de MeteoSer.
     """
 
-    def __init__(
-        self, context_engine: ContextEngine, log_engine: LogEngine = None
-    ) -> None:
+    def __init__(self, context_engine: ContextEngine, log_engine: LogEngine = None) -> None:
         self.ctx: ContextEngine = context_engine
         self._log: LogEngine = log_engine
 
@@ -44,9 +42,7 @@ class ApiEngine:
 
     def anunciar_estado(self) -> None:
         estado: Dict[str, Any] = self.obtener_estado()
-        texto: str = (
-            f"Temperatura {estado['sensores']['temperatura_fusionada']} grados."
-        )
+        texto: str = f"Temperatura {estado['sensores']['temperatura_fusionada']} grados."
         self.ctx.comunicacion.responder(texto, estado)
 
     def anunciar_indices(self) -> None:

@@ -1,6 +1,5 @@
 from typing import Dict, Any
 
-
 class MotorEdificio:
     def diagnosticar(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         # Diagnóstico real usando sensores e índices

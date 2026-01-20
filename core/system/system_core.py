@@ -2,11 +2,11 @@
 # MÓDULO D — SYSTEM CORE (NÚCLEO OPERATIVO)
 # ============================================================
 
+EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
+
 import json
 import time
 from pathlib import Path
-
-EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
 
 
 class SystemCore:
@@ -28,9 +28,7 @@ class SystemCore:
             existente = self.formulas.get(nombre)
             if existente:
                 # Si la expresión es idéntica o menos completa, no la añade
-                if existente["expresion"] == expr or set(entradas).issubset(
-                    set(existente.get("entradas", []))
-                ):
+                if existente["expresion"] == expr or set(entradas).issubset(set(existente.get("entradas", []))):
                     continue
                 # Si la nueva fórmula usa más entradas o lógica más rica, la sustituye
                 if len(entradas) > len(existente.get("entradas", [])):
@@ -42,7 +40,6 @@ class SystemCore:
                     self.registrar_formula(nombre, expr, entradas, desc)
                     nuevas.append(nombre)
         return nuevas
-
     """
     Núcleo del sistema MeteoSer.
     Gestiona sensores, índices y recomendaciones.
@@ -61,7 +58,7 @@ class SystemCore:
             "humedad": None,
             "viento": None,
             "lluvia": None,
-            "radiacion": None,
+            "radiacion": None
         }
         self.formulas = {}
         self.sensores_timestamp = {}
@@ -84,9 +81,7 @@ class SystemCore:
         self._cargar_sensores_persistidos()
         self._cargar_formulas_persistidas()
 
-    def registrar_sensor_metadata(
-        self, nombre, tipo=None, unidad=None, fuente=None, fiabilidad=100.0, origen=None
-    ):
+    def registrar_sensor_metadata(self, nombre, tipo=None, unidad=None, fuente=None, fiabilidad=100.0, origen=None):
         if nombre not in self.sensores_metadata:
             self.sensores_metadata[nombre] = {}
         meta = self.sensores_metadata[nombre]
@@ -155,9 +150,7 @@ class SystemCore:
         else:
             self.sensores[nombre] = valor
         if nombre not in self.sensores_metadata and not nombre.endswith("_original"):
-            self.registrar_sensor_metadata(
-                nombre, tipo=nombre, fuente="autodetectado", origen="interno"
-            )
+            self.registrar_sensor_metadata(nombre, tipo=nombre, fuente="autodetectado", origen="interno")
         # Si es un valor original, también lo guarda en un historial
         if nombre.endswith("_original"):
             if not hasattr(self, "historial_originales"):
@@ -248,10 +241,7 @@ class SystemCore:
         }
         try:
             ruta = self._ruta_formulas_persistidas()
-            ruta.write_text(
-                json.dumps(self.formulas, ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
+            ruta.write_text(json.dumps(self.formulas, ensure_ascii=False, indent=2), encoding="utf-8")
         except Exception:
             pass
         return {"status": "OK", "nombre": nombre}
@@ -267,7 +257,6 @@ class SystemCore:
         indices = self.indices
         try:
             from core.indices.environmental_indices import EnvironmentalIndices
-
             if isinstance(self.indices, EnvironmentalIndices):
                 indices = self.indices.obtener_todos()
         except Exception:
@@ -275,7 +264,7 @@ class SystemCore:
         return {
             "sensores": self.sensores,
             "indices": indices,
-            "recomendacion": self.obtener_recomendacion(),
+            "recomendacion": self.obtener_recomendacion()
         }
 
     def activar_bloques_funcionales(self):

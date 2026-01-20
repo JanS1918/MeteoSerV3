@@ -1,6 +1,6 @@
 import math
 import time
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Callable, List, Optional
 
 try:
     from core.integration.integration_manager import SensorRegistry
@@ -15,7 +15,6 @@ RELIABILITY_MODERATE = "moderado"
 RELIABILITY_WEAK = "débil"
 
 VirtualSpec = Dict[str, Any]
-
 
 # -------------------------------
 # CLASE SensorVirtual
@@ -47,9 +46,7 @@ class SensorVirtual:
             required = self.spec.get("inputs", [])
             args = {k: inputs[k] for k in required if k in inputs}
             value = fn(args, **self.spec.get("params", {}))
-            if value is None or (
-                isinstance(value, float) and (math.isnan(value) or math.isinf(value))
-            ):
+            if value is None or (isinstance(value, float) and (math.isnan(value) or math.isinf(value))):
                 return None
             self.last_value = float(value)
             self.history.append(self.last_value)
@@ -59,7 +56,6 @@ class SensorVirtual:
             return self.last_value
         except Exception:
             return None
-
 
 # -------------------------------
 # CLASE EvaluadorDeEstimaciones
@@ -80,9 +76,7 @@ class EvaluadorDeEstimaciones:
             return 1.0
         return max(0.0, inputs_present / inputs_required)
 
-    def classify(
-        self, history: List[float], inputs_present: int, inputs_required: int
-    ) -> str:
+    def classify(self, history: List[float], inputs_present: int, inputs_required: int) -> str:
         c_score = self.score_consistency(history)
         a_score = self.score_availability(inputs_present, inputs_required)
         combined = 0.7 * c_score + 0.3 * a_score
@@ -91,7 +85,6 @@ class EvaluadorDeEstimaciones:
         if combined >= 0.4:
             return RELIABILITY_MODERATE
         return RELIABILITY_WEAK
-
 
 # -------------------------------
 # CLASE VirtualSensorManager
@@ -119,9 +112,7 @@ class VirtualSensorManager:
             present = sum(1 for r in required if r in inputs)
             value = vs.compute(inputs)
             vs.reliability = self.evaluator.classify(vs.history, present, len(required))
-            vs.active = (
-                vs.reliability in (RELIABILITY_STRONG, RELIABILITY_MODERATE)
-            ) and (value is not None)
+            vs.active = (vs.reliability in (RELIABILITY_STRONG, RELIABILITY_MODERATE)) and (value is not None)
             results[vid] = value
         return results
 
@@ -135,7 +126,7 @@ class VirtualSensorManager:
             "reliability": v.reliability,
             "active": v.active,
             "last_updated": v.last_updated,
-            "spec": v.spec,
+            "spec": v.spec
         }
 
     def publish_capabilities(self):
@@ -150,12 +141,7 @@ class VirtualSensorManager:
                     pass
 
     @staticmethod
-    def fn_ratio(
-        inputs: Dict[str, float],
-        numerator: str = None,
-        denominator: str = None,
-        scale: float = 1.0,
-    ):
+    def fn_ratio(inputs: Dict[str, float], numerator: str = None, denominator: str = None, scale: float = 1.0):
         if numerator not in inputs or denominator not in inputs:
             return None
         den = inputs[denominator]
@@ -175,7 +161,6 @@ class VirtualSensorManager:
             return None
         return s / total_w
 
-
 # -------------------------------
 # ESPECIFICACIONES DE EJEMPLO (NO SE EJECUTAN AUTOMÁTICAMENTE)
 # -------------------------------
@@ -187,43 +172,31 @@ def default_specs():
                 inputs, weights={"temp_int": 0.6, "hum_int": 0.2, "wbgt_real": 0.2}
             ),
             "params": {},
-            "capabilities": ["confort"],
+            "capabilities": ["confort"]
         },
         "co2_normalizado": {
             "inputs": ["co2_int", "temp_int"],
-            "fn": lambda inputs, **params: VirtualSensorManager.fn_ratio(
-                inputs, numerator="co2_int", denominator="temp_int", scale=1.0
-            ),
+            "fn": lambda inputs, **params: VirtualSensorManager.fn_ratio(inputs, numerator="co2_int", denominator="temp_int", scale=1.0),
             "params": {},
-            "capabilities": ["co2_index"],
+            "capabilities": ["co2_index"]
         },
         "sonometro": {
             "inputs": ["microfono", "ruido", "audio_peak"],
-            "fn": lambda inputs, **params: max(
-                inputs.get("ruido", 0),
-                inputs.get("microfono", 0),
-                inputs.get("audio_peak", 0),
-            ),
+            "fn": lambda inputs, **params: max(inputs.get("ruido", 0), inputs.get("microfono", 0), inputs.get("audio_peak", 0)),
             "params": {},
-            "capabilities": ["ruido", "sonometro"],
+            "capabilities": ["ruido", "sonometro"]
         },
         "sismografo": {
-            "inputs": [
-                "giroscopio",
-                "acelerometro",
-                "vibracion",
-                "microfono",
-                "audio_peak",
-            ],
+            "inputs": ["giroscopio", "acelerometro", "vibracion", "microfono", "audio_peak"],
             "fn": lambda inputs, **params: max(
                 abs(inputs.get("giroscopio", 0)),
                 abs(inputs.get("acelerometro", 0)),
                 abs(inputs.get("vibracion", 0)),
                 abs(inputs.get("microfono", 0)),
-                abs(inputs.get("audio_peak", 0)),
+                abs(inputs.get("audio_peak", 0))
             ),
             "params": {},
-            "capabilities": ["sismo", "sismografo"],
-        },
+            "capabilities": ["sismo", "sismografo"]
+        }
     }
     return specs

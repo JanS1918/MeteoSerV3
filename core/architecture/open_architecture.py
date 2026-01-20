@@ -4,7 +4,6 @@
 
 EXTERNAL_INTEGRATION_MODE = "mock"  # Siempre seguro
 
-
 class OpenArchitecture:
     """
     Núcleo arquitectónico unificado.
@@ -80,5 +79,5 @@ class OpenArchitecture:
         return {
             "sensores": self.system.sensores,
             "indices": self.system.indices,
-            "recomendacion": self.system.obtener_recomendacion(),
+            "recomendacion": self.system.obtener_recomendacion()
         }

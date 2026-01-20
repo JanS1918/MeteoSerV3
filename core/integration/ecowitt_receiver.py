@@ -3,6 +3,64 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import os
 
+# Inicialización FastAPI y recursos estáticos
+app = FastAPI()
+STATIC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")
+
+def respuesta_motor(detalle, extra=None):
+    r = {"detalle": detalle}
+    if extra:
+        r.update(extra)
+    return r
+@app.api_route("/api/motor/meteorologico", methods=["GET", "POST"])
+def api_motor_meteorologico():
+    indices = indices_engine.obtener_todos()
+    return {"indices": indices, "detalle": "Índices meteorológicos reales"}
+
+@app.api_route("/api/motor/recomendaciones", methods=["GET", "POST"])
+def api_motor_recomendaciones():
+    return {"recomendacion": system.obtener_recomendacion(), "detalle": "Recomendación real"}
+
+
+@app.api_route("/api/motor/calendario", methods=["GET", "POST"])
+def api_motor_calendario():
+    # Lógica real a implementar o eliminar endpoint si no es funcional
+    return respuesta_motor("Calendario no implementado. Endpoint pendiente de lógica real.")
+
+@app.api_route("/api/motor/tareas", methods=["GET", "POST"])
+def api_motor_tareas():
+    # Lógica real a implementar o eliminar endpoint si no es funcional
+    return respuesta_motor("Tareas no implementadas. Endpoint pendiente de lógica real.")
+
+@app.api_route("/api/motor/lista_compra", methods=["GET", "POST"])
+def api_motor_lista_compra():
+    # Lógica real a implementar o eliminar endpoint si no es funcional
+    return respuesta_motor("Lista de la compra no implementada. Endpoint pendiente de lógica real.")
+
+@app.api_route("/api/motor/eventos", methods=["GET", "POST"])
+def api_motor_eventos():
+    # Lógica real a implementar o eliminar endpoint si no es funcional
+    return respuesta_motor("Eventos y TV no implementados. Endpoint pendiente de lógica real.")
+
+@app.api_route("/api/motor/alarmas", methods=["GET", "POST"])
+def api_motor_alarmas():
+    # Lógica real a implementar o eliminar endpoint si no es funcional
+    return respuesta_motor("Alarmas no implementadas. Endpoint pendiente de lógica real.")
+
+@app.api_route("/api/motor/comunicacion", methods=["GET", "POST"])
+def api_motor_comunicacion():
+    # Lógica real a implementar o eliminar endpoint si no es funcional
+    return respuesta_motor("Comunicación oral no implementada. Endpoint pendiente de lógica real.")
+
+@app.api_route("/api/motor/huellas", methods=["GET", "POST"])
+def api_motor_huellas():
+    # Lógica real a implementar o eliminar endpoint si no es funcional
+    return respuesta_motor("Gestor de huellas atmosféricas no implementado. Endpoint pendiente de lógica real.")
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+import os
 from core.system.system_manager import SystemManager
 from core.learning.learning_simulation import LearningEngine, SimulationEngine
 from core.sensors.sensor_fusion import SensorFusion
@@ -11,97 +69,18 @@ from core.indices.environmental_indices import EnvironmentalIndices
 
 EXTERNAL_INTEGRATION_MODE = "live"
 
-# Inicialización FastAPI y recursos estáticos
 app = FastAPI()
-STATIC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+
+# Servir dashboard.html y recursos estáticos
+STATIC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")
-
-
-def respuesta_motor(detalle, extra=None):
-    r = {"detalle": detalle}
-    if extra:
-        r.update(extra)
-    return r
-
-
-@app.api_route("/api/motor/meteorologico", methods=["GET", "POST"])
-def api_motor_meteorologico():
-    indices = indices_engine.obtener_todos()
-    return {"indices": indices, "detalle": "Índices meteorológicos reales"}
-
-
-@app.api_route("/api/motor/recomendaciones", methods=["GET", "POST"])
-def api_motor_recomendaciones():
-    return {
-        "recomendacion": system.obtener_recomendacion(),
-        "detalle": "Recomendación real",
-    }
-
-
-@app.api_route("/api/motor/calendario", methods=["GET", "POST"])
-def api_motor_calendario():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor(
-        "Calendario no implementado. Endpoint pendiente de lógica real."
-    )
-
-
-@app.api_route("/api/motor/tareas", methods=["GET", "POST"])
-def api_motor_tareas():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor(
-        "Tareas no implementadas. Endpoint pendiente de lógica real."
-    )
-
-
-@app.api_route("/api/motor/lista_compra", methods=["GET", "POST"])
-def api_motor_lista_compra():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor(
-        "Lista de la compra no implementada. Endpoint pendiente de lógica real."
-    )
-
-
-@app.api_route("/api/motor/eventos", methods=["GET", "POST"])
-def api_motor_eventos():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor(
-        "Eventos y TV no implementados. Endpoint pendiente de lógica real."
-    )
-
-
-@app.api_route("/api/motor/alarmas", methods=["GET", "POST"])
-def api_motor_alarmas():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor(
-        "Alarmas no implementadas. Endpoint pendiente de lógica real."
-    )
-
-
-@app.api_route("/api/motor/comunicacion", methods=["GET", "POST"])
-def api_motor_comunicacion():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor(
-        "Comunicación oral no implementada. Endpoint pendiente de lógica real."
-    )
-
-
-@app.api_route("/api/motor/huellas", methods=["GET", "POST"])
-def api_motor_huellas():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor(
-        "Gestor de huellas atmosféricas no implementado. Endpoint pendiente de lógica real."
-    )
-
 
 @app.get("/dashboard.html")
 def dashboard():
     return FileResponse(os.path.join(STATIC_PATH, "dashboard_modern.html"))
-
-
 manager = SystemManager()
 system = manager.iniciar()
-BASE_PATH = os.path.join(os.path.dirname(__file__), "../../data")
+BASE_PATH = os.path.join(os.path.dirname(__file__), '../../data')
 learning_engine = LearningEngine(BASE_PATH)
 simulation_engine = SimulationEngine(BASE_PATH, learning_engine=learning_engine)
 sensor_fusion = SensorFusion()
@@ -116,42 +95,35 @@ class MotorAmbiental:
         # Lógica real a implementar
         return {"estado": "no implementado"}
 
-
 class MotorConfort:
     def calcular_indice(self):
         # Lógica real a implementar
         return {"confort": None, "detalle": "No implementado"}
-
 
 class MotorEdificio:
     def diagnostico(self):
         # Lógica real: salud del edificio, humedad estructural, moho, etc.
         return {"salud": 95, "detalle": "Edificio en buen estado"}
 
-
 class MotorMeteorologico:
     def calcular_indices(self):
         # Lógica real a implementar
         return {"indices": {}, "detalle": "No implementado"}
-
 
 class MotorVentilacion:
     def generar_aviso(self):
         # Lógica real: avisos de ventilación, persianas, etc.
         return {"ventilar": True, "detalle": "Ventilación recomendada"}
 
-
 class MotorPrediccionLocal:
     def predecir(self):
         # Lógica real: predicción local avanzada
         return {"prediccion": "Sin cambios relevantes"}
 
-
 class GestorHuellasAtmosfericas:
     def obtener_estado(self):
         # Lógica real a implementar
         return {"huellas": [], "detalle": "No implementado"}
-
 
 motor_ambiental = MotorAmbiental()
 motor_confort = MotorConfort()
@@ -160,7 +132,6 @@ motor_meteo = MotorMeteorologico()
 motor_ventilacion = MotorVentilacion()
 motor_pred_local = MotorPrediccionLocal()
 gestor_huellas = GestorHuellasAtmosfericas()
-
 
 @app.get("/sensores")
 def listar_sensores():
@@ -174,53 +145,43 @@ def listar_sensores():
             pass
     return {"sensores": sensores}
 
-
 # --- Endpoints de integración total de ideas.py ---
 @app.get("/ambiental")
 def ambiental():
     return motor_ambiental.analizar()
 
-
 @app.get("/confort")
 def confort():
     return motor_confort.calcular_indice()
-
 
 @app.get("/edificio")
 def edificio():
     return motor_edificio.diagnostico()
 
-
 @app.get("/meteorologia")
 def meteorologia():
     return motor_meteo.calcular_indices()
-
 
 @app.get("/ventilacion")
 def ventilacion():
     return motor_ventilacion.generar_aviso()
 
-
 @app.get("/prediccion_local")
 def prediccion_local():
     return motor_pred_local.predecir()
 
-
 @app.get("/huellas")
 def huellas():
     return gestor_huellas.obtener_estado()
-
 
 @app.get("/submenu_detallado")
 def submenu_detallado():
     # Lógica real a implementar o eliminar endpoint si no es funcional
     return {"submenu": "No implementado. Endpoint pendiente de lógica real."}
 
-
 @app.get("/recomendacion_unificada")
 def recomendacion_unificada():
     return system.obtener_recomendacion()
-
 
 # ------------------------------------------------------------
 # MAPEO HP2550A → MeteoSer
@@ -230,19 +191,12 @@ def actualizar_sensores_ecowitt(data: dict):
     humedad = data.get("humidity")
     viento = data.get("windspeedmph")
     radiacion = data.get("solarradiation")
-    uv_raw = (
-        data.get("uv") or data.get("uvi") or data.get("uvindex") or data.get("uv_index")
-    )
+    uv_raw = data.get("uv") or data.get("uvi") or data.get("uvindex") or data.get("uv_index")
     lightning = data.get("lightning")
     lightning_num = data.get("lightning_num")
     lightning_time = data.get("lightning_time")
 
-    lluvia_acum_in = (
-        data.get("rainin")
-        or data.get("dailyrainin")
-        or data.get("eventrainin")
-        or data.get("hourlyrainin")
-    )
+    lluvia_acum_in = data.get("rainin") or data.get("dailyrainin") or data.get("eventrainin") or data.get("hourlyrainin")
     lluvia_rate_candidates = [
         ("rainratein", data.get("rainratein")),
         ("rain_ratein", data.get("rain_ratein")),
@@ -329,9 +283,7 @@ def actualizar_sensores_ecowitt(data: dict):
         if lightning_num_val is not None:
             try:
                 prev_num = system.sensores.get("lightning_num")
-                prev_total = system.sensores.get(
-                    "rayos_total", system.sensores.get("rayos", 0)
-                )
+                prev_total = system.sensores.get("rayos_total", system.sensores.get("rayos", 0))
                 prev_num_val = int(prev_num) if prev_num is not None else None
                 prev_total_val = float(prev_total) if prev_total is not None else 0.0
             except Exception:
@@ -355,7 +307,6 @@ def actualizar_sensores_ecowitt(data: dict):
         system.actualizar_sensor("lightning_time", lightning_time)
         system.actualizar_sensor("ultimo_rayo", lightning_time)
 
-
 # ------------------------------------------------------------
 # ENDPOINT PRINCIPAL PARA HP2550A
 # ------------------------------------------------------------
@@ -371,12 +322,8 @@ async def recibir_ecowitt(request: Request):
                 body = await request.body()
                 if body:
                     from urllib.parse import parse_qs
-
                     parsed = parse_qs(body.decode("utf-8"), keep_blank_values=True)
-                    data = {
-                        k: v[-1] if isinstance(v, list) and v else v
-                        for k, v in parsed.items()
-                    }
+                    data = {k: v[-1] if isinstance(v, list) and v else v for k, v in parsed.items()}
             except Exception:
                 data = {}
         if not data:
@@ -391,7 +338,6 @@ async def recibir_ecowitt(request: Request):
     actualizar_sensores_ecowitt(data)
     return {"status": "OK", "received": True}
 
-
 # ------------------------------------------------------------
 # ENDPOINT DE ESTADO (DEBUG)
 # ------------------------------------------------------------
@@ -405,47 +351,28 @@ def estado():
         from datetime import datetime
         from tools.arco_solar import arco_solar
         from tools.amanecer_atardecer import calcular_amanecer_atardecer
-
         hoy = datetime.now().timetuple().tm_yday
         if "arco_solar" not in indices:
             estimado = ("latitud" not in indices) or ("longitud" not in indices)
             arco_val = round(arco_solar(lat, hoy), 2)
             indices["arco_solar"] = {"valor": arco_val, "estimado": estimado}
-            indices["duracion_dia_h"] = {
-                "valor": round(arco_val / 15.0, 2),
-                "estimado": estimado,
-            }
+            indices["duracion_dia_h"] = {"valor": round(arco_val / 15.0, 2), "estimado": estimado}
         try:
             import math
-
-            hora_decimal = (
-                datetime.now().hour
-                + datetime.now().minute / 60.0
-                + datetime.now().second / 3600.0
-            )
+            hora_decimal = datetime.now().hour + datetime.now().minute / 60.0 + datetime.now().second / 3600.0
             lat_rad = math.radians(lat)
             delta = 0.409 * math.sin(2 * math.pi * (hoy - 81) / 368)
             omega = math.radians((hora_decimal - 12.0) * 15.0)
-            sin_alt = math.sin(lat_rad) * math.sin(delta) + math.cos(
-                lat_rad
-            ) * math.cos(delta) * math.cos(omega)
+            sin_alt = math.sin(lat_rad) * math.sin(delta) + math.cos(lat_rad) * math.cos(delta) * math.cos(omega)
             if sin_alt > 0:
                 gsc = 1361.0
                 dr = 1.0 + 0.033 * math.cos(2 * math.pi * hoy / 365.0)
                 rad_teorica = gsc * dr * sin_alt
-                indices["radiacion_teorica"] = {
-                    "valor": round(rad_teorica, 1),
-                    "estimado": True,
-                }
+                indices["radiacion_teorica"] = {"valor": round(rad_teorica, 1), "estimado": True}
                 rad_real = system.sensores.get("radiacion")
                 if rad_real is not None:
-                    nubosidad = max(
-                        0.0, min(100.0, (1.0 - (float(rad_real) / rad_teorica)) * 100.0)
-                    )
-                    indices["nubosidad_estimada"] = {
-                        "valor": round(nubosidad, 2),
-                        "estimado": True,
-                    }
+                    nubosidad = max(0.0, min(100.0, (1.0 - (float(rad_real) / rad_teorica)) * 100.0))
+                    indices["nubosidad_estimada"] = {"valor": round(nubosidad, 2), "estimado": True}
         except Exception:
             pass
         if "amanecer" not in indices or "atardecer" not in indices:
@@ -459,7 +386,6 @@ def estado():
         pass
     return estado
 
-
 @app.get("/prediccion")
 def prediccion():
     """Predicción meteorológica usando modelos internos."""
@@ -467,12 +393,10 @@ def prediccion():
     predicciones = simulation_engine.step(sensores)
     return {"predicciones": predicciones}
 
-
 @app.get("/recomendacion")
 def recomendacion():
     """Recomendación inteligente unificada."""
     return system.obtener_recomendacion()
-
 
 @app.get("/alertas")
 def alertas():
@@ -480,12 +404,10 @@ def alertas():
     # Aquí se puede integrar un motor de alertas real
     return {"alertas": []}
 
-
 @app.get("/anomalias")
 def anomalias():
     """Anomalías detectadas por el motor de aprendizaje."""
     return {"anomalias": learning_engine.anomalies}
-
 
 @app.get("/correlaciones")
 def correlaciones():
@@ -495,18 +417,15 @@ def correlaciones():
         resultado[sensor] = learning_engine.top_correlations(sensor)
     return {"correlaciones": resultado}
 
-
 @app.get("/auto_mejora")
 def auto_mejora():
     """Estado del sistema de auto-mejora y sugerencias de expansión."""
     return autoimprovement_system.ciclo()
 
-
 @app.get("/indices")
 def indices():
     """Índices meteorológicos avanzados."""
     return indices_engine.obtener_todos()
-
 
 @app.get("/diagnostico")
 def diagnostico():

@@ -71,9 +71,7 @@ class PredictionEngine:
         factor = 0.6 + avg * 0.5
         return max(0.6, min(1.1, factor))
 
-    def _support_from_indices(
-        self, indices: Dict[str, Any] | None, nombres: List[str]
-    ) -> float:
+    def _support_from_indices(self, indices: Dict[str, Any] | None, nombres: List[str]) -> float:
         if not indices or not nombres:
             return 1.0
         scores: List[float] = []
@@ -99,7 +97,6 @@ class PredictionEngine:
         indices: Dict[str, Any] | None = None
         try:
             from core.indices.environmental_indices import EnvironmentalIndices
-
             if not isinstance(self.system.indices, EnvironmentalIndices):
                 self.system.indices = EnvironmentalIndices(self.system)
             indices = self.system.indices.obtener_todos()
@@ -113,35 +110,15 @@ class PredictionEngine:
         tendencia_viento = self._trend("viento")
 
         if tendencia_temp is not None:
-            pred["tendencia_temperatura"] = {
-                "valor": round(tendencia_temp, 3),
-                "unidad": "C/h",
-                "fuente": "historico",
-            }
+            pred["tendencia_temperatura"] = {"valor": round(tendencia_temp, 3), "unidad": "C/h", "fuente": "historico"}
         if tendencia_pres is not None:
-            pred["tendencia_presion"] = {
-                "valor": round(tendencia_pres, 3),
-                "unidad": "hPa/h",
-                "fuente": "historico",
-            }
+            pred["tendencia_presion"] = {"valor": round(tendencia_pres, 3), "unidad": "hPa/h", "fuente": "historico"}
         if tendencia_hum is not None:
-            pred["tendencia_humedad"] = {
-                "valor": round(tendencia_hum, 3),
-                "unidad": "%/h",
-                "fuente": "historico",
-            }
+            pred["tendencia_humedad"] = {"valor": round(tendencia_hum, 3), "unidad": "%/h", "fuente": "historico"}
         if tendencia_rad is not None:
-            pred["tendencia_radiacion"] = {
-                "valor": round(tendencia_rad, 3),
-                "unidad": "W/m²/h",
-                "fuente": "historico",
-            }
+            pred["tendencia_radiacion"] = {"valor": round(tendencia_rad, 3), "unidad": "W/m²/h", "fuente": "historico"}
         if tendencia_viento is not None:
-            pred["tendencia_viento"] = {
-                "valor": round(tendencia_viento, 3),
-                "unidad": "km/h/h",
-                "fuente": "historico",
-            }
+            pred["tendencia_viento"] = {"valor": round(tendencia_viento, 3), "unidad": "km/h/h", "fuente": "historico"}
 
         # Predicción de lluvia local (solo con sensores propios)
         humedad = self._last("humedad")
@@ -172,33 +149,29 @@ class PredictionEngine:
             prob_lluvia = max(0.0, min(100.0, base))
 
         if prob_lluvia is not None:
-            support = self._support_factor(
-                ["humedad", "presion", "radiacion", "lluvia_rate", "lluvia"]
-            )
-            support *= self._support_from_indices(
-                indices, ["riesgo_lluvia", "riesgo_micro_lluvias", "alerta_tormenta"]
-            )
+            support = self._support_factor(["humedad", "presion", "radiacion", "lluvia_rate", "lluvia"])
+            support *= self._support_from_indices(indices, ["riesgo_lluvia", "riesgo_micro_lluvias", "alerta_tormenta"])
             prob_lluvia = max(0.0, min(100.0, prob_lluvia * support))
             if lluvia_cumplida and lluvia_continua:
                 pred["prob_lluvia_continua"] = {
                     "valor": round(prob_lluvia, 2),
                     "unidad": "%",
                     "fuente": "sensores_propios",
-                    "explicacion": "Lluvia actual y tendencia positiva: alta probabilidad de lluvia continua",
+                    "explicacion": "Lluvia actual y tendencia positiva: alta probabilidad de lluvia continua"
                 }
             elif lluvia_cumplida:
                 pred["prob_lluvia_cumplida"] = {
                     "valor": round(prob_lluvia, 2),
                     "unidad": "%",
                     "fuente": "sensores_propios",
-                    "explicacion": "La alerta de lluvia se ha cumplido: está lloviendo",
+                    "explicacion": "La alerta de lluvia se ha cumplido: está lloviendo"
                 }
             else:
                 pred["prob_lluvia"] = {
                     "valor": round(prob_lluvia, 2),
                     "unidad": "%",
                     "fuente": "sensores_propios",
-                    "explicacion": "HR + tendencia presión + radiación + lluvia actual",
+                    "explicacion": "HR + tendencia presión + radiación + lluvia actual"
                 }
 
         # Predicción de incomodidad térmica (simple)
@@ -213,16 +186,13 @@ class PredictionEngine:
             if viento is not None and viento > 30:
                 score += (viento - 30) * 1.5
             support = self._support_factor(["temperatura", "viento"])
-            support *= self._support_from_indices(
-                indices,
-                ["sensacion_termica_compuesta", "sensacion_calor", "sensacion_frio"],
-            )
+            support *= self._support_from_indices(indices, ["sensacion_termica_compuesta", "sensacion_calor", "sensacion_frio"])
             score = max(0.0, min(100.0, score * support))
             pred["riesgo_incomodidad_termica"] = {
                 "valor": round(max(0.0, min(100.0, score)), 2),
                 "unidad": "%",
                 "fuente": "sensores_propios",
-                "explicacion": "Temperatura + viento",
+                "explicacion": "Temperatura + viento"
             }
 
         return pred
