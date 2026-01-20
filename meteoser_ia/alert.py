@@ -1,10 +1,12 @@
 from enum import Enum
 
+
 class AlertLevel(Enum):
     CRITICAL = "crítica"
     HIGH = "alta"
     MEDIUM = "media"
     LOW = "baja"
+
 
 ALERT_COLORS = {
     AlertLevel.CRITICAL: "red",
@@ -13,8 +15,15 @@ ALERT_COLORS = {
     AlertLevel.LOW: "green",
 }
 
+
 class Alert:
-    def __init__(self, level: AlertLevel, message: str, requires_intervention: bool, reason: str = ""):
+    def __init__(
+        self,
+        level: AlertLevel,
+        message: str,
+        requires_intervention: bool,
+        reason: str = "",
+    ):
         self.level = level
         self.color = ALERT_COLORS[level]
         self.message = message

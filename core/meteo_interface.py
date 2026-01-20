@@ -4,6 +4,7 @@ from typing import Any
 # METEOSER V3 — INTERFAZ UNIVERSAL EXTENDIDA
 # ============================================================
 
+
 class MeteoSerInterface:
     """
     Punto único de entrada para todo MeteoSer V3.
@@ -15,7 +16,16 @@ class MeteoSerInterface:
     - Comunicación oral y visual
     """
 
-    def __init__(self, system_manager, index_engine, recommendation_engine, organizer=None, communication=None, print_engine=None, learning_engine=None) -> None:
+    def __init__(
+        self,
+        system_manager,
+        index_engine,
+        recommendation_engine,
+        organizer=None,
+        communication=None,
+        print_engine=None,
+        learning_engine=None,
+    ) -> None:
         self.system: Any = system_manager
         self.indices: Any = index_engine
         self.recommend: Any = recommendation_engine
@@ -109,7 +119,9 @@ class MeteoSerInterface:
     def registrar_nuevo_sensor(self, nombre: str):
         return self.system.registrar_nuevo_sensor(nombre)
 
-    def registrar_formula(self, nombre: str, expresion: str, entradas: list, descripcion: str):
+    def registrar_formula(
+        self, nombre: str, expresion: str, entradas: list, descripcion: str
+    ):
         return self.system.registrar_formula(nombre, expresion, entradas, descripcion)
 
     # ------------------------------------------------------------

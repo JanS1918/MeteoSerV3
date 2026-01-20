@@ -18,6 +18,7 @@ from core.logging.log_engine import LogEngine
 # MOTOR DE AUTO-MEJORA
 # ============================================================
 
+
 class MotorAutoMejora:
     """
     Observa el comportamiento del sistema y del usuario y ajusta:
@@ -160,6 +161,7 @@ class MotorAutoMejora:
 # MOTOR DE AUTO-EXPANSIÓN
 # ============================================================
 
+
 class MotorAutoExpansion:
     """
     Observa patrones de uso y propone:
@@ -206,7 +208,9 @@ class MotorAutoExpansion:
         ]
 
         if self._log:
-            self._log.log("info", f"[AutoExpansion] Sugerencias generadas: {self._sugerencias}")
+            self._log.log(
+                "info", f"[AutoExpansion] Sugerencias generadas: {self._sugerencias}"
+            )
 
         return self._sugerencias
 
@@ -218,9 +222,11 @@ class MotorAutoExpansion:
 # SISTEMA DE AUTO-MEJORA COMPLETO
 # ============================================================
 
-class AutoImprovementSystem:
 
-    def autoexpandir_formulas_si_hay(self, system_core, indices_actuales: dict, propuestas: list):
+class AutoImprovementSystem:
+    def autoexpandir_formulas_si_hay(
+        self, system_core, indices_actuales: dict, propuestas: list
+    ):
         """
         Llama a system_core.autoexpandir_formulas para registrar solo fórmulas reforzadas.
         Devuelve lista de fórmulas realmente añadidas.
@@ -251,11 +257,15 @@ class AutoImprovementSystem:
         sugerencias = self.auto_expansion.generar_sugerencias()
         # Integración autoexpansión de fórmulas reforzadas
         nuevas_formulas = []
-        if hasattr(self, "system_core") and hasattr(self.system_core, "autoexpandir_formulas"):
+        if hasattr(self, "system_core") and hasattr(
+            self.system_core, "autoexpandir_formulas"
+        ):
             # Suponiendo que las propuestas se generan en sugerencias (o se pueden obtener de otro modo)
             propuestas = getattr(self, "propuestas_formulas", [])
             indices_actuales = getattr(self.system_core, "indices", {})
-            nuevas_formulas = self.system_core.autoexpandir_formulas(indices_actuales, propuestas)
+            nuevas_formulas = self.system_core.autoexpandir_formulas(
+                indices_actuales, propuestas
+            )
         return {
             "pesos_indices": self.auto_mejora._pesos_indices,
             "umbrales_alerta": self.auto_mejora._umbrales_alerta,

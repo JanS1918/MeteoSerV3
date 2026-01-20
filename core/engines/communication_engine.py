@@ -121,16 +121,22 @@ class CommunicationEngine:
         for entry in getattr(feed, "entries", [])[:max_items]:
             titulo = self._limpiar_texto(entry.get("title"))
             enlace = entry.get("link") or entry.get("id")
-            resumen = self._limpiar_texto(entry.get("summary") or entry.get("description"))
+            resumen = self._limpiar_texto(
+                entry.get("summary") or entry.get("description")
+            )
             fecha_iso = self._parse_fecha_iso(entry)
-            fuente_item = fuente or self._limpiar_texto(getattr(entry.get("source", {}), "title", ""))
-            items.append({
-                "titulo": titulo,
-                "fuente": fuente_item,
-                "enlace": enlace,
-                "fecha_iso": fecha_iso,
-                "resumen": resumen,
-            })
+            fuente_item = fuente or self._limpiar_texto(
+                getattr(entry.get("source", {}), "title", "")
+            )
+            items.append(
+                {
+                    "titulo": titulo,
+                    "fuente": fuente_item,
+                    "enlace": enlace,
+                    "fecha_iso": fecha_iso,
+                    "resumen": resumen,
+                }
+            )
         return items
 
     # ------------------------------------------------------------
@@ -293,4 +299,6 @@ class CommunicationEngine:
                 )
                 return
 
-        self.responder(f"{item} no está en la lista.", {"lista_compra": self._lista_compra})
+        self.responder(
+            f"{item} no está en la lista.", {"lista_compra": self._lista_compra}
+        )

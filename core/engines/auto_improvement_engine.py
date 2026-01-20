@@ -17,6 +17,7 @@ from core.logging.log_engine import LogEngine
 # MOTOR DE AUTO-MEJORA
 # ============================================================
 
+
 class MotorAutoMejora:
     """
     Observa el comportamiento del sistema y del usuario y ajusta:
@@ -156,6 +157,7 @@ class MotorAutoMejora:
 # MOTOR DE AUTO-EXPANSIÓN
 # ============================================================
 
+
 class MotorAutoExpansion:
     """
     Observa patrones de uso y propone:
@@ -202,7 +204,9 @@ class MotorAutoExpansion:
         ]
 
         if self._log:
-            self._log.log("info", f"[AutoExpansion] Sugerencias generadas: {self._sugerencias}")
+            self._log.log(
+                "info", f"[AutoExpansion] Sugerencias generadas: {self._sugerencias}"
+            )
 
         return self._sugerencias
 
@@ -213,6 +217,7 @@ class MotorAutoExpansion:
 # ============================================================
 # SISTEMA DE AUTO-MEJORA COMPLETO
 # ============================================================
+
 
 class AutoImprovementSystem:
     """

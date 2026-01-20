@@ -152,7 +152,9 @@ class AutoSensorDiscovery:
             return "pm1"
         return None
 
-    def _normalize_value(self, canonical: Optional[str], value: Any, unit: Optional[str]):
+    def _normalize_value(
+        self, canonical: Optional[str], value: Any, unit: Optional[str]
+    ):
         try:
             v = float(value)
         except Exception:
@@ -183,8 +185,17 @@ class AutoSensorDiscovery:
             return v, "ppm"
         return v, unit
 
-    def _apply_reading(self, nombre: str, valor: Any, tipo: str, unidad: Optional[str], fuente: str,
-                       origen: str, fiabilidad: float = 85.0, map_to: Optional[str] = None) -> None:
+    def _apply_reading(
+        self,
+        nombre: str,
+        valor: Any,
+        tipo: str,
+        unidad: Optional[str],
+        fuente: str,
+        origen: str,
+        fiabilidad: float = 85.0,
+        map_to: Optional[str] = None,
+    ) -> None:
         if unidad is None:
             canonical = map_to or self._canonical_name(nombre)
             if canonical == "temperatura":
@@ -202,7 +213,12 @@ class AutoSensorDiscovery:
             elif canonical == "lluvia":
                 unidad = "mm"
         self.system.registrar_sensor_metadata(
-            nombre, tipo=tipo, unidad=unidad, fuente=fuente, origen=origen, fiabilidad=fiabilidad
+            nombre,
+            tipo=tipo,
+            unidad=unidad,
+            fuente=fuente,
+            origen=origen,
+            fiabilidad=fiabilidad,
         )
         self.system.actualizar_sensor(nombre, valor)
         if map_to is None:
@@ -212,7 +228,12 @@ class AutoSensorDiscovery:
                 norm_val, norm_unit = self._normalize_value(map_to, valor, unidad)
                 if self.system.obtener_sensor(map_to) is None:
                     self.system.registrar_sensor_metadata(
-                        map_to, tipo=tipo, unidad=norm_unit, fuente=fuente, origen=origen, fiabilidad=fiabilidad
+                        map_to,
+                        tipo=tipo,
+                        unidad=norm_unit,
+                        fuente=fuente,
+                        origen=origen,
+                        fiabilidad=fiabilidad,
                     )
                     self.system.actualizar_sensor(map_to, norm_val)
                 else:
@@ -232,7 +253,9 @@ class AutoSensorDiscovery:
             if rc == 0:
                 client.subscribe("meteoser/sensors/#")
                 client.subscribe("sensors/#")
-                self.log.info("MQTT conectado y suscrito a meteoser/sensors/# y sensors/#")
+                self.log.info(
+                    "MQTT conectado y suscrito a meteoser/sensors/# y sensors/#"
+                )
             else:
                 self.log.warning(f"MQTT error conexión: {rc}")
 
@@ -251,7 +274,9 @@ class AutoSensorDiscovery:
                 if len(parts) >= 2:
                     name = parts[0].strip()
                     value = "=".join(parts[1:]).strip()
-                    self._apply_reading(name, value, name, None, "mqtt", "externo", 80.0)
+                    self._apply_reading(
+                        name, value, name, None, "mqtt", "externo", 80.0
+                    )
                     return
             # fallback: topic-based name
             name = topic.split("/")[-1]
@@ -271,13 +296,19 @@ class AutoSensorDiscovery:
             if self._mqtt_ca_cert and os.path.exists(self._mqtt_ca_cert):
                 tls_kwargs["ca_certs"] = self._mqtt_ca_cert
             else:
-                self.log.warning("TLS habilitado pero no se encontró METEOSER_MQTT_TLS_CA; usando CA del sistema")
+                self.log.warning(
+                    "TLS habilitado pero no se encontró METEOSER_MQTT_TLS_CA; usando CA del sistema"
+                )
             if self._mqtt_client_cert and self._mqtt_client_key:
-                if os.path.exists(self._mqtt_client_cert) and os.path.exists(self._mqtt_client_key):
+                if os.path.exists(self._mqtt_client_cert) and os.path.exists(
+                    self._mqtt_client_key
+                ):
                     tls_kwargs["certfile"] = self._mqtt_client_cert
                     tls_kwargs["keyfile"] = self._mqtt_client_key
                 else:
-                    self.log.warning("Certificados cliente MQTT no encontrados; continuando sin auth mutua")
+                    self.log.warning(
+                        "Certificados cliente MQTT no encontrados; continuando sin auth mutua"
+                    )
             self._mqtt_client.tls_set(**tls_kwargs)
             self._mqtt_client.tls_insecure_set(self._mqtt_tls_insecure)
             self.log.info(
@@ -300,7 +331,9 @@ class AutoSensorDiscovery:
                     self.log.info("MQTT conectado (reconectado)")
                     return
                 except Exception as exc:
-                    self.log.warning(f"MQTT no disponible en {self._mqtt_host}:{self._mqtt_port}: {exc}")
+                    self.log.warning(
+                        f"MQTT no disponible en {self._mqtt_host}:{self._mqtt_port}: {exc}"
+                    )
                     time.sleep(backoff)
                     backoff = min(backoff * 2, 60)
 
@@ -324,7 +357,9 @@ class AutoSensorDiscovery:
                 unidad = item.get("unit")
                 fiabilidad = item.get("reliability", 85.0)
                 map_to = item.get("map_to")
-                self._apply_reading(name, value, tipo, unidad, fuente, origen, fiabilidad, map_to)
+                self._apply_reading(
+                    name, value, tipo, unidad, fuente, origen, fiabilidad, map_to
+                )
             return
 
         name = data.get("name") or data.get("sensor")
@@ -335,7 +370,9 @@ class AutoSensorDiscovery:
         unidad = data.get("unit")
         fiabilidad = data.get("reliability", 85.0)
         map_to = data.get("map_to")
-        self._apply_reading(name, value, tipo, unidad, fuente, origen, fiabilidad, map_to)
+        self._apply_reading(
+            name, value, tipo, unidad, fuente, origen, fiabilidad, map_to
+        )
 
     # ------------------------------------------------------------------
     # mDNS
@@ -346,6 +383,7 @@ class AutoSensorDiscovery:
             return
 
         from zeroconf._exceptions import BadTypeInNameException
+
         class Listener:
             def __init__(self, outer):
                 self.outer = outer
@@ -362,18 +400,37 @@ class AutoSensorDiscovery:
                     info = zeroconf.get_service_info(service_type, name)
                 except BadTypeInNameException as exc:
                     # No es necesario mostrar como WARNING porque ocurre frecuentemente en redes
-                    self.outer.log.debug(f"mDNS BadTypeInNameException: {exc} (service_type={service_type}, name={name})")
+                    self.outer.log.debug(
+                        f"mDNS BadTypeInNameException: {exc} (service_type={service_type}, name={name})"
+                    )
                     return
                 except Exception as exc:
-                    self.outer.log.warning(f"mDNS error inesperado: {exc} (service_type={service_type}, name={name})")
+                    self.outer.log.warning(
+                        f"mDNS error inesperado: {exc} (service_type={service_type}, name={name})"
+                    )
                     return
                 if not info:
                     return
                 # Filtrar servicios comunes y solo registrar si parece un sensor/dispositivo relevante
                 lname = (name or "").lower()
-                allowed = ("ecowitt", "wh", "meteohub", "weather", "sensor", "meteo", "esp", "node", "ble", "co2", "airvisual", "netatmo")
+                allowed = (
+                    "ecowitt",
+                    "wh",
+                    "meteohub",
+                    "weather",
+                    "sensor",
+                    "meteo",
+                    "esp",
+                    "node",
+                    "ble",
+                    "co2",
+                    "airvisual",
+                    "netatmo",
+                )
                 if not any(k in lname for k in allowed):
-                    self.outer.log.debug(f"mDNS servicio ignorado: {name} (type={service_type})")
+                    self.outer.log.debug(
+                        f"mDNS servicio ignorado: {name} (type={service_type})"
+                    )
                     return
                 servicio = name.replace(".", "_")
                 self.outer.system.registrar_sensor_metadata(
@@ -388,7 +445,9 @@ class AutoSensorDiscovery:
         self._zeroconf = Zeroconf()
         self._threads.append(
             threading.Thread(
-                target=lambda: ServiceBrowser(self._zeroconf, "_services._dns-sd._udp.local.", Listener(self)),
+                target=lambda: ServiceBrowser(
+                    self._zeroconf, "_services._dns-sd._udp.local.", Listener(self)
+                ),
                 daemon=True,
             )
         )
@@ -439,7 +498,15 @@ class AutoSensorDiscovery:
                             pass
                         if "=" in line:
                             key, value = line.split("=", 1)
-                            self._apply_reading(key.strip(), value.strip(), key.strip(), None, "serial", "usb", 75.0)
+                            self._apply_reading(
+                                key.strip(),
+                                value.strip(),
+                                key.strip(),
+                                None,
+                                "serial",
+                                "usb",
+                                75.0,
+                            )
                     except Exception:
                         continue
                 time.sleep(2)
@@ -468,7 +535,9 @@ class AutoSensorDiscovery:
                         fiabilidad=70.0,
                     )
                     if device.metadata and "uuids" in device.metadata:
-                        if ENV_SERVICE_UUID.lower() not in [u.lower() for u in device.metadata["uuids"]]:
+                        if ENV_SERVICE_UUID.lower() not in [
+                            u.lower() for u in device.metadata["uuids"]
+                        ]:
                             continue
                     await self._ble_read_env(device.address, name)
             except Exception:
@@ -488,7 +557,10 @@ class AutoSensorDiscovery:
                         if CHAR_TEMPERATURE in client.services.characteristics:
                             raw = await client.read_gatt_char(CHAR_TEMPERATURE)
                             if raw:
-                                temp = int.from_bytes(raw, byteorder="little", signed=True) / 100.0
+                                temp = (
+                                    int.from_bytes(raw, byteorder="little", signed=True)
+                                    / 100.0
+                                )
                                 self._apply_reading(
                                     f"temperatura_ble_{address}",
                                     temp,
@@ -502,7 +574,12 @@ class AutoSensorDiscovery:
                         if CHAR_HUMIDITY in client.services.characteristics:
                             raw = await client.read_gatt_char(CHAR_HUMIDITY)
                             if raw:
-                                hum = int.from_bytes(raw, byteorder="little", signed=False) / 100.0
+                                hum = (
+                                    int.from_bytes(
+                                        raw, byteorder="little", signed=False
+                                    )
+                                    / 100.0
+                                )
                                 self._apply_reading(
                                     f"humedad_ble_{address}",
                                     hum,
@@ -516,7 +593,12 @@ class AutoSensorDiscovery:
                         if CHAR_PRESSURE in client.services.characteristics:
                             raw = await client.read_gatt_char(CHAR_PRESSURE)
                             if raw:
-                                pres = int.from_bytes(raw, byteorder="little", signed=False) / 10.0
+                                pres = (
+                                    int.from_bytes(
+                                        raw, byteorder="little", signed=False
+                                    )
+                                    / 10.0
+                                )
                                 self._apply_reading(
                                     f"presion_ble_{address}",
                                     pres,

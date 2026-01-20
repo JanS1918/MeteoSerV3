@@ -4,15 +4,26 @@
 
 from core.system.system_core import SystemCore
 from core.indices.environmental_indices import EnvironmentalIndices
-from core.recommendations.unified_recommendation_engine import UnifiedRecommendationEngine
+from core.recommendations.unified_recommendation_engine import (
+    UnifiedRecommendationEngine,
+)
 from core.architecture.open_architecture import OpenArchitecture
 from core.auto.auto_improvement_engine import AutoImprovementEngine
 from core.engines.autoimprovement_engine import AutoImprovementSystem
 from core.ideas_master_blocks import (
-    bloque_a, bloque_b, bloque_c, bloque_d, bloque_e, bloque_f, bloque_g, bloque_h, inicializar_bloque_total
+    bloque_a,
+    bloque_b,
+    bloque_c,
+    bloque_d,
+    bloque_e,
+    bloque_f,
+    bloque_g,
+    bloque_h,
+    inicializar_bloque_total,
 )
 
 EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
+
 
 class SystemLauncher:
     """

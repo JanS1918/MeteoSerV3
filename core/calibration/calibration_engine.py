@@ -48,7 +48,7 @@ def _linear_fit(pairs: list[Tuple[float, float]]) -> Tuple[float, float]:
     sy = sum(y for _, y in pairs)
     sxx = sum(x * x for x, _ in pairs)
     sxy = sum(x * y for x, y in pairs)
-    denom = (n * sxx - sx * sx)
+    denom = n * sxx - sx * sx
     if denom == 0:
         return 1.0, 0.0
     a = (n * sxy - sx * sy) / denom
@@ -103,7 +103,9 @@ def apply_calibration_value(valor: float, factor: Dict[str, float]) -> float:
     return a * valor + b
 
 
-def apply_calibration(payload: Dict[str, dict], factors: Dict[str, Dict[str, float]]) -> Dict[str, dict]:
+def apply_calibration(
+    payload: Dict[str, dict], factors: Dict[str, Dict[str, float]]
+) -> Dict[str, dict]:
     for nombre, info in payload.items():
         if nombre not in factors:
             continue

@@ -1,5 +1,6 @@
 from ..utils import safe_get
 
+
 class ConfigManager:
     def __init__(self, config):
         self.config = config

@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+
 class MotorRecomendaciones:
     def generar_aviso(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         # Lógica real: devolver recomendación unificada existente

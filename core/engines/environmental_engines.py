@@ -47,6 +47,7 @@ class MotorBase:
 # MOTOR AMBIENTAL
 # ------------------------------------------------------------
 
+
 class MotorAmbiental(MotorBase):
     """
     Analiza el estado global del ambiente interior:
@@ -99,6 +100,7 @@ class MotorAmbiental(MotorBase):
 # MOTOR DE CONFORT
 # ------------------------------------------------------------
 
+
 class MotorConfort(MotorBase):
     """
     Evalúa el confort humano:
@@ -141,6 +143,7 @@ class MotorConfort(MotorBase):
 # MOTOR DEL EDIFICIO
 # ------------------------------------------------------------
 
+
 class MotorEdificio(MotorBase):
     """
     Diagnóstico del edificio:
@@ -157,9 +160,7 @@ class MotorEdificio(MotorBase):
         t_int = contexto.get("temperatura_interior")
         hr_int = contexto.get("humedad_interior")
         t_ext = contexto.get("temperatura_exterior")
-        humedad_media = contexto.get("humedad_media", hr_int or 50.0)
         tiempo_hr_alta = contexto.get("tiempo_hr_alta_h", 0.0)
-        condensacion_eventos = contexto.get("condensacion_eventos", 0)
         tiempo_sin_ventilar = contexto.get("tiempo_sin_ventilar_h", 0.0)
 
         # Riesgo de moho
@@ -185,6 +186,7 @@ class MotorEdificio(MotorBase):
         olor_cerrado = None
         if hr_int is not None:
             from core.indices.environmental_indices import indice_riesgo_olor_cerrado
+
             olor_cerrado = indice_riesgo_olor_cerrado(hr_int, tiempo_sin_ventilar)
 
         resultado = {
@@ -202,6 +204,7 @@ class MotorEdificio(MotorBase):
 # ------------------------------------------------------------
 # MOTOR METEOROLÓGICO LOCAL
 # ------------------------------------------------------------
+
 
 class MotorMeteorologico(MotorBase):
     """
@@ -248,6 +251,7 @@ class MotorMeteorologico(MotorBase):
 # MOTOR DE VENTILACIÓN
 # ------------------------------------------------------------
 
+
 class MotorVentilacion(MotorBase):
     """
     Decide sobre:
@@ -262,7 +266,6 @@ class MotorVentilacion(MotorBase):
 
         co2 = contexto.get("co2")
         hr_int = contexto.get("humedad_interior")
-        ot = contexto.get("ot")
         t_int = contexto.get("temperatura_interior")
         t_ext = contexto.get("temperatura_exterior")
         viento_ext = contexto.get("viento", 0.0)
@@ -279,7 +282,6 @@ class MotorVentilacion(MotorBase):
         irsd = contexto.get("irsd")
         if irsd is None:
             irsd = 50.0
-        radiacion_solar = contexto.get("radiacion_solar", 0.0)
         hr_ext = contexto.get("humedad_exterior")
 
         indices = evaluar_indices_ambientales(contexto)
@@ -296,7 +298,9 @@ class MotorVentilacion(MotorBase):
         if t_int is not None and t_ext is not None:
             delta_t = abs(t_int - t_ext)
             base = max(1.0, delta_t)
-            recuperacion_termica = max(5.0, 60.0 / base + (100 - ireav) * 0.3 + (100 - irsd) * 0.2)
+            recuperacion_termica = max(
+                5.0, 60.0 / base + (100 - ireav) * 0.3 + (100 - irsd) * 0.2
+            )
 
         # Tiempo recomendado de ventilación (min)
         tiempo_ventilacion_min = None
@@ -349,6 +353,7 @@ class MotorVentilacion(MotorBase):
 # MOTOR DE PREDICCIÓN LOCAL
 # ------------------------------------------------------------
 
+
 class MotorPrediccionLocal(MotorBase):
     """
     Predicciones locales basadas SOLO en sensores propios:
@@ -370,7 +375,9 @@ class MotorPrediccionLocal(MotorBase):
         hora = contexto.get("hora_local")
         confort_nocturno = None
         try:
-            confort_nocturno = evaluar_indices_ambientales(contexto).get("confort_nocturno")
+            confort_nocturno = evaluar_indices_ambientales(contexto).get(
+                "confort_nocturno"
+            )
         except Exception:
             confort_nocturno = None
 
@@ -461,6 +468,7 @@ class MotorPrediccionLocal(MotorBase):
 # GESTOR DE HUELLAS ATMOSFÉRICAS
 # ------------------------------------------------------------
 
+
 class PerfilAtmosfericoPersona:
     """
     Representa la huella atmosférica de una persona:
@@ -513,6 +521,7 @@ class GestorHuellasAtmosfericas(MotorBase):
 # ------------------------------------------------------------
 # MOTOR DE USO DE DISPOSITIVOS Y LUZ ARTIFICIAL
 # ------------------------------------------------------------
+
 
 class MotorUsoDispositivos(MotorBase):
     """
@@ -568,6 +577,7 @@ class MotorUsoDispositivos(MotorBase):
 # ------------------------------------------------------------
 # MOTOR NOCTURNO
 # ------------------------------------------------------------
+
 
 class MotorNocturno(MotorBase):
     """
@@ -632,6 +642,7 @@ class MotorNocturno(MotorBase):
 # MOTOR DE INTRUSIÓN AMBIENTAL
 # ------------------------------------------------------------
 
+
 class MotorIntrusion(MotorBase):
     """
     Detección de intrusión por firmas ambientales:
@@ -691,6 +702,7 @@ class MotorIntrusion(MotorBase):
 # MOTOR DE RIESGOS PARA MATERIALES
 # ------------------------------------------------------------
 
+
 class MotorMateriales(MotorBase):
     """
     Riesgos para materiales y objetos sensibles (libros, madera, electrónica, instrumentos).
@@ -743,6 +755,7 @@ class MotorMateriales(MotorBase):
 # MOTOR DE AVISOS PRÁCTICOS
 # ------------------------------------------------------------
 
+
 class MotorAvisosPracticos(MotorBase):
     """
     Avisos prácticos diarios: ventilar, tender ropa, persianas, paraguas.
@@ -772,7 +785,11 @@ class MotorAvisosPracticos(MotorBase):
             pass
 
         try:
-            if radiacion is not None and float(radiacion) > 500 and (riesgo_lluvia is None or float(riesgo_lluvia) < 40):
+            if (
+                radiacion is not None
+                and float(radiacion) > 500
+                and (riesgo_lluvia is None or float(riesgo_lluvia) < 40)
+            ):
                 avisos.append("Buen momento para tender ropa.")
         except Exception:
             pass
@@ -803,6 +820,7 @@ class MotorAvisosPracticos(MotorBase):
 # ------------------------------------------------------------
 # MOTOR DE SALUD DEL AIRE INTERIOR
 # ------------------------------------------------------------
+
 
 class MotorSaludAire(MotorBase):
     """
@@ -859,6 +877,7 @@ class MotorSaludAire(MotorBase):
 # MOTOR DE VENTANAS / PUERTAS (INFERIDO)
 # ------------------------------------------------------------
 
+
 class MotorVentanasPuertas(MotorBase):
     """
     Infere posibles aperturas por cambios de T/HR/CO2 y viento.
@@ -885,7 +904,11 @@ class MotorVentanasPuertas(MotorBase):
             pass
 
         try:
-            if co2 is not None and float(co2) < 700 and (hr_int is not None and hr_ext is not None):
+            if (
+                co2 is not None
+                and float(co2) < 700
+                and (hr_int is not None and hr_ext is not None)
+            ):
                 if abs(float(hr_int) - float(hr_ext)) < 5:
                     apertura_probable = "ventilacion_activa"
         except Exception:
@@ -904,6 +927,7 @@ class MotorVentanasPuertas(MotorBase):
 # MOTOR DE RIESGOS DE HUMEDAD (CONDENSACIÓN/MOHO)
 # ------------------------------------------------------------
 
+
 class MotorRiesgoHumedad(MotorBase):
     """
     Combina riesgo de condensación y moho usando índices existentes.
@@ -921,13 +945,17 @@ class MotorRiesgoHumedad(MotorBase):
 
         try:
             if hr_int is not None and t_int is not None:
-                riesgo_moho = indice_riesgo_moho(float(hr_int), float(tiempo_hr_alta), float(t_int))
+                riesgo_moho = indice_riesgo_moho(
+                    float(hr_int), float(tiempo_hr_alta), float(t_int)
+                )
         except Exception:
             pass
 
         try:
             if t_int is not None and hr_int is not None and t_ext is not None:
-                riesgo_cond = indice_riesgo_condensacion_ventanas(float(t_int), float(hr_int), float(t_ext))
+                riesgo_cond = indice_riesgo_condensacion_ventanas(
+                    float(t_int), float(hr_int), float(t_ext)
+                )
         except Exception:
             pass
 
@@ -943,6 +971,7 @@ class MotorRiesgoHumedad(MotorBase):
 # ------------------------------------------------------------
 # MOTOR DE TEMPERATURA OPERATIVA (OT) REAL
 # ------------------------------------------------------------
+
 
 class MotorTemperaturaOperativa(MotorBase):
     """
@@ -976,6 +1005,7 @@ class MotorTemperaturaOperativa(MotorBase):
 # MOTOR RITMO CIRCADIANO PERSONAL
 # ------------------------------------------------------------
 
+
 class MotorRitmoCircadianoPersona(MotorBase):
     """
     Evalúa si el ambiente favorece sueño o vigilia (IRCA humano simplificado).
@@ -995,7 +1025,9 @@ class MotorRitmoCircadianoPersona(MotorBase):
                 ot=ot if ot is not None else 22.0,
                 luz=float(luz) if luz is not None else 30.0,
                 ruido=float(ruido) if ruido is not None else 20.0,
-                estabilidad_termica=float(estabilidad) if estabilidad is not None else 50.0,
+                estabilidad_termica=float(estabilidad)
+                if estabilidad is not None
+                else 50.0,
                 irin=float(irin) if irin is not None else 50.0,
             )
         except Exception:
@@ -1022,6 +1054,7 @@ class MotorRitmoCircadianoPersona(MotorBase):
 # ------------------------------------------------------------
 # MOTOR DE HABITABILIDAD / ESTABILIDAD TÉRMICA
 # ------------------------------------------------------------
+
 
 class MotorHabitabilidad(MotorBase):
     """
@@ -1071,6 +1104,7 @@ class MotorHabitabilidad(MotorBase):
 # MOTOR DE CONFORT NOCTURNO
 # ------------------------------------------------------------
 
+
 class MotorConfortNocturno(MotorBase):
     """
     Evalúa confort nocturno con índices ambientales.
@@ -1103,6 +1137,7 @@ class MotorConfortNocturno(MotorBase):
 # MOTOR METEOROLÓGICO AVANZADO (AGREGADOR)
 # ------------------------------------------------------------
 
+
 class MotorMeteorologiaAvanzada(MotorBase):
     """
     Agrega riesgos meteorológicos avanzados ya calculados.
@@ -1125,6 +1160,7 @@ class MotorMeteorologiaAvanzada(MotorBase):
 # MOTOR DE VIENTO / RACHAS
 # ------------------------------------------------------------
 
+
 class MotorVientoRachas(MotorBase):
     """
     Evalúa riesgo por viento y rachas peligrosas.
@@ -1137,7 +1173,13 @@ class MotorVientoRachas(MotorBase):
 
         riesgo = None
         try:
-            v = float(rachas) if rachas is not None else float(viento) if viento is not None else None
+            v = (
+                float(rachas)
+                if rachas is not None
+                else float(viento)
+                if viento is not None
+                else None
+            )
             if v is not None:
                 if v >= 60:
                     riesgo = "peligroso"
@@ -1158,6 +1200,7 @@ class MotorVientoRachas(MotorBase):
 # ------------------------------------------------------------
 # MOTOR DE VISIBILIDAD LOCAL
 # ------------------------------------------------------------
+
 
 class MotorVisibilidadLocal(MotorBase):
     """
@@ -1194,6 +1237,7 @@ class MotorVisibilidadLocal(MotorBase):
 # MOTOR DE LUZ NATURAL
 # ------------------------------------------------------------
 
+
 class MotorLuzNatural(MotorBase):
     """
     Decide si es necesario encender luz artificial.
@@ -1206,12 +1250,12 @@ class MotorLuzNatural(MotorBase):
 
         necesidad = None
         try:
-            l = float(luz) if luz is not None else None
-            r = float(radiacion) if radiacion is not None else None
-            if l is not None:
-                if l < 20:
+            luz_val = float(luz) if luz is not None else None
+            radiacion_val = float(radiacion) if radiacion is not None else None
+            if luz_val is not None:
+                if luz_val < 20:
                     necesidad = "encender_luz"
-                elif l < 40 and (r is None or r < 80):
+                elif luz_val < 40 and (radiacion_val is None or radiacion_val < 80):
                     necesidad = "considerar_luz"
                 else:
                     necesidad = "no_necesaria"
@@ -1226,6 +1270,7 @@ class MotorLuzNatural(MotorBase):
 # ------------------------------------------------------------
 # MOTOR DE CONFORT TÉRMICO (BOCHORNO / FRÍO)
 # ------------------------------------------------------------
+
 
 class MotorConfortTermico(MotorBase):
     """
@@ -1260,6 +1305,7 @@ class MotorConfortTermico(MotorBase):
 # MOTOR AIRE PEGajOSO / SECO
 # ------------------------------------------------------------
 
+
 class MotorAirePegajosoSeco(MotorBase):
     """
     Evalúa aire pegajoso o seco según índices.
@@ -1284,7 +1330,11 @@ class MotorAirePegajosoSeco(MotorBase):
         except Exception:
             pass
 
-        resultado = {"aire_seco": aire_seco, "aire_pegajoso": aire_pegajoso, "estado": estado}
+        resultado = {
+            "aire_seco": aire_seco,
+            "aire_pegajoso": aire_pegajoso,
+            "estado": estado,
+        }
         self._log_debug(f"[MotorAirePegajosoSeco] Resultado: {resultado}")
         return resultado
 
@@ -1292,6 +1342,7 @@ class MotorAirePegajosoSeco(MotorBase):
 # ------------------------------------------------------------
 # MOTOR AIRE CARGADO / VIEJO
 # ------------------------------------------------------------
+
 
 class MotorAireCargado(MotorBase):
     """
@@ -1325,6 +1376,7 @@ class MotorAireCargado(MotorBase):
 # MOTOR AIRE ENRARECIDO (CO2 + PM2.5)
 # ------------------------------------------------------------
 
+
 class MotorAireEnrarecido(MotorBase):
     """
     Evalúa aire enrarecido combinando CO2 y PM2.5.
@@ -1357,6 +1409,7 @@ class MotorAireEnrarecido(MotorBase):
 # MOTOR DESHIDRATACIÓN AMBIENTAL
 # ------------------------------------------------------------
 
+
 class MotorDeshidratacionAmbiental(MotorBase):
     """
     Evalúa riesgo de deshidratación ambiental por baja humedad y tiempo.
@@ -1370,7 +1423,9 @@ class MotorDeshidratacionAmbiental(MotorBase):
         riesgo = None
         try:
             if hr is not None:
-                riesgo = indice_deshidratacion_ambiental(float(hr), float(tiempo_hr_baja))
+                riesgo = indice_deshidratacion_ambiental(
+                    float(hr), float(tiempo_hr_baja)
+                )
         except Exception:
             pass
 
@@ -1382,6 +1437,7 @@ class MotorDeshidratacionAmbiental(MotorBase):
 # ------------------------------------------------------------
 # MOTOR AIRE ESTANCADO
 # ------------------------------------------------------------
+
 
 class MotorAireEstancado(MotorBase):
     """
@@ -1414,6 +1470,7 @@ class MotorAireEstancado(MotorBase):
 # ------------------------------------------------------------
 # MOTOR RENOVACIÓN EFECTIVA DEL AIRE
 # ------------------------------------------------------------
+
 
 class MotorRenovacionAire(MotorBase):
     """
@@ -1449,6 +1506,7 @@ class MotorRenovacionAire(MotorBase):
 # MOTOR RIESGO OXIDACIÓN
 # ------------------------------------------------------------
 
+
 class MotorRiesgoOxidacion(MotorBase):
     """
     Riesgo de oxidación acelerada por humedad alta.
@@ -1478,6 +1536,7 @@ class MotorRiesgoOxidacion(MotorBase):
 # MOTOR RIESGO LIBROS/PAPEL
 # ------------------------------------------------------------
 
+
 class MotorRiesgoLibrosPapel(MotorBase):
     """
     Riesgo para libros/papel por humedad alta.
@@ -1506,6 +1565,7 @@ class MotorRiesgoLibrosPapel(MotorBase):
 # ------------------------------------------------------------
 # MOTOR RIESGO ELECTRÓNICA
 # ------------------------------------------------------------
+
 
 class MotorRiesgoElectronica(MotorBase):
     """
@@ -1537,6 +1597,7 @@ class MotorRiesgoElectronica(MotorBase):
 # MOTOR RIESGO PLÁSTICOS
 # ------------------------------------------------------------
 
+
 class MotorRiesgoPlasticos(MotorBase):
     """
     Riesgo de deformación de plásticos por calor/humedad.
@@ -1567,6 +1628,7 @@ class MotorRiesgoPlasticos(MotorBase):
 # MOTOR RIESGO ROPA GUARDADA
 # ------------------------------------------------------------
 
+
 class MotorRiesgoRopaGuardada(MotorBase):
     """
     Riesgo de humedad en ropa guardada.
@@ -1595,6 +1657,7 @@ class MotorRiesgoRopaGuardada(MotorBase):
 # ------------------------------------------------------------
 # MOTOR RIESGO COLCHONES
 # ------------------------------------------------------------
+
 
 class MotorRiesgoColchones(MotorBase):
     """
@@ -1627,6 +1690,7 @@ class MotorRiesgoColchones(MotorBase):
 # MOTOR RIESGO ALIMENTOS
 # ------------------------------------------------------------
 
+
 class MotorRiesgoAlimentos(MotorBase):
     """
     Riesgo de descomposición de alimentos por temperatura/humedad.
@@ -1656,6 +1720,7 @@ class MotorRiesgoAlimentos(MotorBase):
 # ------------------------------------------------------------
 # MOTOR RIESGO INSTRUMENTOS
 # ------------------------------------------------------------
+
 
 class MotorRiesgoInstrumentos(MotorBase):
     """
@@ -1688,6 +1753,7 @@ class MotorRiesgoInstrumentos(MotorBase):
 # MOTOR RIESGO MADERA/MUEBLES
 # ------------------------------------------------------------
 
+
 class MotorRiesgoMadera(MotorBase):
     """
     Riesgo para muebles de madera por humedad.
@@ -1719,6 +1785,7 @@ class MotorRiesgoMadera(MotorBase):
 # MOTOR ACTIVIDAD HUMANA
 # ------------------------------------------------------------
 
+
 class MotorActividadHumana(MotorBase):
     """
     Infere nivel de actividad humana por CO2, ruido y luz.
@@ -1734,8 +1801,8 @@ class MotorActividadHumana(MotorBase):
         try:
             c = float(co2) if co2 is not None else 0.0
             r = float(ruido) if ruido is not None else 0.0
-            l = float(luz) if luz is not None else 0.0
-            score = (c / 20.0) + (r) + (l / 2.0)
+            luz_val = float(luz) if luz is not None else 0.0
+            score = (c / 20.0) + (r) + (luz_val / 2.0)
             if score >= 120:
                 nivel = "alta"
             elif score >= 70:
@@ -1753,6 +1820,7 @@ class MotorActividadHumana(MotorBase):
 # ------------------------------------------------------------
 # MOTOR PRESENCIA
 # ------------------------------------------------------------
+
 
 class MotorPresencia(MotorBase):
     """
@@ -1783,6 +1851,7 @@ class MotorPresencia(MotorBase):
 # ------------------------------------------------------------
 # MOTOR CORRIENTES INTERNAS
 # ------------------------------------------------------------
+
 
 class MotorCorrientesInternas(MotorBase):
     """
@@ -1818,6 +1887,7 @@ class MotorCorrientesInternas(MotorBase):
 # MOTOR PREDICCIÓN CORRIENTES INTERNAS FUTURAS
 # ------------------------------------------------------------
 
+
 class MotorPrediccionCorrientesFuturas(MotorBase):
     """
     Predice probabilidad de corrientes internas futuras.
@@ -1825,7 +1895,9 @@ class MotorPrediccionCorrientesFuturas(MotorBase):
     """
 
     def analizar(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
-        self._log_debug("[MotorPrediccionCorrientesFuturas] Analizando corrientes futuras")
+        self._log_debug(
+            "[MotorPrediccionCorrientesFuturas] Analizando corrientes futuras"
+        )
         t_int = contexto.get("temperatura_interior")
         t_ext = contexto.get("temperatura_exterior")
         viento = contexto.get("viento")
@@ -1835,7 +1907,11 @@ class MotorPrediccionCorrientesFuturas(MotorBase):
         riesgo = None
         etiqueta = None
         try:
-            delta_t = abs(float(t_int) - float(t_ext)) if (t_int is not None and t_ext is not None) else 0.0
+            delta_t = (
+                abs(float(t_int) - float(t_ext))
+                if (t_int is not None and t_ext is not None)
+                else 0.0
+            )
             v = float(viento) if viento is not None else 0.0
             est = float(estabilidad) if estabilidad is not None else 50.0
             trend = abs(float(tendencia_t)) if tendencia_t is not None else 0.0
@@ -1863,6 +1939,7 @@ class MotorPrediccionCorrientesFuturas(MotorBase):
 # MOTOR ESTABILIDAD TÉRMICA FUTURA (IETF)
 # ------------------------------------------------------------
 
+
 class MotorEstabilidadTermicaFutura(MotorBase):
     """
     Predice estabilidad térmica futura (IETF) usando índices y delta térmica.
@@ -1878,7 +1955,11 @@ class MotorEstabilidadTermicaFutura(MotorBase):
 
         valor = None
         try:
-            delta_t = abs(float(t_int) - float(t_ext)) if t_int is not None and t_ext is not None else 0.0
+            delta_t = (
+                abs(float(t_int) - float(t_ext))
+                if t_int is not None and t_ext is not None
+                else 0.0
+            )
             valor = indice_estabilidad_termica_futura(
                 estabilidad_termica=float(ot) if ot is not None else 22.0,
                 ireav=float(ireav) if ireav is not None else 50.0,
@@ -1897,6 +1978,7 @@ class MotorEstabilidadTermicaFutura(MotorBase):
 # ------------------------------------------------------------
 # MOTOR GOLPES DE PUERTA
 # ------------------------------------------------------------
+
 
 class MotorGolpesPuerta(MotorBase):
     """
@@ -1932,6 +2014,7 @@ class MotorGolpesPuerta(MotorBase):
 # MOTOR RIESGO PLANTAS (HELADA)
 # ------------------------------------------------------------
 
+
 class MotorRiesgoPlantas(MotorBase):
     """
     Evalúa riesgo para plantas por helada local.
@@ -1940,22 +2023,8 @@ class MotorRiesgoPlantas(MotorBase):
     def analizar(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
         self._log_debug("[MotorRiesgoPlantas] Analizando plantas")
         riesgo_helada = contexto.get("riesgo_helada_local")
-        temp = contexto.get("temperatura_exterior")
+        resultado = {"riesgo_plantas": riesgo_helada}
 
-        riesgo = None
-        try:
-            r = float(riesgo_helada) if riesgo_helada is not None else 0.0
-            t = float(temp) if temp is not None else 10.0
-            if r >= 60 or t <= 2:
-                riesgo = "alto"
-            elif r >= 35 or t <= 5:
-                riesgo = "medio"
-            else:
-                riesgo = "bajo"
-        except Exception:
-            pass
-
-        resultado = {"riesgo_plantas": riesgo}
         self._log_debug(f"[MotorRiesgoPlantas] Resultado: {resultado}")
         return resultado
 
@@ -1963,7 +2032,6 @@ class MotorRiesgoPlantas(MotorBase):
 # ------------------------------------------------------------
 # MOTOR ROPA TENDIDA
 # ------------------------------------------------------------
-
 class MotorRopaTendida(MotorBase):
     """
     Riesgo de mojar ropa tendida por lluvia/tormenta.
@@ -1997,6 +2065,7 @@ class MotorRopaTendida(MotorBase):
 # MOTOR VIENTO INCÓMODO PARA DORMIR
 # ------------------------------------------------------------
 
+
 class MotorVientoDormir(MotorBase):
     """
     Evalúa si el viento puede incomodar el sueño.
@@ -2025,6 +2094,7 @@ class MotorVientoDormir(MotorBase):
 # MOTOR OLOR A CERRADO
 # ------------------------------------------------------------
 
+
 class MotorOlorCerrado(MotorBase):
     """
     Evalúa riesgo de olor a cerrado según humedad y tiempo sin ventilar.
@@ -2038,7 +2108,9 @@ class MotorOlorCerrado(MotorBase):
         riesgo = None
         try:
             if hr is not None:
-                riesgo = indice_riesgo_olor_cerrado(float(hr), float(tiempo_sin_ventilar))
+                riesgo = indice_riesgo_olor_cerrado(
+                    float(hr), float(tiempo_sin_ventilar)
+                )
         except Exception:
             pass
 
@@ -2050,6 +2122,7 @@ class MotorOlorCerrado(MotorBase):
 # ------------------------------------------------------------
 # MOTOR CONDENSACIÓN ARMARIOS
 # ------------------------------------------------------------
+
 
 class MotorCondensacionArmarios(MotorBase):
     """
@@ -2072,6 +2145,7 @@ class MotorCondensacionArmarios(MotorBase):
 # ------------------------------------------------------------
 # MOTOR SECADO DE ROPA
 # ------------------------------------------------------------
+
 
 class MotorSecadoRopa(MotorBase):
     """
@@ -2109,6 +2183,7 @@ class MotorSecadoRopa(MotorBase):
 # ------------------------------------------------------------
 # MOTOR LUZ/PERSIANAS
 # ------------------------------------------------------------
+
 
 class MotorPersianas(MotorBase):
     """

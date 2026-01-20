@@ -5,8 +5,6 @@ import json
 import logging
 import os
 import shutil
-import stat
-import tempfile
 import time
 import traceback
 from dataclasses import dataclass, field
@@ -18,7 +16,6 @@ from . import block_c
 from . import block_d
 from . import block_e
 from . import block_f
-from . import block_g
 
 logger = logging.getLogger("meteoser_ia.block_h")
 if not logger.handlers:
@@ -42,6 +39,7 @@ METADATA_FILE = os.path.join(BASE_DIR, "integration_metadata.json")
 
 TARGET_MAIN_FILENAME = "meteoser.py"
 
+
 @dataclass
 class BackupRecord:
     id: str
@@ -51,12 +49,14 @@ class BackupRecord:
     sha256: str
     note: str = ""
 
+
 @dataclass
 class IntegrationMetadata:
     live_enabled: bool = False
     last_backup: Optional[str] = None
     deployed_version: Optional[str] = None
     history: List[Dict[str, Any]] = field(default_factory=list)
+
 
 def _sha256_of_file(path: str) -> str:
     h = hashlib.sha256()
@@ -65,8 +65,9 @@ def _sha256_of_file(path: str) -> str:
             h.update(chunk)
     return h.hexdigest()
 
+
 def _secure_copy(src: str, dst: str) -> None:
-    tmp = f"{dst}.{int(time.time()*1000)}.tmp"
+    tmp = f"{dst}.{int(time.time() * 1000)}.tmp"
     with open(src, "rb") as fr, open(tmp, "wb") as fw:
         shutil.copyfileobj(fr, fw)
         fw.flush()
@@ -75,19 +76,28 @@ def _secure_copy(src: str, dst: str) -> None:
     try:
         os.chmod(dst, 0o600)
     except Exception:
-        logger.warning("No se pudieron fijar permisos en backup; comprobar manualmente.")
+        logger.warning(
+            "No se pudieron fijar permisos en backup; comprobar manualmente."
+        )
+
 
 def _persist_metadata(meta: IntegrationMetadata) -> None:
     try:
         with open(METADATA_FILE, "w", encoding="utf-8") as f:
-            json.dump({
-                "live_enabled": meta.live_enabled,
-                "last_backup": meta.last_backup,
-                "deployed_version": meta.deployed_version,
-                "history": meta.history,
-            }, f, indent=2, ensure_ascii=False)
+            json.dump(
+                {
+                    "live_enabled": meta.live_enabled,
+                    "last_backup": meta.last_backup,
+                    "deployed_version": meta.deployed_version,
+                    "history": meta.history,
+                },
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )
     except Exception as e:
         logger.warning(f"No se pudo persistir metadata: {e}")
+
 
 def _load_metadata() -> IntegrationMetadata:
     if not os.path.exists(METADATA_FILE):
@@ -105,13 +115,18 @@ def _load_metadata() -> IntegrationMetadata:
         logger.warning("Metadata corrupta o inaccesible; iniciando metadata vacía.")
         return IntegrationMetadata()
 
+
 def create_backup(source_path: str, note: str = "") -> BackupRecord:
     timestamp = time.time()
-    bid = f"bk_{int(timestamp*1000)}"
+    bid = f"bk_{int(timestamp * 1000)}"
     if EXTERNAL_INTEGRATION_MODE == block_a.ExternalIntegrationMode.MOCK:
         backup_path = os.path.join(BACKUP_DIR, f"{bid}.mock")
         with open(backup_path, "w", encoding="utf-8") as f:
-            f.write(json.dumps({"source": source_path, "timestamp": timestamp, "note": note}))
+            f.write(
+                json.dumps(
+                    {"source": source_path, "timestamp": timestamp, "note": note}
+                )
+            )
         sha = "mock-sha256"
         logger.info(f"Backup simulado creado: {backup_path}")
     else:
@@ -122,20 +137,37 @@ def create_backup(source_path: str, note: str = "") -> BackupRecord:
         sha = _sha256_of_file(backup_path)
         logger.info(f"Backup físico creado: {backup_path} sha256={sha}")
 
-    record = BackupRecord(id=bid, timestamp=timestamp, source_path=source_path, backup_path=backup_path, sha256=sha, note=note)
+    record = BackupRecord(
+        id=bid,
+        timestamp=timestamp,
+        source_path=source_path,
+        backup_path=backup_path,
+        sha256=sha,
+        note=note,
+    )
     meta = _load_metadata()
     meta.last_backup = bid
     meta.history.append({"type": "backup", "id": bid, "ts": timestamp, "note": note})
     _persist_metadata(meta)
     return record
 
+
 def list_backups() -> List[BackupRecord]:
     records: List[BackupRecord] = []
     for fname in os.listdir(BACKUP_DIR):
         path = os.path.join(BACKUP_DIR, fname)
         ts = os.path.getmtime(path)
-        records.append(BackupRecord(id=os.path.splitext(fname)[0], timestamp=ts, source_path="unknown", backup_path=path, sha256="unknown"))
+        records.append(
+            BackupRecord(
+                id=os.path.splitext(fname)[0],
+                timestamp=ts,
+                source_path="unknown",
+                backup_path=path,
+                sha256="unknown",
+            )
+        )
     return records
+
 
 def restore_backup(backup_id: str, target_path: str) -> bool:
     meta = _load_metadata()
@@ -159,12 +191,15 @@ def restore_backup(backup_id: str, target_path: str) -> bool:
     logger.info(f"Backup {backup_id} restaurado sobre {target_path}")
     return True
 
+
 def run_predeployment_checks() -> Tuple[bool, List[str]]:
     issues: List[str] = []
 
     meta = _load_metadata()
     if not meta.last_backup:
-        issues.append("No existe backup previo. Crear al menos uno antes de activar LIVE.")
+        issues.append(
+            "No existe backup previo. Crear al menos uno antes de activar LIVE."
+        )
 
     health = block_d.get_system_health_report()
     statuses = health.get("statuses", {})
@@ -176,7 +211,9 @@ def run_predeployment_checks() -> Tuple[bool, List[str]]:
         if not block_e.SECRETS_MANAGER._master_key:
             issues.append("SecretsManager: clave maestra no establecida en memoria.")
     except Exception:
-        issues.append("SecretsManager: no accesible o error al comprobar clave maestra.")
+        issues.append(
+            "SecretsManager: no accesible o error al comprobar clave maestra."
+        )
 
     recs = block_e.get_hardening_recommendations()
     if not recs:
@@ -194,6 +231,7 @@ def run_predeployment_checks() -> Tuple[bool, List[str]]:
     logger.info(f"Predeployment checks completed: ok={ok} issues={len(issues)}")
     return ok, issues
 
+
 def enable_live_mode(operator_note: str = "") -> bool:
     ok, issues = run_predeployment_checks()
     if not ok:
@@ -202,19 +240,29 @@ def enable_live_mode(operator_note: str = "") -> bool:
 
     meta = _load_metadata()
     meta.live_enabled = True
-    meta.history.append({"type": "enable_live", "ts": time.time(), "note": operator_note})
+    meta.history.append(
+        {"type": "enable_live", "ts": time.time(), "note": operator_note}
+    )
     _persist_metadata(meta)
-    logger.info("Modo LIVE marcado en metadata (swap físico pendiente de autorización).")
+    logger.info(
+        "Modo LIVE marcado en metadata (swap físico pendiente de autorización)."
+    )
     return True
+
 
 def disable_live_mode(operator_note: str = "") -> None:
     meta = _load_metadata()
     meta.live_enabled = False
-    meta.history.append({"type": "disable_live", "ts": time.time(), "note": operator_note})
+    meta.history.append(
+        {"type": "disable_live", "ts": time.time(), "note": operator_note}
+    )
     _persist_metadata(meta)
     logger.info("Modo LIVE desactivado en metadata.")
 
-def perform_controlled_swap(backup_id: str, target_main_path: str, operator: str = "operator") -> bool:
+
+def perform_controlled_swap(
+    backup_id: str, target_main_path: str, operator: str = "operator"
+) -> bool:
     meta = _load_metadata()
     if not meta.live_enabled:
         logger.warning("Swap rechazado: LIVE no está activado en metadata.")
@@ -225,18 +273,31 @@ def perform_controlled_swap(backup_id: str, target_main_path: str, operator: str
 
     if backup_id:
         found = any(fname.startswith(backup_id) for fname in os.listdir(BACKUP_DIR))
-        if not found and EXTERNAL_INTEGRATION_MODE != block_a.ExternalIntegrationMode.MOCK:
+        if (
+            not found
+            and EXTERNAL_INTEGRATION_MODE != block_a.ExternalIntegrationMode.MOCK
+        ):
             logger.warning(f"Backup {backup_id} no encontrado; abortando swap.")
             return False
 
     if EXTERNAL_INTEGRATION_MODE == block_a.ExternalIntegrationMode.MOCK:
-        meta.history.append({"type": "swap_simulated", "ts": time.time(), "backup_id": backup_id, "operator": operator})
+        meta.history.append(
+            {
+                "type": "swap_simulated",
+                "ts": time.time(),
+                "backup_id": backup_id,
+                "operator": operator,
+            }
+        )
         _persist_metadata(meta)
         logger.info("Swap simulado completado (MOCK). No se tocó el fichero real.")
         return True
 
-    logger.warning("Swap físico no implementado en este módulo. Requiere capa de integración autorizada.")
+    logger.warning(
+        "Swap físico no implementado en este módulo. Requiere capa de integración autorizada."
+    )
     return False
+
 
 def run_integration_tests(timeout: float = 10.0) -> Dict[str, Any]:
     start = time.time()
@@ -272,8 +333,11 @@ def run_integration_tests(timeout: float = 10.0) -> Dict[str, Any]:
         report["trace"] = traceback.format_exc()
     elapsed = time.time() - start
     report["elapsed"] = elapsed
-    logger.info(f"Integration tests completed in {elapsed:.2f}s ok={report.get('ok', False)}")
+    logger.info(
+        f"Integration tests completed in {elapsed:.2f}s ok={report.get('ok', False)}"
+    )
     return report
+
 
 def record_operation(op_type: str, details: Dict[str, Any]) -> None:
     meta = _load_metadata()
@@ -282,9 +346,11 @@ def record_operation(op_type: str, details: Dict[str, Any]) -> None:
     _persist_metadata(meta)
     logger.info(f"Operación registrada: {op_type}")
 
+
 def get_integration_history() -> List[Dict[str, Any]]:
     meta = _load_metadata()
     return meta.history
+
 
 def smoke_test() -> None:
     logger.info("SMOKE TEST Bloque H: integración, backup/restore y swap (modo mock).")
@@ -308,13 +374,16 @@ def smoke_test() -> None:
     enabled = enable_live_mode(operator_note="Smoke test enable")
     print("Enable LIVE (simulado):", enabled)
 
-    swap_ok = perform_controlled_swap(bk.id, TARGET_MAIN_FILENAME, operator="smoke_test")
+    swap_ok = perform_controlled_swap(
+        bk.id, TARGET_MAIN_FILENAME, operator="smoke_test"
+    )
     print("Swap simulado:", swap_ok)
 
     hist = get_integration_history()
     print("\nHistorial de integración (últimos 5):")
     for h in hist[-5:]:
         print("-", h)
+
 
 if __name__ == "__main__":
     smoke_test()

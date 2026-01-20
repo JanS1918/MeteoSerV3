@@ -1,10 +1,12 @@
 import asyncio
 import time
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict
 
 from core.logger import get_logger
 from core.indices.environmental_indices import EnvironmentalIndices
-from core.recommendations.unified_recommendation_engine import UnifiedRecommendationEngine
+from core.recommendations.unified_recommendation_engine import (
+    UnifiedRecommendationEngine,
+)
 from core.auto.auto_improvement_engine import AutoImprovementEngine
 from core.engines.autoimprovement_engine import AutoImprovementSystem
 
@@ -15,7 +17,9 @@ class AutoRepairEngine:
     Solo opera con componentes internos y datos propios.
     """
 
-    def __init__(self, system, discovery_factory: Callable[[], object], stale_minutes: int = 15):
+    def __init__(
+        self, system, discovery_factory: Callable[[], object], stale_minutes: int = 15
+    ):
         self.system = system
         self.discovery_factory = discovery_factory
         self.stale_seconds = stale_minutes * 60
@@ -69,7 +73,9 @@ class AutoRepairEngine:
             # Asegurar motor de auto-mejora
             try:
                 if not getattr(self.system, "auto_improvement_engine", None):
-                    self.system.conectar_auto_improvement_engine(AutoImprovementEngine())
+                    self.system.conectar_auto_improvement_engine(
+                        AutoImprovementEngine()
+                    )
                     report["actions"].append("reconectar_auto_mejora")
             except Exception:
                 report["status"] = "degraded"
@@ -77,7 +83,9 @@ class AutoRepairEngine:
             # Asegurar sistema de auto-mejora/expansión
             try:
                 if not getattr(self.system, "auto_improvement_system", None):
-                    self.system.conectar_auto_improvement_system(AutoImprovementSystem())
+                    self.system.conectar_auto_improvement_system(
+                        AutoImprovementSystem()
+                    )
                     report["actions"].append("reconectar_auto_mejora_sistema")
             except Exception:
                 report["status"] = "degraded"

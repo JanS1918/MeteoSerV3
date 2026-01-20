@@ -100,11 +100,7 @@ class EvolutionEngine:
                 self.log = []
 
     def _append_log(self, action: str, details: Dict):
-        entry = {
-            "ts": _now_ts(),
-            "action": action,
-            "details": details
-        }
+        entry = {"ts": _now_ts(), "action": action, "details": details}
         self.log.append(entry)
         if not self.sandbox:
             try:
@@ -116,7 +112,9 @@ class EvolutionEngine:
     # -------------------------
     # MANIFEST (DOCUMENTO MAESTRO)
     # -------------------------
-    def update_manifest(self, additions: List[Tuple[str, str]] = None, remove_paths: List[str] = None):
+    def update_manifest(
+        self, additions: List[Tuple[str, str]] = None, remove_paths: List[str] = None
+    ):
         """
         Actualiza o crea MANIFEST.md en la raíz de base_path.
         - additions: lista de (ruta_relativa, resumen)
@@ -142,17 +140,29 @@ class EvolutionEngine:
 
         new_content = "".join(lines)
         if self.sandbox:
-            self._append_log("manifest_preview", {"path": manifest_path, "content_preview": new_content[:1000]})
+            self._append_log(
+                "manifest_preview",
+                {"path": manifest_path, "content_preview": new_content[:1000]},
+            )
             return new_content
         else:
             _write_text(manifest_path, new_content)
-            self._append_log("manifest_updated", {"path": manifest_path, "additions": additions or [], "removed": remove_paths or []})
+            self._append_log(
+                "manifest_updated",
+                {
+                    "path": manifest_path,
+                    "additions": additions or [],
+                    "removed": remove_paths or [],
+                },
+            )
             return new_content
 
     # -------------------------
     # CREAR MÓDULOS Y ESTRUCTURA
     # -------------------------
-    def create_module(self, rel_dir: str, module_name: str, description: str = "") -> str:
+    def create_module(
+        self, rel_dir: str, module_name: str, description: str = ""
+    ) -> str:
         """
         Crea un archivo .py con plantilla en rel_dir relativo a base_path.
         Devuelve la ruta completa del archivo (o la ruta simulada en sandbox).
@@ -162,7 +172,10 @@ class EvolutionEngine:
         content = template_py_module(module_name, description)
 
         if self.sandbox:
-            self._append_log("create_module_preview", {"target": target_file, "content_preview": content[:500]})
+            self._append_log(
+                "create_module_preview",
+                {"target": target_file, "content_preview": content[:500]},
+            )
             return target_file
         else:
             _ensure_dir(target_dir)
@@ -177,7 +190,9 @@ class EvolutionEngine:
     # -------------------------
     # MOVER / REORGANIZAR ARCHIVOS (CONTROLADO)
     # -------------------------
-    def move_path(self, src_rel: str, dst_rel: str, allow_overwrite: bool = False) -> Dict:
+    def move_path(
+        self, src_rel: str, dst_rel: str, allow_overwrite: bool = False
+    ) -> Dict:
         """
         Mueve un archivo o carpeta de src_rel a dst_rel (relativos a base_path).
         Devuelve un dict con resultado. En sandbox no realiza el movimiento.
@@ -221,7 +236,9 @@ class EvolutionEngine:
         full = os.path.join(self.base_path, rel_module_path)
         src = _read_text(full)
         if src is None:
-            self._append_log("doc_failed", {"module": rel_module_path, "reason": "not_found"})
+            self._append_log(
+                "doc_failed", {"module": rel_module_path, "reason": "not_found"}
+            )
             return None
 
         # heurística simple: extraer primeras líneas de comentario y funciones top-level
@@ -254,14 +271,18 @@ class EvolutionEngine:
             md += "No se detectaron funciones o clases top-level.\n"
 
         if self.sandbox:
-            self._append_log("doc_preview", {"module": rel_module_path, "doc_preview": md[:1000]})
+            self._append_log(
+                "doc_preview", {"module": rel_module_path, "doc_preview": md[:1000]}
+            )
             return md
         else:
             docs_dir = os.path.join(self.base_path, "docs")
             _ensure_dir(docs_dir)
             out_path = os.path.join(docs_dir, rel_module_path.replace("/", "_") + ".md")
             _write_text(out_path, md)
-            self._append_log("doc_generated", {"module": rel_module_path, "out": out_path})
+            self._append_log(
+                "doc_generated", {"module": rel_module_path, "out": out_path}
+            )
             return md
 
     # -------------------------
@@ -282,13 +303,38 @@ class EvolutionEngine:
             for act in plan:
                 a = act.get("action")
                 if a == "create_module":
-                    res = {"action": a, "target": self.create_module(act.get("rel_dir", ""), act.get("module_name", ""), act.get("description", ""))}
+                    res = {
+                        "action": a,
+                        "target": self.create_module(
+                            act.get("rel_dir", ""),
+                            act.get("module_name", ""),
+                            act.get("description", ""),
+                        ),
+                    }
                 elif a == "move":
-                    res = {"action": a, "result": self.move_path(act.get("src", ""), act.get("dst", ""), act.get("allow_overwrite", False))}
+                    res = {
+                        "action": a,
+                        "result": self.move_path(
+                            act.get("src", ""),
+                            act.get("dst", ""),
+                            act.get("allow_overwrite", False),
+                        ),
+                    }
                 elif a == "update_manifest":
-                    res = {"action": a, "result": self.update_manifest(additions=act.get("additions"), remove_paths=act.get("remove_paths"))}
+                    res = {
+                        "action": a,
+                        "result": self.update_manifest(
+                            additions=act.get("additions"),
+                            remove_paths=act.get("remove_paths"),
+                        ),
+                    }
                 elif a == "generate_doc":
-                    res = {"action": a, "doc": self.generate_doc_for_module(act.get("rel_module_path", ""))}
+                    res = {
+                        "action": a,
+                        "doc": self.generate_doc_for_module(
+                            act.get("rel_module_path", "")
+                        ),
+                    }
                 else:
                     res = {"action": a, "error": "unknown_action"}
                 results.append(res)
@@ -296,6 +342,7 @@ class EvolutionEngine:
             return results
         finally:
             self.sandbox = original_sandbox
+
 
 # ============================================================
 # FIN DEL MÓDULO

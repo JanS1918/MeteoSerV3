@@ -58,7 +58,9 @@ class HabitLearningEngine:
                 continue
         return vals
 
-    def _ventilation_events(self, history: List[tuple], drop_threshold: float, max_dt: int = 1800) -> List[int]:
+    def _ventilation_events(
+        self, history: List[tuple], drop_threshold: float, max_dt: int = 1800
+    ) -> List[int]:
         events: List[int] = []
         for i in range(1, len(history)):
             t_prev, v_prev = history[i - 1]
@@ -109,17 +111,24 @@ class HabitLearningEngine:
                 continue
             h = time.localtime(ts).tm_hour
             buckets[h].append(v)
-        hourly_avg = {h: (sum(vals) / len(vals)) if vals else None for h, vals in buckets.items()}
+        hourly_avg = {
+            h: (sum(vals) / len(vals)) if vals else None for h, vals in buckets.items()
+        }
         values = [v for v in hourly_avg.values() if v is not None]
         if not values:
             return None
         threshold = self._percentile(values, 0.7)
         if threshold is None:
             return None
-        active_hours = [h for h, v in hourly_avg.items() if v is not None and v >= threshold]
+        active_hours = [
+            h for h, v in hourly_avg.items() if v is not None and v >= threshold
+        ]
         return {
             "horas_activas": sorted(active_hours),
-            "promedios": {str(h): (round(v, 2) if v is not None else None) for h, v in hourly_avg.items()},
+            "promedios": {
+                str(h): (round(v, 2) if v is not None else None)
+                for h, v in hourly_avg.items()
+            },
             "umbral": round(threshold, 2),
         }
 
@@ -150,13 +159,17 @@ class HabitLearningEngine:
         if len(temp_hist) >= self.min_samples or len(hum_int_hist) >= self.min_samples:
             preferencias = {
                 "temperatura": {
-                    "media": round(sum(temp_hist) / len(temp_hist), 2) if temp_hist else None,
+                    "media": round(sum(temp_hist) / len(temp_hist), 2)
+                    if temp_hist
+                    else None,
                     "p20": self._percentile(temp_hist, 0.2),
                     "p80": self._percentile(temp_hist, 0.8),
                     "muestras": len(temp_hist),
                 },
                 "humedad": {
-                    "media": round(sum(hum_int_hist) / len(hum_int_hist), 2) if hum_int_hist else None,
+                    "media": round(sum(hum_int_hist) / len(hum_int_hist), 2)
+                    if hum_int_hist
+                    else None,
                     "p20": self._percentile(hum_int_hist, 0.2),
                     "p80": self._percentile(hum_int_hist, 0.8),
                     "muestras": len(hum_int_hist),

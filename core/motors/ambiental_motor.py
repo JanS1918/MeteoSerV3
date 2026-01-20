@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+
 class MotorAmbiental:
     def analizar(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         # Lógica real: analizar ambiente con sensores e índices
@@ -10,7 +11,6 @@ class MotorAmbiental:
 
         co2 = sensores.get("co2")
         humedad = sensores.get("humedad_interior") or sensores.get("humedad")
-        temperatura = sensores.get("temperatura_interior") or sensores.get("temperatura")
         ruido = sensores.get("ruido")
         luz = sensores.get("luz")
 

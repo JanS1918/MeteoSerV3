@@ -1,284 +1,28 @@
-from fastapi import Body
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from typing import Optional
-import base64
-import os
-import time
-
-try:
-    from core.indices.index_catalog import INDEX_CATALOG
-except Exception:
-    INDEX_CATALOG = {}
-
-# Crear `app` en caso de que no exista (algunas secciones del archivo definen rutas antes)
-if 'app' not in globals():
-    app = FastAPI()
-
-MAX_SENSOR_FRESHNESS_SECONDS = 300
-SENSOR_SMOOTHING_ALPHA = 0.5
-_SENSOR_SMOOTHING_STATE: dict[str, float] = {}
-
-def _canonical_sensor_id(name: Optional[str]) -> Optional[str]:
-    if not name:
-        return None
-    base = _normalizar_texto_simple(name)
-    if not base:
-        return None
-    return base.replace(" ", "_")
-
-def _parse_numeric(value):
-    if value is None:
-        return None
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, (int, float)):
-        return float(value)
-    text = str(value).strip()
-    if not text:
-        return None
-    if text.endswith("%"):
-        return _parse_numeric(text[:-1])
-    text = text.replace(",", ".")
-    try:
-        return float(text)
-    except Exception:
-        return None
-
-def _parse_timestamp(value):
-    numeric = _parse_numeric(value)
-    if numeric is not None:
-        return numeric
-    if not value:
-        return None
-    try:
-        text = str(value).strip()
-        return datetime.datetime.fromisoformat(text).timestamp()
-    except Exception:
-        pass
-    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
-        try:
-            return datetime.datetime.strptime(text, fmt).timestamp()
-        except Exception:
-            continue
-    return None
-
-def _normalize_sensor_payload(payload: dict) -> dict:
-    nombre = payload.get("name") or payload.get("sensor")
-    canonical = payload.get("map_to") or _canonical_sensor_id(nombre) or nombre
-    unidad = payload.get("unit")
-    if not unidad and canonical:
-        try:
-            unidad = _default_unit(canonical)
-        except Exception:
-            unidad = None
-    timestamp = _parse_timestamp(payload.get("timestamp") or payload.get("time") or payload.get("ts"))
-    valor = _parse_numeric(payload.get("value"))
-    raw_reliability = payload.get("reliability") or payload.get("confidence") or payload.get("fiabilidad")
-    if raw_reliability is None:
-        confidence = 1.0
-    else:
-        parsed = _parse_numeric(raw_reliability)
-        if parsed is None:
-            confidence = 1.0
-        elif parsed > 1:
-            confidence = max(0.0, min(parsed / 100.0, 1.0))
-        else:
-            confidence = max(0.0, min(parsed, 1.0))
-    return {
-        "name": nombre,
-        "canonical": canonical,
-        "map_to": payload.get("map_to"),
-        "unit": unidad,
-        "value": valor,
-        "timestamp": timestamp,
-        "confidence": confidence,
-        "source": payload.get("source") or payload.get("origin") or "externo",
-        "origin": payload.get("origin") or payload.get("source") or "externo",
-        "reliability": raw_reliability,
-        "raw": payload,
-    }
-
-def _validate_sensor_payload(normalized: dict) -> tuple[bool, list[str]]:
-    errors: list[str] = []
-    if not normalized.get("name"):
-        errors.append("No hay nombre de sensor")
-    if normalized.get("value") is None:
-        errors.append("Valor no convertible a número")
-    now = time.time()
-    timestamp = normalized.get("timestamp")
-    if timestamp and abs(now - timestamp) > MAX_SENSOR_FRESHNESS_SECONDS:
-        errors.append("Lectura demasiado antigua")
-    confidence = normalized.get("confidence", 1.0)
-    if not (0.0 <= confidence <= 1.0):
-        errors.append("Confidence fuera de rango")
-    if errors:
-        return False, errors
-    return True, []
-
-def _smooth_sensor_value(sensor_id: Optional[str], value):
-    if sensor_id is None or not isinstance(value, (int, float)):
-        return value
-    previous = _SENSOR_SMOOTHING_STATE.get(sensor_id)
-    if previous is None:
-        next_value = value
-    else:
-        next_value = SENSOR_SMOOTHING_ALPHA * value + (1 - SENSOR_SMOOTHING_ALPHA) * previous
-    _SENSOR_SMOOTHING_STATE[sensor_id] = next_value
-    return next_value
-
-# Endpoint para sensores virtuales (ruido, sismos, etc.)
-@app.post("/sensor_virtual")
-async def sensor_virtual(payload: dict = Body(...)):
-    try:
-        normalized = _normalize_sensor_payload(payload)
-        valid, validation_errors = _validate_sensor_payload(normalized)
-        if not valid:
-            logger.warning("Lectura de sensor virtual rechazada: %s", validation_errors)
-            return JSONResponse(status_code=400, content={
-                "status": "ERROR",
-                "message": "Lectura inválida",
-                "errors": validation_errors,
-            })
-        nombre = payload.get("name") or payload.get("sensor")
-        tipo = payload.get("type") or nombre
-        unidad = normalized.get("unit")
-        fuente = normalized.get("source")
-        origen = normalized.get("origin")
-        fiabilidad = normalized.get("confidence", 1.0)
-        map_to = normalized.get("canonical")
-        if nombre is None and not map_to:
-            return JSONResponse(status_code=400, content={
-                "status": "ERROR",
-                "message": "Falta identificador de sensor",
-            })
-        valor = normalized.get("value")
-        smoothed_value = _smooth_sensor_value(map_to or nombre, valor)
-        if unidad is None and map_to:
-            try:
-                unidad = _default_unit(map_to)
-            except Exception:
-                unidad = None
-        try:
-            system.registrar_sensor_metadata(nombre or map_to, tipo=tipo, unidad=unidad, fuente=fuente, origen=origen, fiabilidad=fiabilidad)
-        except Exception as exc:
-            logger.warning("Error registrando metadata del sensor virtual: %s", exc)
-        sensor_id = map_to or nombre
-        if sensor_id is None:
-            return JSONResponse(status_code=400, content={
-                "status": "ERROR",
-                "message": "No se pudo determinar el identificador del sensor",
-            })
-        try:
-            system.actualizar_sensor(sensor_id, smoothed_value)
-        except Exception as exc:
-            logger.error("Error al actualizar sensor %s: %s", sensor_id, exc)
-            return JSONResponse(status_code=500, content={
-                "status": "ERROR",
-                "message": "Fallo al actualizar el sensor",
-                "errors": [str(exc)],
-            })
-        return {"status": "OK", "received": True, "sensor": sensor_id, "value": smoothed_value, "confidence": fiabilidad}
-    except Exception as exc:
-        import traceback
-        tb = traceback.format_exc()
-        logger.exception("Unhandled exception in /sensor_virtual: %s", exc)
-        return JSONResponse(status_code=500, content={
-            "status": "ERROR",
-            "message": "Unhandled error in /sensor_virtual",
-            "error": str(exc),
-            "trace": tb,
-        })
-def _feedback_snapshot() -> dict:
-    try:
-        indices = system.indices.obtener_todos() if system.indices else {}
-    except Exception:
-        indices = {}
-    try:
-        sensores = dict(getattr(system, "sensores", {}) or {})
-    except Exception:
-        sensores = {}
-    return {"indices": indices, "sensores": sensores}
-
-
-def _append_feedback_log(detalle: dict) -> None:
-    try:
-        os.makedirs("data", exist_ok=True)
-        path = os.path.join("data", "feedback_registros.jsonl")
-        with open(path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(detalle, ensure_ascii=False) + "\n")
-    except Exception:
-        pass
-@app.post("/feedback_prediccion")
-async def feedback_prediccion(payload: dict = Body(...)):
-    tipo = payload.get("tipo")
-    nombre = payload.get("nombre")
-    valor = payload.get("valor")
-    feedback = payload.get("feedback")  # "acierto" o "error"
-    valor_real = payload.get("valor_real")
-    detalle = {
-        "fecha": datetime.datetime.now().isoformat(),
-        "tipo": tipo,
-        "nombre": nombre,
-        "valor": valor,
-        "valor_real": valor_real,
-        "feedback": feedback,
-        "snapshot": _feedback_snapshot(),
-    }
-    _append_feedback_log(detalle)
-    if nombre:
-        auto_improvement_engine.feedback(nombre, error=(feedback=="error"), detalle=detalle)
-        # Si hay valor real y valor estimado numérico, registrar error cuantitativo
-        try:
-            if feedback == "error" and valor_real is not None and valor is not None:
-                v_real = float(valor_real)
-                v_estimado = float(valor)
-                auto_improvement_engine.registrar_error(nombre, v_real, v_estimado)
-                # Entrenamiento online si es predicción
-                if tipo == "prediccion":
-                    # Entrenar modelo si existe
-                    learning_engine.ensure_model(nombre)
-                    # Usar features dummy (solo valor estimado)
-                    learning_engine.models[nombre].update({"estimado": v_estimado}, v_real)
-        except Exception:
-            pass
-    return {"ok": True, "msg": "Feedback registrado"}
-import datetime
-import threading
-import sys
 import asyncio
+import base64
+import datetime
 import json
-import re
-import unicodedata
-import math
-from tools.arco_solar import arco_solar
-import os
-from fastapi import FastAPI, Request, Query
-
 import logging
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
-from core.system.system_manager import SystemManager
-from fastapi.templating import Jinja2Templates
+import math
+import os
 import pathlib
-from core.indices.environmental_indices import EnvironmentalIndices
-from core.meteo.meteo_engine import get_full_meteo_snapshot
-from core.prediction.prediction_engine import PredictionEngine
+import re
+import sys
+import threading
+import time
+import unicodedata
+from typing import Optional
+
+from fastapi import Body, FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from core.auto.auto_sensor_discovery import AutoSensorDiscovery
-from core.auto.auto_repair_engine import AutoRepairEngine
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
 from core.auto.auto_expansion_engine import AutoExpansionEngine
-from core.pas.pas_engine import PASEngine
-from core.engines.habits_engine import HabitLearningEngine
-from meteoser_ia import block_f as voice_engine
+from core.auto.auto_repair_engine import AutoRepairEngine
+from core.auto.auto_sensor_discovery import AutoSensorDiscovery
 from core.engines.communication_engine import CommunicationEngine
-from core.motors.impresion_motor import MotorImpresion
-from core.motors.calendario_motor import MotorCalendario
-from core.motors.tareas_motor import MotorTareas
-from core.motors.lista_compra_motor import MotorListaCompra
-from core.motors.eventos_motor import MotorEventos
-from core.motors.alarmas_motor import MotorAlarmas
-from core.motors.comunicacion_motor import MotorComunicacion
 from core.engines.environmental_engines import (
     MotorAmbiental,
     MotorConfort,
@@ -333,13 +77,417 @@ from core.engines.environmental_engines import (
     MotorVientoDormir,
     MotorPrediccionCorrientesFuturas,
 )
+from core.engines.habits_engine import HabitLearningEngine
+from core.indices.environmental_indices import EnvironmentalIndices
+from core.meteo.meteo_engine import get_full_meteo_snapshot
+from core.motors.alarmas_motor import MotorAlarmas
+from core.motors.calendario_motor import MotorCalendario
+from core.motors.comunicacion_motor import MotorComunicacion
+from core.motors.eventos_motor import MotorEventos
+from core.motors.impresion_motor import MotorImpresion
+from core.motors.lista_compra_motor import MotorListaCompra
+from core.motors.tareas_motor import MotorTareas
+from core.pas.pas_engine import PASEngine
+from core.prediction.prediction_engine import PredictionEngine
+from core.system.system_manager import SystemManager
+from meteoser_ia import block_f as voice_engine
+from tools.arco_solar import arco_solar
+
+try:
+    from core.indices.index_catalog import INDEX_CATALOG
+except Exception:
+    INDEX_CATALOG = {}
+
+# Crear `app` en caso de que no exista (algunas secciones del archivo definen rutas antes)
+if "app" not in globals():
+    app = FastAPI()
+
+MAX_SENSOR_FRESHNESS_SECONDS = 300
+SENSOR_SMOOTHING_ALPHA = 0.5
+_SENSOR_SMOOTHING_STATE: dict[str, float] = {}
+
+
+def _canonical_sensor_id(name: Optional[str]) -> Optional[str]:
+    if not name:
+        return None
+    base = _normalizar_texto_simple(name)
+    if not base:
+        return None
+    return base.replace(" ", "_")
+
+
+def _canonical_name(nombre: Optional[str]) -> Optional[str]:
+    if not nombre:
+        return None
+    n = nombre.lower().replace("-", "_")
+    if "icasa" in n and "co2" in n:
+        return "co2"
+    if "meter" in n and "co2" in n:
+        return "co2"
+    if "ndir" in n:
+        return "co2"
+    if "co2" in n:
+        return "co2"
+    if "carbon" in n and "dioxide" in n:
+        return "co2"
+    if "temp" in n or "temperatura" in n:
+        return "temperatura"
+    if "hum" in n or "humidity" in n:
+        return "humedad"
+    if "pres" in n or "pressure" in n or "baro" in n:
+        return "presion"
+    if "pm25" in n or "pm2" in n:
+        return "pm25"
+    if "wind" in n or "viento" in n:
+        return "viento"
+    if "rain" in n or "lluv" in n:
+        return "lluvia"
+    if "uv" in n:
+        return "uv"
+    if "light" in n or "luz" in n:
+        return "luz"
+    if "noise" in n or "ruido" in n:
+        return "ruido"
+    if "voc" in n:
+        return "voc"
+    if "pm10" in n:
+        return "pm10"
+    if "pm1" in n:
+        return "pm1"
+    if "wh51" in n:
+        return "wh51"
+    if "soil" in n or "suelo" in n or "hum_suelo" in n or "humedad_suelo" in n:
+        return "wh51"
+    return None
+
+
+def _default_unit(canonical: str) -> Optional[str]:
+    if canonical == "temperatura":
+        return "C"
+    if canonical == "humedad":
+        return "%"
+    if canonical == "presion":
+        return "hPa"
+    if canonical in ("pm25", "pm10", "pm1"):
+        return "µg/m³"
+    if canonical == "co2":
+        return "ppm"
+    if canonical == "viento":
+        return "km/h"
+    if canonical == "lluvia":
+        return "mm"
+    if canonical == "wh51":
+        return "%"
+    return None
+
+
+def _normalize_value(canonical: str, value, unit):
+    try:
+        v = float(value)
+    except Exception:
+        return value, unit
+    if canonical == "temperatura":
+        if unit and str(unit).upper() == "F":
+            return (v - 32.0) * 5.0 / 9.0, "C"
+        return v, "C"
+    if canonical == "humedad":
+        return v, "%"
+    if canonical == "presion":
+        if unit and str(unit).lower() == "inhg":
+            return v * 33.8639, "hPa"
+        return v, "hPa"
+    if canonical == "viento":
+        if unit and str(unit).lower() == "mph":
+            return v * 1.60934, "km/h"
+        if unit and str(unit).lower() in ["m/s", "ms"]:
+            return v * 3.6, "km/h"
+        return v, "km/h"
+    if canonical == "lluvia":
+        if unit and str(unit).lower() in ["in", "inch", "in/hr", "in/h"]:
+            return v * 25.4, "mm"
+        return v, "mm"
+    if canonical in ("pm25", "pm10", "pm1"):
+        return v, "µg/m³"
+    if canonical == "co2":
+        return v, "ppm"
+    return v, unit
+
+
+def _parse_numeric(value):
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value).strip()
+    if not text:
+        return None
+    if text.endswith("%"):
+        return _parse_numeric(text[:-1])
+    text = text.replace(",", ".")
+    try:
+        return float(text)
+    except Exception:
+        return None
+
+
+def _parse_timestamp(value):
+    numeric = _parse_numeric(value)
+    if numeric is not None:
+        return numeric
+    if not value:
+        return None
+    try:
+        text = str(value).strip()
+        return datetime.datetime.fromisoformat(text).timestamp()
+    except Exception:
+        pass
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            return datetime.datetime.strptime(text, fmt).timestamp()
+        except Exception:
+            continue
+    return None
+
+
+def _normalize_sensor_payload(payload: dict) -> dict:
+    nombre = payload.get("name") or payload.get("sensor")
+    canonical = payload.get("map_to") or _canonical_sensor_id(nombre) or nombre
+    unidad = payload.get("unit")
+    if not unidad and canonical:
+        try:
+            unidad = _default_unit(canonical)
+        except Exception:
+            unidad = None
+    timestamp = _parse_timestamp(
+        payload.get("timestamp") or payload.get("time") or payload.get("ts")
+    )
+    valor = _parse_numeric(payload.get("value"))
+    raw_reliability = (
+        payload.get("reliability")
+        or payload.get("confidence")
+        or payload.get("fiabilidad")
+    )
+    if raw_reliability is None:
+        confidence = 1.0
+    else:
+        parsed = _parse_numeric(raw_reliability)
+        if parsed is None:
+            confidence = 1.0
+        elif parsed > 1:
+            confidence = max(0.0, min(parsed / 100.0, 1.0))
+        else:
+            confidence = max(0.0, min(parsed, 1.0))
+    return {
+        "name": nombre,
+        "canonical": canonical,
+        "map_to": payload.get("map_to"),
+        "unit": unidad,
+        "value": valor,
+        "timestamp": timestamp,
+        "confidence": confidence,
+        "source": payload.get("source") or payload.get("origin") or "externo",
+        "origin": payload.get("origin") or payload.get("source") or "externo",
+        "reliability": raw_reliability,
+        "raw": payload,
+    }
+
+
+def _validate_sensor_payload(normalized: dict) -> tuple[bool, list[str]]:
+    errors: list[str] = []
+    if not normalized.get("name"):
+        errors.append("No hay nombre de sensor")
+    if normalized.get("value") is None:
+        errors.append("Valor no convertible a número")
+    now = time.time()
+    timestamp = normalized.get("timestamp")
+    if timestamp and abs(now - timestamp) > MAX_SENSOR_FRESHNESS_SECONDS:
+        errors.append("Lectura demasiado antigua")
+    confidence = normalized.get("confidence", 1.0)
+    if not (0.0 <= confidence <= 1.0):
+        errors.append("Confidence fuera de rango")
+    if errors:
+        return False, errors
+    return True, []
+
+
+def _smooth_sensor_value(sensor_id: Optional[str], value):
+    if sensor_id is None or not isinstance(value, (int, float)):
+        return value
+    previous = _SENSOR_SMOOTHING_STATE.get(sensor_id)
+    if previous is None:
+        next_value = value
+    else:
+        next_value = (
+            SENSOR_SMOOTHING_ALPHA * value + (1 - SENSOR_SMOOTHING_ALPHA) * previous
+        )
+    _SENSOR_SMOOTHING_STATE[sensor_id] = next_value
+    return next_value
+
+
+# Endpoint para sensores virtuales (ruido, sismos, etc.)
+@app.post("/sensor_virtual")
+async def sensor_virtual(payload: dict = Body(...)):
+    try:
+        normalized = _normalize_sensor_payload(payload)
+        valid, validation_errors = _validate_sensor_payload(normalized)
+        if not valid:
+            logger.warning("Lectura de sensor virtual rechazada: %s", validation_errors)
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "ERROR",
+                    "message": "Lectura inválida",
+                    "errors": validation_errors,
+                },
+            )
+        nombre = payload.get("name") or payload.get("sensor")
+        tipo = payload.get("type") or nombre
+        unidad = normalized.get("unit")
+        fuente = normalized.get("source")
+        origen = normalized.get("origin")
+        fiabilidad = normalized.get("confidence", 1.0)
+        map_to = normalized.get("canonical")
+        if nombre is None and not map_to:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "ERROR",
+                    "message": "Falta identificador de sensor",
+                },
+            )
+        valor = normalized.get("value")
+        smoothed_value = _smooth_sensor_value(map_to or nombre, valor)
+        if unidad is None and map_to:
+            try:
+                unidad = _default_unit(map_to)
+            except Exception:
+                unidad = None
+        try:
+            system.registrar_sensor_metadata(
+                nombre or map_to,
+                tipo=tipo,
+                unidad=unidad,
+                fuente=fuente,
+                origen=origen,
+                fiabilidad=fiabilidad,
+            )
+        except Exception as exc:
+            logger.warning("Error registrando metadata del sensor virtual: %s", exc)
+        sensor_id = map_to or nombre
+        if sensor_id is None:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "ERROR",
+                    "message": "No se pudo determinar el identificador del sensor",
+                },
+            )
+        try:
+            system.actualizar_sensor(sensor_id, smoothed_value)
+        except Exception as exc:
+            logger.error("Error al actualizar sensor %s: %s", sensor_id, exc)
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "status": "ERROR",
+                    "message": "Fallo al actualizar el sensor",
+                    "errors": [str(exc)],
+                },
+            )
+        return {
+            "status": "OK",
+            "received": True,
+            "sensor": sensor_id,
+            "value": smoothed_value,
+            "confidence": fiabilidad,
+        }
+    except Exception as exc:
+        import traceback
+
+        tb = traceback.format_exc()
+        logger.exception("Unhandled exception in /sensor_virtual: %s", exc)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "ERROR",
+                "message": "Unhandled error in /sensor_virtual",
+                "error": str(exc),
+                "trace": tb,
+            },
+        )
+
+
+def _feedback_snapshot() -> dict:
+    try:
+        indices = system.indices.obtener_todos() if system.indices else {}
+    except Exception:
+        indices = {}
+    try:
+        sensores = dict(getattr(system, "sensores", {}) or {})
+    except Exception:
+        sensores = {}
+    return {"indices": indices, "sensores": sensores}
+
+
+def _append_feedback_log(detalle: dict) -> None:
+    try:
+        os.makedirs("data", exist_ok=True)
+        path = os.path.join("data", "feedback_registros.jsonl")
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(detalle, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+@app.post("/feedback_prediccion")
+async def feedback_prediccion(payload: dict = Body(...)):
+    tipo = payload.get("tipo")
+    nombre = payload.get("nombre")
+    valor = payload.get("valor")
+    feedback = payload.get("feedback")  # "acierto" o "error"
+    valor_real = payload.get("valor_real")
+    detalle = {
+        "fecha": datetime.datetime.now().isoformat(),
+        "tipo": tipo,
+        "nombre": nombre,
+        "valor": valor,
+        "valor_real": valor_real,
+        "feedback": feedback,
+        "snapshot": _feedback_snapshot(),
+    }
+    _append_feedback_log(detalle)
+    auto_improvement = getattr(system, "auto_improvement_engine", None)
+    learning_engine = getattr(system, "learning_engine", None)
+    if nombre and auto_improvement:
+        auto_improvement.feedback(nombre, error=(feedback == "error"), detalle=detalle)
+        # Si hay valor real y valor estimado numérico, registrar error cuantitativo
+        try:
+            if feedback == "error" and valor_real is not None and valor is not None:
+                v_real = float(valor_real)
+                v_estimado = float(valor)
+                auto_improvement.registrar_error(nombre, v_real, v_estimado)
+                # Entrenamiento online si es predicción
+                if tipo == "prediccion" and learning_engine:
+                    learning_engine.ensure_model(nombre)
+                    # Usar features dummy (solo valor estimado)
+                    learning_engine.models[nombre].update(
+                        {"estimado": v_estimado}, v_real
+                    )
+        except Exception:
+            pass
+    return {"ok": True, "msg": "Feedback registrado"}
+
 
 # Configurar logging robusto
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 logger = logging.getLogger("meteoser")
 
 # Definir app ANTES de cualquier decorador (no sobrescribir si ya existe)
-if 'app' not in globals():
+if "app" not in globals():
     app = FastAPI()
 # Habilitar CORS para todos los orígenes (localhost, 127.0.0.1, etc.)
 app.add_middleware(
@@ -369,12 +517,15 @@ try:
     logger.info("MeteoSer backend inicializado correctamente.")
 except Exception as e:
     logger.error(f"Error crítico al iniciar MeteoSer: {e}", exc_info=True)
+
     # Creamos un system y manager dummy para que la app no se caiga
     class Dummy:
         def obtener_historial_original(self, nombre):
             return []
+
         def obtener_estado_completo(self):
             return {"estado": "Error crítico en la inicialización. Ver logs."}
+
     manager = Dummy()
     system = Dummy()
 
@@ -430,7 +581,9 @@ def _guardar_asistente() -> None:
             "updated_at": datetime.datetime.utcnow().isoformat(),
             "data": _asistente_store,
         }
-        _ruta_asistente().write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        _ruta_asistente().write_text(
+            json.dumps(payload, ensure_ascii=False), encoding="utf-8"
+        )
     except Exception:
         pass
 
@@ -534,6 +687,7 @@ def _sonar_alarma() -> None:
             if sys.platform.startswith("win"):
                 try:
                     import winsound
+
                     for _ in range(6):
                         if _alarm_stop_event.is_set():
                             break
@@ -559,6 +713,7 @@ def _silenciar_alarma() -> None:
     if sys.platform.startswith("win"):
         try:
             import winsound
+
             winsound.PlaySound(None, winsound.SND_ASYNC)
         except Exception:
             pass
@@ -614,9 +769,16 @@ async def _alarmas_loop():
 
                 if recurrencia in ("laborables", "laboral") and now.weekday() >= 5:
                     continue
-                if recurrencia in ("fin de semana", "findesemana", "finsemana") and now.weekday() < 5:
+                if (
+                    recurrencia in ("fin de semana", "findesemana", "finsemana")
+                    and now.weekday() < 5
+                ):
                     continue
-                if recurrencia == "semanal" and alarma.get("dia_semana") is not None and now.weekday() != alarma.get("dia_semana"):
+                if (
+                    recurrencia == "semanal"
+                    and alarma.get("dia_semana") is not None
+                    and now.weekday() != alarma.get("dia_semana")
+                ):
                     continue
 
                 aviso_min = alarma.get("aviso_min") or alarma.get("prealert_min")
@@ -626,11 +788,19 @@ async def _alarmas_loop():
                     aviso_min = 0
 
                 if aviso_min > 0:
-                    aviso_time = (datetime.datetime(now.year, now.month, now.day, hh, mm) - datetime.timedelta(minutes=aviso_min))
+                    aviso_time = datetime.datetime(
+                        now.year, now.month, now.day, hh, mm
+                    ) - datetime.timedelta(minutes=aviso_min)
                     aviso_key = alarma.get("ultimo_aviso")
-                    if now.hour == aviso_time.hour and now.minute == aviso_time.minute and aviso_key != hoy:
+                    if (
+                        now.hour == aviso_time.hour
+                        and now.minute == aviso_time.minute
+                        and aviso_key != hoy
+                    ):
                         alarma["ultimo_aviso"] = hoy
-                        comm_engine.responder(f"Aviso: alarma en {aviso_min} minutos.", {"alarma": alarma})
+                        comm_engine.responder(
+                            f"Aviso: alarma en {aviso_min} minutos.", {"alarma": alarma}
+                        )
 
                 last = alarma.get("ultimo_disparo")
                 if now.hour == hh and now.minute == mm and last != hoy:
@@ -711,22 +881,42 @@ async def iniciar_autodeteccion():
     global discovery_engine, auto_repair_engine, pas_engine, habits_engine
 
     mqtt_host = os.getenv("METEOSER_MQTT_HOST", "127.0.0.1")
-    mqtt_tls_enabled = os.getenv("METEOSER_MQTT_TLS", "1") not in ("0", "false", "False")
+    mqtt_tls_enabled = os.getenv("METEOSER_MQTT_TLS", "1") not in (
+        "0",
+        "false",
+        "False",
+    )
     default_mqtt_port = "8883" if mqtt_tls_enabled else "1883"
     try:
         mqtt_port = int(os.getenv("METEOSER_MQTT_PORT", default_mqtt_port))
     except Exception:
         mqtt_port = int(default_mqtt_port)
-    mqtt_enabled = os.getenv("METEOSER_MQTT_ENABLED", "1") not in ("0", "false", "False")
-    mdns_enabled = os.getenv("METEOSER_MDNS_ENABLED", "1") not in ("0", "false", "False")
-    serial_enabled = os.getenv("METEOSER_SERIAL_ENABLED", "1") not in ("0", "false", "False")
+    mqtt_enabled = os.getenv("METEOSER_MQTT_ENABLED", "1") not in (
+        "0",
+        "false",
+        "False",
+    )
+    mdns_enabled = os.getenv("METEOSER_MDNS_ENABLED", "1") not in (
+        "0",
+        "false",
+        "False",
+    )
+    serial_enabled = os.getenv("METEOSER_SERIAL_ENABLED", "1") not in (
+        "0",
+        "false",
+        "False",
+    )
     ble_enabled = os.getenv("METEOSER_BLE_ENABLED", "1") not in ("0", "false", "False")
     mqtt_user = os.getenv("METEOSER_MQTT_USER")
     mqtt_pass = os.getenv("METEOSER_MQTT_PASS")
     mqtt_ca = os.getenv("METEOSER_MQTT_TLS_CA")
     mqtt_client_cert = os.getenv("METEOSER_MQTT_TLS_CLIENT_CERT")
     mqtt_client_key = os.getenv("METEOSER_MQTT_TLS_CLIENT_KEY")
-    mqtt_tls_insecure = os.getenv("METEOSER_MQTT_TLS_INSECURE", "0") in ("1", "true", "True")
+    mqtt_tls_insecure = os.getenv("METEOSER_MQTT_TLS_INSECURE", "0") in (
+        "1",
+        "true",
+        "True",
+    )
 
     def _get_discovery_engine():
         global discovery_engine
@@ -799,10 +989,14 @@ async def iniciar_autodeteccion():
     asyncio.create_task(_habitos_loop())
     asyncio.create_task(_alarmas_loop())
 
+
 # Endpoint para consultar historial de valores originales
 @app.get("/api/sensores/historial")
-async def obtener_historial_sensor(nombre: str = Query(..., description="Nombre del sensor base, por ejemplo 'tempf'")):
+async def obtener_historial_sensor(
+    nombre: str = Query(..., description="Nombre del sensor base, por ejemplo 'tempf'"),
+):
     return {"historial": system.obtener_historial_original(nombre)}
+
 
 # Endpoint raíz: dashboard visual avanzado (Jinja2)
 @app.get("/", response_class=HTMLResponse)
@@ -936,7 +1130,9 @@ def asistente_calendario(request: Request, payload: dict = None):
     elif request.method == "DELETE":
         idx = int((payload or {}).get("index", -1))
         _borrar_lista("calendario", idx)
-    return MotorCalendario().gestionar({"calendario": _asistente_store.get("calendario", [])})
+    return MotorCalendario().gestionar(
+        {"calendario": _asistente_store.get("calendario", [])}
+    )
 
 
 @app.api_route("/asistente/tareas", methods=["GET", "POST", "DELETE"])
@@ -973,7 +1169,9 @@ def asistente_lista_compra(request: Request, payload: dict = None):
     elif request.method == "DELETE":
         idx = int((payload or {}).get("index", -1))
         _borrar_lista("lista_compra", idx)
-    return MotorListaCompra().gestionar({"lista_compra": _asistente_store.get("lista_compra", [])})
+    return MotorListaCompra().gestionar(
+        {"lista_compra": _asistente_store.get("lista_compra", [])}
+    )
 
 
 @app.get("/asistente/compra/sugerencias")
@@ -994,7 +1192,9 @@ def asistente_impresion(request: Request, payload: dict = None):
     elif request.method == "DELETE":
         idx = int((payload or {}).get("index", -1))
         _borrar_lista("cola_impresion", idx)
-    return MotorImpresion().imprimir({"cola_impresion": _asistente_store.get("cola_impresion", [])})
+    return MotorImpresion().imprimir(
+        {"cola_impresion": _asistente_store.get("cola_impresion", [])}
+    )
 
 
 @app.post("/asistente/recomendaciones")
@@ -1019,100 +1219,6 @@ def asistente_comunicacion(payload: dict = None):
 # Endpoint genérico para sensores externos (autoconfigurable)
 @app.api_route("/sensor_input", methods=["POST"])
 async def sensor_input(request: Request):
-    def _canonical_name(nombre: str):
-        if not nombre:
-            return None
-        n = nombre.lower().replace("-", "_")
-        if "icasa" in n and "co2" in n:
-            return "co2"
-        if "meter" in n and "co2" in n:
-            return "co2"
-        if "ndir" in n:
-            return "co2"
-        if "co2" in n:
-            return "co2"
-        if "carbon" in n and "dioxide" in n:
-            return "co2"
-        if "temp" in n or "temperatura" in n:
-            return "temperatura"
-        if "hum" in n or "humidity" in n:
-            return "humedad"
-        if "pres" in n or "pressure" in n or "baro" in n:
-            return "presion"
-        if "pm25" in n or "pm2" in n:
-            return "pm25"
-        if "wind" in n or "viento" in n:
-            return "viento"
-        if "rain" in n or "lluv" in n:
-            return "lluvia"
-        if "uv" in n:
-            return "uv"
-        if "light" in n or "luz" in n:
-            return "luz"
-        if "noise" in n or "ruido" in n:
-            return "ruido"
-        if "voc" in n:
-            return "voc"
-        if "pm10" in n:
-            return "pm10"
-        if "pm1" in n:
-            return "pm1"
-        if "wh51" in n:
-            return "wh51"
-        if "soil" in n or "suelo" in n or "hum_suelo" in n or "humedad_suelo" in n:
-            return "wh51"
-        return None
-
-    def _default_unit(canonical: str):
-        if canonical == "temperatura":
-            return "C"
-        if canonical == "humedad":
-            return "%"
-        if canonical == "presion":
-            return "hPa"
-        if canonical in ("pm25", "pm10", "pm1"):
-            return "µg/m³"
-        if canonical == "co2":
-            return "ppm"
-        if canonical == "viento":
-            return "km/h"
-        if canonical == "lluvia":
-            return "mm"
-        if canonical == "wh51":
-            return "%"
-        return None
-
-    def _normalize_value(canonical: str, value, unit):
-        try:
-            v = float(value)
-        except Exception:
-            return value, unit
-        if canonical == "temperatura":
-            if unit and str(unit).upper() == "F":
-                return (v - 32.0) * 5.0 / 9.0, "C"
-            return v, "C"
-        if canonical == "humedad":
-            return v, "%"
-        if canonical == "presion":
-            if unit and str(unit).lower() == "inhg":
-                return v * 33.8639, "hPa"
-            return v, "hPa"
-        if canonical == "viento":
-            if unit and str(unit).lower() == "mph":
-                return v * 1.60934, "km/h"
-            if unit and str(unit).lower() in ["m/s", "ms"]:
-                return v * 3.6, "km/h"
-            return v, "km/h"
-        if canonical == "lluvia":
-            if unit and str(unit).lower() in ["in", "inch", "in/hr", "in/h"]:
-                return v * 25.4, "mm"
-            return v, "mm"
-        if canonical in ("pm25", "pm10", "pm1"):
-            return v, "µg/m³"
-        if canonical == "co2":
-            return v, "ppm"
-        return v, unit
-
     data = {}
     try:
         if request.headers.get("content-type", "").startswith("application/json"):
@@ -1139,10 +1245,24 @@ async def sensor_input(request: Request):
                 map_to = item.get("map_to") or _canonical_name(nombre)
                 if unidad is None and map_to:
                     unidad = _default_unit(map_to)
-                system.registrar_sensor_metadata(nombre, tipo=tipo, unidad=unidad, fuente=fuente, origen=origen, fiabilidad=fiabilidad)
+                system.registrar_sensor_metadata(
+                    nombre,
+                    tipo=tipo,
+                    unidad=unidad,
+                    fuente=fuente,
+                    origen=origen,
+                    fiabilidad=fiabilidad,
+                )
                 if map_to:
                     norm_val, norm_unit = _normalize_value(map_to, valor, unidad)
-                    system.registrar_sensor_metadata(map_to, tipo=tipo, unidad=unidad, fuente=fuente, origen=origen, fiabilidad=fiabilidad)
+                    system.registrar_sensor_metadata(
+                        map_to,
+                        tipo=tipo,
+                        unidad=unidad,
+                        fuente=fuente,
+                        origen=origen,
+                        fiabilidad=fiabilidad,
+                    )
                     system.actualizar_sensor(map_to, norm_val)
                 else:
                     system.actualizar_sensor(nombre, valor)
@@ -1162,10 +1282,24 @@ async def sensor_input(request: Request):
     map_to = data.get("map_to") or _canonical_name(nombre)
     if unidad is None and map_to:
         unidad = _default_unit(map_to)
-    system.registrar_sensor_metadata(nombre, tipo=tipo, unidad=unidad, fuente=fuente, origen=origen, fiabilidad=fiabilidad)
+    system.registrar_sensor_metadata(
+        nombre,
+        tipo=tipo,
+        unidad=unidad,
+        fuente=fuente,
+        origen=origen,
+        fiabilidad=fiabilidad,
+    )
     if map_to:
         norm_val, norm_unit = _normalize_value(map_to, valor, unidad)
-        system.registrar_sensor_metadata(map_to, tipo=tipo, unidad=norm_unit, fuente=fuente, origen=origen, fiabilidad=fiabilidad)
+        system.registrar_sensor_metadata(
+            map_to,
+            tipo=tipo,
+            unidad=norm_unit,
+            fuente=fuente,
+            origen=origen,
+            fiabilidad=fiabilidad,
+        )
         system.actualizar_sensor(map_to, norm_val)
     else:
         system.actualizar_sensor(nombre, valor)
@@ -1180,7 +1314,6 @@ def estado():
     except Exception as e:
         logger.error(f"Error en /estado: {e}", exc_info=True)
         try:
-            from core.indices.environmental_indices import EnvironmentalIndices
             if not isinstance(system.indices, EnvironmentalIndices):
                 system.indices = EnvironmentalIndices(system)
             indices = system.indices.obtener_todos()
@@ -1191,12 +1324,8 @@ def estado():
 
 def _estado_impl():
     global INDEX_CATALOG
-    if "INDEX_CATALOG" not in globals() or not isinstance(INDEX_CATALOG, dict):
-        try:
-            from core.indices.index_catalog import INDEX_CATALOG as _INDEX_CATALOG
-            INDEX_CATALOG = _INDEX_CATALOG if isinstance(_INDEX_CATALOG, dict) else {}
-        except Exception:
-            INDEX_CATALOG = {}
+    if not isinstance(INDEX_CATALOG, dict):
+        INDEX_CATALOG = {}
     # Refrescar sensores desde el último payload persistido si existe
     persisted_sensores = None
     try:
@@ -1228,6 +1357,7 @@ def _estado_impl():
         pass
     # Forzar siempre el cálculo de índices avanzados
     from core.indices.environmental_indices import EnvironmentalIndices
+
     if not isinstance(system.indices, EnvironmentalIndices):
         system.indices = EnvironmentalIndices(system)
     meteo_snapshot = get_full_meteo_snapshot(system)
@@ -1237,6 +1367,7 @@ def _estado_impl():
     # Aplicar calibración global si existen factores
     try:
         from core.calibration.calibration_engine import load_factors, apply_calibration
+
         factors = load_factors()
         if factors:
             apply_calibration(indices, factors)
@@ -1264,23 +1395,30 @@ def _estado_impl():
             origen_ubicacion = "manual"
     except Exception:
         pass
+
     def _coords_valid(lat, lon):
         try:
-            return lat is not None and lon is not None and -90 <= float(lat) <= 90 and -180 <= float(lon) <= 180
+            return (
+                lat is not None
+                and lon is not None
+                and -90 <= float(lat) <= 90
+                and -180 <= float(lon) <= 180
+            )
         except Exception:
             return False
 
     if latitud is None or longitud is None:
         try:
+
             def _parse_coord(val):
                 if val is None:
                     return None
-                s = str(val).strip().lower().replace(',', '.')
+                s = str(val).strip().lower().replace(",", ".")
                 sign = 1.0
-                if s.endswith(('n', 's', 'e', 'o', 'w')):
+                if s.endswith(("n", "s", "e", "o", "w")):
                     suffix = s[-1]
                     s = s[:-1].strip()
-                    if suffix in ('s', 'o', 'w'):
+                    if suffix in ("s", "o", "w"):
                         sign = -1.0
                 try:
                     return float(s) * sign
@@ -1302,6 +1440,7 @@ def _estado_impl():
             latitud = coords.get("lat")
             longitud = coords.get("lon")
             origen_ubicacion = coords.get("origen", "estimada")
+
     def _coords_es_spain(lat, lon):
         try:
             lat = float(lat)
@@ -1310,7 +1449,9 @@ def _estado_impl():
         except Exception:
             return False
 
-    if not _coords_valid(latitud, longitud) or (origen_ubicacion != "manual" and not _coords_es_spain(latitud, longitud)):
+    if not _coords_valid(latitud, longitud) or (
+        origen_ubicacion != "manual" and not _coords_es_spain(latitud, longitud)
+    ):
         latitud = 41.5507
         longitud = -2.397
         origen_ubicacion = "desconocida"
@@ -1325,27 +1466,38 @@ def _estado_impl():
     # Calcular arco solar y horas de amanecer/atardecer para hoy
     hoy = datetime.datetime.now().timetuple().tm_yday
     arco = arco_solar(latitud, hoy)
+
     def _radiacion_teorica(lat_deg, day, hora_decimal):
         import math
+
         lat_rad = math.radians(lat_deg)
         delta = 0.409 * math.sin(2 * math.pi * (day - 81) / 368)
         omega = math.radians((hora_decimal - 12.0) * 15.0)
-        sin_alt = math.sin(lat_rad) * math.sin(delta) + math.cos(lat_rad) * math.cos(delta) * math.cos(omega)
+        sin_alt = math.sin(lat_rad) * math.sin(delta) + math.cos(lat_rad) * math.cos(
+            delta
+        ) * math.cos(omega)
         if sin_alt <= 0:
             return 0.0
         gsc = 1361.0
         dr = 1.0 + 0.033 * math.cos(2 * math.pi * day / 365.0)
         return gsc * dr * sin_alt
+
     from tools.amanecer_atardecer import calcular_amanecer_atardecer
+
     try:
         from zoneinfo import ZoneInfo
+
         ahora = datetime.datetime.now(ZoneInfo("Europe/Madrid"))
         utc_offset = ahora.utcoffset()
-        utc_offset = int(utc_offset.total_seconds() / 3600) if utc_offset is not None else 1
+        utc_offset = (
+            int(utc_offset.total_seconds() / 3600) if utc_offset is not None else 1
+        )
     except Exception:
         try:
             utc_offset = datetime.datetime.now().astimezone().utcoffset()
-            utc_offset = int(utc_offset.total_seconds() / 3600) if utc_offset is not None else 1
+            utc_offset = (
+                int(utc_offset.total_seconds() / 3600) if utc_offset is not None else 1
+            )
         except Exception:
             utc_offset = 1
     horas_sol = calcular_amanecer_atardecer(latitud, longitud, hoy, utc_offset)
@@ -1356,22 +1508,40 @@ def _estado_impl():
         sensores = system.sensores.copy()
     # No forzar valores simulados si faltan sensores base
 
-
-
     # Añadir arco solar a los índices
     estimado_arco = origen_ubicacion != "manual"
     indices["arco_solar"] = {"valor": round(arco, 2), "estimado": estimado_arco}
-    indices["duracion_dia_h"] = {"valor": round(arco / 15.0, 2), "estimado": estimado_arco}
-    hora_decimal = datetime.datetime.now().hour + datetime.datetime.now().minute / 60.0 + datetime.datetime.now().second / 3600.0
+    indices["duracion_dia_h"] = {
+        "valor": round(arco / 15.0, 2),
+        "estimado": estimado_arco,
+    }
+    hora_decimal = (
+        datetime.datetime.now().hour
+        + datetime.datetime.now().minute / 60.0
+        + datetime.datetime.now().second / 3600.0
+    )
     rad_teorica = _radiacion_teorica(latitud, hoy, hora_decimal)
     indices["radiacion_teorica"] = {"valor": round(rad_teorica, 1), "estimado": True}
     try:
         rad_real = sensores.get("radiacion")
-        if ("nubosidad_estimada" not in indices or indices.get("nubosidad_estimada") is None) and rad_real is not None and rad_teorica > 0:
-            nubosidad = max(0.0, min(100.0, (1.0 - (float(rad_real) / rad_teorica)) * 100.0))
-            indices["nubosidad_estimada"] = {"valor": round(nubosidad, 2), "estimado": True}
+        if (
+            (
+                "nubosidad_estimada" not in indices
+                or indices.get("nubosidad_estimada") is None
+            )
+            and rad_real is not None
+            and rad_teorica > 0
+        ):
+            nubosidad = max(
+                0.0, min(100.0, (1.0 - (float(rad_real) / rad_teorica)) * 100.0)
+            )
+            indices["nubosidad_estimada"] = {
+                "valor": round(nubosidad, 2),
+                "estimado": True,
+            }
     except Exception:
         pass
+
     def _hhmm_to_min(hhmm: str):
         try:
             if not hhmm or ":" not in hhmm:
@@ -1422,7 +1592,9 @@ def _estado_impl():
             if amanecer_min <= atardecer_min:
                 es_dia_astronomico = amanecer_min <= ahora_min <= atardecer_min
             else:
-                es_dia_astronomico = ahora_min >= amanecer_min or ahora_min <= atardecer_min
+                es_dia_astronomico = (
+                    ahora_min >= amanecer_min or ahora_min <= atardecer_min
+                )
 
         amanecer_hibrido = amanecer_astro
         atardecer_hibrido = atardecer_astro
@@ -1431,7 +1603,11 @@ def _estado_impl():
         if es_dia_astronomico is False and es_dia_sensor and amanecer_min is not None:
             if abs(ahora_min - amanecer_min) <= ventana_min:
                 amanecer_hibrido = _min_to_hhmm(ahora_min)
-        if es_dia_astronomico is True and (not es_dia_sensor) and atardecer_min is not None:
+        if (
+            es_dia_astronomico is True
+            and (not es_dia_sensor)
+            and atardecer_min is not None
+        ):
             if abs(ahora_min - atardecer_min) <= ventana_min:
                 atardecer_hibrido = _min_to_hhmm(ahora_min)
 
@@ -1452,7 +1628,9 @@ def _estado_impl():
         if atardecer_min is not None and atardecer_h_min is not None:
             desvio_atardecer = abs(atardecer_h_min - atardecer_min)
 
-        inconsistencia_sensor = (es_dia_astronomico is not None and es_dia_astronomico != es_dia_sensor)
+        inconsistencia_sensor = (
+            es_dia_astronomico is not None and es_dia_astronomico != es_dia_sensor
+        )
         inconsistencia_hibrida = False
         if desvio_amanecer is not None and desvio_amanecer >= umbral_desvio_min:
             inconsistencia_hibrida = True
@@ -1461,7 +1639,7 @@ def _estado_impl():
 
         indices["desvio_amanecer_min"] = desvio_amanecer
         indices["desvio_atardecer_min"] = desvio_atardecer
-        indices["inconsistencia_luz"] = (inconsistencia_sensor or inconsistencia_hibrida)
+        indices["inconsistencia_luz"] = inconsistencia_sensor or inconsistencia_hibrida
         indices["inconsistencia_sensor_luz"] = inconsistencia_sensor
         indices["inconsistencia_hibrida"] = inconsistencia_hibrida
     except Exception:
@@ -1470,7 +1648,11 @@ def _estado_impl():
 
     # Índices astronómicos compuestos
     try:
-        from core.indices.environmental_indices import _calcular_ventana_observacion_nocturna, _clasificar_indice_cielo
+        from core.indices.environmental_indices import (
+            _calcular_ventana_observacion_nocturna,
+            _clasificar_indice_cielo,
+        )
+
         duracion_dia = None
         if isinstance(indices.get("duracion_dia_h"), dict):
             duracion_dia = indices.get("duracion_dia_h", {}).get("valor")
@@ -1479,7 +1661,10 @@ def _estado_impl():
         duracion_noche = None
         if duracion_dia is not None:
             duracion_noche = max(0.0, 24.0 - float(duracion_dia))
-            indices["duracion_noche_h"] = {"valor": round(duracion_noche, 2), "estimado": True}
+            indices["duracion_noche_h"] = {
+                "valor": round(duracion_noche, 2),
+                "estimado": True,
+            }
 
         cielo_obs = indices.get("cielo_observable_nocturno")
         cielo_val = cielo_obs.get("valor") if isinstance(cielo_obs, dict) else cielo_obs
@@ -1488,7 +1673,7 @@ def _estado_impl():
             indices["ventana_observacion_nocturna"] = {
                 "valor": round(ventana, 2),
                 "estimado": True,
-                "explicacion": "Horas útiles según cielo observable y duración de noche"
+                "explicacion": "Horas útiles según cielo observable y duración de noche",
             }
 
         indice_cielo = None
@@ -1500,9 +1685,11 @@ def _estado_impl():
             indices["indice_cielo_astronomico"] = {
                 "valor": round(indice_cielo, 2),
                 "estimado": True,
-                "explicacion": "Índice de cielo astronómico (cielo observable + ventana)"
+                "explicacion": "Índice de cielo astronómico (cielo observable + ventana)",
             }
-            indices["indice_cielo_astronomico_nivel"] = _clasificar_indice_cielo(indice_cielo)
+            indices["indice_cielo_astronomico_nivel"] = _clasificar_indice_cielo(
+                indice_cielo
+            )
     except Exception:
         pass
     indices["latitud"] = latitud
@@ -1728,6 +1915,7 @@ def _estado_impl():
 def submenu_detallado():
     try:
         from core.indices.environmental_indices import EnvironmentalIndices
+
         try:
             from core.indices.index_catalog import INDEX_CATALOG
         except Exception:
@@ -1890,36 +2078,44 @@ def submenu_detallado():
         sensores = []
         for nombre, valor in system.sensores.items():
             meta = system.obtener_sensor_metadata(nombre) or {}
-            sensores.append({
-                "nombre": nombre,
-                "valor": valor,
-                "unidad": meta.get("unidad"),
-                "fuente": meta.get("fuente"),
-                "origen": meta.get("origen"),
-                "fiabilidad": meta.get("fiabilidad"),
-                "tipo": meta.get("tipo"),
-                "timestamp": system.sensores_timestamp.get(nombre),
-                "derivado": False,
-            })
+            sensores.append(
+                {
+                    "nombre": nombre,
+                    "valor": valor,
+                    "unidad": meta.get("unidad"),
+                    "fuente": meta.get("fuente"),
+                    "origen": meta.get("origen"),
+                    "fiabilidad": meta.get("fiabilidad"),
+                    "tipo": meta.get("tipo"),
+                    "timestamp": system.sensores_timestamp.get(nombre),
+                    "derivado": False,
+                }
+            )
 
         derivados = []
         for nombre, valor in getattr(system, "sensores_derivados", {}).items():
             meta = getattr(system, "sensores_derivados_metadata", {}).get(nombre, {})
-            derivados.append({
-                "nombre": nombre,
-                "valor": valor,
-                "unidad": meta.get("unidad"),
-                "fuente": meta.get("fuente"),
-                "origen": meta.get("origen"),
-                "fiabilidad": meta.get("fiabilidad"),
-                "tipo": meta.get("tipo"),
-                "calidad": meta.get("calidad"),
-                "depends_on": meta.get("depends_on"),
-                "derivado": True,
-            })
+            derivados.append(
+                {
+                    "nombre": nombre,
+                    "valor": valor,
+                    "unidad": meta.get("unidad"),
+                    "fuente": meta.get("fuente"),
+                    "origen": meta.get("origen"),
+                    "fiabilidad": meta.get("fiabilidad"),
+                    "tipo": meta.get("tipo"),
+                    "calidad": meta.get("calidad"),
+                    "depends_on": meta.get("depends_on"),
+                    "derivado": True,
+                }
+            )
 
         expansion = AutoExpansionEngine(system).report()
-        auto_mejora_ciclo = system.auto_improvement_system.ciclo() if system.auto_improvement_system else {}
+        auto_mejora_ciclo = (
+            system.auto_improvement_system.ciclo()
+            if system.auto_improvement_system
+            else {}
+        )
         pas_status = pas_engine.status(system.sensores) if pas_engine else {}
         habitos_status = habits_engine.status() if habits_engine else {}
         data = {
@@ -1927,83 +2123,88 @@ def submenu_detallado():
             "derivados": derivados,
             "indices": indices,
             "predicciones": predicciones,
-        "ambiental": ambiental,
-        "confort": confort,
-        "edificio": edificio,
-        "meteorologico": meteorologico,
-        "ventilacion": ventilacion,
-        "prediccion_local": pred_local,
-        "huellas": huellas,
-        "uso_dispositivos": uso_dispositivos,
-        "nocturno": nocturno,
-        "intrusion": intrusion,
-        "materiales": materiales,
-        "avisos_practicos": avisos_practicos,
-        "salud_aire": salud_aire,
-        "ventanas_puertas": ventanas_puertas,
-        "riesgo_humedad": riesgo_humedad,
-        "temperatura_operativa": temperatura_operativa,
-        "ritmo_circadiano": ritmo_circadiano,
-        "habitabilidad": habitabilidad,
-        "confort_nocturno": confort_nocturno,
-        "meteo_avanzada": meteo_avanzada,
-        "viento_rachas": viento_rachas,
-        "visibilidad_local": visibilidad_local,
-        "luz_natural": luz_natural,
-        "confort_termico": confort_termico,
-        "aire_pegajoso_seco": aire_pegajoso_seco,
-        "aire_cargado": aire_cargado,
-        "aire_enrarecido": aire_enrarecido,
-        "deshidratacion": deshidratacion,
-        "aire_estancado": aire_estancado,
-        "renovacion_aire": renovacion_aire,
-        "riesgo_oxidacion": riesgo_oxidacion,
-        "riesgo_libros_papel": riesgo_libros_papel,
-        "riesgo_electronica": riesgo_electronica,
-        "riesgo_plasticos": riesgo_plasticos,
-        "riesgo_ropa_guardada": riesgo_ropa_guardada,
-        "riesgo_colchones": riesgo_colchones,
-        "riesgo_alimentos": riesgo_alimentos,
-        "riesgo_instrumentos": riesgo_instrumentos,
-        "riesgo_madera": riesgo_madera,
-        "actividad_humana": actividad_humana,
-        "presencia": presencia,
-        "corrientes_internas": corrientes_internas,
-        "estabilidad_futura": estabilidad_futura,
-        "golpes_puerta": golpes_puerta,
-        "riesgo_plantas": riesgo_plantas,
-        "riesgo_ropa_tendida": ropa_tendida,
-        "viento_dormir": viento_dormir,
-        "corrientes_futuras": corrientes_futuras,
-        "asistente": asistente,
-        "departamentos": departamentos,
-        "noticias": asistente.get("noticias"),
-        "eventos": asistente.get("eventos"),
-        "alarmas": asistente.get("alarmas"),
-        "calendario": asistente.get("calendario"),
-        "tareas": asistente.get("tareas"),
-        "lista_compra": asistente.get("lista_compra"),
-        "impresion": asistente.get("cola_impresion"),
-        "recomendaciones": asistente.get("recomendaciones"),
-        "olor_cerrado": olor_cerrado,
-        "condensacion_armarios": condensacion_armarios,
-        "secado_ropa": secado_ropa,
-        "persianas": persianas,
-        "bloques_fusionados": bloques_fusionados,
-        "auto_mejora": system.auto_improvement_engine.reporte() if system.auto_improvement_engine else {},
-        "auto_mejora_sistema": auto_mejora_ciclo,
-        "sensores_metadata": system.sensores_metadata,
-        "indices_catalogo": INDEX_CATALOG,
-        "auto_expansion": expansion,
-        "auto_reparacion": auto_repair_engine.last_report if auto_repair_engine else {},
-        "pas": pas_status,
-        "habitos": habitos_status,
+            "ambiental": ambiental,
+            "confort": confort,
+            "edificio": edificio,
+            "meteorologico": meteorologico,
+            "ventilacion": ventilacion,
+            "prediccion_local": pred_local,
+            "huellas": huellas,
+            "uso_dispositivos": uso_dispositivos,
+            "nocturno": nocturno,
+            "intrusion": intrusion,
+            "materiales": materiales,
+            "avisos_practicos": avisos_practicos,
+            "salud_aire": salud_aire,
+            "ventanas_puertas": ventanas_puertas,
+            "riesgo_humedad": riesgo_humedad,
+            "temperatura_operativa": temperatura_operativa,
+            "ritmo_circadiano": ritmo_circadiano,
+            "habitabilidad": habitabilidad,
+            "confort_nocturno": confort_nocturno,
+            "meteo_avanzada": meteo_avanzada,
+            "viento_rachas": viento_rachas,
+            "visibilidad_local": visibilidad_local,
+            "luz_natural": luz_natural,
+            "confort_termico": confort_termico,
+            "aire_pegajoso_seco": aire_pegajoso_seco,
+            "aire_cargado": aire_cargado,
+            "aire_enrarecido": aire_enrarecido,
+            "deshidratacion": deshidratacion,
+            "aire_estancado": aire_estancado,
+            "renovacion_aire": renovacion_aire,
+            "riesgo_oxidacion": riesgo_oxidacion,
+            "riesgo_libros_papel": riesgo_libros_papel,
+            "riesgo_electronica": riesgo_electronica,
+            "riesgo_plasticos": riesgo_plasticos,
+            "riesgo_ropa_guardada": riesgo_ropa_guardada,
+            "riesgo_colchones": riesgo_colchones,
+            "riesgo_alimentos": riesgo_alimentos,
+            "riesgo_instrumentos": riesgo_instrumentos,
+            "riesgo_madera": riesgo_madera,
+            "actividad_humana": actividad_humana,
+            "presencia": presencia,
+            "corrientes_internas": corrientes_internas,
+            "estabilidad_futura": estabilidad_futura,
+            "golpes_puerta": golpes_puerta,
+            "riesgo_plantas": riesgo_plantas,
+            "riesgo_ropa_tendida": ropa_tendida,
+            "viento_dormir": viento_dormir,
+            "corrientes_futuras": corrientes_futuras,
+            "asistente": asistente,
+            "departamentos": departamentos,
+            "noticias": asistente.get("noticias"),
+            "eventos": asistente.get("eventos"),
+            "alarmas": asistente.get("alarmas"),
+            "calendario": asistente.get("calendario"),
+            "tareas": asistente.get("tareas"),
+            "lista_compra": asistente.get("lista_compra"),
+            "impresion": asistente.get("cola_impresion"),
+            "recomendaciones": asistente.get("recomendaciones"),
+            "olor_cerrado": olor_cerrado,
+            "condensacion_armarios": condensacion_armarios,
+            "secado_ropa": secado_ropa,
+            "persianas": persianas,
+            "bloques_fusionados": bloques_fusionados,
+            "auto_mejora": system.auto_improvement_engine.reporte()
+            if system.auto_improvement_engine
+            else {},
+            "auto_mejora_sistema": auto_mejora_ciclo,
+            "sensores_metadata": system.sensores_metadata,
+            "indices_catalogo": INDEX_CATALOG,
+            "auto_expansion": expansion,
+            "auto_reparacion": auto_repair_engine.last_report
+            if auto_repair_engine
+            else {},
+            "pas": pas_status,
+            "habitos": habitos_status,
         }
         return JSONResponse(content=_json_safe(data))
     except Exception as e:
         logger.error(f"Error en /submenu_detallado: {e}", exc_info=True)
         try:
             from core.indices.environmental_indices import EnvironmentalIndices
+
             if not isinstance(system.indices, EnvironmentalIndices):
                 system.indices = EnvironmentalIndices(system)
             indices = system.indices.obtener_todos()
@@ -2030,7 +2231,9 @@ def _normalizar_texto(texto: str) -> str:
     if texto is None:
         return ""
     s = str(texto).lower()
-    s = "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn")
+    s = "".join(
+        c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn"
+    )
     s = s.replace("_", " ")
     s = re.sub(r"[^a-z0-9 ]+", " ", s)
     s = re.sub(r"\s+", " ", s).strip()
@@ -2116,72 +2319,89 @@ def _resolver_consulta_valor(text: str):
 
     for nombre, valor in system.sensores.items():
         meta = getattr(system, "sensores_metadata", {}).get(nombre, {})
-        candidatos.append({
-            "nombre": nombre,
-            "tipo": "sensor",
-            "valor": valor,
-            "unidad": meta.get("unidad"),
-            "meta": meta,
-            "explicacion": meta.get("explicacion"),
-            "confianza": meta.get("fiabilidad")
-        })
+        candidatos.append(
+            {
+                "nombre": nombre,
+                "tipo": "sensor",
+                "valor": valor,
+                "unidad": meta.get("unidad"),
+                "meta": meta,
+                "explicacion": meta.get("explicacion"),
+                "confianza": meta.get("fiabilidad"),
+            }
+        )
 
     for nombre, valor in getattr(system, "sensores_derivados", {}).items():
         meta = getattr(system, "sensores_derivados_metadata", {}).get(nombre, {})
-        candidatos.append({
-            "nombre": nombre,
-            "tipo": "derivado",
-            "valor": valor,
-            "unidad": meta.get("unidad"),
-            "meta": meta,
-            "explicacion": meta.get("explicacion"),
-            "confianza": meta.get("fiabilidad")
-        })
+        candidatos.append(
+            {
+                "nombre": nombre,
+                "tipo": "derivado",
+                "valor": valor,
+                "unidad": meta.get("unidad"),
+                "meta": meta,
+                "explicacion": meta.get("explicacion"),
+                "confianza": meta.get("fiabilidad"),
+            }
+        )
 
     if isinstance(indices, dict):
         for nombre, info in indices.items():
             if not isinstance(info, dict):
                 info = {"valor": info}
-            candidatos.append({
-                "nombre": nombre,
-                "tipo": "indice",
-                "valor": _extraer_valor(info),
-                "unidad": info.get("unidad"),
-                "meta": INDEX_CATALOG.get(nombre, {}),
-                "explicacion": info.get("explicacion") or INDEX_CATALOG.get(nombre, {}).get("explicacion"),
-                "confianza": info.get("confianza")
-            })
+            candidatos.append(
+                {
+                    "nombre": nombre,
+                    "tipo": "indice",
+                    "valor": _extraer_valor(info),
+                    "unidad": info.get("unidad"),
+                    "meta": INDEX_CATALOG.get(nombre, {}),
+                    "explicacion": info.get("explicacion")
+                    or INDEX_CATALOG.get(nombre, {}).get("explicacion"),
+                    "confianza": info.get("confianza"),
+                }
+            )
 
     if isinstance(predicciones, dict):
         for nombre, info in predicciones.items():
             if not isinstance(info, dict):
                 info = {"prediccion": info}
-            candidatos.append({
-                "nombre": nombre,
-                "tipo": "prediccion",
-                "valor": _extraer_valor(info),
-                "unidad": info.get("unidad"),
-                "meta": info,
-                "explicacion": info.get("explicacion"),
-                "confianza": info.get("confianza")
-            })
+            candidatos.append(
+                {
+                    "nombre": nombre,
+                    "tipo": "prediccion",
+                    "valor": _extraer_valor(info),
+                    "unidad": info.get("unidad"),
+                    "meta": info,
+                    "explicacion": info.get("explicacion"),
+                    "confianza": info.get("confianza"),
+                }
+            )
 
     if isinstance(pred_local, dict):
         for nombre, info in pred_local.items():
             if not isinstance(info, dict):
                 info = {"prediccion": info}
-            candidatos.append({
-                "nombre": nombre,
-                "tipo": "prediccion",
-                "valor": _extraer_valor(info),
-                "unidad": info.get("unidad"),
-                "meta": info,
-                "explicacion": info.get("explicacion"),
-                "confianza": info.get("confianza")
-            })
+            candidatos.append(
+                {
+                    "nombre": nombre,
+                    "tipo": "prediccion",
+                    "valor": _extraer_valor(info),
+                    "unidad": info.get("unidad"),
+                    "meta": info,
+                    "explicacion": info.get("explicacion"),
+                    "confianza": info.get("confianza"),
+                }
+            )
 
     aliases_map = {
-        "temperatura": ["temperatura", "temp", "t", "temperatura exterior", "t exterior"],
+        "temperatura": [
+            "temperatura",
+            "temp",
+            "t",
+            "temperatura exterior",
+            "t exterior",
+        ],
         "temperatura_interior": ["temperatura interior", "t interior", "temp interior"],
         "humedad": ["humedad", "hum", "hr", "humedad relativa", "humedad exterior"],
         "humedad_interior": ["humedad interior", "hr interior"],
@@ -2251,7 +2471,10 @@ def _resolver_consulta_valor(text: str):
 
     if len(mejores) > 1 and mejor[0] <= 2:
         nombres = ", ".join(sorted({m["nombre"] for m in mejores})[:8])
-        return {"text": f"He encontrado varios valores posibles: {nombres}. Di el nombre exacto.", "audio": False}
+        return {
+            "text": f"He encontrado varios valores posibles: {nombres}. Di el nombre exacto.",
+            "audio": False,
+        }
 
     c = mejor[1]
     valor = c.get("valor")
@@ -2272,7 +2495,8 @@ def _resolver_consulta_valor(text: str):
         razon.append(f"Razón: {explicacion}.")
 
     return {
-        "text": f"{c['nombre']}: {valor_txt}".strip() + (". " + " ".join(razon) if razon else ""),
+        "text": f"{c['nombre']}: {valor_txt}".strip()
+        + (". " + " ".join(razon) if razon else ""),
         "audio": False,
         "valor": valor,
         "unidad": unidad,
@@ -2293,7 +2517,7 @@ def _listar_valores_disponibles():
         "sensores": sensores,
         "derivados": derivados,
         "indices": indices,
-        "total": len(todos)
+        "total": len(todos),
     }
 
 
@@ -2311,7 +2535,6 @@ def _respuesta_voz(session_id: str, text: str, extra: dict | None = None) -> dic
     return resp
 
 
-
 @app.post("/voz/texto")
 async def voz_texto(payload: dict):
     session_id = payload.get("session_id") if isinstance(payload, dict) else None
@@ -2324,9 +2547,19 @@ async def voz_texto(payload: dict):
 
     # --- FEEDBACK POR VOZ ---
     import re
-    feedback_match = re.search(r'(acertaste|fue correcta|fue un acierto|fue correcta la|fue buena|fue exacta) (la|el)? ?(predicci[oó]n|sensor|índice|indice)? ?(de|del|de la)? ?([\w_\- ]+)', t)
-    feedback_error_match = re.search(r'(fallaste|fue incorrecta|fue un error|fue mala|fue err[oó]nea|fue incorrecto|no acertaste|no fue buena|no fue exacta) (la|el)? ?(predicci[oó]n|sensor|índice|indice)? ?(de|del|de la)? ?([\w_\- ]+)', t)
-    valor_real_match = re.search(r'(el valor real|el valor correcto|era|fue|debería ser|deberia ser) ([\d\.,\-]+)', t)
+
+    feedback_match = re.search(
+        r"(acertaste|fue correcta|fue un acierto|fue correcta la|fue buena|fue exacta) (la|el)? ?(predicci[oó]n|sensor|índice|indice)? ?(de|del|de la)? ?([\w_\- ]+)",
+        t,
+    )
+    feedback_error_match = re.search(
+        r"(fallaste|fue incorrecta|fue un error|fue mala|fue err[oó]nea|fue incorrecto|no acertaste|no fue buena|no fue exacta) (la|el)? ?(predicci[oó]n|sensor|índice|indice)? ?(de|del|de la)? ?([\w_\- ]+)",
+        t,
+    )
+    valor_real_match = re.search(
+        r"(el valor real|el valor correcto|era|fue|debería ser|deberia ser) ([\d\.,\-]+)",
+        t,
+    )
 
     def _lookup_valor(data, nombre_busqueda: str):
         if not data or not nombre_busqueda:
@@ -2336,7 +2569,9 @@ async def voz_texto(payload: dict):
             if isinstance(items, dict):
                 for k, v in items.items():
                     if nombre_busqueda.lower() in k.lower():
-                        return v.get("valor") if isinstance(v, dict) and "valor" in v else v, grupo
+                        return v.get("valor") if isinstance(
+                            v, dict
+                        ) and "valor" in v else v, grupo
             if isinstance(items, list):
                 for item in items:
                     nombre_item = str(item.get("nombre", ""))
@@ -2360,14 +2595,20 @@ async def voz_texto(payload: dict):
         candidatos.sort(key=lambda x: len(x[0]), reverse=True)
         return candidatos[0]
 
-    evento_match = re.search(r'(hubo|hay|no hubo|no hay) (.+)', t)
+    evento_match = re.search(r"(hubo|hay|no hubo|no hay) (.+)", t)
     if evento_match:
         accion = evento_match.group(1)
         entidad = evento_match.group(2).strip()
         nombre, grupo = _match_nombre_libre(entidad)
         if nombre:
             valor_real = 100 if accion in ("hubo", "hay") else 0
-            tipo = "indice" if grupo == "indices" else "sensor" if grupo == "sensores" else "prediccion"
+            tipo = (
+                "indice"
+                if grupo == "indices"
+                else "sensor"
+                if grupo == "sensores"
+                else "prediccion"
+            )
             valor_estimado = None
             try:
                 data = submenu_detallado()
@@ -2375,29 +2616,39 @@ async def voz_texto(payload: dict):
             except Exception:
                 pass
             from fastapi.testclient import TestClient
+
             client = TestClient(app)
-            client.post("/feedback_prediccion", json={
-                "tipo": tipo,
-                "nombre": nombre,
-                "valor": valor_estimado,
-                "feedback": "acierto" if valor_real >= 50 else "error",
-                "valor_real": valor_real
-            })
+            client.post(
+                "/feedback_prediccion",
+                json={
+                    "tipo": tipo,
+                    "nombre": nombre,
+                    "valor": valor_estimado,
+                    "feedback": "acierto" if valor_real >= 50 else "error",
+                    "valor_real": valor_real,
+                },
+            )
             msg = f"Feedback registrado: {'positivo' if valor_real >= 50 else 'negativo'} sobre {nombre}"
             return _respuesta_voz(session_id, msg)
     if feedback_match or feedback_error_match:
-        tipo = 'prediccion'
+        tipo = "prediccion"
         nombre = None
-        feedback = 'acierto' if feedback_match else 'error'
+        feedback = "acierto" if feedback_match else "error"
         if feedback_match:
-            nombre = feedback_match.group(5).strip() if feedback_match.group(5) else None
+            nombre = (
+                feedback_match.group(5).strip() if feedback_match.group(5) else None
+            )
         if feedback_error_match:
-            nombre = feedback_error_match.group(5).strip() if feedback_error_match.group(5) else None
+            nombre = (
+                feedback_error_match.group(5).strip()
+                if feedback_error_match.group(5)
+                else None
+            )
         if "indice" in t or "índice" in t:
-            tipo = 'indice'
+            tipo = "indice"
         valor_real = None
         if valor_real_match:
-            valor_real = valor_real_match.group(2).replace(',', '.').strip()
+            valor_real = valor_real_match.group(2).replace(",", ".").strip()
         # Buscar valor estimado actual si es posible
         valor_estimado = None
         try:
@@ -2406,7 +2657,13 @@ async def voz_texto(payload: dict):
             if nombre:
                 valor_estimado, grupo = _lookup_valor(data, nombre)
                 if grupo:
-                    tipo = "indice" if grupo == "indices" else "sensor" if grupo == "sensores" else "prediccion"
+                    tipo = (
+                        "indice"
+                        if grupo == "indices"
+                        else "sensor"
+                        if grupo == "sensores"
+                        else "prediccion"
+                    )
         except Exception:
             pass
         if valor_real is not None and valor_estimado is not None:
@@ -2419,14 +2676,18 @@ async def voz_texto(payload: dict):
                 pass
         # Enviar feedback al endpoint
         from fastapi.testclient import TestClient
+
         client = TestClient(app)
-        client.post("/feedback_prediccion", json={
-            "tipo": tipo,
-            "nombre": nombre,
-            "valor": valor_estimado,
-            "feedback": feedback,
-            "valor_real": valor_real
-        })
+        client.post(
+            "/feedback_prediccion",
+            json={
+                "tipo": tipo,
+                "nombre": nombre,
+                "valor": valor_estimado,
+                "feedback": feedback,
+                "valor_real": valor_real,
+            },
+        )
         msg = f"Feedback registrado: {feedback} sobre {nombre or 'valor'}"
         if valor_real:
             msg += f" (valor real: {valor_real})"
@@ -2436,14 +2697,27 @@ async def voz_texto(payload: dict):
 
     if "submenu" in t or "submenú" in t:
         data = submenu_detallado()
-        return _respuesta_voz(session_id, "Mostrando submenú detallado.", {"submenu": data})
+        return _respuesta_voz(
+            session_id, "Mostrando submenú detallado.", {"submenu": data}
+        )
     if "crear formula" in t or "crear fórmula" in t:
         # ...existing code...
         pass
     if "layout" in t or "diseño" in t or "diseno" in t:
         # ...existing code...
         pass
-    if any(x in t for x in ["qué día hace", "que dia hace", "que tiempo hace", "qué tiempo hace", "cómo está el tiempo", "como esta el tiempo", "clima"]):
+    if any(
+        x in t
+        for x in [
+            "qué día hace",
+            "que dia hace",
+            "que tiempo hace",
+            "qué tiempo hace",
+            "cómo está el tiempo",
+            "como esta el tiempo",
+            "clima",
+        ]
+    ):
         # ...existing code...
         pass
     respuesta = _resolver_consulta_valor(text)
@@ -2455,9 +2729,15 @@ async def voz_texto(payload: dict):
     disponibles = _listar_valores_disponibles()
     if disponibles.get("total", 0) == 0:
         return _respuesta_voz(session_id, "Aún no hay datos de sensores recibidos.")
-    lista = (disponibles.get("sensores", []) + disponibles.get("derivados", []) + disponibles.get("indices", []))
+    lista = (
+        disponibles.get("sensores", [])
+        + disponibles.get("derivados", [])
+        + disponibles.get("indices", [])
+    )
     muestra = ", ".join(lista[:12])
-    return _respuesta_voz(session_id, f"No encontré ese valor. Puedes preguntar por: {muestra}.")
+    return _respuesta_voz(
+        session_id, f"No encontré ese valor. Puedes preguntar por: {muestra}."
+    )
 
 
 def _ruta_layout() -> pathlib.Path:
@@ -2494,7 +2774,9 @@ def _build_contexto(sensores: dict, indices: dict) -> dict:
         "temperatura_interior": sensores.get("temperatura_interior"),
         "humedad_interior": sensores.get("humedad_interior"),
         "co2": sensores.get("co2"),
-        "pm25": sensores.get("pm25") or sensores.get("pm25_ch1") or sensores.get("wh43"),
+        "pm25": sensores.get("pm25")
+        or sensores.get("pm25_ch1")
+        or sensores.get("wh43"),
         "ruido": ruido,
         "luz": luz,
         "viento": sensores.get("viento"),
@@ -2515,14 +2797,17 @@ def _build_contexto(sensores: dict, indices: dict) -> dict:
         "ireav": _val(indices, "ireav"),
         "irsd": _val(indices, "irsd"),
         "ot": sensores.get("temperatura_interior") or sensores.get("temperatura"),
-        "hora_local": datetime.datetime.now().hour + datetime.datetime.now().minute / 60.0,
+        "hora_local": datetime.datetime.now().hour
+        + datetime.datetime.now().minute / 60.0,
     }
     return contexto
 
 
 def _guardar_layout(layout: str):
     try:
-        _ruta_layout().write_text(json.dumps({"layout": layout}, ensure_ascii=False), encoding="utf-8")
+        _ruta_layout().write_text(
+            json.dumps({"layout": layout}, ensure_ascii=False), encoding="utf-8"
+        )
     except Exception:
         pass
 
@@ -2569,7 +2854,10 @@ def guardar_paneles(payload: dict):
     if not isinstance(sizes, dict):
         sizes = {}
     try:
-        _ruta_paneles().write_text(json.dumps({"order": order, "sizes": sizes}, ensure_ascii=False), encoding="utf-8")
+        _ruta_paneles().write_text(
+            json.dumps({"order": order, "sizes": sizes}, ensure_ascii=False),
+            encoding="utf-8",
+        )
     except Exception:
         pass
     return {"status": "OK", "order": order, "sizes": sizes}
@@ -2587,9 +2875,21 @@ def _resumen_meteo_actual():
     lluvia = sensores.get("lluvia")
     viento = sensores.get("viento")
     rad = sensores.get("radiacion")
-    niebla = indices.get("riesgo_niebla", {}).get("valor") if isinstance(indices.get("riesgo_niebla"), dict) else None
-    lluvia_riesgo = indices.get("riesgo_lluvia", {}).get("valor") if isinstance(indices.get("riesgo_lluvia"), dict) else None
-    nub = indices.get("nubosidad_estimada", {}).get("valor") if isinstance(indices.get("nubosidad_estimada"), dict) else None
+    niebla = (
+        indices.get("riesgo_niebla", {}).get("valor")
+        if isinstance(indices.get("riesgo_niebla"), dict)
+        else None
+    )
+    lluvia_riesgo = (
+        indices.get("riesgo_lluvia", {}).get("valor")
+        if isinstance(indices.get("riesgo_lluvia"), dict)
+        else None
+    )
+    nub = (
+        indices.get("nubosidad_estimada", {}).get("valor")
+        if isinstance(indices.get("nubosidad_estimada"), dict)
+        else None
+    )
 
     frases = []
     if temp is not None:
@@ -2605,8 +2905,8 @@ def _resumen_meteo_actual():
             pass
     if lluvia is not None:
         try:
-            l = float(lluvia)
-            if l > 0.2:
+            lluvia_valor = float(lluvia)
+            if lluvia_valor > 0.2:
                 frases.append("Está lloviendo")
         except Exception:
             pass
@@ -2655,7 +2955,11 @@ def auto_reparacion_estado():
 @app.get("/auto_expansion")
 def auto_expansion_estado():
     expansion = AutoExpansionEngine(system).report()
-    sugerencias = system.auto_improvement_system.auto_expansion.obtener_sugerencias() if system.auto_improvement_system else []
+    sugerencias = (
+        system.auto_improvement_system.auto_expansion.obtener_sugerencias()
+        if system.auto_improvement_system
+        else []
+    )
     return {"catalogo": expansion, "sugerencias": sugerencias}
 
 
@@ -2664,6 +2968,7 @@ def pas_estado():
     if not pas_engine:
         return {"status": "inactive"}
     return pas_engine.status(system.sensores)
+
 
 # Mantener el endpoint /ecowitt para integración de sensores
 @app.api_route("/ecowitt", methods=["POST", "GET"])
@@ -2680,8 +2985,12 @@ async def recibir_ecowitt(request: Request):
                 body = await request.body()
                 if body:
                     from urllib.parse import parse_qs
+
                     parsed = parse_qs(body.decode("utf-8"), keep_blank_values=True)
-                    data = {k: v[-1] if isinstance(v, list) and v else v for k, v in parsed.items()}
+                    data = {
+                        k: v[-1] if isinstance(v, list) and v else v
+                        for k, v in parsed.items()
+                    }
             except Exception:
                 data = {}
         if not data:
@@ -2698,12 +3007,10 @@ async def recibir_ecowitt(request: Request):
         except Exception:
             pass
         return {"status": "WARN", "received": False, "message": "Payload vacío"}
-    # Log detallado de rayos y puerto
-    import socket
     try:
-        puerto = request.url.port or 'desconocido'
+        puerto = request.url.port or "desconocido"
     except Exception:
-        puerto = 'desconocido'
+        puerto = "desconocido"
     print(f"[Ecowitt] Datos recibidos en puerto {puerto}:")
     for k, v in data.items():
         print(f"  {k}: {v}")
@@ -2718,7 +3025,7 @@ async def recibir_ecowitt(request: Request):
         payload_path.parent.mkdir(parents=True, exist_ok=True)
         payload_path.write_text(
             json.dumps({"timestamp": ts, "data": data}, ensure_ascii=False),
-            encoding="utf-8"
+            encoding="utf-8",
         )
     except Exception:
         pass
@@ -2736,7 +3043,14 @@ async def recibir_ecowitt(request: Request):
         try:
             tempint_c = (float(tempint) - 32) * 5.0 / 9.0
             system.actualizar_sensor("temperatura_interior", round(tempint_c, 2))
-            system.registrar_sensor_metadata("temperatura_interior", tipo="temperatura_interior", unidad="C", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+            system.registrar_sensor_metadata(
+                "temperatura_interior",
+                tipo="temperatura_interior",
+                unidad="C",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=90.0,
+            )
         except Exception:
             system.actualizar_sensor("temperatura_interior", None)
     if humedadint is not None:
@@ -2744,26 +3058,39 @@ async def recibir_ecowitt(request: Request):
             humedadint_num = float(humedadint)
             if 0 <= humedadint_num <= 100:
                 system.actualizar_sensor("humedad_interior", round(humedadint_num, 2))
-                system.registrar_sensor_metadata("humedad_interior", tipo="humedad_interior", unidad="%", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+                system.registrar_sensor_metadata(
+                    "humedad_interior",
+                    tipo="humedad_interior",
+                    unidad="%",
+                    fuente="ecowitt",
+                    origen="externo",
+                    fiabilidad=90.0,
+                )
             else:
                 system.actualizar_sensor("humedad_interior", None)
         except Exception:
             system.actualizar_sensor("humedad_interior", None)
     if baromrelint is not None:
         try:
-            system.actualizar_sensor("presion_relativa_interior", round(float(baromrelint) * 33.8639, 2))
+            system.actualizar_sensor(
+                "presion_relativa_interior", round(float(baromrelint) * 33.8639, 2)
+            )
         except Exception:
             system.actualizar_sensor("presion_relativa_interior", None)
     if baromabsint is not None:
         try:
-            system.actualizar_sensor("presion_absoluta_interior", round(float(baromabsint) * 33.8639, 2))
+            system.actualizar_sensor(
+                "presion_absoluta_interior", round(float(baromabsint) * 33.8639, 2)
+            )
         except Exception:
             system.actualizar_sensor("presion_absoluta_interior", None)
     temperatura = data.get("tempf")
     humedad = data.get("humidity")
     viento = data.get("windspeedmph")
     radiacion = data.get("solarradiation")
-    uv_raw = data.get("uv") or data.get("uvi") or data.get("uvindex") or data.get("uv_index")
+    uv_raw = (
+        data.get("uv") or data.get("uvi") or data.get("uvindex") or data.get("uv_index")
+    )
 
     lluvia_rate_candidates = [
         ("rainratein", data.get("rainratein")),
@@ -2820,7 +3147,12 @@ async def recibir_ecowitt(request: Request):
     system.actualizar_sensor("windspeedmph_original", viento)
     rainratein_raw = data.get("rainratein") or data.get("rain_ratein")
     system.actualizar_sensor("rainratein_original", rainratein_raw)
-    rainin_raw = data.get("rainin") or data.get("dailyrainin") or data.get("eventrainin") or data.get("hourlyrainin")
+    rainin_raw = (
+        data.get("rainin")
+        or data.get("dailyrainin")
+        or data.get("eventrainin")
+        or data.get("hourlyrainin")
+    )
     if rainin_raw is not None:
         system.actualizar_sensor("rainin_original", rainin_raw)
     system.actualizar_sensor("solarradiation_original", radiacion)
@@ -2831,7 +3163,14 @@ async def recibir_ecowitt(request: Request):
         try:
             radiacion_num = float(radiacion)
             system.actualizar_sensor("radiacion", radiacion_num)
-            system.registrar_sensor_metadata("radiacion", tipo="radiacion_solar", unidad="W/m²", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+            system.registrar_sensor_metadata(
+                "radiacion",
+                tipo="radiacion_solar",
+                unidad="W/m²",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=90.0,
+            )
         except Exception:
             system.actualizar_sensor("radiacion", radiacion)
     # Procesar UV
@@ -2839,7 +3178,14 @@ async def recibir_ecowitt(request: Request):
         try:
             uv_val = float(uv_raw)
             system.actualizar_sensor("uv", uv_val)
-            system.registrar_sensor_metadata("uv", tipo="uv", unidad="", fuente="ecowitt", origen="externo", fiabilidad=85.0)
+            system.registrar_sensor_metadata(
+                "uv",
+                tipo="uv",
+                unidad="",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=85.0,
+            )
         except Exception:
             system.actualizar_sensor("uv", uv_raw)
     # Sensores extra: rayos y partículas
@@ -2855,7 +3201,14 @@ async def recibir_ecowitt(request: Request):
             lightning_dist = lightning
         system.actualizar_sensor("lightning", lightning_dist)
         system.actualizar_sensor("distancia_rayo", lightning_dist)
-        system.registrar_sensor_metadata("distancia_rayo", tipo="distancia_rayo", unidad="km", fuente="ecowitt", origen="externo", fiabilidad=85.0)
+        system.registrar_sensor_metadata(
+            "distancia_rayo",
+            tipo="distancia_rayo",
+            unidad="km",
+            fuente="ecowitt",
+            origen="externo",
+            fiabilidad=85.0,
+        )
     # Guardar fecha/hora del último rayo
     if lightning_time is not None:
         system.actualizar_sensor("lightning_time", lightning_time)
@@ -2869,7 +3222,9 @@ async def recibir_ecowitt(request: Request):
         if lightning_num_val is not None:
             try:
                 prev_num = system.sensores.get("lightning_num")
-                prev_total = system.sensores.get("rayos_total", system.sensores.get("rayos", 0))
+                prev_total = system.sensores.get(
+                    "rayos_total", system.sensores.get("rayos", 0)
+                )
                 prev_num_val = int(prev_num) if prev_num is not None else None
                 prev_total_val = float(prev_total) if prev_total is not None else 0.0
             except Exception:
@@ -2888,17 +3243,37 @@ async def recibir_ecowitt(request: Request):
             system.actualizar_sensor("rayos", round(total))
             system.actualizar_sensor("rayos_offset", round(offset))
             system.actualizar_sensor("lightning_num", lightning_num_val)
-            system.registrar_sensor_metadata("rayos", tipo="contador_rayos", unidad="", fuente="ecowitt", origen="externo", fiabilidad=85.0)
+            system.registrar_sensor_metadata(
+                "rayos",
+                tipo="contador_rayos",
+                unidad="",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=85.0,
+            )
     if pm25 is not None:
         try:
             system.actualizar_sensor("pm25", float(pm25))
-            system.registrar_sensor_metadata("pm25", tipo="pm25", unidad="µg/m³", fuente="ecowitt", origen="externo", fiabilidad=85.0)
+            system.registrar_sensor_metadata(
+                "pm25",
+                tipo="pm25",
+                unidad="µg/m³",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=85.0,
+            )
         except Exception:
             system.actualizar_sensor("pm25", pm25)
     # WH51 (humedad del suelo) y valor AD crudo si existe
     soil_keys = [
-        "soilmoisture1", "soilmoisture2", "soilmoisture3", "soilmoisture4",
-        "soilmoisture", "soil_moisture", "soil_moisture1", "wh51",
+        "soilmoisture1",
+        "soilmoisture2",
+        "soilmoisture3",
+        "soilmoisture4",
+        "soilmoisture",
+        "soil_moisture",
+        "soil_moisture1",
+        "wh51",
     ]
     soil_raw = None
     for key in soil_keys:
@@ -2909,14 +3284,27 @@ async def recibir_ecowitt(request: Request):
         try:
             soil_val = float(soil_raw)
             system.actualizar_sensor("wh51", round(soil_val, 2))
-            system.registrar_sensor_metadata("wh51", tipo="humedad_suelo", unidad="%", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+            system.registrar_sensor_metadata(
+                "wh51",
+                tipo="humedad_suelo",
+                unidad="%",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=90.0,
+            )
         except Exception:
             system.actualizar_sensor("wh51", soil_raw)
 
     soil_ad_keys = [
-        "soilmoisture1_ad", "soilmoisture1adc", "soilmoisture1_adc",
-        "soilmoisture1_raw", "soilmoisture1raw", "soilad1", "wh51_ad",
-        "ad1", "ad_1",
+        "soilmoisture1_ad",
+        "soilmoisture1adc",
+        "soilmoisture1_adc",
+        "soilmoisture1_raw",
+        "soilmoisture1raw",
+        "soilad1",
+        "wh51_ad",
+        "ad1",
+        "ad_1",
     ]
     soil_ad_raw = None
     for key in soil_ad_keys:
@@ -2927,7 +3315,14 @@ async def recibir_ecowitt(request: Request):
         try:
             soil_ad_val = float(soil_ad_raw)
             system.actualizar_sensor("wh51_ad", round(soil_ad_val, 2))
-            system.registrar_sensor_metadata("wh51_ad", tipo="humedad_suelo_ad", unidad="ad", fuente="ecowitt", origen="externo", fiabilidad=70.0)
+            system.registrar_sensor_metadata(
+                "wh51_ad",
+                tipo="humedad_suelo_ad",
+                unidad="ad",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=70.0,
+            )
         except Exception:
             system.actualizar_sensor("wh51_ad", soil_ad_raw)
     # Convertir temperatura de Fahrenheit a Celsius SIEMPRE y guardar solo en °C
@@ -2935,7 +3330,14 @@ async def recibir_ecowitt(request: Request):
         try:
             temperatura_c = (float(temperatura) - 32) * 5.0 / 9.0
             system.actualizar_sensor("temperatura", round(temperatura_c, 2))
-            system.registrar_sensor_metadata("temperatura", tipo="temperatura", unidad="C", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+            system.registrar_sensor_metadata(
+                "temperatura",
+                tipo="temperatura",
+                unidad="C",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=90.0,
+            )
         except Exception:
             system.actualizar_sensor("temperatura", None)
     if humedad is not None:
@@ -2943,7 +3345,14 @@ async def recibir_ecowitt(request: Request):
             humedad_num = float(humedad)
             if 0 <= humedad_num <= 100:
                 system.actualizar_sensor("humedad", round(humedad_num, 2))
-                system.registrar_sensor_metadata("humedad", tipo="humedad", unidad="%", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+                system.registrar_sensor_metadata(
+                    "humedad",
+                    tipo="humedad",
+                    unidad="%",
+                    fuente="ecowitt",
+                    origen="externo",
+                    fiabilidad=90.0,
+                )
             else:
                 system.actualizar_sensor("humedad", None)
         except Exception:
@@ -2952,7 +3361,14 @@ async def recibir_ecowitt(request: Request):
         try:
             viento_kmh = float(viento) * 1.60934
             system.actualizar_sensor("viento", round(viento_kmh, 2))
-            system.registrar_sensor_metadata("viento", tipo="viento", unidad="km/h", fuente="ecowitt", origen="externo", fiabilidad=85.0)
+            system.registrar_sensor_metadata(
+                "viento",
+                tipo="viento",
+                unidad="km/h",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=85.0,
+            )
         except Exception:
             system.actualizar_sensor("viento", viento)
     if best_rate is not None:
@@ -2960,7 +3376,14 @@ async def recibir_ecowitt(request: Request):
             lluvia_rate_mm = best_rate * 25.4 if best_rate_unit == "in" else best_rate
             system.actualizar_sensor("lluvia", round(lluvia_rate_mm, 2))
             system.actualizar_sensor("lluvia_rate", round(lluvia_rate_mm, 2))
-            system.registrar_sensor_metadata("lluvia", tipo="lluvia", unidad="mm", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+            system.registrar_sensor_metadata(
+                "lluvia",
+                tipo="lluvia",
+                unidad="mm",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=90.0,
+            )
         except Exception:
             system.actualizar_sensor("lluvia", best_rate)
     elif best_acum is not None:
@@ -2968,11 +3391,17 @@ async def recibir_ecowitt(request: Request):
             lluvia_acum_mm = best_acum * 25.4 if best_acum_unit == "in" else best_acum
             system.actualizar_sensor("lluvia", round(lluvia_acum_mm, 2))
             system.actualizar_sensor("lluvia_acumulada", round(lluvia_acum_mm, 2))
-            system.registrar_sensor_metadata("lluvia", tipo="lluvia", unidad="mm", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+            system.registrar_sensor_metadata(
+                "lluvia",
+                tipo="lluvia",
+                unidad="mm",
+                fuente="ecowitt",
+                origen="externo",
+                fiabilidad=90.0,
+            )
         except Exception:
             system.actualizar_sensor("lluvia", best_acum)
     # Recalcular índices tras cada actualización (solo cálculo, no guardar en system.indices si es un motor)
-    if hasattr(system, 'indices') and hasattr(system.indices, 'obtener_todos'):
+    if hasattr(system, "indices") and hasattr(system.indices, "obtener_todos"):
         _ = system.indices.obtener_todos()  # Solo recalcula, no asigna
     return {"status": "OK", "received": True}
-

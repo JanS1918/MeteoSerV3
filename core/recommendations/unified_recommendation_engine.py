@@ -2,9 +2,10 @@
 # MÓDULO C — MOTOR DE RECOMENDACIONES UNIFICADO
 # ============================================================
 
+from core.prediction.prediction_engine import PredictionEngine
+
 EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
 
-from core.prediction.prediction_engine import PredictionEngine
 
 class UnifiedRecommendationEngine:
     """
@@ -30,7 +31,6 @@ class UnifiedRecommendationEngine:
 
         datos = self.indices.obtener_todos()
         pred = PredictionEngine(self.system).predecir()
-
 
         st = datos.get("sensacion_termica")
         uv = datos.get("indice_uv")
@@ -61,20 +61,35 @@ class UnifiedRecommendationEngine:
                 motivos["sensacion_termica"] = "Hace fresco, abrígate."
                 motivos["ropa_frio"] = "Ponte una chaqueta."
             elif st_val > 28:
-                motivos["sensacion_termica"] = "Hace calor, hidrátate y protégete del sol."
+                motivos["sensacion_termica"] = (
+                    "Hace calor, hidrátate y protégete del sol."
+                )
 
         # UV
         uv_val = uv["valor"] if isinstance(uv, dict) and "valor" in uv else uv
         if uv_val is not None and uv_val > 6:
             motivos["uv"] = "Índice ultravioleta alto, usa protección solar."
 
-
         # Lluvia y redundancia: si ya está lloviendo, no mostrar probabilidad
-        lluvia_val = lluvia["valor"] if isinstance(lluvia, dict) and "valor" in lluvia else lluvia
-        lluvia_rate = self.system.sensores.get("lluvia_rate") or self.system.sensores.get("rainratein") or 0
-        lluvia_1h = self.system.sensores.get("lluvia_1h") or self.system.sensores.get("hourlyrainin")
-        lluvia_24h = self.system.sensores.get("lluvia_24h") or self.system.sensores.get("dailyrainin")
-        lluvia_acum = self.system.sensores.get("lluvia_acumulada") or self.system.sensores.get("rainin")
+        lluvia_val = (
+            lluvia["valor"]
+            if isinstance(lluvia, dict) and "valor" in lluvia
+            else lluvia
+        )
+        lluvia_rate = (
+            self.system.sensores.get("lluvia_rate")
+            or self.system.sensores.get("rainratein")
+            or 0
+        )
+        lluvia_1h = self.system.sensores.get("lluvia_1h") or self.system.sensores.get(
+            "hourlyrainin"
+        )
+        lluvia_24h = self.system.sensores.get("lluvia_24h") or self.system.sensores.get(
+            "dailyrainin"
+        )
+        lluvia_acum = self.system.sensores.get(
+            "lluvia_acumulada"
+        ) or self.system.sensores.get("rainin")
         try:
             lloviendo = float(lluvia_rate) > 0.2
         except Exception:
@@ -111,17 +126,27 @@ class UnifiedRecommendationEngine:
                     motivos["prob_lluvia"] = "Probabilidad moderada de lluvia en breve."
 
         # Niebla
-        niebla_val = niebla["valor"] if isinstance(niebla, dict) and "valor" in niebla else niebla
+        niebla_val = (
+            niebla["valor"]
+            if isinstance(niebla, dict) and "valor" in niebla
+            else niebla
+        )
         if niebla_val is not None and niebla_val > 40:
             motivos["niebla"] = "Riesgo de niebla, precaución al conducir."
 
         # Evapotranspiración
         et_val = et["valor"] if isinstance(et, dict) and "valor" in et else et
         if et_val is not None and et_val > 4:
-            motivos["evapotranspiracion"] = "Evapotranspiración alta, riego recomendado."
+            motivos["evapotranspiracion"] = (
+                "Evapotranspiración alta, riego recomendado."
+            )
 
         # Nubosidad estimada
-        nub_val = nubosidad["valor"] if isinstance(nubosidad, dict) and "valor" in nubosidad else nubosidad
+        nub_val = (
+            nubosidad["valor"]
+            if isinstance(nubosidad, dict) and "valor" in nubosidad
+            else nubosidad
+        )
         if nub_val is not None:
             if nub_val >= 80:
                 motivos["nubosidad"] = "Cielo muy nublado, baja radiación solar."
@@ -129,8 +154,16 @@ class UnifiedRecommendationEngine:
                 motivos["nubosidad"] = "Nubosidad alta, luz solar reducida."
 
         # Astronomía local
-        cielo_val = cielo_astr["valor"] if isinstance(cielo_astr, dict) and "valor" in cielo_astr else cielo_astr
-        cielo_obs_val = cielo_obs["valor"] if isinstance(cielo_obs, dict) and "valor" in cielo_obs else cielo_obs
+        cielo_val = (
+            cielo_astr["valor"]
+            if isinstance(cielo_astr, dict) and "valor" in cielo_astr
+            else cielo_astr
+        )
+        cielo_obs_val = (
+            cielo_obs["valor"]
+            if isinstance(cielo_obs, dict) and "valor" in cielo_obs
+            else cielo_obs
+        )
         if cielo_val is not None:
             if cielo_val >= 75:
                 motivos["astronomia"] = "Noche excelente para observar el cielo."
@@ -143,7 +176,11 @@ class UnifiedRecommendationEngine:
                 motivos["astronomia"] = "Cielo bastante despejado para observar."
 
         # Cetrería local
-        cetreria_val = cetreria["valor"] if isinstance(cetreria, dict) and "valor" in cetreria else cetreria
+        cetreria_val = (
+            cetreria["valor"]
+            if isinstance(cetreria, dict) and "valor" in cetreria
+            else cetreria
+        )
         if cetreria_val is not None:
             if cetreria_val >= 75:
                 motivos["cetreria"] = "Condiciones excelentes para cetrería."
@@ -153,12 +190,19 @@ class UnifiedRecommendationEngine:
                 motivos["cetreria"] = "Condiciones poco favorables para cetrería."
 
         # Rayos
-        rayos_val = rayos["valor"] if isinstance(rayos, dict) and "valor" in rayos else rayos
+        rayos_val = (
+            rayos["valor"] if isinstance(rayos, dict) and "valor" in rayos else rayos
+        )
         if rayos_val is not None and rayos_val > 0:
             motivos["rayos"] = f"{rayos_val} rayos detectados recientemente."
         # Solo mostrar mensaje de último rayo si hay rayos recientes
-        if ultimo_rayo and ultimo_rayo.get("valor") and (rayos_val is not None and rayos_val > 0):
+        if (
+            ultimo_rayo
+            and ultimo_rayo.get("valor")
+            and (rayos_val is not None and rayos_val > 0)
+        ):
             from datetime import datetime
+
             try:
                 valor = ultimo_rayo["valor"]
                 if isinstance(valor, (int, float)):
@@ -174,7 +218,9 @@ class UnifiedRecommendationEngine:
                 pass
 
         # Humedad de suelo
-        suelo_val = suelo["valor"] if isinstance(suelo, dict) and "valor" in suelo else suelo
+        suelo_val = (
+            suelo["valor"] if isinstance(suelo, dict) and "valor" in suelo else suelo
+        )
         if suelo_val is not None:
             if suelo_val < 20:
                 motivos["humedad_suelo"] = "Humedad del suelo muy baja, riego urgente."
@@ -182,7 +228,10 @@ class UnifiedRecommendationEngine:
                 motivos["humedad_suelo"] = "Humedad del suelo baja, considera regar."
 
         # Alertas avanzadas
-        if isinstance(alerta_tormenta, dict) and (alerta_tormenta.get("valor") or 0) >= 60:
+        if (
+            isinstance(alerta_tormenta, dict)
+            and (alerta_tormenta.get("valor") or 0) >= 60
+        ):
             motivos["alerta_tormenta"] = "Riesgo alto de tormenta."
         if isinstance(alerta_calor, dict) and (alerta_calor.get("valor") or 0) >= 60:
             motivos["alerta_calor_extremo"] = "Riesgo alto de calor extremo."
@@ -193,11 +242,5 @@ class UnifiedRecommendationEngine:
 
         # Resultado final
         if len(motivos) > 0:
-            return {
-                "estado": " ".join(motivos.values()),
-                "motivos": motivos
-            }
-        return {
-            "estado": "Condiciones normales.",
-            "motivos": {}
-        }
+            return {"estado": " ".join(motivos.values()), "motivos": motivos}
+        return {"estado": "Condiciones normales.", "motivos": {}}

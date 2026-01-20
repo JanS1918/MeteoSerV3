@@ -8,20 +8,25 @@ Incluye:
 
 La función principal consulta todas las fuentes posibles y devuelve True si al menos una confirma rayos recientes en la zona.
 """
+
 import requests
-import time
-from typing import Optional, List
+from typing import Optional
 
 # Puedes añadir tu API key gratuita de OpenWeatherMap aquí o usar variable de entorno
 import os
-OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", None)  # Migrado a variable de entorno
+
+OPENWEATHER_API_KEY = os.environ.get(
+    "OPENWEATHER_API_KEY", None
+)  # Migrado a variable de entorno
 
 # Coordenadas por defecto (Madrid, España)
 DEFAULT_LAT = 40.4168
 DEFAULT_LON = -3.7038
 
 
-def check_openweathermap_lightning(lat: float, lon: float, api_key: Optional[str] = None) -> bool:
+def check_openweathermap_lightning(
+    lat: float, lon: float, api_key: Optional[str] = None
+) -> bool:
     """
     Consulta OpenWeatherMap One Call API para alertas de rayos en la zona.
     Devuelve True si hay rayos recientes.
@@ -36,13 +41,16 @@ def check_openweathermap_lightning(lat: float, lon: float, api_key: Optional[str
             return False
         data = resp.json()
         # Buscar eventos de rayos en 'alerts' o 'current.weather'
-        if 'alerts' in data:
-            for alert in data['alerts']:
-                if 'ray' in alert.get('event', '').lower() or 'lightning' in alert.get('event', '').lower():
+        if "alerts" in data:
+            for alert in data["alerts"]:
+                if (
+                    "ray" in alert.get("event", "").lower()
+                    or "lightning" in alert.get("event", "").lower()
+                ):
                     return True
-        if 'current' in data and 'weather' in data['current']:
-            for w in data['current']['weather']:
-                if w.get('id') == 95 or w.get('id') == 96 or w.get('id') == 99:
+        if "current" in data and "weather" in data["current"]:
+            for w in data["current"]["weather"]:
+                if w.get("id") == 95 or w.get("id") == 96 or w.get("id") == 99:
                     # Códigos de tormenta eléctrica
                     return True
         return False
@@ -82,7 +90,9 @@ def check_noaa_lightning(lat: float, lon: float) -> bool:
     return False
 
 
-def validar_rayo_externo(lat: float = DEFAULT_LAT, lon: float = DEFAULT_LON, api_key: Optional[str] = None) -> bool:
+def validar_rayo_externo(
+    lat: float = DEFAULT_LAT, lon: float = DEFAULT_LON, api_key: Optional[str] = None
+) -> bool:
     """
     Consulta todas las fuentes externas posibles. Si alguna confirma rayo, devuelve True.
     """

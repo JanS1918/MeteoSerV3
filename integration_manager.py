@@ -6,6 +6,7 @@
 import json
 import os
 
+
 class SensorRegistry:
     """
     Registro central de sensores detectados.
@@ -26,10 +27,7 @@ class SensorRegistry:
         if sensor_type not in self.sensors:
             self.sensors[sensor_type] = []
 
-        self.sensors[sensor_type].append({
-            "id": sensor_id,
-            "metadata": metadata or {}
-        })
+        self.sensors[sensor_type].append({"id": sensor_id, "metadata": metadata or {}})
 
         self._update_capabilities(sensor_type)
 
@@ -40,8 +38,13 @@ class SensorRegistry:
 
         mapping = {
             "WH65": [
-                "temp_ext", "hum_ext", "viento", "lluvia",
-                "radiacion", "uv", "presion"
+                "temp_ext",
+                "hum_ext",
+                "viento",
+                "lluvia",
+                "radiacion",
+                "uv",
+                "presion",
             ],
             "WH57": ["rayos"],
             "WH51": ["hum_suelo"],
@@ -50,7 +53,7 @@ class SensorRegistry:
             "ICASA_CO2": ["co2_int"],
             "WH55": ["fugas"],
             "WN38": ["wbgt_real"],
-            "TABLET": ["presencia", "luz_int", "ruido_int"]
+            "TABLET": ["presencia", "luz_int", "ruido_int"],
         }
 
         if sensor_type in mapping:
@@ -95,7 +98,7 @@ class SensorIntegrationManager:
                     data = json.load(f)
                     self.registry.sensors = data.get("sensors", {})
                     self.registry.capabilities = set(data.get("capabilities", []))
-            except:
+            except (OSError, json.JSONDecodeError):
                 pass  # Si falla, se reconstruye solo
 
     def _save_registry(self):
@@ -104,7 +107,7 @@ class SensorIntegrationManager:
         """
         data = {
             "sensors": self.registry.sensors,
-            "capabilities": list(self.registry.capabilities)
+            "capabilities": list(self.registry.capabilities),
         }
         with open(self._registry_path(), "w") as f:
             json.dump(data, f, indent=4)

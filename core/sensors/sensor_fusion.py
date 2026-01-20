@@ -32,7 +32,9 @@ class SensorFusion:
     # FUSIÓN DE TEMPERATURA
     # ------------------------------------------------------------
 
-    def fusionar_temperatura(self, sensores: Dict[str, Dict[str, Any]], contexto: Dict[str, Any]) -> Optional[float]:
+    def fusionar_temperatura(
+        self, sensores: Dict[str, Dict[str, Any]], contexto: Dict[str, Any]
+    ) -> Optional[float]:
         valores = []
         pesos = []
         for nombre, datos in sensores.items():
@@ -47,14 +49,18 @@ class SensorFusion:
             return valores[0]
         total_peso = sum(pesos)
         fusion = sum(v * p for v, p in zip(valores, pesos)) / total_peso
-        self._log_debug(f"[FusionTemp] valores={valores}, pesos={pesos}, fusion={fusion}")
+        self._log_debug(
+            f"[FusionTemp] valores={valores}, pesos={pesos}, fusion={fusion}"
+        )
         return fusion
 
     # ------------------------------------------------------------
     # FUSIÓN DE HUMEDAD
     # ------------------------------------------------------------
 
-    def fusionar_humedad(self, sensores: Dict[str, Dict[str, Any]], contexto: Dict[str, Any]) -> Optional[float]:
+    def fusionar_humedad(
+        self, sensores: Dict[str, Dict[str, Any]], contexto: Dict[str, Any]
+    ) -> Optional[float]:
         valores = []
         pesos = []
         for nombre, datos in sensores.items():
@@ -76,7 +82,9 @@ class SensorFusion:
     # SENSORES VIRTUALES PERMITIDOS
     # ------------------------------------------------------------
 
-    def estimar_punto_rocio(self, temperatura: float, humedad: float) -> Optional[float]:
+    def estimar_punto_rocio(
+        self, temperatura: float, humedad: float
+    ) -> Optional[float]:
         if temperatura is None or humedad is None:
             return None
         a, b = 17.27, 237.7

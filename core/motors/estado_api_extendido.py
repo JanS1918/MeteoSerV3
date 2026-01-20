@@ -6,6 +6,7 @@ router = APIRouter()
 manager = SystemManager()
 system = manager.iniciar()
 
+
 @router.get("/estado")
 def obtener_estado():
     # Estado clásico

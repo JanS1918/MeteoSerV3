@@ -7,16 +7,18 @@ Incluye:
 
 La función principal consulta todas las fuentes posibles y devuelve True si al menos una confirma un sismo reciente en la zona.
 """
+
 import requests
 import datetime
-from typing import Optional
 
 # Coordenadas por defecto (Madrid, España)
 DEFAULT_LAT = 40.4168
 DEFAULT_LON = -3.7038
 
 
-def check_usgs_earthquake(lat: float, lon: float, radius_km: float = 100, minutos: int = 10) -> bool:
+def check_usgs_earthquake(
+    lat: float, lon: float, radius_km: float = 100, minutos: int = 10
+) -> bool:
     """
     Consulta USGS Earthquake API para sismos recientes cerca de la ubicación.
     Devuelve True si hay sismos recientes (últimos X minutos) en el radio indicado.
@@ -39,7 +41,10 @@ def check_usgs_earthquake(lat: float, lon: float, radius_km: float = 100, minuto
     except Exception:
         return False
 
-def check_ign_earthquake(lat: float, lon: float, radius_km: float = 100, minutos: int = 10) -> bool:
+
+def check_ign_earthquake(
+    lat: float, lon: float, radius_km: float = 100, minutos: int = 10
+) -> bool:
     """
     Consulta IGN España (requiere scraping o integración indirecta).
     Devuelve True si hay sismos recientes cerca.
@@ -47,7 +52,10 @@ def check_ign_earthquake(lat: float, lon: float, radius_km: float = 100, minutos
     # Integración real pendiente
     return False
 
-def validar_sismo_externo(lat: float = DEFAULT_LAT, lon: float = DEFAULT_LON, minutos: int = 10) -> bool:
+
+def validar_sismo_externo(
+    lat: float = DEFAULT_LAT, lon: float = DEFAULT_LON, minutos: int = 10
+) -> bool:
     """
     Consulta todas las fuentes externas posibles. Si alguna confirma sismo, devuelve True.
     """

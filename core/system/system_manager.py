@@ -3,13 +3,12 @@
 # ============================================================
 
 from core.system.system_core import SystemCore
-from core.system.system_core import SystemCore
 from typing import Dict
-from core.system.system_core import SystemCore
 from core.system.system_launcher import SystemLauncher
 from core.location.location_engine import LocationEngine
 
 EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
+
 
 class SystemManager:
     """
@@ -23,7 +22,7 @@ class SystemManager:
         """
         if not self.system:
             return {}
-        return getattr(self.system, 'sensores', {})
+        return getattr(self.system, "sensores", {})
 
     def __init__(self) -> None:
         self.launcher = SystemLauncher()

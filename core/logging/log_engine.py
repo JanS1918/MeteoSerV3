@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 
 class LogEngine:
@@ -12,7 +11,7 @@ class LogEngine:
         self._logger: logging.Logger = logging.getLogger(name)
         if not self._logger.handlers:
             handler = logging.StreamHandler()
-            formatter = logging.Formatter('[%(levelname)s] %(name)s: %(message)s')
+            formatter = logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
             handler.setFormatter(formatter)
             self._logger.addHandler(handler)
             self._logger.setLevel(logging.INFO)

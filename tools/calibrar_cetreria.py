@@ -1,7 +1,6 @@
 import json
-import math
 import os
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 FEEDBACK_PATH = os.path.join("data", "feedback_registros.jsonl")
 
@@ -48,7 +47,7 @@ def _linear_fit(pairs: List[Tuple[float, float]]) -> Tuple[float, float]:
     sy = sum(y for _, y in pairs)
     sxx = sum(x * x for x, _ in pairs)
     sxy = sum(x * y for x, y in pairs)
-    denom = (n * sxx - sx * sx)
+    denom = n * sxx - sx * sx
     if denom == 0:
         return 1.0, 0.0
     a = (n * sxy - sx * sy) / denom
@@ -68,7 +67,13 @@ def main():
         print("No hay feedback en data/feedback_registros.jsonl")
         return
 
-    targets = ["termales_probabilidad", "indice_cetreria", "riesgo_niebla", "barro_campo", "riesgo_helada_local"]
+    targets = [
+        "termales_probabilidad",
+        "indice_cetreria",
+        "riesgo_niebla",
+        "barro_campo",
+        "riesgo_helada_local",
+    ]
     print("Calibración cetrería (lineal simple):")
     for nombre in targets:
         pairs = _extract_pairs(rows, nombre)
@@ -76,7 +81,9 @@ def main():
             continue
         a, b = _linear_fit(pairs)
         mae = _mae(pairs)
-        print(f"- {nombre}: muestras={len(pairs)}, MAE={mae:.2f}, ajuste sugerido y=({a:.3f}*x + {b:.3f})")
+        print(
+            f"- {nombre}: muestras={len(pairs)}, MAE={mae:.2f}, ajuste sugerido y=({a:.3f}*x + {b:.3f})"
+        )
 
 
 if __name__ == "__main__":

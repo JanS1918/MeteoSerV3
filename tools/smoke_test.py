@@ -2,14 +2,12 @@ def smoke_test():
     print("Iniciando smoke test...")
 
     try:
-        from core.system.system_core import SystemCore
         from core.ui.main_ui import MainUI
     except Exception as e:
         print("❌ Error importando módulos:", e)
         return
 
     try:
-
         ui = MainUI()
         ui.iniciar()
         estado = ui.mostrar_estado()

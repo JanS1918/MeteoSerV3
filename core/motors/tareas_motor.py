@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+
 class MotorTareas:
     def gestionar(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         # Lógica real: devolver tareas registradas localmente

@@ -18,7 +18,9 @@ def _dewpoint_c(temp_c: float, rh: float) -> float:
     return (b * alpha) / (a - alpha)
 
 
-def viento_cetreria(viento_medio: Optional[float], rachas: Optional[float]) -> Optional[float]:
+def viento_cetreria(
+    viento_medio: Optional[float], rachas: Optional[float]
+) -> Optional[float]:
     if viento_medio is None and rachas is None:
         return None
     v = viento_medio if viento_medio is not None else rachas
@@ -26,15 +28,19 @@ def viento_cetreria(viento_medio: Optional[float], rachas: Optional[float]) -> O
     if v is None or r is None:
         return None
     score = 100.0 * (
-        0.6 * _clamp(1.0 - (v / 30.0)) +
-        0.3 * _clamp(1.0 - (r / 40.0)) +
-        0.1 * _clamp(1.0 - (abs(r - v) / 20.0))
+        0.6 * _clamp(1.0 - (v / 30.0))
+        + 0.3 * _clamp(1.0 - (r / 40.0))
+        + 0.1 * _clamp(1.0 - (abs(r - v) / 20.0))
     )
     return _clamp_pct(score)
 
 
-def visibilidad_terreno(temp_c: Optional[float], dew_c: Optional[float], rh: Optional[float],
-                        nubosidad: Optional[float]) -> Optional[float]:
+def visibilidad_terreno(
+    temp_c: Optional[float],
+    dew_c: Optional[float],
+    rh: Optional[float],
+    nubosidad: Optional[float],
+) -> Optional[float]:
     if temp_c is None or rh is None or nubosidad is None:
         return None
     dew = dew_c if dew_c is not None else _dewpoint_c(temp_c, rh)
@@ -43,17 +49,24 @@ def visibilidad_terreno(temp_c: Optional[float], dew_c: Optional[float], rh: Opt
     rh_factor = _clamp(rh / 100.0)
     nub_factor = 1.0 - _clamp(nubosidad / 100.0)
     score = 100.0 * (
-        0.5 * nub_factor +
-        0.3 * (1.0 - sat_factor) +
-        0.2 * (1.0 - rh_factor)
+        0.5 * nub_factor + 0.3 * (1.0 - sat_factor) + 0.2 * (1.0 - rh_factor)
     )
     return _clamp_pct(score)
 
 
-def termales_probabilidad(radiacion_real: Optional[float], var_t_5min: Optional[float],
-                          nubosidad: Optional[float], viento_medio: Optional[float],
-                          rh: Optional[float]) -> Optional[float]:
-    if radiacion_real is None or nubosidad is None or viento_medio is None or rh is None:
+def termales_probabilidad(
+    radiacion_real: Optional[float],
+    var_t_5min: Optional[float],
+    nubosidad: Optional[float],
+    viento_medio: Optional[float],
+    rh: Optional[float],
+) -> Optional[float]:
+    if (
+        radiacion_real is None
+        or nubosidad is None
+        or viento_medio is None
+        or rh is None
+    ):
         return None
     var_t = var_t_5min if var_t_5min is not None else 0.0
     rad_factor = _clamp(radiacion_real / 800.0)
@@ -62,18 +75,22 @@ def termales_probabilidad(radiacion_real: Optional[float], var_t_5min: Optional[
     viento_factor = _clamp(1.0 - (viento_medio / 20.0))
     hum_factor = _clamp(1.0 - (rh / 100.0))
     score = 100.0 * (
-        0.4 * rad_factor +
-        0.2 * var_factor +
-        0.2 * nub_factor +
-        0.1 * viento_factor +
-        0.1 * hum_factor
+        0.4 * rad_factor
+        + 0.2 * var_factor
+        + 0.2 * nub_factor
+        + 0.1 * viento_factor
+        + 0.1 * hum_factor
     )
     return _clamp_pct(score)
 
 
-def barro_campo(lluvia_24h: Optional[float], lluvia_1h: Optional[float],
-                viento_medio: Optional[float], temp_c: Optional[float],
-                dew_c: Optional[float]) -> Optional[float]:
+def barro_campo(
+    lluvia_24h: Optional[float],
+    lluvia_1h: Optional[float],
+    viento_medio: Optional[float],
+    temp_c: Optional[float],
+    dew_c: Optional[float],
+) -> Optional[float]:
     if lluvia_24h is None and lluvia_1h is None and viento_medio is None:
         return None
     lluvia_24 = lluvia_24h if lluvia_24h is not None else 0.0
@@ -85,16 +102,16 @@ def barro_campo(lluvia_24h: Optional[float], lluvia_1h: Optional[float],
         secado_factor = _clamp((v / 20.0) + ((temp_c - dew_c) / 10.0))
     lluvia_factor = _clamp(lluvia_24 / 20.0)
     reciente_factor = _clamp(lluvia_1 / 5.0)
-    score = 100.0 * (
-        0.6 * lluvia_factor +
-        0.3 * reciente_factor -
-        0.3 * secado_factor
-    )
+    score = 100.0 * (0.6 * lluvia_factor + 0.3 * reciente_factor - 0.3 * secado_factor)
     return _clamp_pct(score)
 
 
-def confort_ave(temp_c: Optional[float], sensacion_termica: Optional[float],
-                radiacion_real: Optional[float], viento_medio: Optional[float]) -> Optional[float]:
+def confort_ave(
+    temp_c: Optional[float],
+    sensacion_termica: Optional[float],
+    radiacion_real: Optional[float],
+    viento_medio: Optional[float],
+) -> Optional[float]:
     if temp_c is None and sensacion_termica is None:
         return None
     t = temp_c if temp_c is not None else sensacion_termica
@@ -106,36 +123,46 @@ def confort_ave(temp_c: Optional[float], sensacion_termica: Optional[float],
     rad_factor = _clamp(1.0 - (r / 900.0))
     viento_factor = _clamp(1.0 - (v / 25.0))
     score = 100.0 * (
-        0.4 * temp_factor +
-        0.3 * sens_factor +
-        0.2 * rad_factor +
-        0.1 * viento_factor
+        0.4 * temp_factor + 0.3 * sens_factor + 0.2 * rad_factor + 0.1 * viento_factor
     )
     return _clamp_pct(score)
 
 
-def indice_seguridad_vuelo(viento_cet: Optional[float], visibilidad: Optional[float],
-                           barro: Optional[float], termales: Optional[float]) -> Optional[float]:
+def indice_seguridad_vuelo(
+    viento_cet: Optional[float],
+    visibilidad: Optional[float],
+    barro: Optional[float],
+    termales: Optional[float],
+) -> Optional[float]:
     if viento_cet is None or visibilidad is None or barro is None or termales is None:
         return None
     score = 100.0 * (
-        0.4 * (viento_cet / 100.0) +
-        0.3 * (visibilidad / 100.0) +
-        0.2 * (1.0 - barro / 100.0) +
-        0.1 * (termales / 100.0)
+        0.4 * (viento_cet / 100.0)
+        + 0.3 * (visibilidad / 100.0)
+        + 0.2 * (1.0 - barro / 100.0)
+        + 0.1 * (termales / 100.0)
     )
     return _clamp_pct(score)
 
 
-def indice_cetreria_final(indice_seguridad: Optional[float], viento_cet: Optional[float],
-                          visibilidad: Optional[float], confort: Optional[float]) -> Optional[float]:
-    if indice_seguridad is None or viento_cet is None or visibilidad is None or confort is None:
+def indice_cetreria_final(
+    indice_seguridad: Optional[float],
+    viento_cet: Optional[float],
+    visibilidad: Optional[float],
+    confort: Optional[float],
+) -> Optional[float]:
+    if (
+        indice_seguridad is None
+        or viento_cet is None
+        or visibilidad is None
+        or confort is None
+    ):
         return None
     score = 100.0 * (
-        0.4 * (indice_seguridad / 100.0) +
-        0.3 * (viento_cet / 100.0) +
-        0.2 * (visibilidad / 100.0) +
-        0.1 * (confort / 100.0)
+        0.4 * (indice_seguridad / 100.0)
+        + 0.3 * (viento_cet / 100.0)
+        + 0.2 * (visibilidad / 100.0)
+        + 0.1 * (confort / 100.0)
     )
     return _clamp_pct(score)
 

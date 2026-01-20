@@ -35,7 +35,9 @@ class PASEngine:
                 "profiles": self._profiles,
                 "last_update": self._last_update,
             }
-            self._data_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            self._data_path.write_text(
+                json.dumps(payload, ensure_ascii=False), encoding="utf-8"
+            )
         except Exception:
             pass
 
@@ -60,7 +62,10 @@ class PASEngine:
             avg = (avg * n + v) / (n + 1)
             current[name] = round(avg, 3)
 
-        _acc("temperatura", sensores.get("temperatura_interior") or sensores.get("temperatura"))
+        _acc(
+            "temperatura",
+            sensores.get("temperatura_interior") or sensores.get("temperatura"),
+        )
         _acc("humedad", sensores.get("humedad_interior") or sensores.get("humedad"))
         _acc("co2", sensores.get("co2"))
         _acc("pm25", sensores.get("pm25"))
@@ -90,8 +95,13 @@ class PASEngine:
             return abs(v - float(profile.get(name, v)))
 
         total = 0.0
-        total += _dist("temperatura", sensores.get("temperatura_interior") or sensores.get("temperatura"))
-        total += _dist("humedad", sensores.get("humedad_interior") or sensores.get("humedad"))
+        total += _dist(
+            "temperatura",
+            sensores.get("temperatura_interior") or sensores.get("temperatura"),
+        )
+        total += _dist(
+            "humedad", sensores.get("humedad_interior") or sensores.get("humedad")
+        )
         total += _dist("co2", sensores.get("co2")) * 0.02
         total += _dist("pm25", sensores.get("pm25")) * 0.1
         total += _dist("ruido", sensores.get("ruido")) * 0.1

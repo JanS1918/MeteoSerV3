@@ -83,7 +83,7 @@ def generar_reporte():
     reporte = {
         "total_registros": len(rows),
         "resumen_global": _calc_metrics(rows),
-        "por_indice": {}
+        "por_indice": {},
     }
 
     for key, items in by_key.items():

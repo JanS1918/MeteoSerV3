@@ -3,14 +3,13 @@ from __future__ import annotations
 import json
 import logging
 import os
-import stat
-import tempfile
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
+
     _HAS_CRYPTO = True
 except Exception:
     Fernet = None  # type: ignore
@@ -37,8 +36,9 @@ os.makedirs(BASE_DIR, exist_ok=True)
 SECRETS_FILE = os.path.join(BASE_DIR, "secrets.enc")
 SECRETS_META = os.path.join(BASE_DIR, "secrets.meta.json")
 
+
 def _secure_file_write(path: str, data: bytes, mode: int = 0o600) -> None:
-    tmp = f"{path}.{int(time.time()*1000)}.tmp"
+    tmp = f"{path}.{int(time.time() * 1000)}.tmp"
     with open(tmp, "wb") as f:
         f.write(data)
         f.flush()
@@ -47,14 +47,19 @@ def _secure_file_write(path: str, data: bytes, mode: int = 0o600) -> None:
     try:
         os.chmod(path, mode)
     except Exception:
-        logger.warning("No se pudo fijar permisos en el fichero, comprobar manualmente.")
+        logger.warning(
+            "No se pudo fijar permisos en el fichero, comprobar manualmente."
+        )
+
 
 def _secure_file_read(path: str) -> bytes:
     with open(path, "rb") as f:
         return f.read()
 
+
 def sanitize_string(s: str) -> str:
     return s.replace("\n", " ").replace("\r", " ").strip()
+
 
 def validate_config_schema(cfg: Dict[str, Any], schema: Dict[str, type]) -> bool:
     for k, t in schema.items():
@@ -62,17 +67,23 @@ def validate_config_schema(cfg: Dict[str, Any], schema: Dict[str, type]) -> bool
             logger.error(f"Configuración inválida: falta clave {k}")
             return False
         if not isinstance(cfg[k], t):
-            logger.error(f"Configuración inválida: clave {k} debe ser {t}, es {type(cfg[k])}")
+            logger.error(
+                f"Configuración inválida: clave {k} debe ser {t}, es {type(cfg[k])}"
+            )
             return False
     return True
+
 
 @dataclass
 class SecretsMetadata:
     created_at: float = field(default_factory=time.time)
     versions: int = 0
 
+
 class SecretsManager:
-    def __init__(self, secrets_file: str = SECRETS_FILE, meta_file: str = SECRETS_META) -> None:
+    def __init__(
+        self, secrets_file: str = SECRETS_FILE, meta_file: str = SECRETS_META
+    ) -> None:
         self.secrets_file = secrets_file
         self.meta_file = meta_file
         self._secrets: Dict[str, str] = {}
@@ -94,7 +105,9 @@ class SecretsManager:
 
     def set_master_key(self, key_bytes: bytes) -> None:
         if not _HAS_CRYPTO:
-            raise RuntimeError("cryptography no disponible. Instala 'cryptography' para usar SecretsManager.")
+            raise RuntimeError(
+                "cryptography no disponible. Instala 'cryptography' para usar SecretsManager."
+            )
         try:
             self._fernet = Fernet(key_bytes)
             self._master_key = key_bytes
@@ -104,11 +117,15 @@ class SecretsManager:
 
     def _ensure_fernet(self) -> None:
         if not self._fernet:
-            raise RuntimeError("Clave maestra no establecida. Usa set_master_key o load_master_key_from_env.")
+            raise RuntimeError(
+                "Clave maestra no establecida. Usa set_master_key o load_master_key_from_env."
+            )
 
     def load_from_disk(self) -> None:
         if not _HAS_CRYPTO:
-            raise RuntimeError("cryptography no disponible; no se puede cargar secretos desde disco.")
+            raise RuntimeError(
+                "cryptography no disponible; no se puede cargar secretos desde disco."
+            )
         if not os.path.exists(self.secrets_file):
             logger.info("Fichero de secretos no encontrado en disco.")
             return
@@ -119,10 +136,15 @@ class SecretsManager:
             data = json.loads(raw.decode("utf-8"))
             self._secrets = data.get("secrets", {})
             meta = data.get("meta", {})
-            self._meta = SecretsMetadata(created_at=meta.get("created_at", time.time()), versions=meta.get("versions", 0))
+            self._meta = SecretsMetadata(
+                created_at=meta.get("created_at", time.time()),
+                versions=meta.get("versions", 0),
+            )
             logger.info("Secretos cargados y descifrados desde disco.")
         except InvalidToken:
-            raise RuntimeError("Clave maestra incorrecta o fichero de secretos corrupto.")
+            raise RuntimeError(
+                "Clave maestra incorrecta o fichero de secretos corrupto."
+            )
         except Exception as e:
             raise RuntimeError(f"Error al cargar secretos: {e}")
 
@@ -131,9 +153,17 @@ class SecretsManager:
             logger.info("Modo MOCK: no se persisten secretos en disco por seguridad.")
             return
         if not _HAS_CRYPTO:
-            raise RuntimeError("cryptography no disponible; no se puede persistir secretos de forma segura.")
+            raise RuntimeError(
+                "cryptography no disponible; no se puede persistir secretos de forma segura."
+            )
         self._ensure_fernet()
-        payload = {"secrets": self._secrets, "meta": {"created_at": self._meta.created_at, "versions": self._meta.versions}}
+        payload = {
+            "secrets": self._secrets,
+            "meta": {
+                "created_at": self._meta.created_at,
+                "versions": self._meta.versions,
+            },
+        }
         raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         enc = self._fernet.encrypt(raw)
         _secure_file_write(self.secrets_file, enc)
@@ -143,7 +173,9 @@ class SecretsManager:
         key = sanitize_string(key)
         self._secrets[key] = value
         self._meta.versions += 1
-        logger.info(f"Se ha almacenado un secreto (clave={key}) en memoria. No se muestra su valor.")
+        logger.info(
+            f"Se ha almacenado un secreto (clave={key}) en memoria. No se muestra su valor."
+        )
         try:
             self.persist_to_disk()
         except Exception as e:
@@ -168,7 +200,9 @@ class SecretsManager:
 
     def rotate_master_key(self, new_key_bytes: bytes) -> None:
         if not _HAS_CRYPTO:
-            raise RuntimeError("cryptography no disponible; no se puede rotar clave maestra.")
+            raise RuntimeError(
+                "cryptography no disponible; no se puede rotar clave maestra."
+            )
         self._ensure_fernet()
         new_fernet = Fernet(new_key_bytes)
         self._fernet = new_fernet
@@ -179,6 +213,7 @@ class SecretsManager:
         except Exception as e:
             logger.error(f"Error al persistir tras rotación de clave: {e}")
             raise
+
 
 SECRETS_MANAGER = SecretsManager()
 
@@ -199,8 +234,10 @@ HARDENING_RECOMMENDATIONS = {
     ],
 }
 
+
 def get_hardening_recommendations() -> Dict[str, Any]:
     return HARDENING_RECOMMENDATIONS
+
 
 def smoke_test() -> None:
     logger.info("SMOKE TEST Bloque E: hardening y gestión de secretos (modo mock).")
@@ -218,13 +255,19 @@ def smoke_test() -> None:
             SECRETS_MANAGER.set_master_key(key)
             SECRETS_MANAGER.set_secret("example_api_key", "S3CR3T-MOCK")
             val = SECRETS_MANAGER.get_secret("example_api_key")
-            print("Secret example_api_key almacenado en memoria (no mostrado). Recuperado:", bool(val))
+            print(
+                "Secret example_api_key almacenado en memoria (no mostrado). Recuperado:",
+                bool(val),
+            )
             SECRETS_MANAGER.delete_secret("example_api_key")
             print("Secret borrado:", True)
         else:
-            print("cryptography no disponible; el gestor de secretos no persiste en este entorno.")
+            print(
+                "cryptography no disponible; el gestor de secretos no persiste en este entorno."
+            )
     except Exception as e:
         print("Error en smoke_test secrets:", e)
+
 
 if __name__ == "__main__":
     smoke_test()

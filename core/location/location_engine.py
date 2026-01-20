@@ -1,5 +1,4 @@
 import json
-import math
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
@@ -30,7 +29,9 @@ class LocationEngine:
     def _save(self):
         try:
             payload = {"lat": self.lat, "lon": self.lon, "manual": self.manual}
-            self._data_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            self._data_path.write_text(
+                json.dumps(payload, ensure_ascii=False), encoding="utf-8"
+            )
         except Exception:
             pass
 
@@ -77,7 +78,9 @@ class LocationEngine:
         if rad_max is None:
             return None
         try:
-            hour_peak = datetime.fromtimestamp(t_peak).hour + (datetime.fromtimestamp(t_peak).minute / 60.0)
+            hour_peak = datetime.fromtimestamp(t_peak).hour + (
+                datetime.fromtimestamp(t_peak).minute / 60.0
+            )
         except Exception:
             hour_peak = datetime.now().hour
 

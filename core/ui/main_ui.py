@@ -6,6 +6,7 @@ from core.system.system_manager import SystemManager
 
 EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
 
+
 class MainUI:
     """
     Interfaz principal del sistema.
