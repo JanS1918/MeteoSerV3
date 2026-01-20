@@ -8,3 +8,4 @@ paho-mqtt
 feedparser
 pyttsx3
 httpx
+requests
