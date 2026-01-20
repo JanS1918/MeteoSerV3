@@ -11,6 +11,7 @@ Incluye:
 
 from typing import Dict, Any, List, Optional
 from core.logger import get_logger
+from core.logging.log_engine import LogEngine
 
 
 # ============================================================
