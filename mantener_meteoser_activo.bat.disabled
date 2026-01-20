@@ -1,0 +1,49 @@
+@echo off
+REM Script robusto: prioriza el puerto 8080 y solo usa otro si es imposible liberarlo tras varios intentos
+cd /d %~dp0
+setlocal enabledelayedexpansion
+set MAXPORT=8090
+
+:mainloop
+set PORT=8080
+set INTENTOS=0
+set MAXINTENTOS=3
+
+:intenta_8080
+REM Intentar liberar el 8080 hasta MAXINTENTOS
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8080 ^| findstr LISTENING') do (
+	echo Puerto 8080 ocupado por PID %%a. Intentando cerrar...
+	
+	taskkill /PID %%a /F >nul 2>&1
+	timeout /t 2 >nul
+	set /a INTENTOS=!INTENTOS!+1
+	if !INTENTOS! LSS !MAXINTENTOS! goto intenta_8080
+)
+
+REM Comprobar si el 8080 está libre
+for /f "tokens=5" %%b in ('netstat -ano ^| findstr :8080 ^| findstr LISTENING') do (
+	echo No se pudo liberar el puerto 8080 tras !MAXINTENTOS! intentos. Buscando otro puerto...
+	set PORT=8081
+	goto busca_otro_puerto
+)
+
+REM Si llegamos aquí, el 8080 está libre
+goto lanza_meteoser
+
+:busca_otro_puerto
+for /l %%p in (8081,1,!MAXPORT!) do (
+	set PORT=%%p
+	set OCUPADO=0
+	for /f "tokens=5" %%c in ('netstat -ano ^| findstr :%%p ^| findstr LISTENING') do set OCUPADO=1
+	if !OCUPADO! EQU 0 goto lanza_meteoser
+)
+echo No hay puertos libres entre 8080 y !MAXPORT!.
+exit /b 1
+
+
+:lanza_meteoser
+echo Lanzando MeteoSer (el puerto se elegirá automáticamente)
+start /wait "MeteoSer" C:\Users\kioko\Desktop\MeteoSerV3\.venv\Scripts\python.exe arrancar_meteoser.py
+echo [MeteoSer] Backend detenido. Reiniciando en 5 segundos...
+timeout /t 5 >nul
+goto mainloop

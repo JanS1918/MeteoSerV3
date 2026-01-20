@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MeteoSer Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/modern.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/meteo_effects.js" defer></script>
+</head>
+<body>
+    <div class="app-shell">
+        <header class="hero">
+            <div>
+                <p class="hero-eyebrow">Observatorio domestico</p>
+                <h1 class="hero-title">MeteoSer Central</h1>
+                <p id="ubicacion" class="hero-location">Cargando ubicacion...</p>
+            </div>
+            <div class="hero-clock" id="fecha-hora">--</div>
+        </header>
+
+        <section class="hero-grid">
+            <article class="hero-card hero-card--primary">
+                <div class="hero-card__label">Temperatura actual</div>
+                <div class="hero-card__value" id="hero-temp-value">—</div>
+                <p class="hero-card__mood" id="hero-summary">Estado pendiente</p>
+                <div class="hero-card__details">
+                    <div>
+                        <span class="hero-card__detail-label">Sensacion</span>
+                        <strong id="hero-feels">—</strong>
+                    </div>
+                    <div>
+                        <span class="hero-card__detail-label">Humedad</span>
+                        <strong id="hero-humidity">—</strong>
+                    </div>
+                </div>
+            </article>
+
+            <article class="hero-card hero-card--compact">
+                <div class="hero-card__label">Viento</div>
+                <strong class="hero-card__value" id="hero-wind">—</strong>
+                <div class="hero-card__label">Presion</div>
+                <strong class="hero-card__value" id="hero-pressure">—</strong>
+                <div class="solar-arc" id="solar-arc">
+                    <span class="solar-arc__sun" id="solar-arc-sun" aria-hidden="true"></span>
+                </div>
+                <div class="hero-card__sun">Amanecer <span id="hero-sunrise">--:--</span></div>
+                <div class="hero-card__sun">Atardecer <span id="hero-sunset">--:--</span></div>
+                <div class="hero-card__sun">Arco solar <span id="hero-solar-arc">--</span></div>
+                <div class="hero-card__sun">Duración día <span id="hero-solar-duration">--</span></div>
+            </article>
+
+            <article class="hero-card hero-card--chart">
+                <div class="hero-card__label">Ultimas lecturas</div>
+                <canvas id="graficoTempHum"></canvas>
+                <p class="hero-card__hint">Temperatura y humedad cada dato disponible</p>
+            </article>
+        </section>
+
+        <section class="dashboard-grid">
+            <article class="panel panel--wide" id="sensors-panel">
+                <header class="panel-header">
+                    <span class="panel-title">Sensores reales + virtuales</span>
+                    <small class="panel-subtitle">Siempre visibles</small>
+                </header>
+                <div id="sensors-grid" class="data-list data-list--dense"></div>
+            </article>
+            <article class="panel panel--wide" id="indices-panel">
+                <header class="panel-header">
+                    <span class="panel-title">Índices</span>
+                    <small class="panel-subtitle">Pulsa para detalles</small>
+                </header>
+                <div id="indices-grid" class="data-list data-list--indices"></div>
+                <button class="ghost-btn" data-overlay-target="overlay-indices">Ver índices ocultos</button>
+            </article>
+            <article class="panel" id="recommendations-panel">
+                <header class="panel-header">
+                    <span class="panel-title">Recomendaciones</span>
+                    <small class="panel-subtitle">Vinculadas a riesgos/alertas</small>
+                </header>
+                <p id="recomendacion" class="panel-body panel-body--text">Sin recomendaciones</p>
+                <div id="recommendation-summary" class="panel-body panel-body--badge"></div>
+                <button class="ghost-btn" data-overlay-target="overlay-historico">Histórico</button>
+            </article>
+            <article class="panel" id="alerts-panel">
+                <header class="panel-header">
+                    <span class="panel-title">Alertas</span>
+                    <small class="panel-subtitle">Meteorología + hogar</small>
+                </header>
+                <div id="alertas" class="panel-body panel-body--list"></div>
+            </article>
+            <article class="panel" id="risks-panel">
+                <header class="panel-header">
+                    <span class="panel-title">Riesgos</span>
+                    <small class="panel-subtitle">Separados de alertas</small>
+                </header>
+                <div id="riesgos" class="panel-body panel-body--list"></div>
+            </article>
+            <article class="panel" id="health-panel">
+                <header class="panel-header">
+                    <span class="panel-title">Estado sensores</span>
+                    <small class="panel-subtitle">Fallos y anomalías</small>
+                </header>
+                <div id="sensores-alertas" class="panel-body panel-body--list"></div>
+            </article>
+        </section>
+    </div>
+
+    <nav class="action-bar">
+        <button class="action-btn" data-overlay-target="overlay-submenu">Submenú</button>
+        <button class="action-btn" data-overlay-target="overlay-assistente">Asistente</button>
+        <button class="action-btn" data-overlay-target="overlay-noticias">Noticias</button>
+        <button class="action-btn" data-overlay-target="overlay-tareas">Tareas</button>
+        <button class="action-btn" data-overlay-target="overlay-voz">Voz</button>
+    </nav>
+
+    <div class="overlay" id="overlay-assistente">
+        <div class="overlay-panel">
+            <header class="overlay-header">
+                <h3>Asistente</h3>
+                <button class="overlay-close" data-overlay-close>&times;</button>
+            </header>
+            <div class="assistant-grid">
+                <div class="assistant-card">
+                    <div class="assistant-card__header">Noticias y eventos</div>
+                    <div class="assistant-card__controls">
+                        <input id="news-categories" type="text" placeholder="mundo, españa, deportes">
+                        <button class="console-btn" data-action="news-refresh">Actualizar noticias</button>
+                    </div>
+                    <div id="asistente-noticias" class="assistant-card__output"></div>
+                    <hr>
+                    <div class="assistant-card__controls">
+                        <input id="evento-titulo" type="text" placeholder="Título">
+                        <input id="evento-hora" type="text" placeholder="Hora">
+                        <input id="evento-canal" type="text" placeholder="Canal">
+                        <input id="evento-duracion" type="text" placeholder="Duración">
+                        <button class="console-btn" data-action="add-evento">Añadir evento</button>
+                    </div>
+                    <div id="asistente-eventos" class="assistant-card__output"></div>
+                    <div id="asistente-eventos-sugerencias" class="assistant-card__output assistant-card__hint"></div>
+                </div>
+                <div class="assistant-card">
+                    <div class="assistant-card__header">Alarmas y tareas</div>
+                    <div class="assistant-card__controls">
+                        <input id="alarma-hora" type="text" placeholder="07:30">
+                        <input id="alarma-recurrencia" type="text" placeholder="diaria / semanal">
+                        <input id="alarma-aviso" type="number" min="0" placeholder="Aviso min">
+                        <button class="console-btn" data-action="add-alarma">Añadir alarma</button>
+                    </div>
+                    <div class="assistant-card__controls">
+                        <input id="alarma-index" type="number" min="0" placeholder="#">
+                        <button class="console-btn" data-action="update-alarma">Actualizar alarma</button>
+                        <button class="console-btn" data-action="toggle-alarma">Toggle</button>
+                    </div>
+                    <div class="assistant-card__controls">
+                        <input id="tarea-titulo" type="text" placeholder="Nueva tarea">
+                        <input id="tarea-prioridad" type="number" min="0" max="5" placeholder="Prioridad">
+                        <button class="console-btn" data-action="add-tarea">Añadir tarea</button>
+                    </div>
+                    <div id="asistente-alarmas" class="assistant-card__output"></div>
+                    <div id="asistente-tareas" class="assistant-card__output"></div>
+                    <div id="asistente-tareas-sugerencias" class="assistant-card__output assistant-card__hint"></div>
+                </div>
+                <div class="assistant-card">
+                    <div class="assistant-card__header">Listas y recomendaciones</div>
+                    <div class="assistant-card__controls">
+                        <input id="compra-item" type="text" placeholder="Producto">
+                        <input id="compra-categoria" type="text" placeholder="Categoría">
+                        <button class="console-btn" data-action="add-compra">Agregar compra</button>
+                    </div>
+                    <div class="assistant-card__controls">
+                        <input id="impresion-texto" type="text" placeholder="Documento / resumen">
+                        <input id="impresion-tipo" type="text" placeholder="Tipo">
+                        <button class="console-btn" data-action="add-impresion">Imprimir</button>
+                    </div>
+                    <div class="assistant-card__controls">
+                        <input id="reco-sugerencias" type="text" placeholder="sugerencias, separadas">
+                        <button class="console-btn" data-action="add-recomendaciones">Guardar</button>
+                    </div>
+                    <div id="asistente-compra" class="assistant-card__output"></div>
+                    <div id="asistente-compra-sugerencias" class="assistant-card__output assistant-card__hint"></div>
+                    <div id="asistente-recomendaciones" class="assistant-card__output"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-noticias">
+        <div class="overlay-panel">
+            <header class="overlay-header">
+                <h3>Noticias</h3>
+                <button class="overlay-close" data-overlay-close>&times;</button>
+            </header>
+            <div id="overlay-noticias-contenido" class="overlay-body"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-tareas">
+        <div class="overlay-panel">
+            <header class="overlay-header">
+                <h3>Tareas</h3>
+                <button class="overlay-close" data-overlay-close>&times;</button>
+            </header>
+            <div id="overlay-tareas-contenido" class="overlay-body"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-voz">
+        <div class="overlay-panel overlay-panel--small">
+            <header class="overlay-header">
+                <h3>Voz</h3>
+                <button class="overlay-close" data-overlay-close>&times;</button>
+            </header>
+            <div class="voice-widget">
+                <div class="voice-visual" aria-hidden="true"></div>
+                <p id="voice-status" class="panel-subtitle">Listo.</p>
+                <input id="voice-text-input" type="text" placeholder="Di o escribe un comando...">
+                <div style="display:flex; gap:8px;">
+                    <button id="voice-start-btn" class="console-btn">Activar voz</button>
+                    <button id="voice-send-btn" class="console-btn">Enviar</button>
+                </div>
+                <p id="voice-output" class="panel-subtitle">—</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-indices">
+        <div class="overlay-panel">
+            <header class="overlay-header">
+                <h3>Índices ocultos</h3>
+                <button class="overlay-close" data-overlay-close>&times;</button>
+            </header>
+            <div id="overlay-indices-contenido" class="overlay-body"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-historico">
+        <div class="overlay-panel">
+            <header class="overlay-header">
+                <h3>Histórico de recomendaciones</h3>
+                <button class="overlay-close" data-overlay-close>&times;</button>
+            </header>
+            <div id="overlay-historico-contenido" class="overlay-body"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-submenu">
+        <div class="overlay-panel">
+            <header class="overlay-header">
+                <h3>Submenú</h3>
+                <button class="overlay-close" data-overlay-close>&times;</button>
+            </header>
+            <div class="overlay-body submenu-grid">
+                <div class="submenu-section">
+                    <h4 id="submenu-item-title">Elemento</h4>
+                    <p class="submenu-meta" id="submenu-item-key">—</p>
+                    <p><strong>Valor:</strong> <span id="submenu-item-value">—</span></p>
+                    <p><strong>Unidad:</strong> <span id="submenu-item-unit">—</span></p>
+                    <p id="submenu-item-description">—</p>
+                    <div class="submenu-actions">
+                        <input id="submenu-rename-input" type="text" placeholder="Nuevo nombre">
+                        <div class="submenu-actions__row">
+                            <button id="submenu-rename-save" class="console-btn">Guardar nombre</button>
+                            <button id="submenu-rename-reset" class="console-btn">Restaurar</button>
+                        </div>
+                        <button id="submenu-hide-toggle" class="console-btn">Ocultar</button>
+                    </div>
+                </div>
+                <div class="submenu-section">
+                    <h4>Ocultos y no visibles</h4>
+                    <div id="submenu-hidden-list" class="submenu-list"></div>
+                    <h4>Ajustes</h4>
+                    <label class="submenu-control">
+                        Escala UI
+                        <input id="ui-scale-input" type="range" min="0.8" max="1.4" step="0.05" value="1">
+                    </label>
+                    <label class="submenu-control">
+                        <input id="ui-compact-toggle" type="checkbox">
+                        Modo compacto
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-indice-detalle">
+        <div class="overlay-panel overlay-panel--small">
+            <header class="overlay-header">
+                <h3 id="overlay-indice-titulo">Detalle de índice</h3>
+                <button class="overlay-close" data-overlay-close>&times;</button>
+            </header>
+            <div class="overlay-body">
+                <p id="overlay-indice-descripcion">—</p>
+                <p><strong>Valor:</strong> <span id="overlay-indice-valor">—</span></p>
+                <p><strong>Sensores:</strong> <span id="overlay-indice-sensores">—</span></p>
+                <p><strong>Fórmulas:</strong> <span id="overlay-indice-formulas">—</span></p>
+                <p><strong>Predicciones:</strong> <span id="overlay-indice-predicciones">—</span></p>
+                <div>
+                    <strong>Refuerzos:</strong>
+                    <div id="overlay-indice-refuerzos" class="detail-list"></div>
+                </div>
+                <div>
+                    <strong>Subíndices:</strong>
+                    <div id="overlay-indice-subindices" class="detail-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-sensor-detalle">
+        <div class="overlay-panel overlay-panel--small">
+            <header class="overlay-header">
+                <h3 id="overlay-sensor-titulo">Detalle de sensor</h3>
+                <button class="overlay-close" data-overlay-close>&times;</button>
+            </header>
+            <div class="overlay-body">
+                <p id="overlay-sensor-descripcion">—</p>
+                <p><strong>Valor:</strong> <span id="overlay-sensor-valor">—</span></p>
+                <p><strong>Tipo:</strong> <span id="overlay-sensor-tipo">—</span></p>
+                <p><strong>Unidad:</strong> <span id="overlay-sensor-unidad">—</span></p>
+                <p><strong>Fuente:</strong> <span id="overlay-sensor-fuente">—</span></p>
+                <p><strong>Origen:</strong> <span id="overlay-sensor-origen">—</span></p>
+                <p><strong>Fiabilidad:</strong> <span id="overlay-sensor-fiabilidad">—</span></p>
+                <p id="overlay-sensor-ad-row" style="display:none;"><strong>AD:</strong> <span id="overlay-sensor-ad">—</span></p>
+                <p><strong>Apoya a:</strong> <span id="overlay-sensor-apoyos">—</span></p>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

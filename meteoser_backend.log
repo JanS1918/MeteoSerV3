@@ -1,0 +1,15 @@
+INFO:     Will watch for changes in these directories: ['C:\\Users\\kioko\\Desktop\\MeteoSerV3']
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+INFO:     Started reloader process [4076] using WatchFiles
+[2026-01-18 23:34:31,954] [BLOQUE C] [INFO] Repositorio IA: index.json no encontrado, iniciando repositorio vacÝo.
+2026-01-18 23:34:31,969 [INFO] MeteoSer backend inicializado correctamente.
+INFO:     Started server process [6556]
+INFO:     Waiting for application startup.
+[WARNING] AutoSensorDiscovery: mDNS no disponible: instala zeroconf
+2026-01-18 23:34:31,984 [WARNING] mDNS no disponible: instala zeroconf
+[WARNING] AutoSensorDiscovery: MQTT no disponible: instala paho-mqtt
+2026-01-18 23:34:31,984 [WARNING] MQTT no disponible: instala paho-mqtt
+[WARNING] AutoSensorDiscovery: Serial no disponible: instala pyserial
+2026-01-18 23:34:31,984 [WARNING] Serial no disponible: instala pyserial
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'main_asgi.py'. Reloading...
