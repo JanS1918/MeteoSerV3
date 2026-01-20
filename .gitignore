@@ -4,3 +4,12 @@ archive/logs/
 archive/tests/
 archive/disabled_bats/
 archive/demo/
+# Runtime logs and transient state (managed by service, should not be tracked)
+logs/
+data/last_*.json
+data/asistente_estado.json
+data/pas_profiles.json
+data/habits_profile.json
+data/last_sensores.json
+data/last_ecowitt_payload.json
+data/last_location.json
