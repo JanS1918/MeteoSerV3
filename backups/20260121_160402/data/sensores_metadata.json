@@ -1,0 +1,17 @@
+{
+  "temperatura": {"tipo": "temperatura", "unidad": "C", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 92.0, "offset": -0.5, "scale": 1.0, "ewma_alpha": 0.30},
+  "humedad": {"tipo": "humedad", "unidad": "%", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 90.0, "offset": 0.0, "scale": 1.0, "ewma_alpha": 0.30},
+  "windspeedmph": {"tipo": "viento", "unidad": "mph", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 88.0, "offset": 0.0, "scale": 1.00, "ewma_alpha": 0.25},
+  "windspdmph_avg10m": {"tipo": "viento", "unidad": "mph", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 88.0, "offset": 0.0, "scale": 1.00, "ewma_alpha": 0.25},
+  "solarradiation": {"tipo": "radiacion", "unidad": "W/m2", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 80.0, "offset": 0.0, "scale": 1.00, "ewma_alpha": 0.20},
+  "radiacion": {"tipo": "radiacion", "unidad": "W/m2", "fuente": "calculo", "origen": "interno", "fiabilidad": 65.0, "offset": 0.0, "scale": 1.00, "ewma_alpha": 0.20},
+  "uv": {"tipo": "uv", "unidad": "index", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 78.0, "offset": 0.0, "scale": 1.00, "ewma_alpha": 0.10},
+  "pm25_ch1": {"tipo": "pm25", "unidad": "ug/m3", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 70.0, "offset": 0.0, "scale": 1.00, "ewma_alpha": 0.15},
+  "baromrelin": {"tipo": "presion", "unidad": "inHg", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 90.0, "offset": 0.0, "scale": 1.0},
+  "baromabsin": {"tipo": "presion", "unidad": "inHg", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 90.0, "offset": 0.0, "scale": 1.0},
+  "rainratein": {"tipo": "lluvia", "unidad": "in/h", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 85.0, "offset": 0.0, "scale": 1.0, "ewma_alpha": 0.10},
+  "hourlyrainin": {"tipo": "lluvia", "unidad": "in", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 85.0, "offset": 0.0, "scale": 1.0},
+  "lightning": {"tipo": "rayos", "unidad": "count", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 70.0, "offset": 0.0, "scale": 1.0},
+  "sismografo": {"tipo": "sismo", "unidad": "rel", "fuente": "interno", "origen": "interno", "fiabilidad": 50.0, "offset": 0.0, "scale": 1.0},
+  "sonometro": {"tipo": "ruido", "unidad": "dB", "fuente": "interno", "origen": "interno", "fiabilidad": 65.0, "offset": 0.0, "scale": 1.0}
+}

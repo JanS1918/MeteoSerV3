@@ -15,11 +15,13 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-2. Ejecutar localmente (dev):
+2. Ejecutar localmente (dev estable, sin auto-reload):
 
 ```
-uvicorn main_asgi:app --reload --host 0.0.0.0 --port 8080
+uvicorn main_asgi:app --host 0.0.0.0 --port 8080
 ```
+
+> Si necesitas hot-reload SOLO en desarrollo, añade `--reload`, pero no lo uses en producción.
 
 3. Producción en Windows (opciones):
 - Usar NSSM para registrar `uvicorn`/`python` como servicio. Ver `docs/NSSM.md`.

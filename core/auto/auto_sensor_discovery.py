@@ -268,10 +268,19 @@ class AutoSensorDiscovery:
                 "cert_reqs": ssl.CERT_REQUIRED,
                 "tls_version": ssl.PROTOCOL_TLS_CLIENT,
             }
-            if self._mqtt_ca_cert and os.path.exists(self._mqtt_ca_cert):
-                tls_kwargs["ca_certs"] = self._mqtt_ca_cert
+            ca_candidates = []
+            if self._mqtt_ca_cert:
+                ca_candidates.append(self._mqtt_ca_cert)
+            ca_candidates.extend([
+                r"C:\mosquitto\conf\certs\ca.cert.pem",
+                r"C:\mosquitto\conf\certs\ca.crt",
+            ])
+            ca_path = next((p for p in ca_candidates if p and os.path.exists(p)), None)
+            if ca_path:
+                tls_kwargs["ca_certs"] = ca_path
+                self._mqtt_ca_cert = ca_path
             else:
-                self.log.warning("TLS habilitado pero no se encontró METEOSER_MQTT_TLS_CA; usando CA del sistema")
+                self.log.warning("TLS habilitado pero no se encontró CA válida; usando CA del sistema")
             if self._mqtt_client_cert and self._mqtt_client_key:
                 if os.path.exists(self._mqtt_client_cert) and os.path.exists(self._mqtt_client_key):
                     tls_kwargs["certfile"] = self._mqtt_client_cert

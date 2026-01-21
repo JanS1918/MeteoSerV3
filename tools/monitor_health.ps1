@@ -46,9 +46,12 @@ try {
     exit 2
 }
 
-$stdoutPath = Join-Path (Get-Location) 'logs\service_stdout.log'
+$stdoutPath = Join-Path (Get-Location) 'logs\servicio_out.log'
 if (-not (Test-Path $stdoutPath)) {
-    Show-Panel "Logs" "No existe $stdoutPath"
+    $stdoutPath = Join-Path (Get-Location) 'logs\service_stdout.log'
+}
+if (-not (Test-Path $stdoutPath)) {
+    Show-Panel "Logs" "No existe log de stdout"
     exit 0
 }
 
@@ -80,9 +83,12 @@ if ($errors) {
     Show-Panel "No se detectaron 5xx recientes" "Revisadas $LinesToCheck líneas de logs."
 }
 
-if (Test-Path (Join-Path (Get-Location) 'logs\service_stderr.log')) {
+if (Test-Path (Join-Path (Get-Location) 'logs\servicio_err.log') -or Test-Path (Join-Path (Get-Location) 'logs\service_stderr.log')) {
     try {
-        $stderrPath = Join-Path (Get-Location) 'logs\service_stderr.log'
+        $stderrPath = Join-Path (Get-Location) 'logs\servicio_err.log'
+        if (-not (Test-Path $stderrPath)) {
+            $stderrPath = Join-Path (Get-Location) 'logs\service_stderr.log'
+        }
         $stderrLines = Get-Content -Path $stderrPath -Encoding UTF8 -Tail 30 -ErrorAction Stop
     } catch {
         try {
@@ -99,5 +105,20 @@ if (Test-Path (Join-Path (Get-Location) 'logs\service_stderr.log')) {
     }
     if ($stderrLines) {
         Show-Panel "service_stderr.log (últimas líneas)" "$(($stderrLines -join "`n"))"
+    }
+}
+
+# Alertas específicas MQTT
+if (Test-Path (Join-Path (Get-Location) 'logs\servicio_err.log')) {
+    try {
+        $mqttLines = Get-Content -Path (Join-Path (Get-Location) 'logs\servicio_err.log') -Encoding UTF8 -Tail 200 -ErrorAction Stop
+        $mqttErrors = $mqttLines | Select-String -Pattern 'MQTT (error conexi[oó]n|no disponible)'
+        if ($mqttErrors) {
+            $last = $mqttErrors[-1].Line
+            Show-Panel "[ALERTA] MQTT" "Último: $last"
+            Send-Alert "[MeteoSer] ALERTA MQTT: $last"
+        }
+    } catch {
+        # ignore
     }
 }

@@ -6,13 +6,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from core.system.system_manager import SystemManager
+from core.system.singleton import get_manager, get_system
 
 try:
-    m = SystemManager()
-    s = m.iniciar()
-    print('System initialized: OK')
-    rec = getattr(s, 'recommendation_engine', None)
+    m = get_manager()
+    s = get_system()
+    print('System initialized: OK' if m else 'Manager not available')
+    rec = getattr(s, 'recommendation_engine', None) if s else None
     print('recommendation_engine:', type(rec).__name__ if rec else None)
     try:
         estado = s.obtener_estado_completo()

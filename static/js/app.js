@@ -111,6 +111,13 @@ function classifyValue(key, value, unit = '') {
     return 'value--low';
 }
 
+function toArray(value) {
+    if (value == null) return [];
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'object') return Object.values(value);
+    return [value];
+}
+
 function isAnomaly(key, value) {
     const normalized = normalizeNumeric(value);
     if (normalized === null) return false;
@@ -833,12 +840,18 @@ function updateIndices(data) {
 
 function updateRecomendacion(data) {
     const rec = data?.recomendacion;
+    // Log para depuración: ver qué viene en la recomendación
+    try {
+        console.debug('updateRecomendacion - rec raw:', rec);
+    } catch (e) {
+        // ignore
+    }
     const recText = rec && typeof rec === 'object'
         ? (rec.estado || rec.mensaje || rec.texto || rec.text || '')
         : String(rec || '');
     const recMotivos = rec && typeof rec === 'object' && rec.motivos ? Object.values(rec.motivos) : [];
-    const alerts = [...(data?.meteorologico?.alertas || []), ...(data?.intrusion?.alertas || [])].map(String);
-    const avisos = (data?.avisos_practicos || []).map(String);
+    const alerts = [...toArray(data?.meteorologico?.alertas), ...toArray(data?.intrusion?.alertas)].map(String);
+    const avisos = toArray(data?.avisos_practicos).map(String);
     const indices = data?.indices || {};
     const riesgos = Object.keys(indices)
         .filter(key => key.startsWith('riesgo_') || key.startsWith('alerta_'))
@@ -850,32 +863,99 @@ function updateRecomendacion(data) {
         })
         .filter(Boolean);
 
-    const signals = [...alerts, ...avisos, ...riesgos, ...recMotivos];
-    const shouldShow = Boolean(recText);
-    const text = shouldShow ? recText : 'Sin recomendaciones';
-    setText('recomendacion', text);
-    if (shouldShow) {
+    const signals = [...alerts, ...avisos, ...riesgos, ...recMotivos].filter(Boolean);
+    const hasSignals = signals.length > 0;
+
+    // Heurísticas para construir una frase unificada y coloquial
+    function getNumericIndex(key) {
+        const v = indices[key];
+        if (v === undefined || v === null) return null;
+        return typeof v === 'object' && 'valor' in v ? normalizeNumeric(v.valor) : normalizeNumeric(v);
+    }
+
+    const sensacion = getNumericIndex('sensacion_termica') || (data?.meteo?.derivadas?.sensacion_termica?.value ?? null);
+    const nub = getNumericIndex('nubosidad_estimada') || null;
+    const lluviaRisk = getNumericIndex('riesgo_lluvia') || getNumericIndex('lluvia') || null;
+
+    const parts = [];
+    // Temperatura / sensación
+    if (sensacion !== null) {
+        parts.push(`Hace ${sensacion < 15 ? 'fresco' : (sensacion > 25 ? 'calor' : 'bueno')}`);
+    }
+
+    // Nubosidad y luminosidad
+    if (nub !== null) {
+        if (nub >= 80) parts.push('hay muchas nubes');
+        else if (nub >= 40) parts.push('hay bastantes nubes');
+        else parts.push('hay pocas nubes');
+        if (nub >= 70) parts.push('y el día está bastante oscuro');
+        else if (nub >= 40) parts.push('y el día está algo poco soleado');
+    }
+
+    // Recomendaciones prácticas (abrigo, paraguas)
+    const actions = [];
+    if (sensacion !== null && sensacion < 15) actions.push('abrígate');
+    if (lluviaRisk !== null) {
+        if (lluviaRisk >= 60) actions.push('lleva paraguas, hay alto riesgo de lluvia');
+        else if (lluviaRisk >= 30) actions.push('coge paraguas, riesgo moderado de lluvia');
+    }
+
+    // Cetrería (si aparece en motivos)
+    const cetreriaActive = recMotivos.some(m => String(m).toLowerCase().includes('cetrer'));
+    // Polvo / mala calidad del aire (interior detection heuristic)
+    const polvoIndex = getNumericIndex('alerta_polvo') || getNumericIndex('riesgo_polvo') || null;
+    let polvoText = '';
+    if (polvoIndex !== null && polvoIndex >= 60) {
+        // intentar detectar si el sensor que mide PM25 está en interior
+        const sensoresKeys = Object.keys(data?.sensores || {});
+        const pmInterior = sensoresKeys.some(k => k.toLowerCase().includes('pm25') && (k.toLowerCase().includes('in') || k.toLowerCase().includes('interior') || k.toLowerCase().includes('inside')));
+        polvoText = `Riesgo alto de polvo o mala calidad del aire ${pmInterior ? 'en casa' : ''}`.trim();
+    }
+
+    // Unificar la frase
+    const mainPhrase = [];
+    if (parts.length) mainPhrase.push(parts.join(', '));
+    if (actions.length) mainPhrase.push(actions.join(' y '));
+    let finalText = mainPhrase.join('. ');
+    if (finalText) finalText = finalText.replace(/\s+\./g, '.');
+    if (cetreriaActive) finalText += (finalText ? '. ' : '') + 'Aun así, es un día aceptable para la cetrería.';
+    if (polvoText) finalText += (finalText ? ' ' : '') + polvoText + '.';
+
+    // Fallback: si no hay señales ni texto, decir que no hay recomendaciones
+    let text = '';
+    if (hasSignals) {
+        text = finalText || signals.slice(0, 4).join(' · ');
+    } else {
+        text = 'Sin recomendaciones';
+    }
+
+    const friendly = makeFriendlyTone(text);
+    setText('recomendacion', friendly);
+    setText('hero-recommendation-detail', friendly);
+    const moodText = hasSignals ? 'Recomendación activa' : 'Sin recomendaciones activas';
+    setText('hero-summary', moodText);
+    if (hasSignals) {
         const summary = signals.slice(0, 4).join(' · ');
         setHTML('recommendation-summary', `<span>${summary}</span>`);
     } else {
         setHTML('recommendation-summary', '');
     }
 
-    const changedRec = String(recText || '') !== String(cacheState.lastRec || '');
+    const changedRec = String(friendly || '') !== String(cacheState.lastRec || '');
     const changedSignals = signals.join('|') !== cacheState.lastSignals.join('|');
-    if (shouldShow && (changedRec || changedSignals)) {
+    if (hasSignals && (changedRec || changedSignals)) {
         const entry = {
-            text: String(recText),
+            text: friendly,
             ts: new Date().toLocaleString('es-ES'),
             signals: signals.slice(0, 6)
         };
         cacheState.recHistory.unshift(entry);
         cacheState.recHistory = cacheState.recHistory.slice(0, 20);
-        cacheState.lastRec = recText;
+        cacheState.lastRec = friendly;
         cacheState.lastSignals = signals.slice(0, 12);
     }
 
-    if (!shouldShow && cacheState.lastRec && cacheState.lastSignals.length) {
+    if (!hasSignals && cacheState.lastRec && cacheState.lastSignals.length) {
         const entry = {
             text: `Finalizada: ${cacheState.lastRec}`,
             ts: new Date().toLocaleString('es-ES'),
@@ -898,6 +978,27 @@ function updateRecomendacion(data) {
     }
 }
 
+// Transforma una frase en un tono más coloquial, cariñoso y un poco bromista.
+function makeFriendlyTone(text) {
+    if (!text || text === 'Sin recomendaciones') return text;
+    // Pequeñas transformaciones para suavizar y unir frases
+    let t = String(text).trim();
+    // Replaces comunes para evitar estilo telegrama
+    t = t.replace(/\bHace\s+fresco\b/gi, 'Hace fresco');
+    t = t.replace(/\bHace\s+calor\b/gi, 'Hace calor');
+    // Añadir conectores más naturales
+    t = t.replace(/\.(\s*)/g, ', ');
+    t = t.replace(/\s+,/g, ',');
+    // Limpiar repeticiones de comas
+    t = t.replace(/,\s*,/g, ',');
+    // Añadir prefacio cariñoso y remate afectuoso
+    const prefix = 'Oye,';
+    const suffix = ' Cuídate ❤️';
+    // Capitalizar primera letra después del prefijo
+    t = t.charAt(0).toLowerCase() === t.charAt(0) ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+    return `${prefix} ${t.trim()}.${suffix}`;
+}
+
 function updateAlertas(data) {
     const alerts = [];
     const meteo = data?.meteorologico?.alertas || [];
@@ -910,7 +1011,7 @@ function updateAlertas(data) {
 
 function updateRiesgos(data) {
     const riesgos = [];
-    const avisos = data?.avisos_practicos || [];
+    const avisos = toArray(data?.avisos_practicos);
     riesgos.push(...avisos.map(String));
     const indices = data?.indices || {};
     Object.keys(indices).forEach(key => {
@@ -984,12 +1085,18 @@ async function loadEstado() {
     }
     try {
         lastEstado = data;
+        // Mostrar recomendación primero para evitar que fallos en otras
+        // actualizaciones impidan que el usuario vea recomendaciones.
+        try {
+            updateRecomendacion(data);
+        } catch (recErr) {
+            console.error('Error updating recommendation', recErr);
+        }
         updateLocation(data.indices);
         updateHero(data);
         updateSolar(data.indices);
         updateSensors(data);
         updateIndices(data);
-        updateRecomendacion(data);
         updateAlertas(data);
         updateRiesgos(data);
         updateOrganizer(data);

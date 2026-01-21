@@ -12,7 +12,7 @@ Write-Output "Wrote generated password to $pwFile"
 $mosquitto_passwd = 'C:\Program Files\Mosquitto\mosquitto_passwd.exe'
 $pwfile = Join-Path $confDir 'passwordfile'
 if (Test-Path $mosquitto_passwd) {
-    & "$mosquitto_passwd" -b $pwfile meteoser $pw 2>&1 | Write-Output
+    & "$mosquitto_passwd" -b -c $pwfile meteoser $pw 2>&1 | Write-Output
     Write-Output "Created passwordfile at $pwfile"
 } else {
     Write-Output "mosquitto_passwd not found at $mosquitto_passwd. Attempting to create simple passwordfile entry."
@@ -31,5 +31,5 @@ if (Test-Path $nssm) {
     Get-Service -Name MeteoSerMosquitto | Format-List | Write-Output
 } else { Write-Output 'NSSM not found; start Mosquitto manually to test.' }
 
-Write-Output "Generated password: $pw (also saved to $pwFile)"
+Write-Output "Password generado y guardado en $pwFile"
 Read-Host 'Pulsa Enter para cerrar esta ventana'

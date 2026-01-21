@@ -1,17 +1,17 @@
 # Configuración de arranque recomendada para MeteoSer
 # Guarda este archivo como 'meteoser_configuracion.txt' o similar para referencia rápida
 
-# Arrancar el servidor accesible desde toda la red local:
-# (Sustituye 192.168.x.x por tu IP local real)
-uvicorn main_asgi:app --host 192.168.x.x --port 8080 --reload
+# Arrancar el servidor accesible desde toda la red local (producción, sin reload):
+# (Sustituye 192.168.x.x por tu IP local real si necesitas bind específico)
+uvicorn main_asgi:app --host 0.0.0.0 --port 8080
 
 # Acceso desde el navegador:
 # http://192.168.x.x:8080
 
-# Si solo lo quieres en tu PC:
-uvicorn main_asgi:app --host 127.0.0.1 --port 8080 --reload
+# Si solo lo quieres en tu PC (sin reload):
+uvicorn main_asgi:app --host 127.0.0.1 --port 8080
 
-# O usando el script:
+# Preferido: usando el wrapper con protección de lock y PID:
 python arrancar_meteoser.py
 
 # Si necesitas cambiar el puerto, solo modifica el número tras --port

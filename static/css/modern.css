@@ -101,6 +101,14 @@ body {
     font-size: 0.9rem;
 }
 
+.hero-card__recommendation {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    min-height: 2.5rem;
+}
+
 .hero-card__details {
     display: flex;
     justify-content: space-between;

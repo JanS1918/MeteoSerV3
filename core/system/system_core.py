@@ -6,6 +6,7 @@ EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
 
 import json
 import time
+import math
 from pathlib import Path
 from typing import Any
 
@@ -56,10 +57,37 @@ class SystemCore:
         # Registrar sensores HP2550A/Ecowitt por defecto
         self.sensores = {
             "temperatura": None,
+            "temperatura_interior": None,
+            "temperatura_exterior": None,
             "humedad": None,
+            "humedad_interior": None,
+            "humedad_exterior": None,
             "viento": None,
+            "viento_racha": None,
             "lluvia": None,
-            "radiacion": None
+            "lluvia_rate": None,
+            "radiacion": None,
+            "uv": None,
+            "luz": None,
+            "presion": None,
+            "presion_interior": None,
+            "presion_exterior": None,
+            "pm25": None,
+            "pm10": None,
+            "pm1": None,
+            "pm4": None,
+            "pm05": None,
+            "co2": None,
+            "co": None,
+            "o3": None,
+            "no2": None,
+            "so2": None,
+            "nh3": None,
+            "hcho": None,
+            "radon": None,
+            "voc": None,
+            "tvoc": None,
+            "ruido": None
         }
         self.formulas = {}
         self.sensores_timestamp = {}
@@ -286,6 +314,13 @@ class SystemCore:
         self._sensores_crudos[nombre] = valor
         calibrated_val, calib_info = self._calibrate_sensor_value(nombre, valor)
         stored_val = calibrated_val
+        if calibrated_val is None or (isinstance(calibrated_val, float) and math.isnan(calibrated_val)):
+            # Si el valor es inválido, conservar el último valor válido si existe
+            prev = self.sensores.get(nombre)
+            if prev is not None:
+                stored_val = prev
+                calib_info["skipped_update"] = True
+                calib_info["skip_reason"] = "invalid_or_none"
         if nombre in self.sensores:
             self.sensores[nombre] = stored_val
         else:
@@ -299,12 +334,16 @@ class SystemCore:
             if nombre not in self.historial_originales:
                 self.historial_originales[nombre] = []
             self.historial_originales[nombre].append(valor)
+            if len(self.historial_originales[nombre]) > 500:
+                self.historial_originales[nombre] = self.historial_originales[nombre][-500:]
             return
         # Registrar el valor original para trazabilidad
         orig_name = f"{nombre}_original"
         if not hasattr(self, "historial_originales"):
             self.historial_originales = {}
         self.historial_originales.setdefault(orig_name, []).append(valor)
+        if len(self.historial_originales[orig_name]) > 500:
+            self.historial_originales[orig_name] = self.historial_originales[orig_name][-500:]
         # Guardar histórico numérico
         try:
             valor_num = float(stored_val)

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from core.system.system_manager import SystemManager
+from core.system.singleton import get_manager, get_system
 from core.motors.ambiental_motor import MotorAmbiental
 from core.motors.confort_motor import MotorConfort
 from core.motors.edificio_motor import MotorEdificio
@@ -17,8 +17,8 @@ from core.motors.comunicacion_motor import MotorComunicacion
 from core.motors.huellas_motor import GestorHuellasAtmosfericas
 
 router = APIRouter()
-manager = SystemManager()
-system = manager.iniciar()
+manager = get_manager()
+system = get_system()
 
 @router.post("/motor/ambiental")
 def motor_ambiental(datos: dict):

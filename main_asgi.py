@@ -105,9 +105,50 @@ try:
 except Exception:
     INDEX_CATALOG = {}
 
+
+def _is_test_env() -> bool:
+    return bool(
+        os.environ.get("PYTEST_CURRENT_TEST")
+        or os.environ.get("METEOSER_TESTING") == "1"
+        or "pytest" in sys.modules
+    )
+
+
+def _require_official_start() -> None:
+    if _is_test_env():
+        return
+    if os.environ.get("METEOSER_REQUIRE_OFFICIAL", "1") != "1":
+        return
+    if os.environ.get("METEOSER_OFFICIAL_START") != "1":
+        logging.getLogger(__name__).error("Arranque no oficial bloqueado. Usa el arranque oficial.")
+        raise SystemExit(2)
+    if os.environ.get("METEOSER_OFFICIAL_PARENT_OK") != "1":
+        logging.getLogger(__name__).error("Arranque no oficial bloqueado (sello inválido).")
+        raise SystemExit(2)
+    token = os.environ.get("METEOSER_OFFICIAL_TOKEN")
+    if not token:
+        logging.getLogger(__name__).error("Arranque no oficial bloqueado (token ausente).")
+        raise SystemExit(2)
+    try:
+        token_path = pathlib.Path(__file__).resolve().parent / "logs" / "official.token"
+        if not token_path.exists():
+            logging.getLogger(__name__).error("Arranque no oficial bloqueado (token no encontrado).")
+            raise SystemExit(2)
+        stored = token_path.read_text(encoding="utf-8").strip()
+        if stored != token:
+            logging.getLogger(__name__).error("Arranque no oficial bloqueado (token inválido).")
+            raise SystemExit(2)
+    except SystemExit:
+        raise
+    except Exception:
+        logging.getLogger(__name__).error("Arranque no oficial bloqueado (error validando token).")
+        raise SystemExit(2)
+
 # Crear `app` en caso de que no exista (algunas secciones del archivo definen rutas antes)
 if "app" not in globals():
     app = FastAPI()
+
+_require_official_start()
 
 MAX_SENSOR_FRESHNESS_SECONDS = 300
 SENSOR_SMOOTHING_ALPHA = 0.5
@@ -133,6 +174,18 @@ def _canonical_name(nombre: Optional[str]) -> Optional[str]:
     if not nombre:
         return None
     n = nombre.lower().replace("-", "_")
+    if ("indoor" in n or "interior" in n) and ("temp" in n or "temperatura" in n):
+        return "temperatura_interior"
+    if ("outdoor" in n or "exterior" in n) and ("temp" in n or "temperatura" in n):
+        return "temperatura_exterior"
+    if ("indoor" in n or "interior" in n) and ("hum" in n or "humidity" in n or "humedad" in n):
+        return "humedad_interior"
+    if ("outdoor" in n or "exterior" in n) and ("hum" in n or "humidity" in n or "humedad" in n):
+        return "humedad_exterior"
+    if ("indoor" in n or "interior" in n) and ("pres" in n or "pressure" in n or "baro" in n):
+        return "presion_interior"
+    if ("outdoor" in n or "exterior" in n) and ("pres" in n or "pressure" in n or "baro" in n):
+        return "presion_exterior"
     if "icasa" in n and "co2" in n:
         return "co2"
     if "meter" in n and "co2" in n:
@@ -167,30 +220,78 @@ def _canonical_name(nombre: Optional[str]) -> Optional[str]:
         return "pm10"
     if "pm1" in n:
         return "pm1"
+    if "pm4" in n:
+        return "pm4"
+    if "pm05" in n or "pm0_5" in n or "pm0.5" in n or "pm_0_5" in n:
+        return "pm05"
+    if "o3" in n or "ozono" in n or "ozone" in n:
+        return "o3"
+    if "no2" in n or "nitrogen_dioxide" in n:
+        return "no2"
+    if "so2" in n or "sulfur_dioxide" in n:
+        return "so2"
+    if "nh3" in n or "ammonia" in n:
+        return "nh3"
+    if "hcho" in n or "formaldehyde" in n or "formaldehido" in n:
+        return "hcho"
+    if "radon" in n:
+        return "radon"
+    if "tvoc" in n:
+        return "tvoc"
+    if "co" in n and "co2" not in n and "carbon" not in n:
+        return "co"
     if "wh51" in n:
         return "wh51"
     if "soil" in n or "suelo" in n or "hum_suelo" in n or "humedad_suelo" in n:
         return "wh51"
+    if "solar" in n or "irradi" in n or "radiac" in n:
+        return "radiacion"
+    if "lluvia_rate" in n or "rain_rate" in n or "rainrate" in n:
+        return "lluvia_rate"
     return None
 
 
 def _default_unit(canonical: str) -> Optional[str]:
     if canonical == "temperatura":
         return "C"
+    if canonical in ("temperatura_interior", "temperatura_exterior"):
+        return "C"
     if canonical == "humedad":
+        return "%"
+    if canonical in ("humedad_interior", "humedad_exterior"):
         return "%"
     if canonical == "presion":
         return "hPa"
+    if canonical in ("presion_interior", "presion_exterior"):
+        return "hPa"
     if canonical in ("pm25", "pm10", "pm1"):
+        return "µg/m³"
+    if canonical in ("pm4", "pm05"):
         return "µg/m³"
     if canonical == "co2":
         return "ppm"
+    if canonical == "co":
+        return "ppm"
+    if canonical in ("o3", "no2", "so2", "nh3", "hcho", "tvoc", "voc"):
+        return "ppb"
+    if canonical == "radon":
+        return "Bq/m³"
     if canonical == "viento":
+        return "km/h"
+    if canonical == "viento_racha":
         return "km/h"
     if canonical == "lluvia":
         return "mm"
+    if canonical == "lluvia_rate":
+        return "mm/h"
     if canonical == "wh51":
         return "%"
+    if canonical == "radiacion":
+        return "W/m²"
+    if canonical == "luz":
+        return "lux"
+    if canonical == "uv":
+        return "index"
     return None
 
 
@@ -588,8 +689,9 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Inicializar sistema MeteoSer y forzar motores, con protección ante errores
 try:
-    manager = SystemManager()
-    system = manager.iniciar()
+    from core.system.singleton import get_manager, get_system
+    manager = get_manager()
+    system = get_system()
     if not isinstance(system.indices, EnvironmentalIndices):
         system.indices = EnvironmentalIndices(system)
     logger.info("MeteoSer backend inicializado correctamente.")
@@ -1629,6 +1731,16 @@ def _estado_impl():
         sensores = persisted_sensores.copy()
     else:
         sensores = system.sensores.copy()
+
+    # Asegurar presencia de sensores 'fijos' esperados (ej: sonometro)
+    try:
+        meta_all = getattr(system, "sensores_metadata", {}) or {}
+        # Si el metadata declara un sonómetro, garantizar que exista en el mapa de sensores
+        if "sonometro" in meta_all and "sonometro" not in sensores:
+            # Usamos 0 como valor por defecto (sin ruido detectado) para que el sensor sea visible en la UI
+            sensores["sonometro"] = 0
+    except Exception:
+        pass
     # No forzar valores simulados si faltan sensores base
 
     # Añadir arco solar a los índices

@@ -10,6 +10,9 @@ if (-not (Test-Path $nssm)) {
     throw "No se encontró NSSM en $nssm"
 }
 
+$pwPath = 'C:\mosquitto\conf\generated_password.txt'
+$pw = ''
+if (Test-Path $pwPath) { $pw = (Get-Content $pwPath -Raw).Trim() }
 $envs = @(
     'METEOSER_MQTT_ENABLED=1',
     'METEOSER_MQTT_HOST=localhost',
@@ -18,16 +21,24 @@ $envs = @(
     'METEOSER_MQTT_TLS_CA=C:/mosquitto/conf/certs/ca.cert.pem',
     'METEOSER_MQTT_TLS_INSECURE=0',
     'METEOSER_MQTT_USER=meteoser',
-    ('METEOSER_MQTT_PASS=' + (Get-Content 'C:\mosquitto\conf\generated_password.txt')),
-    'METEOSER_DEBUG=1'
+    ("METEOSER_MQTT_PASS=$pw"),
+    'METEOSER_DEBUG=0',
+    'METEOSER_OFFICIAL_START=1',
+    'METEOSER_REQUIRE_OFFICIAL=1',
+    'METEOSER_OFFICIAL_SOURCE=service',
+    'METEOSER_HOST=0.0.0.0',
+    'METEOSER_PORT=8080'
 )
 
 if (Get-Service -Name $svcName -ErrorAction SilentlyContinue) {
     & $nssm stop $svcName | Out-Null
-    & $nssm remove $svcName confirm | Out-Null
+    $launcher = Join-Path $work 'arrancar_meteoser.py'
+    & $nssm set $svcName Application $python | Out-Null
+    & $nssm set $svcName AppParameters $launcher | Out-Null
+} else {
+    $launcher = Join-Path $work 'arrancar_meteoser.py'
+    & $nssm install $svcName $python $launcher | Out-Null
 }
-
-& $nssm install $svcName $python "-m uvicorn main_asgi:app --host 127.0.0.1 --port 8080" | Out-Null
 & $nssm set $svcName AppDirectory $work | Out-Null
 & $nssm set $svcName AppEnvironmentExtra ($envs -join "`r`n") | Out-Null
 

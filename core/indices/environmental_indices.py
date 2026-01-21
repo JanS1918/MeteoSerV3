@@ -473,14 +473,18 @@ class EnvironmentalIndices:
             val = val / 100.0
         return max(0.0, min(1.0, val))
 
-    def _apply_lag(self, indices: Dict[str, Any]) -> Dict[str, Any]:
-        # Defensive initialization: some instances may have been created
-        # without running the full constructor (e.g. hot-reloads or older instances).
+    def _ensure_lag_configuration(self) -> None:
         if not hasattr(self, "_lag_buffer"):
             self._lag_buffer = {}
         if not hasattr(self, "_lag_last"):
             self._lag_last = {}
+        if not hasattr(self, "_lag_indices") or not self._lag_indices:
+            self._lag_indices = DEFAULT_LAG_INDICES.copy()
+        if not hasattr(self, "_lag_seconds"):
+            self._lag_seconds = 10
 
+    def _apply_lag(self, indices: Dict[str, Any]) -> Dict[str, Any]:
+        self._ensure_lag_configuration()
         if not self._lag_indices or self._lag_seconds <= 0:
             return indices
         now = time.time()
