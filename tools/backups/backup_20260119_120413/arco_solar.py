@@ -1,5 +1,6 @@
 import math
 
+
 def declinacion_solar(dia_del_ano: int) -> float:
     """
     Declination solar (δ) en radianes.
@@ -31,6 +32,7 @@ def arco_solar(latitud_deg: float, dia_del_ano: int) -> float:
     decl_rad = declinacion_solar(dia_del_ano)
     H0 = angulo_horario_amanecer(lat_rad, decl_rad)
     return math.degrees(2 * H0)
+
 
 # EJEMPLO DE USO:
 if __name__ == "__main__":

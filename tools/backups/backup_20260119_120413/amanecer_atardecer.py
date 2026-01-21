@@ -1,13 +1,17 @@
 import math
-import datetime
+
 
 def declinacion_solar(dia_del_ano: int) -> float:
     return 0.409 * math.sin(2 * math.pi * (dia_del_ano - 81) / 368)
 
+
 def angulo_horario_amanecer(lat_rad: float, decl_rad: float) -> float:
     return math.acos(-math.tan(lat_rad) * math.tan(decl_rad))
 
-def calcular_amanecer_atardecer(latitud_deg: float, longitud_deg: float, dia_del_ano: int, utc_offset: int = 1) -> dict:
+
+def calcular_amanecer_atardecer(
+    latitud_deg: float, longitud_deg: float, dia_del_ano: int, utc_offset: int = 1
+) -> dict:
     """
     Devuelve las horas (HH:MM) locales de amanecer y atardecer para la latitud/longitud y día del año dados.
     utc_offset: desfase horario respecto a UTC (España peninsular = 1 o 2)
@@ -23,6 +27,7 @@ def calcular_amanecer_atardecer(latitud_deg: float, longitud_deg: float, dia_del
     # Ajustar a 0-24
     amanecer = (amanecer + 24) % 24
     atardecer = (atardecer + 24) % 24
+
     def hhmm(h):
         h_ = int(h)
         m = int(round((h - int(h)) * 60))
@@ -30,4 +35,5 @@ def calcular_amanecer_atardecer(latitud_deg: float, longitud_deg: float, dia_del
             h_ += 1
             m = 0
         return f"{h_:02d}:{m:02d}"
+
     return {"amanecer": hhmm(amanecer), "atardecer": hhmm(atardecer)}

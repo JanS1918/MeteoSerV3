@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import time
 import logging
-from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Any
+from dataclasses import dataclass
+from typing import Callable, Dict, List, Optional
 
 from . import block_a
 from meteoser_ia.alert import Alert, AlertLevel
@@ -18,15 +18,18 @@ if not logger.handlers:
     logger.addHandler(_handler)
 logger.setLevel(logging.INFO)
 
+
 @dataclass
 class RuleCondition:
     name: str
     evaluator: Callable[[], bool]
 
+
 @dataclass
 class RuleAction:
     name: str
     executor: Callable[[], None]
+
 
 @dataclass
 class Rule:
@@ -36,6 +39,7 @@ class Rule:
     actions: List[RuleAction]
     enabled: bool = True
     last_trigger: Optional[float] = None
+
 
 class RuleEngine:
     def __init__(self) -> None:
@@ -59,7 +63,7 @@ class RuleEngine:
                         level=AlertLevel.HIGH,
                         message=f"Regla activada: {rule.id}",
                         requires_intervention=False,
-                        reason=f"Acciones ejecutadas: {[a.name for a in rule.actions]}"
+                        reason=f"Acciones ejecutadas: {[a.name for a in rule.actions]}",
                     )
                     logger.error(f"ALERTA: {alert.to_dict()}")
                     for action in rule.actions:
@@ -71,7 +75,7 @@ class RuleEngine:
                                 level=AlertLevel.CRITICAL,
                                 message=f"Error en acción '{action.name}': {e}",
                                 requires_intervention=True,
-                                reason="Fallo en la ejecución de acción. Requiere revisión inmediata."
+                                reason="Fallo en la ejecución de acción. Requiere revisión inmediata.",
                             )
                             logger.critical(f"ALERTA: {action_alert.to_dict()}")
             except Exception as e:
@@ -80,11 +84,13 @@ class RuleEngine:
                     level=AlertLevel.CRITICAL,
                     message=f"Error en motor de reglas: {e}",
                     requires_intervention=True,
-                    reason="Fallo en la evaluación de reglas. Requiere revisión inmediata."
+                    reason="Fallo en la evaluación de reglas. Requiere revisión inmediata.",
                 )
                 logger.critical(f"ALERTA: {alert.to_dict()}")
 
+
 RULE_ENGINE = RuleEngine()
+
 
 class PresenceModel:
     def __init__(self) -> None:
@@ -102,7 +108,10 @@ class PresenceModel:
             if sensor.type == block_a.SensorType.TABLET_PROXIMITY:
                 if reading.values.get("near"):
                     now = time.time()
-                    if block_a.EXTERNAL_INTEGRATION_MODE == block_a.ExternalIntegrationMode.MOCK:
+                    if (
+                        block_a.EXTERNAL_INTEGRATION_MODE
+                        == block_a.ExternalIntegrationMode.MOCK
+                    ):
                         if int(now) % 2 == 0:
                             self.last_seen_you = now
                         else:
@@ -118,14 +127,18 @@ class PresenceModel:
             return False
         return (time.time() - self.last_seen_you) < 30
 
+
 PRESENCE_MODEL = PresenceModel()
+
 
 def condition_wife_morning_presence() -> bool:
     hour = time.localtime().tm_hour
     return 5 <= hour <= 9 and PRESENCE_MODEL.wife_is_present()
 
+
 def action_good_morning_wife() -> None:
     logger.info("Acción: Buenos días para tu mujer (simulado).")
+
 
 def action_recommend_clothing() -> None:
     api_sensor = None
@@ -158,6 +171,7 @@ def action_recommend_clothing() -> None:
 
     logger.info(f"Recomendación de ropa (simulada): {msg}")
 
+
 def register_default_rules() -> None:
     RULE_ENGINE.register_rule(
         Rule(
@@ -173,6 +187,7 @@ def register_default_rules() -> None:
         )
     )
 
+
 def _run_smoke_test() -> None:
     logger.info("SMOKE TEST del Bloque B...")
 
@@ -184,6 +199,7 @@ def _run_smoke_test() -> None:
         PRESENCE_MODEL.update_from_sensors()
         RULE_ENGINE.evaluate()
         time.sleep(1)
+
 
 if __name__ == "__main__":
     _run_smoke_test()

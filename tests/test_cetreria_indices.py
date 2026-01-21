@@ -13,6 +13,11 @@ def test_cetreria_indices_basic():
         "var_t_5min": 0.2,
         "lluvia_24h": 1.5,
         "lluvia_1h": 0.2,
+        "lluvia_rate": 0.4,
+        "pm25": 25.0,
+        "humedad_suelo": 35.0,
+        "temp_tendencia_30m": 0.4,
+        "uv": 3.0,
         "sensacion_termica": 17.0,
     }
     out = calcular_cetreria(data)

@@ -1,19 +1,16 @@
 from __future__ import annotations
 
 import importlib.util
-import inspect
 import logging
 import os
 import shutil
-import sys
 import tempfile
 import time
 import traceback
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from . import block_a
-from . import block_b
 
 logger = logging.getLogger("meteoser_ia.block_c")
 if not logger.handlers:
@@ -60,6 +57,7 @@ class LearningEngine:
     def get_reputation(self, sensor_id: str) -> float:
         return self.sensor_reputation.get(sensor_id)
 
+
 @dataclass
 class AlgorithmVersion:
     id: str
@@ -70,9 +68,11 @@ class AlgorithmVersion:
     status: str = "created"
     notes: List[str] = field(default_factory=list)
 
+
 @dataclass
 class AlgorithmRepositorySnapshot:
     versions: Dict[str, AlgorithmVersion] = field(default_factory=dict)
+
 
 class AlgorithmRepository:
     def __init__(self, repo_dir: str = REPO_DIR) -> None:
@@ -85,6 +85,7 @@ class AlgorithmRepository:
         if os.path.exists(meta_path):
             try:
                 import json
+
                 with open(meta_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 for vid, v in data.items():
@@ -97,14 +98,19 @@ class AlgorithmRepository:
                         status=v.get("status", "created"),
                         notes=v.get("notes", []),
                     )
-                logger.info(f"Repositorio IA: cargadas {len(self._versions)} versiones desde disco.")
+                logger.info(
+                    f"Repositorio IA: cargadas {len(self._versions)} versiones desde disco."
+                )
             except Exception:
                 logger.warning("Repositorio IA: fallo al cargar index.json, se ignora.")
         else:
-            logger.info("Repositorio IA: index.json no encontrado, iniciando repositorio vacío.")
+            logger.info(
+                "Repositorio IA: index.json no encontrado, iniciando repositorio vacío."
+            )
 
     def _persist_to_disk(self) -> None:
         import json
+
         meta_path = os.path.join(self.repo_dir, "index.json")
         data = {}
         for vid, v in self._versions.items():
@@ -138,8 +144,10 @@ LEARNING_ENGINE = LearningEngine()
 
 ALGO_REPO = AlgorithmRepository()
 
+
 def _generate_algorithm_id() -> str:
     return f"alg_{int(time.time() * 1000)}"
+
 
 def generate_algorithm_from_spec(spec: Dict[str, Any]) -> AlgorithmVersion:
     logger.info("Generando algoritmo a partir de spec...")
@@ -147,7 +155,6 @@ def generate_algorithm_from_spec(spec: Dict[str, Any]) -> AlgorithmVersion:
     timestamp = time.time()
 
     objective = spec.get("objective", "procesar lecturas")
-    inputs = spec.get("inputs", ["sensor_readings"])
     metrics = spec.get("metrics", {"score": "accuracy"})
 
     code_lines = [
@@ -185,7 +192,13 @@ def generate_algorithm_from_spec(spec: Dict[str, Any]) -> AlgorithmVersion:
     logger.info(f"Algoritmo generado con id {alg_id}")
     return version
 
-def _execute_in_sandbox(code: str, func_name: str = "process", input_data: Dict[str, Any] = None, timeout: float = SANDBOX_TIMEOUT) -> Tuple[bool, Dict[str, Any], str]:
+
+def _execute_in_sandbox(
+    code: str,
+    func_name: str = "process",
+    input_data: Dict[str, Any] = None,
+    timeout: float = SANDBOX_TIMEOUT,
+) -> Tuple[bool, Dict[str, Any], str]:
     input_data = input_data or {}
     tmpdir = tempfile.mkdtemp(prefix="meteoser_sandbox_")
     module_path = os.path.join(tmpdir, "alg_module.py")
@@ -213,7 +226,7 @@ def _execute_in_sandbox(code: str, func_name: str = "process", input_data: Dict[
             return False, {}, "Resultado no es un dict."
 
         return True, result, ""
-    except Exception as e:
+    except Exception:
         tb = traceback.format_exc()
         return False, {}, tb
     finally:
@@ -222,7 +235,10 @@ def _execute_in_sandbox(code: str, func_name: str = "process", input_data: Dict[
         except Exception:
             pass
 
-def evaluate_algorithm_version(vid: str, test_inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+def evaluate_algorithm_version(
+    vid: str, test_inputs: List[Dict[str, Any]]
+) -> Dict[str, Any]:
     version = ALGO_REPO.get_version(vid)
     if not version:
         raise ValueError(f"Versión {vid} no encontrada.")
@@ -250,6 +266,7 @@ def evaluate_algorithm_version(vid: str, test_inputs: List[Dict[str, Any]]) -> D
     logger.info(f"Evaluación completada para {vid}: success_rate={success_rate:.2f}")
     return metrics
 
+
 def validate_with_external_services(vid: str) -> Dict[str, Any]:
     version = ALGO_REPO.get_version(vid)
     if not version:
@@ -257,15 +274,26 @@ def validate_with_external_services(vid: str) -> Dict[str, Any]:
 
     if EXTERNAL_INTEGRATION_MODE == block_a.ExternalIntegrationMode.MOCK:
         time.sleep(0.2)
-        validation = {"external_score": 0.85, "approved": True, "notes": ["validación mock OK"]}
+        validation = {
+            "external_score": 0.85,
+            "approved": True,
+            "notes": ["validación mock OK"],
+        }
         version.metrics.update(validation)
         version.status = "validated"
         ALGO_REPO._persist_to_disk()
         logger.info(f"Validación externa simulada OK para {vid}")
         return validation
 
-    logger.warning("Validación externa LIVE no implementada. Mantener en modo mock hasta autorizar.")
-    return {"external_score": None, "approved": False, "notes": ["live not implemented"]}
+    logger.warning(
+        "Validación externa LIVE no implementada. Mantener en modo mock hasta autorizar."
+    )
+    return {
+        "external_score": None,
+        "approved": False,
+        "notes": ["live not implemented"],
+    }
+
 
 def deploy_algorithm(vid: str) -> bool:
     version = ALGO_REPO.get_version(vid)
@@ -277,6 +305,7 @@ def deploy_algorithm(vid: str) -> bool:
     ALGO_REPO._persist_to_disk()
     logger.info(f"Versión {vid} marcada como deployed (no se toca meteoser.py).")
     return True
+
 
 def rollback_to_version(vid: str) -> bool:
     target = ALGO_REPO.get_version(vid)
@@ -292,7 +321,10 @@ def rollback_to_version(vid: str) -> bool:
     logger.info(f"Rollback lógico realizado: ahora {vid} es deployed.")
     return True
 
-def create_and_test_algorithm(spec: Dict[str, Any], test_inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+def create_and_test_algorithm(
+    spec: Dict[str, Any], test_inputs: List[Dict[str, Any]]
+) -> Dict[str, Any]:
     version = generate_algorithm_from_spec(spec)
     metrics = evaluate_algorithm_version(version.id, test_inputs)
     ext = validate_with_external_services(version.id)
@@ -302,10 +334,15 @@ def create_and_test_algorithm(spec: Dict[str, Any], test_inputs: List[Dict[str, 
         "external_validation": ext,
     }
 
+
 def smoke_test() -> None:
     logger.info("SMOKE TEST Bloque C: generación, sandbox y evaluación (modo mock).")
 
-    spec = {"objective": "Promedio de temperaturas para recomendaciones", "inputs": ["temps"], "metrics": {"score": "success_rate"}}
+    spec = {
+        "objective": "Promedio de temperaturas para recomendaciones",
+        "inputs": ["temps"],
+        "metrics": {"score": "success_rate"},
+    }
     version = generate_algorithm_from_spec(spec)
 
     test_inputs = [
@@ -325,6 +362,7 @@ def smoke_test() -> None:
 
     for v in ALGO_REPO.list_versions():
         print(f"- {v.id} status={v.status} metrics={v.metrics}")
+
 
 if __name__ == "__main__":
     smoke_test()

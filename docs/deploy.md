@@ -3,7 +3,7 @@
 Resumen rápido:
 
 - Requisitos: Python 3.10+, `uvicorn`, `gunicorn`/`nssm` para windows service, variables de entorno con claves en `meteoser_configuracion.txt` o secretos de GitHub Actions.
-- Entrypoint ASGI: `main_asgi:app` (run con `uvicorn main_asgi:app --host 0.0.0.0 --port 8000`).
+- Entrypoint ASGI: `main_asgi:app` (run con `uvicorn main_asgi:app --host 0.0.0.0 --port 8080`).
 
 Pasos mínimos de despliegue:
 
@@ -18,7 +18,7 @@ pip install -r requirements.txt
 2. Ejecutar localmente (dev):
 
 ```
-uvicorn main_asgi:app --reload --host 0.0.0.0 --port 8000
+uvicorn main_asgi:app --reload --host 0.0.0.0 --port 8080
 ```
 
 3. Producción en Windows (opciones):

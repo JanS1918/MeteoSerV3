@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import time
+import os
+import math
 from typing import Any, Dict, List, Optional
 
 from core.logger import get_logger
@@ -15,6 +17,43 @@ class PredictionEngine:
     def __init__(self, system):
         self.system = system
         self.log = get_logger("PredictionEngine")
+        self.model_version = "local_v1"
+        try:
+            self.feedback_uncertainty_threshold = float(
+                os.environ.get("METEOSER_FEEDBACK_UNCERTAINTY", "12")
+            )
+        except Exception:
+            self.feedback_uncertainty_threshold = 12.0
+
+    def _time_features(self) -> dict:
+        now = time.localtime()
+        hour = now.tm_hour + now.tm_min / 60.0
+        return {
+            "hora": hour,
+            "es_noche": 1 if (hour < 6 or hour >= 20) else 0,
+            "mes": now.tm_mon,
+            "doy": now.tm_yday,
+        }
+
+    def _rolling_stats(self, nombre: str, window_s: int = 1800) -> tuple[Optional[float], Optional[float]]:
+        historial = self.system.obtener_historial_sensor(nombre)
+        if not historial:
+            return None, None
+        now = time.time()
+        samples = [v for t, v in historial if (now - t) <= window_s]
+        if len(samples) < 3:
+            samples = [v for _, v in historial[-30:]]
+        values = []
+        for v in samples:
+            try:
+                values.append(float(v))
+            except Exception:
+                continue
+        if len(values) < 2:
+            return None, None
+        mean = sum(values) / len(values)
+        var = sum((v - mean) ** 2 for v in values) / max(1, len(values))
+        return mean, math.sqrt(var)
 
     def _trend(self, nombre: str, window_s: int = 3600) -> Optional[float]:
         historial = self.system.obtener_historial_sensor(nombre)
@@ -92,9 +131,25 @@ class PredictionEngine:
         factor = 0.8 + (avg / 100.0) * 0.4
         return max(0.7, min(1.2, factor))
 
+    def _combine_estimators(self, values: List[float], weights: Optional[List[float]] = None) -> tuple[float, float]:
+        if not values:
+            return 0.0, 0.0
+        if weights and len(weights) == len(values):
+            total_w = sum(weights)
+            if total_w > 0:
+                avg = sum(v * w for v, w in zip(values, weights)) / total_w
+            else:
+                avg = sum(values) / len(values)
+        else:
+            avg = sum(values) / len(values)
+        var = sum((v - avg) ** 2 for v in values) / max(1, len(values))
+        std = var ** 0.5
+        return max(0.0, min(100.0, avg)), max(0.0, std)
+
     def predecir(self) -> Dict[str, Any]:
         pred: Dict[str, Any] = {}
         indices: Dict[str, Any] | None = None
+        time_feats = self._time_features()
         try:
             from core.indices.environmental_indices import EnvironmentalIndices
             if not isinstance(self.system.indices, EnvironmentalIndices):
@@ -108,6 +163,9 @@ class PredictionEngine:
         tendencia_hum = self._trend("humedad")
         tendencia_rad = self._trend("radiacion")
         tendencia_viento = self._trend("viento")
+        mean_hum_30m, std_hum_30m = self._rolling_stats("humedad", 1800)
+        mean_pres_30m, std_pres_30m = self._rolling_stats("presion", 1800)
+        mean_rad_30m, std_rad_30m = self._rolling_stats("radiacion", 1800)
 
         if tendencia_temp is not None:
             pred["tendencia_temperatura"] = {"valor": round(tendencia_temp, 3), "unidad": "C/h", "fuente": "historico"}
@@ -138,6 +196,10 @@ class PredictionEngine:
                     base += min(30.0, abs(tendencia_pres) * 10)
             if radiacion is not None and radiacion < 100:
                 base += 10.0
+            if time_feats.get("es_noche") == 1 and radiacion is not None and radiacion < 50:
+                base += 5.0
+            if std_pres_30m is not None and std_pres_30m > 1.5:
+                base += min(10.0, std_pres_30m * 3.0)
             if lluvia_rate is not None and lluvia_rate > 0:
                 # Si ya está lloviendo y la probabilidad era alta, la alerta se cumple
                 lluvia_cumplida = True
@@ -152,26 +214,56 @@ class PredictionEngine:
             support = self._support_factor(["humedad", "presion", "radiacion", "lluvia_rate", "lluvia"])
             support *= self._support_from_indices(indices, ["riesgo_lluvia", "riesgo_micro_lluvias", "alerta_tormenta"])
             prob_lluvia = max(0.0, min(100.0, prob_lluvia * support))
+            estimadores: List[float] = [prob_lluvia]
+            # Estimador alterno basado en históricos cortos
+            alt = None
+            if mean_hum_30m is not None and mean_pres_30m is not None:
+                alt = max(0.0, min(100.0, (mean_hum_30m - 55) * 1.6 + (1015 - mean_pres_30m) * 1.2))
+            if alt is not None:
+                estimadores.append(alt)
+            if isinstance(indices, dict):
+                riesgo_lluvia = indices.get("riesgo_lluvia")
+                if isinstance(riesgo_lluvia, dict) and riesgo_lluvia.get("valor") is not None:
+                    try:
+                        estimadores.append(float(riesgo_lluvia.get("valor")))
+                    except Exception:
+                        pass
+                alerta_tormenta = indices.get("alerta_tormenta")
+                if isinstance(alerta_tormenta, dict) and alerta_tormenta.get("valor") is not None:
+                    try:
+                        estimadores.append(float(alerta_tormenta.get("valor")))
+                    except Exception:
+                        pass
+            prob_lluvia, incert = self._combine_estimators(estimadores)
             if lluvia_cumplida and lluvia_continua:
                 pred["prob_lluvia_continua"] = {
                     "valor": round(prob_lluvia, 2),
                     "unidad": "%",
                     "fuente": "sensores_propios",
-                    "explicacion": "Lluvia actual y tendencia positiva: alta probabilidad de lluvia continua"
+                    "explicacion": "Lluvia actual y tendencia positiva: alta probabilidad de lluvia continua",
+                    "modelo": self.model_version,
+                    "incertidumbre": round(incert, 2),
+                    "solicitar_feedback": incert >= self.feedback_uncertainty_threshold,
                 }
             elif lluvia_cumplida:
                 pred["prob_lluvia_cumplida"] = {
                     "valor": round(prob_lluvia, 2),
                     "unidad": "%",
                     "fuente": "sensores_propios",
-                    "explicacion": "La alerta de lluvia se ha cumplido: está lloviendo"
+                    "explicacion": "La alerta de lluvia se ha cumplido: está lloviendo",
+                    "modelo": self.model_version,
+                    "incertidumbre": round(incert, 2),
+                    "solicitar_feedback": incert >= self.feedback_uncertainty_threshold,
                 }
             else:
                 pred["prob_lluvia"] = {
                     "valor": round(prob_lluvia, 2),
                     "unidad": "%",
                     "fuente": "sensores_propios",
-                    "explicacion": "HR + tendencia presión + radiación + lluvia actual"
+                    "explicacion": "HR + tendencia presión + radiación + lluvia actual",
+                    "modelo": self.model_version,
+                    "incertidumbre": round(incert, 2),
+                    "solicitar_feedback": incert >= self.feedback_uncertainty_threshold,
                 }
 
         # Predicción de incomodidad térmica (simple)
@@ -188,11 +280,24 @@ class PredictionEngine:
             support = self._support_factor(["temperatura", "viento"])
             support *= self._support_from_indices(indices, ["sensacion_termica_compuesta", "sensacion_calor", "sensacion_frio"])
             score = max(0.0, min(100.0, score * support))
+            estimadores_incomodidad: List[float] = [max(0.0, min(100.0, score))]
+            if isinstance(indices, dict):
+                for key in ("sensacion_termica_compuesta", "sensacion_calor", "sensacion_frio"):
+                    info = indices.get(key)
+                    if isinstance(info, dict) and info.get("valor") is not None:
+                        try:
+                            estimadores_incomodidad.append(float(info.get("valor")))
+                        except Exception:
+                            continue
+            score, incert = self._combine_estimators(estimadores_incomodidad)
             pred["riesgo_incomodidad_termica"] = {
                 "valor": round(max(0.0, min(100.0, score)), 2),
                 "unidad": "%",
                 "fuente": "sensores_propios",
-                "explicacion": "Temperatura + viento"
+                "explicacion": "Temperatura + viento (con apoyo índices)",
+                "modelo": self.model_version,
+                "incertidumbre": round(incert, 2),
+                "solicitar_feedback": incert >= self.feedback_uncertainty_threshold,
             }
 
         return pred

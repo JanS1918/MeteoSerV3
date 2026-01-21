@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Importa tu algoritmo principal (meteoser.py) si existe
 try:
@@ -11,14 +11,26 @@ except Exception:
     core = None
 
 # Importa los bloques IA
-from meteoser_ia import block_a, block_b, block_c, block_d, block_e, block_f, block_g, block_h
+from meteoser_ia import (
+    block_a,
+    block_b,
+    block_c,
+    block_d,
+    block_e,
+    block_f,
+    block_g,
+    block_h,
+)
 
 logger = logging.getLogger("meteoser_ia.integration")
 if not logger.handlers:
     _h = logging.StreamHandler()
-    _h.setFormatter(logging.Formatter("[%(asctime)s] [INTEGRATION] [%(levelname)s] %(message)s"))
+    _h.setFormatter(
+        logging.Formatter("[%(asctime)s] [INTEGRATION] [%(levelname)s] %(message)s")
+    )
     logger.addHandler(_h)
 logger.setLevel(logging.INFO)
+
 
 def initialize_integration(mock_mode: bool = True) -> None:
     mode = block_a.ExternalIntegrationMode.LIVE
@@ -29,6 +41,7 @@ def initialize_integration(mock_mode: bool = True) -> None:
         except Exception:
             pass
     logger.info(f"Integración inicializada en modo: {mode.value}")
+
 
 def integration_status() -> Dict[str, Any]:
     status = {
@@ -55,6 +68,7 @@ def integration_status() -> Dict[str, Any]:
         status["alg_versions"] = None
     return status
 
+
 def run_full_smoke_tests() -> Dict[str, Any]:
     report: Dict[str, Any] = {"timestamp": time.time(), "results": {}}
 
@@ -71,10 +85,16 @@ def run_full_smoke_tests() -> Dict[str, Any]:
         report["results"]["block_b"] = {"error": str(e)}
 
     try:
-        v = block_c.generate_algorithm_from_spec({"objective": "integration_smoke", "inputs": ["temps"]})
+        v = block_c.generate_algorithm_from_spec(
+            {"objective": "integration_smoke", "inputs": ["temps"]}
+        )
         metrics = block_c.evaluate_algorithm_version(v.id, [{"temps": [10, 11, 12]}])
         ext = block_c.validate_with_external_services(v.id)
-        report["results"]["block_c"] = {"version": v.id, "metrics": metrics, "external_validation": ext}
+        report["results"]["block_c"] = {
+            "version": v.id,
+            "metrics": metrics,
+            "external_validation": ext,
+        }
     except Exception as e:
         report["results"]["block_c"] = {"error": str(e)}
 
@@ -102,7 +122,9 @@ def run_full_smoke_tests() -> Dict[str, Any]:
         report["results"]["block_f"] = {"error": str(e)}
 
     try:
-        agents = [block_g.start_local_agent(metadata={"role": f"smoke_{i}"}) for i in range(2)]
+        agents = [
+            block_g.start_local_agent(metadata={"role": f"smoke_{i}"}) for i in range(2)
+        ]
         time.sleep(1)
         for a in agents:
             a.stop()
@@ -112,15 +134,24 @@ def run_full_smoke_tests() -> Dict[str, Any]:
         report["results"]["block_g"] = {"error": str(e)}
 
     try:
-        bk = block_h.create_backup(block_h.TARGET_MAIN_FILENAME, note="integration_smoke")
+        bk = block_h.create_backup(
+            block_h.TARGET_MAIN_FILENAME, note="integration_smoke"
+        )
         ok, issues = block_h.run_predeployment_checks()
-        report["results"]["block_h"] = {"backup": bk.id, "predeploy_ok": ok, "issues": issues}
+        report["results"]["block_h"] = {
+            "backup": bk.id,
+            "predeploy_ok": ok,
+            "issues": issues,
+        }
     except Exception as e:
         report["results"]["block_h"] = {"error": str(e)}
 
     return report
 
-def create_algorithm_and_deploy(spec: Dict[str, Any], test_inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+def create_algorithm_and_deploy(
+    spec: Dict[str, Any], test_inputs: List[Dict[str, Any]]
+) -> Dict[str, Any]:
     out: Dict[str, Any] = {}
     try:
         version = block_c.generate_algorithm_from_spec(spec)
@@ -131,6 +162,7 @@ def create_algorithm_and_deploy(spec: Dict[str, Any], test_inputs: List[Dict[str
     except Exception as e:
         out["error"] = str(e)
     return out
+
 
 def safe_deploy_latest_algorithm() -> Dict[str, Any]:
     try:
@@ -143,13 +175,17 @@ def safe_deploy_latest_algorithm() -> Dict[str, Any]:
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
+
 def attach_to_core_startup() -> None:
     if core is None:
-        logger.warning("No se detectó meteoser.py; no se puede adjuntar hooks de arranque.")
+        logger.warning(
+            "No se detectó meteoser.py; no se puede adjuntar hooks de arranque."
+        )
         return
 
     start_fn = getattr(core, "start", None)
     if callable(start_fn):
+
         def wrapped_start(*args, **kwargs):
             logger.info("Inicializando capa IA antes del arranque del core.")
             initialize_integration(mock_mode=True)
@@ -158,10 +194,12 @@ def attach_to_core_startup() -> None:
             except Exception:
                 pass
             return start_fn(*args, **kwargs)
+
         setattr(core, "start", wrapped_start)
         logger.info("Hook de arranque adjuntado a meteoser.start()")
     else:
         logger.info("meteoser.py no expone start(); no se adjuntó hook de arranque.")
+
 
 def print_integration_report() -> None:
     st = integration_status()
@@ -169,9 +207,11 @@ def print_integration_report() -> None:
     for k, v in st.items():
         logger.info(f"  {k}: {v}")
 
+
 if __name__ == "__main__":
     initialize_integration(mock_mode=True)
     print("Estado inicial:", integration_status())
     rpt = run_full_smoke_tests()
     import json
+
     print(json.dumps(rpt, indent=2, ensure_ascii=False))

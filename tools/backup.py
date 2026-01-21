@@ -2,16 +2,14 @@ import shutil
 import datetime
 import os
 
+
 def crear_backup():
     fecha = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     destino = f"backup_{fecha}"
 
     os.makedirs(destino, exist_ok=True)
 
-    archivos = [
-        "meteoser.py",
-        "core"
-    ]
+    archivos = ["meteoser.py", "core"]
 
     for item in archivos:
         if os.path.isdir(item):

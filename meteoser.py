@@ -4,10 +4,13 @@
 
 from core.system.system_manager import SystemManager
 from core.indices.environmental_indices import EnvironmentalIndices
-from core.recommendations.unified_recommendation_engine import UnifiedRecommendationEngine
+from core.recommendations.unified_recommendation_engine import (
+    UnifiedRecommendationEngine,
+)
 from core.meteo_interface import MeteoSerInterface
 
 EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
+
 
 def main():
     """
@@ -24,7 +27,7 @@ def main():
     meteo = MeteoSerInterface(
         system_manager=system_manager,
         index_engine=indices_engine,
-        recommendation_engine=recommendation_engine
+        recommendation_engine=recommendation_engine,
     )
 
     print("\n=== METEOSER — INTERFAZ UNIVERSAL ===\n")
@@ -43,6 +46,7 @@ def main():
     rec = meteo.obtener_recomendaciones()
     print(f" → {rec.get('estado')}")
     print(f"   Motivos: {rec.get('motivos')}")
+
 
 if __name__ == "__main__":
     main()
