@@ -347,6 +347,15 @@ EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
 # Permite valores derivados fiables (estimados) cuando faltan sensores directos
 REAL_ONLY_SENSORS = False
 
+DEFAULT_LAG_INDICES = {
+    "variabilidad_viento_30m",
+    "riesgo_niebla",
+    "nubosidad_estimada",
+    "transparencia_atmosferica",
+    "seeing_termico",
+    "cielo_observable_nocturno",
+}
+
 
 from typing import Dict, Any
 import math
@@ -356,6 +365,9 @@ from core.indices.cetreria.cetreria_indices import calcular_cetreria
 
 
 class EnvironmentalIndices:
+    _min_confidence: float = 0.4
+    _lag_seconds: int = 10
+    _lag_indices: set[str] = DEFAULT_LAG_INDICES.copy()
     def indice_sonometro(self):
         """
         Devuelve el valor del sensor de ruido (decibelios) como índice.
@@ -436,75 +448,13 @@ class EnvironmentalIndices:
         except Exception:
             self._lag_seconds = 10
         env_lag_indices = os.environ.get("METEOSER_LAG_INDICES")
-        default_lag_indices = {
-            "variabilidad_viento_30m",
-            "riesgo_niebla",
-            "nubosidad_estimada",
-            "transparencia_atmosferica",
-            "seeing_termico",
-            "cielo_observable_nocturno",
-        }
         if env_lag_indices is None:
-            self._lag_indices = default_lag_indices
+            self._lag_indices = DEFAULT_LAG_INDICES.copy()
         else:
             try:
                 self._lag_indices = {s.strip() for s in env_lag_indices.split(',') if s.strip()}
             except Exception:
-                self._lag_indices = default_lag_indices
-        self._lag_buffer: dict[str, list[tuple[float, float]]] = {}
-        self._lag_last: dict[str, dict] = {}
-        try:
-            self._min_confidence = float(os.environ.get("METEOSER_MIN_CONFIDENCE", "0.4"))
-        except Exception:
-            self._min_confidence = 0.4
-        try:
-            self._lag_seconds = max(0, int(os.environ.get("METEOSER_LAG_SECONDS", "10")))
-        except Exception:
-            self._lag_seconds = 10
-        env_lag_indices = os.environ.get("METEOSER_LAG_INDICES")
-        default_lag_indices = {
-            "variabilidad_viento_30m",
-            "riesgo_niebla",
-            "nubosidad_estimada",
-            "transparencia_atmosferica",
-            "seeing_termico",
-            "cielo_observable_nocturno",
-        }
-        if env_lag_indices is None:
-            self._lag_indices = default_lag_indices
-        else:
-            try:
-                self._lag_indices = {s.strip() for s in env_lag_indices.split(',') if s.strip()}
-            except Exception:
-                self._lag_indices = default_lag_indices
-        self._lag_buffer: dict[str, list[tuple[float, float]]] = {}
-        self._lag_last: dict[str, dict] = {}
-        try:
-            self._min_confidence = float(os.environ.get("METEOSER_MIN_CONFIDENCE", "0.4"))
-        except Exception:
-            self._min_confidence = 0.4
-        # Lag / buffering settings para índices ruidosos
-        try:
-            self._lag_seconds = max(0, int(os.environ.get("METEOSER_LAG_SECONDS", "10")))
-        except Exception:
-            self._lag_seconds = 10
-        env_lag_indices = os.environ.get("METEOSER_LAG_INDICES")
-        default_lag_indices = {
-            "variabilidad_viento_30m",
-            "riesgo_niebla",
-            "nubosidad_estimada",
-            "transparencia_atmosferica",
-            "seeing_termico",
-            "cielo_observable_nocturno",
-        }
-        if env_lag_indices is None:
-            self._lag_indices = default_lag_indices
-        else:
-            try:
-                # permitir lista separada por comas
-                self._lag_indices = {s.strip() for s in env_lag_indices.split(',') if s.strip()}
-            except Exception:
-                self._lag_indices = default_lag_indices
+                self._lag_indices = DEFAULT_LAG_INDICES.copy()
         self._lag_buffer: dict[str, list[tuple[float, float]]] = {}
         self._lag_last: dict[str, dict] = {}
 
