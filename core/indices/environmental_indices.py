@@ -474,6 +474,13 @@ class EnvironmentalIndices:
         return max(0.0, min(1.0, val))
 
     def _apply_lag(self, indices: Dict[str, Any]) -> Dict[str, Any]:
+        # Defensive initialization: some instances may have been created
+        # without running the full constructor (e.g. hot-reloads or older instances).
+        if not hasattr(self, "_lag_buffer"):
+            self._lag_buffer = {}
+        if not hasattr(self, "_lag_last"):
+            self._lag_last = {}
+
         if not self._lag_indices or self._lag_seconds <= 0:
             return indices
         now = time.time()
@@ -689,8 +696,6 @@ class EnvironmentalIndices:
     Devuelve todos los índices relevantes con trazabilidad de fuente y estimación.
     """
 
-    def __init__(self, system_core) -> None:
-        self.system = system_core
 
     def _get_sensor(self, nombre, fallback=None):
         v = self.system.obtener_sensor(nombre)
@@ -1052,6 +1057,12 @@ class EnvironmentalIndices:
         """
         Devuelve todos los índices avanzados, creativos y clásicos, con explicación y nivel de confianza.
         """
+        # Defensive initialization: asegurar buffers si la instancia fue creada sin __init__ completo
+        if not hasattr(self, "_lag_buffer"):
+            self._lag_buffer = {}
+        if not hasattr(self, "_lag_last"):
+            self._lag_last = {}
+
         indices = {}
         # Sensores base
         temp = self._get_sensor("temperatura")
