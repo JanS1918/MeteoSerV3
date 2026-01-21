@@ -99,6 +99,7 @@ except Exception as exc:
         exc,
     )
 from tools.arco_solar import arco_solar
+from core.utils.daynight import estado_dia_hibrido
 
 try:
     from core.indices.index_catalog import INDEX_CATALOG
@@ -594,6 +595,113 @@ async def sensor_virtual(payload: dict = Body(...)):
         )
 
 
+# Endpoint para recibir la hora/fecha mostrada en el dashboard (cliente)
+@app.post("/client_time")
+async def client_time(payload: dict = Body(...)):
+    """Recibe JSON {"iso": "2026-01-21T23:23:00Z"} y lo guarda en data/last_dashboard_time.json."""
+    iso = None
+    try:
+        iso = payload.get("iso")
+    except Exception:
+        iso = None
+    try:
+        p = BASE_DIR / "data" / "last_dashboard_time.json"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("w", encoding="utf-8") as f:
+            f.write(json.dumps({"iso": iso}, ensure_ascii=False))
+    except Exception:
+        pass
+    # Calcular skew con el servidor y decidir si la hora cliente es confiable
+    try:
+        from datetime import datetime, timezone
+        server_now = datetime.now(timezone.utc)
+        meta = {
+            "iso": iso,
+            "server_iso": server_now.isoformat(),
+            "skew_seconds": None,
+            "confianza": "unknown",
+        }
+        if iso:
+            try:
+                # aceptar Z y offsets
+                try:
+                    client_dt = datetime.fromisoformat(iso)
+                except Exception:
+                    client_dt = datetime.fromisoformat(iso.replace('Z', '+00:00'))
+                # normalizar a UTC
+                if client_dt.tzinfo is None:
+                    client_dt = client_dt.replace(tzinfo=timezone.utc)
+                client_utc = client_dt.astimezone(timezone.utc)
+                skew = abs((server_now - client_utc).total_seconds())
+                meta["skew_seconds"] = int(skew)
+                # umbral configurable (segundos)
+                try:
+                    SKEW_TH = int(os.environ.get("METEOSER_CLIENT_TIME_SKEW_SEC", "300"))
+                except Exception:
+                    SKEW_TH = 300
+                meta["confianza"] = "high" if skew <= SKEW_TH else "low"
+            except Exception:
+                meta["confianza"] = "invalid"
+        # persistir metadata
+        try:
+            pmeta = BASE_DIR / "data" / "last_dashboard_time.json"
+            pmeta.parent.mkdir(parents=True, exist_ok=True)
+            with pmeta.open("w", encoding="utf-8") as f:
+                f.write(json.dumps(meta, ensure_ascii=False))
+        except Exception:
+            pass
+        # Propagar al motor de índices sólo si la confianza es alta
+        try:
+            if meta.get("confianza") == "high" and hasattr(system, 'indices') and hasattr(system.indices, 'set_context_time'):
+                try:
+                    system.indices.set_context_time(iso)
+                except Exception:
+                    try:
+                        dt = datetime.fromisoformat(iso)
+                        system.indices.set_context_time(dt)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        # Guardar la meta también en la instancia de índices para exponerla en obtener_todos
+        try:
+            if hasattr(system, 'indices'):
+                try:
+                    system.indices._last_dashboard_time_meta = meta
+                except Exception:
+                    pass
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return JSONResponse({"ok": True})
+
+
+# Endpoint para fijar coordenadas manuales desde la UI/cliente
+@app.post("/set_location")
+async def set_location(payload: dict = Body(...)):
+    """Recibe JSON {"lat": 41.5507, "lon": -2.3957} y actualiza las coordenadas manuales del gestor."""
+    lat = payload.get("lat")
+    lon = payload.get("lon")
+    try:
+        if lat is None or lon is None:
+            return JSONResponse({"ok": False, "error": "Faltan lat o lon"}, status_code=400)
+        try:
+            latf = float(lat)
+            lonf = float(lon)
+        except Exception:
+            return JSONResponse({"ok": False, "error": "lat/lon no numéricos"}, status_code=400)
+        try:
+            manager.set_manual_coordinates(latf, lonf)
+            # Forzar escritura en location engine ya hace save
+            return JSONResponse({"ok": True, "lat": latf, "lon": lonf})
+        except Exception as e:
+            logger.exception("Error estableciendo coordenadas manuales: %s", e)
+            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+    except Exception:
+        return JSONResponse({"ok": False}, status_code=500)
+
+
 def _feedback_snapshot() -> dict:
     try:
         indices = system.indices.obtener_todos() if system.indices else {}
@@ -657,6 +765,40 @@ async def feedback_prediccion(payload: dict = Body(...)):
         except Exception:
             pass
     return {"ok": True, "msg": "Feedback registrado"}
+
+
+# Endpoint para adjuntar metadata/attachments a un sensor/índice sin alterar su valor
+@app.post("/sensors/{nombre}/attach")
+async def attach_sensor(nombre: str, payload: dict = Body(...)):
+    try:
+        if not hasattr(system, "sensores_derivados_metadata"):
+            system.sensores_derivados_metadata = {}
+        meta = system.sensores_derivados_metadata.setdefault(nombre, {}) or {}
+        attachments = meta.setdefault("attachments", [])
+        entry = {"ts": datetime.datetime.now().isoformat(), "payload": payload}
+        attachments.append(entry)
+        # persistir en archivo para trazabilidad
+        try:
+            p = BASE_DIR / "data" / "sensor_attachments.jsonl"
+            p.parent.mkdir(parents=True, exist_ok=True)
+            with p.open("a", encoding="utf-8") as f:
+                f.write(json.dumps({"sensor": nombre, "entry": entry}, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+        return {"ok": True, "msg": "attached", "entry": entry}
+    except Exception as e:
+        logger.exception("Error attaching to sensor %s: %s", nombre, e)
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+
+@app.get("/sensors/{nombre}/attachments")
+def get_attachments(nombre: str):
+    try:
+        meta = getattr(system, "sensores_derivados_metadata", {}) or {}
+        attachments = meta.get(nombre, {}).get("attachments", [])
+        return {"sensor": nombre, "attachments": attachments}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 # Configurar logging robusto
@@ -1541,10 +1683,39 @@ def estado():
         try:
             if not isinstance(system.indices, EnvironmentalIndices):
                 system.indices = EnvironmentalIndices(system)
+            _sync_indices_timestamp(system)
             indices = system.indices.obtener_todos()
         except Exception:
             indices = {}
-        return {"error": str(e), "sensores": system.sensores.copy(), "indices": indices}
+        derived_fallback = getattr(system, "sensores_derivados", {}) or {}
+        sensores_fallback = system.sensores.copy()
+        sensores_fallback.update(derived_fallback)
+        return {
+            "error": str(e),
+            "sensores": sensores_fallback,
+            "sensores_derivados": derived_fallback,
+            "sensores_metadata": system.sensores_metadata,
+            "sensores_derivados_metadata": getattr(system, "sensores_derivados_metadata", {}),
+            "indices": indices,
+        }
+
+
+def _sync_indices_timestamp(system, timestamp=None):
+    if not isinstance(system.indices, EnvironmentalIndices):
+        return
+    if timestamp is None:
+        latest_ts = None
+        for value in getattr(system, "sensores_timestamp", {}).values():
+            try:
+                candidate = float(value)
+            except Exception:
+                continue
+            if math.isnan(candidate):
+                continue
+            if latest_ts is None or candidate > latest_ts:
+                latest_ts = candidate
+        timestamp = latest_ts
+    system.indices.set_context_time(timestamp)
 
 
 def _estado_impl():
@@ -1586,6 +1757,7 @@ def _estado_impl():
     if not isinstance(system.indices, EnvironmentalIndices):
         system.indices = EnvironmentalIndices(system)
     meteo_snapshot = get_full_meteo_snapshot(system)
+    _sync_indices_timestamp(system)
     indices = system.indices.obtener_todos()
     pred_engine = PredictionEngine(system)
     predicciones = pred_engine.predecir()
@@ -2071,8 +2243,12 @@ def _estado_impl():
         "departamentos": departamentos,
         "asistente": asistente,
     }
+    derived_sensores = getattr(system, "sensores_derivados", {}) or {}
+    sensores_para_respuesta = dict(sensores)
+    sensores_para_respuesta.update(derived_sensores)
     return {
-        "sensores": sensores,
+        "sensores": sensores_para_respuesta,
+        "sensores_derivados": derived_sensores,
         "sensores_metadata": system.sensores_metadata,
         "sensores_derivados_metadata": system.sensores_derivados_metadata,
         "indices_catalogo": INDEX_CATALOG,
@@ -3003,6 +3179,8 @@ def _build_contexto(sensores: dict, indices: dict) -> dict:
     if luz is None:
         luz = 30.0
 
+    estado_hibrido = estado_dia_hibrido(indices)
+
     contexto = {
         "temperatura_exterior": sensores.get("temperatura"),
         "humedad_exterior": sensores.get("humedad"),
@@ -3032,8 +3210,13 @@ def _build_contexto(sensores: dict, indices: dict) -> dict:
         "ireav": _val(indices, "ireav"),
         "irsd": _val(indices, "irsd"),
         "ot": sensores.get("temperatura_interior") or sensores.get("temperatura"),
-        "hora_local": datetime.datetime.now().hour
-        + datetime.datetime.now().minute / 60.0,
+        "hora_local": estado_hibrido.get("hora_actual_min") and (estado_hibrido.get("hora_actual_min")/60.0) or (datetime.datetime.now().hour + datetime.datetime.now().minute / 60.0),
+        "es_dia": estado_hibrido.get("es_dia"),
+        "es_noche": estado_hibrido.get("es_noche"),
+        "fecha": estado_hibrido.get("fecha"),
+        "estacion": estado_hibrido.get("estacion"),
+        "solar_elevation": estado_hibrido.get("solar_elevation"),
+        "arco_solar_deg": estado_hibrido.get("arco_solar_deg"),
     }
     return contexto
 
@@ -3246,6 +3429,11 @@ async def recibir_ecowitt(request: Request):
         puerto = request.url.port or "desconocido"
     except Exception:
         puerto = "desconocido"
+    # Capturar predicciones previas para compararlas tras procesar el payload
+    try:
+        prev_indices = system.indices.obtener_todos() if getattr(system, 'indices', None) else {}
+    except Exception:
+        prev_indices = {}
     print(f"[Ecowitt] Datos recibidos en puerto {puerto}:")
     for k, v in data.items():
         print(f"  {k}: {v}")
@@ -3664,4 +3852,120 @@ async def recibir_ecowitt(request: Request):
                     pass
             except Exception:
                 pass
-    return {"status": "OK", "received": True}
+        # Tras recalcular índices, detectar lluvia observada y generar feedback automático
+        try:
+            # obtener predicción previa para 'indice_lluvia' si existe
+            prev_val = None
+            if isinstance(prev_indices, dict):
+                prev_info = prev_indices.get('indice_lluvia') or prev_indices.get('indice_lluvia')
+                if isinstance(prev_info, dict):
+                    try:
+                        prev_val = float(prev_info.get('valor'))
+                    except Exception:
+                        prev_val = None
+
+            # obtener valor observado de lluvia tras actualizar sensores
+            obs_lluvia = None
+            try:
+                obs_lluvia_raw = system.sensores.get('lluvia') or system.sensores.get('lluvia_rate')
+                if obs_lluvia_raw is not None:
+                    obs_lluvia = float(obs_lluvia_raw)
+            except Exception:
+                obs_lluvia = None
+
+            if obs_lluvia is not None and obs_lluvia > 0:
+                # Registrar feedback cuantitativo para todas las predicciones/probabilidades relacionadas con lluvia
+                try:
+                    # helper: calcular umbral dinámico según histórico de feedback de lluvia
+                    def _dynamic_threshold_for_rain():
+                        import math, os
+                        try:
+                            path = BASE_DIR / "data" / "feedback_registros.jsonl"
+                            if not path.exists():
+                                n = 0
+                            else:
+                                n = 0
+                                with path.open("r", encoding="utf-8") as fh:
+                                    for line in fh:
+                                        try:
+                                            low = line.lower()
+                                            if '"nombre"' in low and 'lluv' in low:
+                                                n += 1
+                                        except Exception:
+                                            continue
+                        except Exception:
+                            n = 0
+                        # parámetros (ajustables)
+                        initial = 0.5
+                        min_thresh = 0.2
+                        decay_rate = 0.03
+                        exp_limit = 50
+                        add_after_exp = 0.1
+                        max_limit = 0.7
+                        base = max(min_thresh, initial - decay_rate * math.log1p(n))
+                        if n >= exp_limit:
+                            base = min(max_limit, base + add_after_exp)
+                        return base
+
+                    dynamic_thresh = _dynamic_threshold_for_rain()
+                    for nombre_idx, info in (prev_indices.items() if isinstance(prev_indices, dict) else []):
+                        try:
+                            lname = str(nombre_idx).lower()
+                            related = any(tok in lname for tok in ("lluv", "lluvia", "prob", "riesgo", "indice"))
+                            if not related:
+                                continue
+                            # extraer valor previo (se asume % o 0-100)
+                            val = None
+                            if isinstance(info, dict):
+                                val = info.get("valor")
+                            else:
+                                val = info
+                            try:
+                                val_num = float(val) if val is not None else None
+                            except Exception:
+                                val_num = None
+                            if val_num is None:
+                                continue
+                            # interpretar como probabilidad [0..1]
+                            prob = max(0.0, min(1.0, val_num / 100.0)) if abs(val_num) > 1e-6 else 0.0
+                            observed = 1.0 if obs_lluvia > 0 else 0.0
+                            match_score = 1.0 - abs(observed - prob)
+                            # feedback label: acierto si match_score >= dynamic_thresh, parcial si (0, dynamic_thresh), error si 0
+                            if match_score >= dynamic_thresh:
+                                feedback_label = "acierto"
+                            elif match_score > 0.0:
+                                feedback_label = "parcial"
+                            else:
+                                feedback_label = "error"
+                            detalle = {
+                                "fecha": datetime.datetime.now().isoformat(),
+                                "tipo": "prediccion",
+                                "nombre": nombre_idx,
+                                "valor": val_num,
+                                "valor_real": obs_lluvia,
+                                "valor_real_binary": observed,
+                                "match_score": round(match_score, 4),
+                                "feedback": feedback_label,
+                                "modelo": "auto_observacion",
+                                "confianza": val_num,
+                                "snapshot": _feedback_snapshot(),
+                            }
+                            try:
+                                _append_feedback_log(detalle)
+                            except Exception:
+                                pass
+                            try:
+                                auto_improvement = getattr(system, "auto_improvement_engine", None)
+                                if auto_improvement:
+                                    # registrar como acierto/ error cuantitativo en el motor
+                                    auto_improvement.feedback(nombre_idx, error=(feedback_label=="error"), detalle=detalle)
+                            except Exception:
+                                pass
+                        except Exception:
+                            continue
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        return {"status": "OK", "received": True}

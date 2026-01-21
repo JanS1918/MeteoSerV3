@@ -369,6 +369,16 @@ Principios:
 - Preparado para calibración con histórico real.
 
 ###################################################################################################
+# 18.1. SINCRONIZACIÓN DEL RELOJ DEL DASHBOARD
+
+- El dashboard envía su reloj local (timestamp ISO) cada ~30 s al endpoint `/client_time`.
+- El backend guarda esa hora, calcula el skew con el reloj UTC del servidor y la clasifica como `high`/`low`.
+- Si la confianza es `high`, la hora cliente alimenta `EnvironmentalIndices` (`set_context_time`) para que fecha, estación y arco solar reflejen lo que ve el usuario.
+- `estado_dia_hibrido` prioriza esa hora cliente (con fallback a la hora derivada de sensores) y calcula `solar_elevation`, `es_noche_astronomico`, fecha/estación y `hora_local` uniformemente.
+- La API exposa `indices.hora_cliente` (con `confianza` y `skew_seconds`) y `pred.contexto` incluye esos campos junto al arco solar y la estación para poder auditar decisiones.
+- Se puede ajustar el umbral de skew con `METEOSER_CLIENT_TIME_SKEW_SEC` si se necesita tolerar más diferencia.
+
+###################################################################################################
 # 19. CETRERÍA LOCAL
 
 Objetivo:
