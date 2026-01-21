@@ -600,6 +600,28 @@ except Exception as e:
     manager = Dummy()
     system = Dummy()
 
+
+# Endpoint de diagnóstico para calibración de sensores
+@app.get("/internal/sensor_calibration")
+def internal_sensor_calibration():
+    try:
+        metadata = getattr(system, "sensores_metadata", {}) or {}
+        ewma_state = getattr(system, "_sensor_ewma_state", {}) or {}
+        calib_store = getattr(system, "_sensor_calibration_info", {}) or {}
+        calib_info = {}
+        for nombre in set(list(metadata.keys()) + list(calib_store.keys())):
+            try:
+                calib_info[nombre] = system.obtener_sensor_calibration_info(nombre)
+            except Exception:
+                calib_info[nombre] = {}
+        return JSONResponse({
+            "sensores_metadata": metadata,
+            "sensor_ewma_state": ewma_state,
+            "sensor_calibration_info": calib_info,
+        })
+    except Exception as exc:
+        return JSONResponse({"error": str(exc)}, status_code=500)
+
 _autocalib_worker = None
 try:
     from core.calibration.auto_calibration_worker import AutoCalibrationWorker
