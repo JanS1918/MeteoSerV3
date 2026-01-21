@@ -517,12 +517,21 @@ class EnvironmentalIndices:
                 lag_ts = self._lag_last[nombre].get("ts")
             if lag_val is not None:
                 self._lag_last[nombre] = {"valor": lag_val, "ts": lag_ts or now}
-            entry["valor_crudo"] = raw_val
-            entry["valor"] = lag_val
-            entry["lagged"] = True
-            entry["lag_s"] = self._lag_seconds
-            entry["ts_crudo"] = now
-            entry["ts_lag"] = lag_ts
+                # We have a lagged value available
+                entry["valor_crudo"] = raw_val
+                entry["valor"] = lag_val
+                entry["lagged"] = True
+                entry["lag_s"] = self._lag_seconds
+                entry["ts_crudo"] = now
+                entry["ts_lag"] = lag_ts
+            else:
+                # No lagged value yet: fall back to current raw so UI shows a value
+                entry["valor_crudo"] = raw_val
+                entry["valor"] = raw_val
+                entry["lagged"] = False
+                entry["lag_s"] = self._lag_seconds
+                entry["ts_crudo"] = now
+                entry["ts_lag"] = None
         return indices
 
     def calcular_indices(self):
