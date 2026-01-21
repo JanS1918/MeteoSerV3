@@ -90,7 +90,14 @@ from core.motors.tareas_motor import MotorTareas
 from core.pas.pas_engine import PASEngine
 from core.prediction.prediction_engine import PredictionEngine
 from core.system.system_manager import SystemManager
-from meteoser_ia import block_f as voice_engine
+try:
+    from meteoser_ia import block_f as voice_engine
+except Exception as exc:
+    voice_engine = None
+    logging.getLogger(__name__).warning(
+        "No se puede cargar meteoser_ia.block_f (%s). El asistente de voz se deshabilita.",
+        exc,
+    )
 from tools.arco_solar import arco_solar
 
 try:
