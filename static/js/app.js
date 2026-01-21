@@ -974,8 +974,15 @@ function updateEffects(data) {
 }
 
 async function loadEstado() {
+    let data;
     try {
-        const data = await fetchJSON(STATE_URL);
+        data = await fetchJSON(STATE_URL);
+    } catch (err) {
+        console.error('Error fetching /estado', err);
+        setText('recomendacion', 'Error al cargar estado');
+        return;
+    }
+    try {
         lastEstado = data;
         updateLocation(data.indices);
         updateHero(data);
@@ -995,7 +1002,7 @@ async function loadEstado() {
             await updateCharts(tempKey, humKey);
         }
     } catch (err) {
-        setText('recomendacion', 'Error al cargar estado');
+        console.error('Error updating estado UI', err);
     }
 }
 
