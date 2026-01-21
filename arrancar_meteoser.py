@@ -8,6 +8,7 @@ import os
 import sys
 import subprocess
 import platform
+from pathlib import Path
 
 
 
@@ -27,6 +28,24 @@ def matar_procesos_puerto_8080():
                             pass
         except Exception:
             pass
+
+
+def _is_pid_running(pid: int) -> bool:
+    """Comprueba en Windows si el PID está activo usando tasklist."""
+    if not isinstance(pid, int):
+        return False
+    if platform.system().lower().startswith('win'):
+        try:
+            out = subprocess.check_output(f'tasklist /FI "PID eq {pid}"', shell=True, encoding='utf-8', stderr=subprocess.DEVNULL)
+            return str(pid) in out
+        except Exception:
+            return False
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except Exception:
+            return False
 
 matar_procesos_puerto_8080()
 puerto_libre = 8080
@@ -50,5 +69,41 @@ cmd = [
 ]
 
 print(f'Arrancando servidor MeteoSer FastAPI en http://0.0.0.0:{puerto_libre} ...')
-proc = subprocess.Popen(cmd, stdout=sys.stdout, stderr=sys.stderr, env=env)
-proc.wait()
+
+# Preparar directorio de logs
+logs_dir = Path(project_root) / 'logs'
+logs_dir.mkdir(parents=True, exist_ok=True)
+out_log = logs_dir / 'servicio_out.log'
+err_log = logs_dir / 'servicio_err.log'
+pid_file = logs_dir / 'service.pid'
+
+# Abrir ficheros de log en modo append y lanzar uvicorn redirigiendo salida
+stdout_f = open(out_log, 'a', encoding='utf-8')
+stderr_f = open(err_log, 'a', encoding='utf-8')
+
+# Comprobar si ya existe un PID registrado y si el proceso sigue activo
+if pid_file.exists():
+    try:
+        existing = int(pid_file.read_text().strip())
+    except Exception:
+        existing = None
+    if existing and _is_pid_running(existing):
+        print(f'Proceso ya en ejecución (PID={existing}), saliendo.')
+        sys.exit(0)
+    else:
+        try:
+            pid_file.unlink()
+        except Exception:
+            pass
+
+proc = subprocess.Popen(cmd, stdout=stdout_f, stderr=stderr_f, env=env, cwd=project_root)
+
+# Guardar PID para referencia / gestión externa
+try:
+    with open(pid_file, 'w') as f:
+        f.write(str(proc.pid))
+    print(f'PID guardado en: {pid_file} (PID={proc.pid})')
+except Exception as e:
+    print(f'No se pudo escribir PID: {e}')
+
+# No bloqueamos: el proceso queda en background y las salidas se escriben en logs

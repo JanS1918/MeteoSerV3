@@ -746,7 +746,7 @@ class EnvironmentalIndices:
         v = self.system.obtener_sensor(nombre)
         if v is not None:
             conf = self._sensor_confidence(nombre)
-            estimado = False if conf is None else conf < self._min_confidence
+            estimado = False if conf is None else conf < getattr(self, "_min_confidence", 0.4)
             return {"valor": v, "estimado": estimado, "fuente": nombre, "confianza_sensor": conf}
         if fallback is not None and not REAL_ONLY_SENSORS:
             return {"valor": fallback, "estimado": True, "fuente": f"estimado_{nombre}", "confianza_sensor": None}
@@ -757,7 +757,7 @@ class EnvironmentalIndices:
             v = self.system.obtener_sensor(nombre)
             if v is not None:
                 conf = self._sensor_confidence(nombre)
-                estimado = False if conf is None else conf < self._min_confidence
+                estimado = False if conf is None else conf < getattr(self, "_min_confidence", 0.4)
                 return {"valor": v, "estimado": estimado, "fuente": nombre, "confianza_sensor": conf}
         if fallback is not None and not REAL_ONLY_SENSORS:
             base = nombres[0] if nombres else "sensor"

@@ -3497,5 +3497,30 @@ async def recibir_ecowitt(request: Request):
             system.actualizar_sensor("lluvia", best_acum)
     # Recalcular índices tras cada actualización (solo cálculo, no guardar en system.indices si es un motor)
     if hasattr(system, "indices") and hasattr(system.indices, "obtener_todos"):
-        _ = system.indices.obtener_todos()  # Solo recalcula, no asigna
+        try:
+            _ = system.indices.obtener_todos()  # Solo recalcula, no asigna
+        except Exception as e:
+            # Registrar la excepción con traceback para diagnóstico
+            try:
+                import traceback
+                logging.exception("Error al recalcular índices en /ecowitt: %s", e)
+                # Guardar payload y traceback para reproducción
+                try:
+                    err_path = BASE_DIR / "data" / "last_ecowitt_error.json"
+                    err_path.parent.mkdir(parents=True, exist_ok=True)
+                    err_content = {
+                        "timestamp": datetime.datetime.now().isoformat(sep=" ", timespec="seconds"),
+                        "error": str(e),
+                        "traceback": traceback.format_exc(),
+                        "payload": data,
+                    }
+                    err_path.write_text(json.dumps(err_content, ensure_ascii=False), encoding="utf-8")
+                except Exception:
+                    pass
+                try:
+                    system.actualizar_sensor("ultimo_ecowitt_error", str(e))
+                except Exception:
+                    pass
+            except Exception:
+                pass
     return {"status": "OK", "received": True}
