@@ -698,14 +698,32 @@ class EnvironmentalIndices:
 
 
     def _get_sensor(self, nombre, fallback=None):
-        v = self.system.obtener_sensor(nombre)
-        if v is not None:
-            conf = self._sensor_confidence(nombre)
-            estimado = False if conf is None else conf < getattr(self, "_min_confidence", 0.4)
-            return {"valor": v, "estimado": estimado, "fuente": nombre, "confianza_sensor": conf}
-        if fallback is not None and not REAL_ONLY_SENSORS:
-            return {"valor": fallback, "estimado": True, "fuente": f"estimado_{nombre}", "confianza_sensor": None}
-        return {"valor": None, "estimado": True, "fuente": f"no_disponible_{nombre}", "confianza_sensor": None}
+        valor = self.system.obtener_sensor(nombre)
+        if valor is None:
+            if fallback is not None and not REAL_ONLY_SENSORS:
+                return {"valor": fallback, "estimado": True, "fuente": f"estimado_{nombre}", "confianza_sensor": None}
+            return {"valor": None, "estimado": True, "fuente": f"no_disponible_{nombre}", "confianza_sensor": None}
+
+        conf = self._sensor_confidence(nombre)
+        estimado = False if conf is None else conf < getattr(self, "_min_confidence", 0.4)
+        result = {"valor": valor, "estimado": estimado, "fuente": nombre, "confianza_sensor": conf}
+        info = self.system.obtener_sensor_calibration_info(nombre)
+        if info:
+            if "valor_crudo" in info:
+                result["valor_crudo"] = info["valor_crudo"]
+            if "offset" in info:
+                result["calibrado_offset"] = info["offset"]
+            if "scale" in info:
+                result["calibrado_scale"] = info["scale"]
+            if info.get("aplicado_ewma"):
+                result["aplicado_ewma"] = True
+                if info.get("ewma_alpha") is not None:
+                    result["ewma_alpha"] = info["ewma_alpha"]
+        return result
+        result["valor"] = final_val
+        result["calibrado_offset"] = offset
+        result["calibrado_scale"] = scale
+        return result
 
     def _get_sensor_any(self, nombres: list[str], fallback=None):
         for nombre in nombres:

@@ -1,6 +1,6 @@
 name: Auto approve for everything
 
-on:
+'on':
   pull_request_target:
     types: [opened, synchronize, reopened]
   workflow_dispatch: {}

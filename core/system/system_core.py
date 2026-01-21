@@ -7,6 +7,7 @@ EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
 import json
 import time
 from pathlib import Path
+from typing import Any
 
 
 class SystemCore:
@@ -78,10 +79,20 @@ class SystemCore:
         self.bloque_f = None
         self.bloque_g = None
         self.bloque_h = None
+        # Calibraciones globales por sensor
+        self._sensores_crudos: dict[str, Any] = {}
+        self._sensor_calibration_info: dict[str, dict] = {}
+        self._sensor_ewma_state: dict[str, float] = {}
+        self._sensor_ewma_applied: dict[str, bool] = {}
         self._cargar_sensores_persistidos()
         self._cargar_formulas_persistidas()
+        try:
+            self._load_sensor_ewma_state()
+        except Exception:
+            pass
 
-    def registrar_sensor_metadata(self, nombre, tipo=None, unidad=None, fuente=None, fiabilidad=100.0, origen=None):
+    def registrar_sensor_metadata(self, nombre, tipo=None, unidad=None, fuente=None, fiabilidad=100.0, origen=None,
+                                  offset=None, scale=None, ewma_alpha=None):
         if nombre not in self.sensores_metadata:
             self.sensores_metadata[nombre] = {}
         meta = self.sensores_metadata[nombre]
@@ -95,6 +106,12 @@ class SystemCore:
             meta["origen"] = origen
         if fiabilidad is not None:
             meta["fiabilidad"] = fiabilidad
+        if offset is not None:
+            meta["offset"] = offset
+        if scale is not None:
+            meta["scale"] = scale
+        if ewma_alpha is not None:
+            meta["ewma_alpha"] = ewma_alpha
 
     def obtener_sensor_metadata(self, nombre):
         return self.sensores_metadata.get(nombre)
@@ -122,6 +139,95 @@ class SystemCore:
         except Exception:
             pass
 
+    def _sensor_ewma_state_path(self) -> Path:
+        base_dir = Path(__file__).resolve().parents[2]
+        data_dir = base_dir / "data"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        return data_dir / "sensor_ewma_state.json"
+
+    def _load_sensor_ewma_state(self):
+        ruta = self._sensor_ewma_state_path()
+        if not ruta.exists():
+            return
+        try:
+            data = json.loads(ruta.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                for nombre, valor in data.items():
+                    try:
+                        self._sensor_ewma_state[nombre] = float(valor)
+                    except Exception:
+                        continue
+        except Exception:
+            pass
+
+    def _save_sensor_ewma_state(self):
+        ruta = self._sensor_ewma_state_path()
+        try:
+            ruta.write_text(json.dumps(self._sensor_ewma_state, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+    def _calibrate_sensor_value(self, nombre, valor):
+        info: dict[str, Any] = {}
+        try:
+            meta = self.obtener_sensor_metadata(nombre) or {}
+        except Exception:
+            meta = {}
+        info["valor_crudo"] = valor
+        try:
+            raw_val = float(valor)
+        except Exception:
+            info["aplicado_ewma"] = False
+            self._sensor_ewma_applied[nombre] = False
+            self._sensor_calibration_info[nombre] = info
+            return valor, info
+        try:
+            offset = float(meta.get("offset", 0.0))
+        except Exception:
+            offset = 0.0
+        try:
+            scale = float(meta.get("scale", 1.0))
+        except Exception:
+            scale = 1.0
+        ewma_alpha = meta.get("ewma_alpha")
+        try:
+            ewma_alpha = None if ewma_alpha is None else float(ewma_alpha)
+        except Exception:
+            ewma_alpha = None
+        calibrated = raw_val * scale + offset
+        final_val = calibrated
+        aplicado_ewma = False
+        if ewma_alpha is not None and 0.0 < ewma_alpha <= 1.0:
+            prev = self._sensor_ewma_state.get(nombre)
+            if prev is None:
+                ewma_val = calibrated
+            else:
+                ewma_val = ewma_alpha * calibrated + (1.0 - ewma_alpha) * prev
+            final_val = ewma_val
+            self._sensor_ewma_state[nombre] = ewma_val
+            aplicado_ewma = True
+            self._sensor_ewma_applied[nombre] = True
+            self._save_sensor_ewma_state()
+        else:
+            self._sensor_ewma_applied[nombre] = False
+        info.update({
+            "valor_crudo": raw_val,
+            "valor_calibrado": calibrated,
+            "valor_final": final_val,
+            "offset": offset,
+            "scale": scale,
+            "ewma_alpha": ewma_alpha,
+            "aplicado_ewma": aplicado_ewma,
+        })
+        self._sensor_calibration_info[nombre] = info
+        return final_val, info
+
+    def obtener_sensor_crudo(self, nombre):
+        return self._sensores_crudos.get(nombre)
+
+    def obtener_sensor_calibration_info(self, nombre):
+        return self._sensor_calibration_info.get(nombre, {}).copy()
+
     def _cargar_sensores_persistidos(self):
         ruta = self._ruta_sensores_persistidos()
         if not ruta.exists():
@@ -145,10 +251,13 @@ class SystemCore:
 
     def actualizar_sensor(self, nombre, valor):
         # Guardar todos los valores, incluyendo los originales para trazabilidad
+        self._sensores_crudos[nombre] = valor
+        calibrated_val, calib_info = self._calibrate_sensor_value(nombre, valor)
+        stored_val = calibrated_val
         if nombre in self.sensores:
-            self.sensores[nombre] = valor
+            self.sensores[nombre] = stored_val
         else:
-            self.sensores[nombre] = valor
+            self.sensores[nombre] = stored_val
         if nombre not in self.sensores_metadata and not nombre.endswith("_original"):
             self.registrar_sensor_metadata(nombre, tipo=nombre, fuente="autodetectado", origen="interno")
         # Si es un valor original, también lo guarda en un historial
@@ -159,9 +268,14 @@ class SystemCore:
                 self.historial_originales[nombre] = []
             self.historial_originales[nombre].append(valor)
             return
+        # Registrar el valor original para trazabilidad
+        orig_name = f"{nombre}_original"
+        if not hasattr(self, "historial_originales"):
+            self.historial_originales = {}
+        self.historial_originales.setdefault(orig_name, []).append(valor)
         # Guardar histórico numérico
         try:
-            valor_num = float(valor)
+            valor_num = float(stored_val)
         except Exception:
             valor_num = None
         if valor_num is not None:
