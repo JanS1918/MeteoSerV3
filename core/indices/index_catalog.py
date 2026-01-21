@@ -209,10 +209,16 @@ INDEX_CATALOG = {
         "sensores": ["viento", "rachas"],
         "tipo": "derivado"
     },
+    "variabilidad_viento_30m": {
+        "categoria": "cetreria",
+        "descripcion": "Variabilidad del viento (desviación estándar 30 min)",
+        "sensores": ["viento"],
+        "tipo": "derivado"
+    },
     "visibilidad_terreno": {
         "categoria": "cetreria",
         "descripcion": "Visibilidad sobre terreno por nubosidad/HR/saturación",
-        "sensores": ["temperatura", "humedad", "nubosidad_estimada"],
+        "sensores": ["temperatura", "humedad", "nubosidad_estimada", "pm25", "lluvia_rate"],
         "tipo": "derivado"
     },
     "termales_probabilidad": {
@@ -224,13 +230,13 @@ INDEX_CATALOG = {
     "barro_campo": {
         "categoria": "cetreria",
         "descripcion": "Barro en campo por lluvia reciente y secado",
-        "sensores": ["lluvia_1h", "lluvia_24h", "viento", "temperatura", "humedad"],
+        "sensores": ["lluvia_1h", "lluvia_24h", "lluvia_rate", "humedad_suelo", "viento", "temperatura", "humedad"],
         "tipo": "derivado"
     },
     "confort_ave": {
         "categoria": "cetreria",
         "descripcion": "Confort térmico del ave por T, sensación, radiación y viento",
-        "sensores": ["temperatura", "sensacion_termica", "radiacion", "viento"],
+        "sensores": ["temperatura", "sensacion_termica", "radiacion", "viento", "humedad", "uv"],
         "tipo": "derivado"
     },
     "indice_viento_cetreria": {

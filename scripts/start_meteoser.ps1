@@ -10,5 +10,5 @@ $env:METEOSER_MQTT_PASS=(Get-Content 'C:\mosquitto\conf\generated_password.txt')
 $env:METEOSER_DEBUG='1'
 Set-Location -Path "C:\Users\kioko\Desktop\MeteoSerV3"
 "Starting MeteoSer (uvicorn) in background..."
-Start-Process -FilePath "C:\Users\kioko\Desktop\MeteoSerV3\.venv\Scripts\python.exe" -ArgumentList "-m uvicorn main_asgi:app --host 127.0.0.1 --port 8000" -WindowStyle Hidden -WorkingDirectory "C:\Users\kioko\Desktop\MeteoSerV3"
+Start-Process -FilePath "C:\Users\kioko\Desktop\MeteoSerV3\.venv\Scripts\python.exe" -ArgumentList "-m uvicorn main_asgi:app --host 127.0.0.1 --port 8080" -WindowStyle Hidden -WorkingDirectory "C:\Users\kioko\Desktop\MeteoSerV3"
 Write-Host "MeteoSer started (background)."

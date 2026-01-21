@@ -105,6 +105,12 @@ if "app" not in globals():
 MAX_SENSOR_FRESHNESS_SECONDS = 300
 SENSOR_SMOOTHING_ALPHA = 0.5
 _SENSOR_SMOOTHING_STATE: dict[str, float] = {}
+OUTLIER_Z = float(os.environ.get("METEOSER_OUTLIER_Z", "4"))
+OUTLIER_ACTION = os.environ.get("METEOSER_OUTLIER_ACTION", "clamp").lower()
+OUTLIER_MIN_SAMPLES = int(os.environ.get("METEOSER_OUTLIER_MIN_SAMPLES", "10"))
+VIRTUAL_CONF_BONUS = float(os.environ.get("METEOSER_VIRTUAL_CONF_BONUS", "0.05"))
+VIRTUAL_CONF_MIN = float(os.environ.get("METEOSER_VIRTUAL_CONF_MIN", "0.9"))
+_SENSOR_STATS: dict[str, dict] = {}
 
 
 def _canonical_sensor_id(name: Optional[str]) -> Optional[str]:
@@ -326,6 +332,39 @@ def _smooth_sensor_value(sensor_id: Optional[str], value):
     return next_value
 
 
+def _update_outlier_stats(sensor_id: Optional[str], value: float) -> None:
+    if sensor_id is None:
+        return
+    stats = _SENSOR_STATS.get(sensor_id, {"count": 0, "mean": 0.0, "m2": 0.0})
+    count = stats["count"] + 1
+    mean = stats["mean"]
+    delta = value - mean
+    mean += delta / count
+    delta2 = value - mean
+    m2 = stats["m2"] + delta * delta2
+    _SENSOR_STATS[sensor_id] = {"count": count, "mean": mean, "m2": m2}
+
+
+def _is_outlier(sensor_id: Optional[str], value: float) -> bool:
+    if sensor_id is None:
+        return False
+    stats = _SENSOR_STATS.get(sensor_id)
+    if not stats or stats.get("count", 0) < OUTLIER_MIN_SAMPLES:
+        return False
+    count = stats.get("count", 0)
+    m2 = stats.get("m2", 0.0)
+    if count < 2:
+        return False
+    variance = m2 / max(1, (count - 1))
+    if variance <= 0:
+        return False
+    std = math.sqrt(variance)
+    if std <= 0:
+        return False
+    z = abs(value - stats.get("mean", 0.0)) / std
+    return z > OUTLIER_Z
+
+
 # Endpoint para sensores virtuales (ruido, sismos, etc.)
 @app.post("/sensor_virtual")
 async def sensor_virtual(payload: dict = Body(...)):
@@ -349,6 +388,11 @@ async def sensor_virtual(payload: dict = Body(...)):
         origen = normalized.get("origin")
         fiabilidad = normalized.get("confidence", 1.0)
         map_to = normalized.get("canonical")
+        origen = normalized.get("origin") or payload.get("origin") or "externo"
+        certificado = payload.get("certificado") or payload.get("precision_confirmada") or payload.get("certified")
+        if isinstance(fiabilidad, (int, float)):
+            if (origen == "virtual" or origen == "interno" or certificado is True) and fiabilidad >= VIRTUAL_CONF_MIN:
+                fiabilidad = min(1.0, float(fiabilidad) + VIRTUAL_CONF_BONUS)
         if nombre is None and not map_to:
             return JSONResponse(
                 status_code=400,
@@ -359,6 +403,26 @@ async def sensor_virtual(payload: dict = Body(...)):
             )
         valor = normalized.get("value")
         smoothed_value = _smooth_sensor_value(map_to or nombre, valor)
+        outlier = False
+        clamped_from = None
+        sensor_id = map_to or nombre
+        if isinstance(smoothed_value, (int, float)) and _is_outlier(sensor_id, float(smoothed_value)):
+            outlier = True
+            if OUTLIER_ACTION == "reject":
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "status": "ERROR",
+                        "message": "Lectura fuera de rango (outlier)",
+                    },
+                )
+            if OUTLIER_ACTION == "clamp":
+                stats = _SENSOR_STATS.get(sensor_id, {})
+                mean = stats.get("mean")
+                if mean is not None:
+                    clamped_from = smoothed_value
+                    smoothed_value = mean
+                    fiabilidad = min(fiabilidad, 0.5)
         if unidad is None and map_to:
             try:
                 unidad = _default_unit(map_to)
@@ -375,7 +439,6 @@ async def sensor_virtual(payload: dict = Body(...)):
             )
         except Exception as exc:
             logger.warning("Error registrando metadata del sensor virtual: %s", exc)
-        sensor_id = map_to or nombre
         if sensor_id is None:
             return JSONResponse(
                 status_code=400,
@@ -386,6 +449,8 @@ async def sensor_virtual(payload: dict = Body(...)):
             )
         try:
             system.actualizar_sensor(sensor_id, smoothed_value)
+            if isinstance(smoothed_value, (int, float)):
+                _update_outlier_stats(sensor_id, float(smoothed_value))
         except Exception as exc:
             logger.error("Error al actualizar sensor %s: %s", sensor_id, exc)
             return JSONResponse(
@@ -402,6 +467,8 @@ async def sensor_virtual(payload: dict = Body(...)):
             "sensor": sensor_id,
             "value": smoothed_value,
             "confidence": fiabilidad,
+            "outlier": outlier,
+            "value_raw": clamped_from,
         }
     except Exception as exc:
         import traceback
@@ -448,6 +515,8 @@ async def feedback_prediccion(payload: dict = Body(...)):
     valor = payload.get("valor")
     feedback = payload.get("feedback")  # "acierto" o "error"
     valor_real = payload.get("valor_real")
+    modelo = payload.get("modelo")
+    confianza = payload.get("confianza")
     detalle = {
         "fecha": datetime.datetime.now().isoformat(),
         "tipo": tipo,
@@ -455,6 +524,8 @@ async def feedback_prediccion(payload: dict = Body(...)):
         "valor": valor,
         "valor_real": valor_real,
         "feedback": feedback,
+        "modelo": modelo,
+        "confianza": confianza,
         "snapshot": _feedback_snapshot(),
     }
     _append_feedback_log(detalle)
@@ -528,6 +599,29 @@ except Exception as e:
 
     manager = Dummy()
     system = Dummy()
+
+_autocalib_worker = None
+try:
+    from core.calibration.auto_calibration_worker import AutoCalibrationWorker
+
+    auto_enabled = os.environ.get("METEOSER_AUTOCALIB", "1").lower() in ("1", "true", "yes")
+    if auto_enabled:
+        min_samples = int(os.environ.get("METEOSER_AUTOCALIB_MIN_SAMPLES", "8"))
+        cooldown_s = int(os.environ.get("METEOSER_AUTOCALIB_COOLDOWN_S", "3600"))
+        poll_s = int(os.environ.get("METEOSER_AUTOCALIB_POLL_S", "120"))
+        min_new_rows = int(os.environ.get("METEOSER_AUTOCALIB_MIN_NEW_ROWS", "10"))
+        _autocalib_worker = AutoCalibrationWorker(
+            min_samples=min_samples,
+            cooldown_s=cooldown_s,
+            poll_s=poll_s,
+            min_new_rows=min_new_rows,
+            enable_cetreria=True,
+            enable_global=True,
+            logger=logger,
+        )
+        _autocalib_worker.start()
+except Exception as exc:
+    logger.warning("Autocalibración desactivada por error: %s", exc)
 
 discovery_engine = None
 auto_repair_engine = None

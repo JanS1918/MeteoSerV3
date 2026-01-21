@@ -351,6 +351,7 @@ REAL_ONLY_SENSORS = False
 from typing import Dict, Any
 import math
 import time
+import os
 from core.indices.cetreria.cetreria_indices import calcular_cetreria
 
 
@@ -426,6 +427,146 @@ class EnvironmentalIndices:
 
     def __init__(self, system_core) -> None:
         self.system = system_core
+        try:
+            self._min_confidence = float(os.environ.get("METEOSER_MIN_CONFIDENCE", "0.4"))
+        except Exception:
+            self._min_confidence = 0.4
+        try:
+            self._lag_seconds = max(0, int(os.environ.get("METEOSER_LAG_SECONDS", "10")))
+        except Exception:
+            self._lag_seconds = 10
+        env_lag_indices = os.environ.get("METEOSER_LAG_INDICES")
+        default_lag_indices = {
+            "variabilidad_viento_30m",
+            "riesgo_niebla",
+            "nubosidad_estimada",
+            "transparencia_atmosferica",
+            "seeing_termico",
+            "cielo_observable_nocturno",
+        }
+        if env_lag_indices is None:
+            self._lag_indices = default_lag_indices
+        else:
+            try:
+                self._lag_indices = {s.strip() for s in env_lag_indices.split(',') if s.strip()}
+            except Exception:
+                self._lag_indices = default_lag_indices
+        self._lag_buffer: dict[str, list[tuple[float, float]]] = {}
+        self._lag_last: dict[str, dict] = {}
+        try:
+            self._min_confidence = float(os.environ.get("METEOSER_MIN_CONFIDENCE", "0.4"))
+        except Exception:
+            self._min_confidence = 0.4
+        try:
+            self._lag_seconds = max(0, int(os.environ.get("METEOSER_LAG_SECONDS", "10")))
+        except Exception:
+            self._lag_seconds = 10
+        env_lag_indices = os.environ.get("METEOSER_LAG_INDICES")
+        default_lag_indices = {
+            "variabilidad_viento_30m",
+            "riesgo_niebla",
+            "nubosidad_estimada",
+            "transparencia_atmosferica",
+            "seeing_termico",
+            "cielo_observable_nocturno",
+        }
+        if env_lag_indices is None:
+            self._lag_indices = default_lag_indices
+        else:
+            try:
+                self._lag_indices = {s.strip() for s in env_lag_indices.split(',') if s.strip()}
+            except Exception:
+                self._lag_indices = default_lag_indices
+        self._lag_buffer: dict[str, list[tuple[float, float]]] = {}
+        self._lag_last: dict[str, dict] = {}
+        try:
+            self._min_confidence = float(os.environ.get("METEOSER_MIN_CONFIDENCE", "0.4"))
+        except Exception:
+            self._min_confidence = 0.4
+        # Lag / buffering settings para índices ruidosos
+        try:
+            self._lag_seconds = max(0, int(os.environ.get("METEOSER_LAG_SECONDS", "10")))
+        except Exception:
+            self._lag_seconds = 10
+        env_lag_indices = os.environ.get("METEOSER_LAG_INDICES")
+        default_lag_indices = {
+            "variabilidad_viento_30m",
+            "riesgo_niebla",
+            "nubosidad_estimada",
+            "transparencia_atmosferica",
+            "seeing_termico",
+            "cielo_observable_nocturno",
+        }
+        if env_lag_indices is None:
+            self._lag_indices = default_lag_indices
+        else:
+            try:
+                # permitir lista separada por comas
+                self._lag_indices = {s.strip() for s in env_lag_indices.split(',') if s.strip()}
+            except Exception:
+                self._lag_indices = default_lag_indices
+        self._lag_buffer: dict[str, list[tuple[float, float]]] = {}
+        self._lag_last: dict[str, dict] = {}
+
+    def _sensor_confidence(self, nombre: str) -> float | None:
+        try:
+            meta = getattr(self.system, "sensores_metadata", {}).get(nombre, {})
+        except Exception:
+            meta = {}
+        if not meta:
+            return None
+        try:
+            val = float(meta.get("fiabilidad"))
+        except Exception:
+            return None
+        if val > 1.5:
+            val = val / 100.0
+        return max(0.0, min(1.0, val))
+
+    def _apply_lag(self, indices: Dict[str, Any]) -> Dict[str, Any]:
+        if not self._lag_indices or self._lag_seconds <= 0:
+            return indices
+        now = time.time()
+        for nombre in self._lag_indices:
+            entry = indices.get(nombre)
+            if not isinstance(entry, dict):
+                continue
+            raw = entry.get("valor")
+            if raw is None:
+                continue
+            try:
+                raw_val = float(raw)
+            except Exception:
+                continue
+            buffer = self._lag_buffer.get(nombre)
+            if buffer is None:
+                buffer = []
+            buffer.append((now, raw_val))
+            if len(buffer) > 200:
+                buffer = buffer[-200:]
+            cutoff = now - max(self._lag_seconds * 5, 300)
+            buffer = [item for item in buffer if item[0] >= cutoff]
+            self._lag_buffer[nombre] = buffer
+            target_time = now - self._lag_seconds
+            lag_val = None
+            lag_ts = None
+            for ts, val in reversed(buffer):
+                if ts <= target_time:
+                    lag_val = val
+                    lag_ts = ts
+                    break
+            if lag_val is None and nombre in self._lag_last:
+                lag_val = self._lag_last[nombre].get("valor")
+                lag_ts = self._lag_last[nombre].get("ts")
+            if lag_val is not None:
+                self._lag_last[nombre] = {"valor": lag_val, "ts": lag_ts or now}
+            entry["valor_crudo"] = raw_val
+            entry["valor"] = lag_val
+            entry["lagged"] = True
+            entry["lag_s"] = self._lag_seconds
+            entry["ts_crudo"] = now
+            entry["ts_lag"] = lag_ts
+        return indices
 
     def calcular_indices(self):
         sismos = self._get_sensor("sismografo")
@@ -604,21 +745,25 @@ class EnvironmentalIndices:
     def _get_sensor(self, nombre, fallback=None):
         v = self.system.obtener_sensor(nombre)
         if v is not None:
-            return {"valor": v, "estimado": False, "fuente": nombre}
+            conf = self._sensor_confidence(nombre)
+            estimado = False if conf is None else conf < self._min_confidence
+            return {"valor": v, "estimado": estimado, "fuente": nombre, "confianza_sensor": conf}
         if fallback is not None and not REAL_ONLY_SENSORS:
-            return {"valor": fallback, "estimado": True, "fuente": f"estimado_{nombre}"}
-        return {"valor": None, "estimado": True, "fuente": f"no_disponible_{nombre}"}
+            return {"valor": fallback, "estimado": True, "fuente": f"estimado_{nombre}", "confianza_sensor": None}
+        return {"valor": None, "estimado": True, "fuente": f"no_disponible_{nombre}", "confianza_sensor": None}
 
     def _get_sensor_any(self, nombres: list[str], fallback=None):
         for nombre in nombres:
             v = self.system.obtener_sensor(nombre)
             if v is not None:
-                return {"valor": v, "estimado": False, "fuente": nombre}
+                conf = self._sensor_confidence(nombre)
+                estimado = False if conf is None else conf < self._min_confidence
+                return {"valor": v, "estimado": estimado, "fuente": nombre, "confianza_sensor": conf}
         if fallback is not None and not REAL_ONLY_SENSORS:
             base = nombres[0] if nombres else "sensor"
-            return {"valor": fallback, "estimado": True, "fuente": f"estimado_{base}"}
+            return {"valor": fallback, "estimado": True, "fuente": f"estimado_{base}", "confianza_sensor": None}
         base = nombres[0] if nombres else "sensor"
-        return {"valor": None, "estimado": True, "fuente": f"no_disponible_{base}"}
+        return {"valor": None, "estimado": True, "fuente": f"no_disponible_{base}", "confianza_sensor": None}
 
     def _rain_accumulated(self, nombres: list[str], window_s: int) -> tuple[float | None, bool]:
         estimado = True
@@ -830,6 +975,22 @@ class EnvironmentalIndices:
         if not samples:
             return None
         return sum(samples) / len(samples)
+
+    def _std_history(self, nombre, window_s: int = 1800) -> None | float:
+        try:
+            historial = self.system.obtener_historial_sensor(nombre)
+        except Exception:
+            historial = None
+        if not historial:
+            return None
+        import time as _time
+        now: float = _time.time()
+        samples = [v for t, v in historial if (now - t) <= window_s and v is not None]
+        if len(samples) < 2:
+            return None
+        mean = sum(samples) / len(samples)
+        var = sum((v - mean) ** 2 for v in samples) / max(1, (len(samples) - 1))
+        return var ** 0.5
 
     def sensacion_termica(self):
         temp = self._get_sensor("temperatura")
@@ -1258,6 +1419,8 @@ class EnvironmentalIndices:
 
             trend_5m = self._trend("temperatura", window_s=300)
             var_t_5min = abs(trend_5m) / 12.0 if trend_5m is not None else 0.0
+            trend_30m = self._trend("temperatura", window_s=1800)
+            viento_std_30m = self._std_history("viento", window_s=1800)
 
             lluvia_1h_val = None
             lluvia_1h_est = True
@@ -1277,10 +1440,46 @@ class EnvironmentalIndices:
             else:
                 lluvia_24h_val, lluvia_24h_est = self._rain_accumulated(["lluvia", "rain", "rainfall"], 86400)
 
+            lluvia_rate_val = None
+            lluvia_rate_est = True
+            lluvia_rate = self._get_sensor_any(["lluvia_rate", "rain_rate", "rainrate", "rain_rate_h"])
+            if lluvia_rate["valor"] is not None:
+                lluvia_rate_val = float(lluvia_rate["valor"])
+                lluvia_rate_est = lluvia_rate["estimado"]
+
+            pm25_val = None
+            pm25_est = True
+            pm25 = self._get_sensor_any(["pm25", "pm2_5", "pm2.5", "pm_25"])
+            if pm25["valor"] is not None:
+                pm25_val = float(pm25["valor"])
+                pm25_est = pm25["estimado"]
+
+            hum_suelo_val = None
+            hum_suelo_est = True
+            hum_suelo = self._get_sensor_any(["humedad_suelo", "soil_moisture", "soil", "wh51"])
+            if hum_suelo["valor"] is not None:
+                hum_suelo_val = float(hum_suelo["valor"])
+                hum_suelo_est = hum_suelo["estimado"]
+
+            uv_val = None
+            uv_est = True
+            uv = self._get_sensor_any(["uv", "uv_index", "indice_uv"])
+            if uv["valor"] is not None:
+                uv_val = float(uv["valor"])
+                uv_est = uv["estimado"]
+
             st_val = st.get("valor") if isinstance(st, dict) else None
+            if viento_std_30m is not None:
+                indices["variabilidad_viento_30m"] = {
+                    "valor": round(float(viento_std_30m), 3),
+                    "estimado": True,
+                    "confianza": self._confianza(True, fiable=True),
+                    "explicacion": "Desviación estándar del viento (últimos 30 min)",
+                }
             estimado_cetreria = any([
                 temp["estimado"], humedad["estimado"], viento["estimado"], radiacion["estimado"],
-                rachas["estimado"], nub_est, dew_est, lluvia_1h_est, lluvia_24h_est
+                rachas["estimado"], nub_est, dew_est, lluvia_1h_est, lluvia_24h_est,
+                lluvia_rate_est, pm25_est, hum_suelo_est, uv_est
             ])
 
             cetreria = calcular_cetreria({
@@ -1294,6 +1493,12 @@ class EnvironmentalIndices:
                 "var_t_5min": var_t_5min,
                 "lluvia_24h": lluvia_24h_val,
                 "lluvia_1h": lluvia_1h_val,
+                "lluvia_rate": lluvia_rate_val,
+                "pm25": pm25_val,
+                "humedad_suelo": hum_suelo_val,
+                "temp_tendencia_30m": trend_30m,
+                "uv": uv_val,
+                "viento_std_30m": viento_std_30m,
                 "sensacion_termica": st_val,
             })
 
@@ -2152,7 +2357,7 @@ class EnvironmentalIndices:
             self.reforzar_indices(indices)
         except Exception:
             pass
-        return indices
+        return self._apply_lag(indices)
 """
 Módulo unificado de índices ambientales MeteoSer.
 
