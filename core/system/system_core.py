@@ -86,6 +86,11 @@ class SystemCore:
         self._sensor_ewma_applied: dict[str, bool] = {}
         self._cargar_sensores_persistidos()
         self._cargar_formulas_persistidas()
+        # Cargar metadata de sensores si existe (offset/scale/ewma defaults)
+        try:
+            self._cargar_sensores_metadata()
+        except Exception:
+            pass
         try:
             self._load_sensor_ewma_state()
         except Exception:
@@ -136,6 +141,33 @@ class SystemCore:
             data = json.loads(ruta.read_text(encoding="utf-8"))
             if isinstance(data, dict):
                 self.formulas.update(data)
+        except Exception:
+            pass
+
+    def _ruta_sensores_metadata(self) -> Path:
+        base_dir = Path(__file__).resolve().parents[2]
+        data_dir = base_dir / "data"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        return data_dir / "sensores_metadata.json"
+
+    def _cargar_sensores_metadata(self):
+        ruta = self._ruta_sensores_metadata()
+        if not ruta.exists():
+            return
+        try:
+            data = json.loads(ruta.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                # Merge without overwriting existing entries
+                for k, v in data.items():
+                    if k not in self.sensores_metadata:
+                        self.sensores_metadata[k] = v
+                    else:
+                        # merge keys
+                        meta = self.sensores_metadata[k]
+                        if isinstance(v, dict):
+                            for kk, vv in v.items():
+                                if kk not in meta:
+                                    meta[kk] = vv
         except Exception:
             pass
 
