@@ -215,8 +215,8 @@ body {
 /* Posicionar la hora del amanecer dentro del área del arco, a la izquierda entre las curvas */
 .hero-card__sun--left {
     position: absolute;
-    left: 24px; /* mover 10px hacia el centro */
-    top: calc(50% + 30px); /* bajar 5px desde +35px */
+    left: 34px; /* mover 10px hacia el centro adicional */
+    top: calc(50% + 35px); /* bajar 5px adicional */
     transform: translateY(-50%);
     z-index: 12;
     pointer-events: none;
@@ -226,8 +226,8 @@ body {
 
 .hero-card__sun--right {
     position: absolute;
-    right: 24px; /* mover 10px hacia el centro */
-    top: calc(50% + 30px); /* bajar 5px desde +35px */
+    right: 34px; /* mover 10px hacia el centro adicional */
+    top: calc(50% + 35px); /* bajar 5px adicional */
     transform: translateY(-50%);
     z-index: 12;
     pointer-events: none;
