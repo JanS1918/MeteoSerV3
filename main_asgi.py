@@ -683,6 +683,7 @@ async def set_location(payload: dict = Body(...)):
     """Recibe JSON {"lat": 41.5507, "lon": -2.3957} y actualiza las coordenadas manuales del gestor."""
     lat = payload.get("lat")
     lon = payload.get("lon")
+    ubicacion_label = payload.get("ubicacion")
     try:
         if lat is None or lon is None:
             return JSONResponse({"ok": False, "error": "Faltan lat o lon"}, status_code=400)
@@ -692,7 +693,7 @@ async def set_location(payload: dict = Body(...)):
         except Exception:
             return JSONResponse({"ok": False, "error": "lat/lon no numéricos"}, status_code=400)
         try:
-            manager.set_manual_coordinates(latf, lonf)
+            manager.set_manual_coordinates(latf, lonf, label=ubicacion_label)
             # Forzar escritura en location engine ya hace save
             return JSONResponse({"ok": True, "lat": latf, "lon": lonf})
         except Exception as e:
@@ -1780,6 +1781,7 @@ def _estado_impl():
     latitud = None
     longitud = None
     origen_ubicacion = "estimada"
+    ubicacion_manual = None
     try:
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
             for line in f:
@@ -1787,8 +1789,10 @@ def _estado_impl():
                     latitud = float(line.split(":")[-1].strip())
                 if "longitud" in line.lower():
                     longitud = float(line.split(":")[-1].strip())
+                if "ubicacion" in line.lower():
+                    ubicacion_manual = line.split(":", 1)[-1].strip()
         if latitud is not None and longitud is not None:
-            manager.set_manual_coordinates(latitud, longitud)
+            manager.set_manual_coordinates(latitud, longitud, label=ubicacion_manual)
             origen_ubicacion = "manual"
     except Exception:
         pass

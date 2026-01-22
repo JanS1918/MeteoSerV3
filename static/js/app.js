@@ -694,8 +694,19 @@ function updateLocation(indices) {
     const lat = indices.latitud;
     const lon = indices.longitud;
     const origen = indices.origen_ubicacion;
+    const locationMeta = indices.coordenadas;
     if (lat !== undefined && lon !== undefined) {
-        setText('ubicacion', `Lat ${Number(lat).toFixed(4)} | Lon ${Number(lon).toFixed(4)} (${origen || 'n/d'})`);
+        let origenLabel = origen || 'n/d';
+        if (locationMeta && typeof locationMeta === 'object') {
+            const label = locationMeta.ubicacion || locationMeta.label || locationMeta.nombre;
+            if (label) {
+                origenLabel = label;
+            }
+        }
+        if (!locationMeta && String(origen).toLowerCase() === 'manual') {
+            origenLabel = 'Argentona';
+        }
+        setText('ubicacion', `Lat ${Number(lat).toFixed(4)} | Lon ${Number(lon).toFixed(4)} (${origenLabel})`);
     }
 }
 function formatClientTimeIso(iso) {
@@ -728,16 +739,19 @@ function formatCoordsValue(coords) {
     if (!coords) return '—';
     let lat;
     let lon;
+    let locationLabel = '';
     if (Array.isArray(coords)) {
         [lat, lon] = coords;
     } else if (typeof coords === 'object') {
+        locationLabel = coords.ubicacion || coords.label || coords.nombre || '';
         lat = coords.lat ?? coords.latitude ?? coords.latitud;
         lon = coords.lon ?? coords.longitude ?? coords.longitud;
     }
     const latNum = Number(lat);
     const lonNum = Number(lon);
     if (Number.isNaN(latNum) || Number.isNaN(lonNum)) return '—';
-    return `Lat ${latNum.toFixed(4)} · Lon ${lonNum.toFixed(4)}`;
+    const coordText = `Lat ${latNum.toFixed(4)} · Lon ${lonNum.toFixed(4)}`;
+    return locationLabel ? `${locationLabel} · ${coordText}` : coordText;
 }
 
 function updateContextMetadata(data) {

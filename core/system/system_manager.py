@@ -40,8 +40,8 @@ class SystemManager:
         self.system: SystemCore = self.launcher.launch()
         return self.system
 
-    def set_manual_coordinates(self, lat: float, lon: float) -> None:
-        self.location.set_manual_coordinates(lat, lon)
+    def set_manual_coordinates(self, lat: float, lon: float, label: str | None = None) -> None:
+        self.location.set_manual_coordinates(lat, lon, label)
 
     def obtener_coordenadas(self) -> None | Dict[str, float]:
         if not self.system:

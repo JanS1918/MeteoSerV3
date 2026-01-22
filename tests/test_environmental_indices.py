@@ -25,7 +25,7 @@ class DummySystem:
         return self.sensores_metadata.get(nombre)
 
     def obtener_coordenadas(self):
-        return 0.0, 0.0
+        return {"lat": 0.0, "lon": 0.0, "origen": "manual", "ubicacion": "Argentona"}
 
     def actualizar_sensor_derivado(self, nombre: str, valor, metadata=None):
         self.sensores_derivados[nombre] = {"valor": valor, "metadata": metadata}
@@ -169,4 +169,8 @@ def test_context_time_and_location_metadata_exposed():
     assert isinstance(datos.get("context_time_epoch"), (int, float))
     assert datos.get("latitud") == 0.0
     assert datos.get("longitud") == 0.0
-    assert datos.get("coordenadas") == (0.0, 0.0)
+    coords = datos.get("coordenadas")
+    assert isinstance(coords, dict)
+    assert coords.get("lat") == 0.0
+    assert coords.get("lon") == 0.0
+    assert coords.get("ubicacion") == "Argentona"
