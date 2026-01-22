@@ -91,10 +91,26 @@
                         </div>
                         <canvas id="graficoArcoSolar" width="260" height="120"></canvas>
                         <div id="alerta-arco-solar" class="panel-alert"></div>
-                        <div class="solar-times">
-                            <span id="amanecer-label">Amanecer: --:--</span>
-                            <span id="atardecer-label">Atardecer: --:--</span>
-                        </div>
+                            <div class="solar-times">
+                                <div class="solar-time-item">
+                                    <span class="solar-time-label">Amanecer</span>
+                                    <strong id="hero-sunrise">--:--</strong>
+                                </div>
+                                <div class="solar-time-item">
+                                    <span class="solar-time-label">Atardecer</span>
+                                    <strong id="hero-sunset">--:--</strong>
+                                </div>
+                            </div>
+                            <div class="solar-stats">
+                                <div class="solar-stat">
+                                    <span class="solar-stat-label">Arco solar</span>
+                                    <strong id="hero-solar-arc">--</strong>
+                                </div>
+                                <div class="solar-stat">
+                                    <span class="solar-stat-label">Duración día</span>
+                                    <strong id="hero-solar-duration">--</strong>
+                                </div>
+                            </div>
                         <div class="solar-kpis">
                             <div class="kpi">
                                 <span class="kpi-label">Estado</span>

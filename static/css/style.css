@@ -727,6 +727,46 @@ body[data-layout="free"] .panel.dragging {
     color: var(--muted);
 }
 
+.solar-time-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+}
+
+.solar-time-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.solar-stats {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.solar-stat {
+    flex: 1;
+    border: 1px solid rgba(56, 242, 192, 0.4);
+    border-radius: 8px;
+    padding: 6px 8px;
+    background: rgba(24, 255, 160, 0.08);
+}
+
+.solar-stat-label {
+    display: block;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+}
+
+.solar-stat strong {
+    font-size: 0.9rem;
+}
+
 .solar-compact-wrapper {
     width: 100%;
     margin-top: 12px;
