@@ -194,6 +194,43 @@ body {
     background: rgba(0, 0, 0, 0.0);
 }
 
+.hero-card__solar-arc {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: -64px; /* bajado 5px desde -69px */
+    width: calc(100% - 32px);
+    max-width: 560px;
+    height: 300px; /* altura fija: 300px dentro del panel */
+    pointer-events: none;
+    z-index: 6;
+}
+
+.solar-arc {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.solar-arc__path {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.32);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 6 9;
+}
+
+.solar-arc__path--mirror {
+    stroke: rgba(255, 255, 255, 0.18);
+}
+
+.solar-arc__sun {
+    fill: #ffd166;
+    stroke: rgba(0, 0, 0, 0.25);
+    stroke-width: 1;
+    filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.6));
+}
+
 .solar-arc--night .solar-arc__sun {
     opacity: 0;
 }
