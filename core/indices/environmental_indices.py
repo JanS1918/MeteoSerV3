@@ -1,21 +1,6 @@
+import math
+import datetime
 from typing import Dict
-
-# ------------------------------------------------------------
-# ALERTA DE FRÍO EXTREMO
-# ------------------------------------------------------------
-def indice_alerta_polvo(pm25: float, viento: float) -> float:
-    """
-    Calcula un índice de alerta por polvo/suciedad en el aire basado en PM2.5 y viento.
-    Devuelve un valor entre 0 y 100 (mayor = más riesgo).
-    """
-    # Fórmula simple: riesgo crece con PM2.5 y viento
-    riesgo: float = pm25 * (1 + 0.1 * viento)
-    # Normalización básica
-    if riesgo > 100:
-        riesgo = 100
-    if riesgo < 0:
-        riesgo = 0
-    return riesgo
 
 def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float) -> float:
     """
@@ -1551,12 +1536,109 @@ class EnvironmentalIndices:
             v_val = float(viento["valor"])
         except (TypeError, ValueError):
             v_val = 0.0
-        st: float = t_val - (v_val * 0.7)
-        return {
-            "valor": round(st, 2),
-            "estimado": temp["estimado"] or viento["estimado"],
-            "explicacion": f"{'Estimado' if temp['estimado'] or viento['estimado'] else 'Directo'}: T={t_val}C, V={v_val}m/s"
-        }
+        # Determinar si es de día o de noche (usar radiación o sensor UV si está disponible)
+        rad = self._get_sensor("radiacion", fallback=0)
+        uv = self._get_sensor("uv", fallback=0)
+        rad_val = None
+        try:
+            rad_val = rad.get("valor") if isinstance(rad, dict) else None
+        except Exception:
+            rad_val = None
+        uv_val = None
+        try:
+            uv_val = uv.get("valor") if isinstance(uv, dict) else None
+        except Exception:
+            uv_val = None
+
+        es_dia = False
+        try:
+            if rad_val is not None and float(rad_val) >= 50:
+                es_dia = True
+            if uv_val is not None and float(uv_val) > 0.1:
+                es_dia = True
+        except Exception:
+            es_dia = False
+        if not es_dia:
+            now = self._get_context_time()
+            hour = now.hour if hasattr(now, "hour") else None
+            if hour is not None:
+                es_dia = 6 <= hour < 20
+
+        # Intentar usar fórmulas estándar: wind-chill para noche, heat-index/humidex para día
+        humedad = self._get_sensor("humedad", fallback=None)
+        h_val = None
+        try:
+            h_val = float(humedad["valor"]) if isinstance(humedad, dict) and humedad.get("valor") is not None else None
+        except Exception:
+            h_val = None
+
+        estimado_flag = temp["estimado"] or viento["estimado"] or (humedad["estimado"] if isinstance(humedad, dict) else False)
+        # Construir candidatos
+        candidates = {}
+        try:
+            if h_val is not None:
+                try:
+                    hi = indice_heat_index_c(t_val, h_val)
+                    candidates['heat_index'] = (float(hi), f"Heat-index (NOAA). T={t_val}C, HR={h_val}%", ['temperatura','humedad'])
+                except Exception:
+                    pass
+                try:
+                    hdx = indice_humidex(t_val, h_val)
+                    candidates['humidex'] = (float(hdx), f"Humidex. T={t_val}C, HR={h_val}%", ['temperatura','humedad'])
+                except Exception:
+                    pass
+                # WBGT aproximado
+                try:
+                    v_kmh = (v_val * 3.6) if v_val is not None else 0.0
+                    rad_n = float(rad_val) if rad_val is not None else 0.0
+                    wb = indice_wbgt(t_val, h_val, rad_n, v_kmh)
+                    candidates['wbgt'] = (float(wb), f"WBGT aprox: T={t_val}C, HR={h_val}%, Rad={rad_n}", ['temperatura','humedad','radiacion'])
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        try:
+            if v_val is not None:
+                try:
+                    v_kmh = v_val * 3.6
+                    wc = indice_wind_chill_c(t_val, v_kmh)
+                    candidates['wind_chill'] = (float(wc), f"Wind-chill: T={t_val}C, V={v_val}m/s", ['temperatura','viento'])
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        # Prioridad dinámica según temperatura
+        try:
+            if t_val <= 10:
+                order = ['wind_chill', 'wbgt', 'heat_index', 'humidex']
+            elif t_val >= 25:
+                order = ['wbgt', 'heat_index', 'humidex', 'wind_chill']
+            else:
+                order = ['heat_index', 'humidex', 'wbgt', 'wind_chill']
+        except Exception:
+            order = ['heat_index', 'humidex', 'wbgt', 'wind_chill']
+
+        eps = 0.15
+        selected = None
+        for key in order:
+            if key in candidates:
+                val, expl, deps = candidates[key]
+                if abs(val - t_val) > eps:
+                    selected = (key, val, expl, deps)
+                    break
+        if selected is None:
+            for key in order:
+                if key in candidates:
+                    val, expl, deps = candidates[key]
+                    selected = (key, val, expl, deps)
+                    break
+
+        if selected is not None:
+            key, val, expl, deps = selected
+            return {"valor": round(val, 2), "estimado": estimado_flag, "explicacion": expl, "metodo": key}
+        # Si ninguna candidata disponible, fallback a temperatura directa
+        return {"valor": round(t_val, 2), "estimado": estimado_flag, "explicacion": f"Temperatura directa T={t_val}C", "metodo": "temperatura_directa"}
 
     def indice_uv(self):
         uv = self._get_sensor("uv")

@@ -30,7 +30,7 @@ async function cargarEstado() {
         const humVal = hum ? data.meteo.sensores[hum] : null;
         setContent('estado', 'Sistema operativo');
         setContent('sensores', `Temp: ${fmt(tempVal?.value, tempVal?.unit)} | HR: ${fmt(humVal?.value, humVal?.unit)}`);
-        setContent('indices', `Arco solar: ${fmt(data?.indices?.arco_solar?.valor ?? data?.indices?.arco_solar)}°`);
+        // referencia al arco solar eliminada del panel ligero
         setContent('prediccion', data?.predicciones ? JSON.stringify(data.predicciones) : 'Sin predicción');
         setContent('recomendaciones', data?.recomendacion ? String(data.recomendacion) : 'Sin recomendaciones');
         setContent('historial', data?.meteo?.ts ? `Última actualización: ${new Date(data.meteo.ts * 1000).toLocaleString('es-ES')}` : 'Sin historial');

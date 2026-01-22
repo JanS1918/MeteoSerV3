@@ -798,8 +798,17 @@ function updateHero(data) {
         const sensacion = data?.meteo?.derivadas?.sensacion_termica;
         if (sensacion && sensacion.value !== undefined && sensacion.value !== null) {
             setText('hero-feels', fmt(sensacion.value, sensacion.unit || '°C'));
+            try {
+                const el = document.getElementById('hero-feels');
+                const metodo = sensacion.metodo || sensacion.name || '';
+                const expl = sensacion.explicacion || sensacion.explicacion || '';
+                if (el) el.setAttribute('title', metodo ? `${metodo} — ${expl}` : expl);
+            } catch (e) {
+                // ignore
+            }
         } else {
             setText('hero-feels', formatValueForKey(temp.key, temp.value, tempUnit));
+            try { const el = document.getElementById('hero-feels'); if (el) el.removeAttribute('title'); } catch(e){}
         }
     }
     if (hum) {
@@ -825,7 +834,7 @@ function updateSolar(indices) {
     setText('hero-sunset', indices.atardecer || '--:--');
     const arco = indices.arco_solar?.valor ?? indices.arco_solar;
     const duracion = indices.duracion_dia_h?.valor ?? indices.duracion_dia_h;
-    setText('hero-solar-arc', arco !== undefined && arco !== null ? `${fmt(arco)}°` : '--');
+    // Valor numérico del arco eliminado de la UI (solo se mantienen los cálculos)
     setText('hero-solar-duration', duracion !== undefined && duracion !== null ? `${fmt(duracion)} h` : '--');
     const esDia = indices.es_dia_astronomico ?? indices.es_dia_sensor;
     const lunar = indices.fase_lunar || {};
@@ -834,172 +843,13 @@ function updateSolar(indices) {
     setText('hero-moon-icon', lunar?.icono || '🌙');
     setText('hero-moon-phase', faseLabel);
     setText('hero-moon-direction', direccion);
-    const overlay = document.getElementById('solar-overlay');
-    if (overlay) {
-        overlay.classList.toggle('solar-overlay--night', esDia === false);
-    }
-    try {
-        window._lastSolarIndices = indices;
-        setTimeout(placeSolarOverlay, 60);
-    } catch (e) {}
+    // Graphic overlay removed; preserve indices for calculations and uses
+    window._lastSolarIndices = indices;
 }
+    // placeSolarOverlay and renderSolarSVG removed: graphic rendering of the arc is disabled
+function placeSolarOverlay() { /* gráfico eliminado */ }
 
-/* Posiciona el arco solar en la capa overlay para evitar que sea recortado por otros contenedores */
-function placeSolarOverlay() {
-    try {
-        const overlay = document.getElementById('solar-overlay');
-        const heroCard = document.querySelector('.hero-card--compact');
-        if (!overlay || !heroCard) return;
-
-        // Volver al cálculo original: tamaño proporcional y desplazamiento moderado
-        const heroRect = heroCard.getBoundingClientRect();
-        const MARGIN = 16;
-        const SCALE_FACTOR = 0.70; // tamaño relativo al ancho de la tarjeta
-        const Y_OFFSET = 40; // desplazamiento vertical original
-
-        // Convertir a coordenadas de documento (overlay es absolute)
-        const scrollX = window.scrollX || window.pageXOffset || 0;
-        const scrollY = window.scrollY || window.pageYOffset || 0;
-
-        const scaledWidth = heroRect.width * SCALE_FACTOR;
-        const scaledHeight = (heroRect.width * 0.35) * SCALE_FACTOR;
-        const leftAdjusted = heroRect.left + scrollX + (heroRect.width - scaledWidth) / 2;
-        const topAdjusted = heroRect.top + scrollY + heroRect.height - scaledHeight - Y_OFFSET;
-
-        const adjRect = { left: leftAdjusted, top: topAdjusted, width: scaledWidth, height: scaledHeight };
-        renderSolarSVG(adjRect);
-    } catch (e) {
-        // no bloquear la UI por errores de posicionamiento
-    }
-}
-
-function renderSolarSVG(arcRect) {
-    try {
-        const overlay = document.getElementById('solar-overlay');
-        if (!overlay || !arcRect) return;
-        let svg = document.getElementById('solar-arc-svg');
-        if (!svg) {
-            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.setAttribute('id', 'solar-arc-svg');
-            svg.style.position = 'absolute';
-            svg.style.left = '0';
-            svg.style.top = '0';
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.pointerEvents = 'none';
-            svg.style.zIndex = '241';
-            overlay.appendChild(svg);
-        }
-        const viewW = Math.max(document.documentElement.scrollWidth || 0, window.innerWidth || 0, document.documentElement.clientWidth || 0);
-        const viewH = Math.max(document.documentElement.scrollHeight || 0, window.innerHeight || 0, document.documentElement.clientHeight || 0);
-        svg.setAttribute('viewBox', `0 0 ${viewW} ${viewH}`);
-        svg.setAttribute('width', String(viewW));
-        svg.setAttribute('height', String(viewH));
-        svg.innerHTML = '';
-
-        const radius = arcRect.width / 2;
-        const centerX = arcRect.left + radius;
-        const baseY = arcRect.top + arcRect.height;
-        const arcY = baseY - radius;
-        const startX = centerX - radius;
-        const endX = centerX + radius;
-
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        const d = `M ${startX} ${arcY} A ${radius} ${radius} 0 0 1 ${endX} ${arcY}`;
-        path.setAttribute('d', d);
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', 'rgba(255,255,255,0.18)');
-        path.setAttribute('stroke-width', '1.5');
-        path.setAttribute('stroke-dasharray', '8 8');
-        path.setAttribute('stroke-linecap', 'round');
-        svg.appendChild(path);
-
-        const sun = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        const sunRadius = Math.max(4, Math.round(radius * 0.12));
-        sun.setAttribute('r', String(sunRadius));
-        sun.setAttribute('fill', '#facc15');
-        sun.setAttribute('stroke', 'rgba(250,204,21,0.4)');
-        sun.setAttribute('stroke-width', Math.max(1, Math.round(radius * 0.05)));
-        sun.style.filter = 'drop-shadow(0 0 12px rgba(250,204,21,0.6))';
-        svg.appendChild(sun);
-
-        const indices = window._lastSolarIndices || {};
-        const frac = computeSolarFraction(indices);
-        if (!Number.isFinite(frac)) {
-            sun.setAttribute('visibility', 'hidden');
-            return;
-        }
-        const clamped = Math.max(0, Math.min(1, frac));
-        if (clamped <= 0 || clamped >= 1) {
-            sun.setAttribute('visibility', 'hidden');
-            return;
-        }
-        const totalLen = path.getTotalLength();
-        const point = path.getPointAtLength(totalLen * clamped);
-        sun.setAttribute('cx', String(point.x));
-        sun.setAttribute('cy', String(point.y));
-        sun.setAttribute('visibility', 'visible');
-        
-        // Añadir textos de amanecer/atardecer centrados en los pies del arco
-        try {
-            const startPt = path.getPointAtLength(0);
-            const endPt = path.getPointAtLength(totalLen);
-            const sunriseText = document.getElementById('hero-sunrise')?.textContent || '';
-            const sunsetText = document.getElementById('hero-sunset')?.textContent || '';
-
-            const footY = baseY + Math.max(12, sunRadius + 6);
-            const txtStart = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            txtStart.setAttribute('x', String(startPt.x));
-            txtStart.setAttribute('y', String(footY));
-            txtStart.setAttribute('fill', 'rgba(255,255,255,0.92)');
-            txtStart.setAttribute('font-size', '12');
-            txtStart.setAttribute('text-anchor', 'middle');
-            txtStart.setAttribute('dominant-baseline', 'hanging');
-            txtStart.textContent = sunriseText;
-            svg.appendChild(txtStart);
-
-            const txtEnd = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            txtEnd.setAttribute('x', String(endPt.x));
-            txtEnd.setAttribute('y', String(footY));
-            txtEnd.setAttribute('fill', 'rgba(255,255,255,0.92)');
-            txtEnd.setAttribute('font-size', '12');
-            txtEnd.setAttribute('text-anchor', 'middle');
-            txtEnd.setAttribute('dominant-baseline', 'hanging');
-            txtEnd.textContent = sunsetText;
-            svg.appendChild(txtEnd);
-
-            // Radiación y UV dentro del arco (si existen en índices)
-            const radVal = indices.radiacion !== undefined ? (typeof indices.radiacion === 'object' ? indices.radiacion.valor ?? indices.radiacion : indices.radiacion) : null;
-            const uvVal = indices.uv !== undefined ? (typeof indices.uv === 'object' ? indices.uv.valor ?? indices.uv : indices.uv) : null;
-            const mid1 = path.getPointAtLength(totalLen * 0.36);
-            const mid2 = path.getPointAtLength(totalLen * 0.64);
-            if (radVal !== null) {
-                const radTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                radTxt.setAttribute('x', String(mid1.x));
-                radTxt.setAttribute('y', String(mid1.y - 14));
-                radTxt.setAttribute('fill', 'rgba(255,255,255,0.9)');
-                radTxt.setAttribute('font-size', '11');
-                radTxt.setAttribute('text-anchor', 'middle');
-                radTxt.textContent = `${fmt(radVal)} W/m²`;
-                svg.appendChild(radTxt);
-            }
-            if (uvVal !== null) {
-                const uvTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                uvTxt.setAttribute('x', String(mid2.x));
-                uvTxt.setAttribute('y', String(mid2.y - 14));
-                uvTxt.setAttribute('fill', 'rgba(255,255,255,0.9)');
-                uvTxt.setAttribute('font-size', '11');
-                uvTxt.setAttribute('text-anchor', 'middle');
-                uvTxt.textContent = `UV ${fmt(uvVal)}`;
-                svg.appendChild(uvTxt);
-            }
-        } catch (e) {
-            // ignore positioning errors
-        }
-    } catch (e) {
-        // no bloquear UI
-    }
-}
+function renderSolarSVG(arcRect) { /* gráfico eliminado */ }
 
 // Parse time string `HH:MM` or ISO to a Date on today's date (local). Returns null if invalid.
 function parseTimeToToday(timeStr) {
@@ -1535,6 +1385,19 @@ function openSubmenu(kind, key) {
         value = info?.valor ?? raw;
         unit = indicesCatalogo?.[key]?.unidad || '';
         descripcion = info?.explicacion || indicesCatalogo?.[key]?.descripcion || 'Índice calculado.';
+        // Si existe una derivada en meteo, usar su metodo/explicacion adicional
+        try {
+            const derived = lastEstado?.meteo?.derivadas?.[key];
+            if (derived) {
+                const metodo = derived.metodo || derived.name || '';
+                const expl = derived.explicacion || derived.explanation || '';
+                if (metodo || expl) {
+                    descripcion = `${metodo ? metodo + ': ' : ''}${expl || descripcion}`;
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
     }
     setText('submenu-item-title', getDisplayLabel(key));
     setText('submenu-item-key', key);
