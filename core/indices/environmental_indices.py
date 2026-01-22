@@ -416,6 +416,7 @@ def _clasificar_indice_cielo(valor: float | None) -> str:
 
 
 import datetime
+from datetime import timezone
 from typing import Dict, Any
 import math
 from core.sensors.pm_calibration import apply_pm_calibration
@@ -542,13 +543,28 @@ class EnvironmentalIndices:
         """
         Devuelve (lat, lon) si el sistema tiene método obtener_coordenadas, si no (None, None).
         """
-        if hasattr(self.system, "obtener_coordenadas"):
-            coords = self.system.obtener_coordenadas()
-            if coords and isinstance(coords, (list, tuple)) and len(coords) == 2:
-                return coords[0], coords[1]
-            if isinstance(coords, dict) and "lat" in coords and "lon" in coords:
-                return coords["lat"], coords["lon"]
+        meta = self._get_location_meta()
+        if isinstance(meta, dict):
+            lat = meta.get("lat")
+            lon = meta.get("lon")
+            if lat is not None and lon is not None:
+                return lat, lon
+        elif isinstance(meta, (list, tuple)) and len(meta) >= 2:
+            lat = meta[0]
+            lon = meta[1]
+            if lat is not None and lon is not None:
+                return lat, lon
         return None, None
+
+    def _get_location_meta(self):
+        if hasattr(self.system, "obtener_coordenadas"):
+            try:
+                coords = self.system.obtener_coordenadas()
+                if coords:
+                    return coords
+            except Exception:
+                pass
+        return None
 
     def _get_altitude(self) -> float | None:
         """Intentar obtener la altitud del sistema en metros.
@@ -627,19 +643,24 @@ class EnvironmentalIndices:
         if timestamp is None:
             return None
         if isinstance(timestamp, datetime.datetime):
+            if timestamp.tzinfo is None:
+                return timestamp.replace(tzinfo=timezone.utc)
             return timestamp
         if isinstance(timestamp, (int, float)):
             try:
-                return datetime.datetime.utcfromtimestamp(float(timestamp))
+                return datetime.datetime.utcfromtimestamp(float(timestamp)).replace(tzinfo=timezone.utc)
             except (OverflowError, OSError, ValueError):
                 return None
         if isinstance(timestamp, str):
             try:
-                return datetime.datetime.fromisoformat(timestamp)
+                dt = datetime.datetime.fromisoformat(timestamp)
+                if dt.tzinfo is None:
+                    return dt.replace(tzinfo=timezone.utc)
+                return dt
             except Exception:
                 pass
             try:
-                return datetime.datetime.utcfromtimestamp(float(timestamp))
+                return datetime.datetime.utcfromtimestamp(float(timestamp)).replace(tzinfo=timezone.utc)
             except Exception:
                 return None
         return None
@@ -658,10 +679,10 @@ class EnvironmentalIndices:
                 latest = candidate
         if latest is not None:
             try:
-                return datetime.datetime.utcfromtimestamp(latest)
+                return datetime.datetime.utcfromtimestamp(latest).replace(tzinfo=timezone.utc)
             except Exception:
                 pass
-        return datetime.datetime.utcnow()
+        return datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
 
     def _get_context_time(self) -> datetime.datetime:
         if self._computed_context_time is not None:
@@ -840,6 +861,38 @@ class EnvironmentalIndices:
             explicacion_sismo_externa = "No disponible lat/lon para validación externa sismos"
         # Aquí iría el cálculo y retorno de los índices, por ejemplo:
         indices = {}
+        # Computed context time for this call (forced or derived)
+        context_time = self._get_context_time()
+        # Obtener el tiempo de contexto computado (puede venir forzado o derivado de sensores)
+        context_time = self._get_context_time()
+        context_time = self._get_context_time()
+        location_meta = self._get_location_meta()
+        lat_meta, lon_meta = self._get_location()
+        if location_meta:
+            indices["coordenadas"] = location_meta
+        if lat_meta is not None:
+            indices["latitud"] = lat_meta
+            indices["latitude"] = lat_meta
+        if lon_meta is not None:
+            indices["longitud"] = lon_meta
+            indices["longitude"] = lon_meta
+        if context_time is not None:
+            context_iso = context_time.isoformat()
+            context_epoch = None
+            try:
+                context_epoch = context_time.timestamp()
+            except Exception:
+                context_epoch = None
+            indices["hora_cliente_iso"] = context_iso
+            indices["context_time_iso"] = context_iso
+            if context_epoch is not None:
+                indices["context_time_epoch"] = context_epoch
+            offset = context_time.utcoffset()
+            if offset is not None:
+                try:
+                    indices["context_timezone_offset_minutes"] = int(offset.total_seconds() / 60)
+                except Exception:
+                    pass
         # Ejemplo: indices["sismo"] = sismos
         return indices
 
@@ -1600,10 +1653,23 @@ class EnvironmentalIndices:
             self._lag_buffer = {}
         if not hasattr(self, "_lag_last"):
             self._lag_last = {}
-        self._computed_context_time = None
 
         indices = {}
+        context_time = self._get_context_time()
+        # Obtener ubicación conocida si está disponible
+        location_meta = self._get_location_meta()
+        lat_meta, lon_meta = self._get_location()
+        if location_meta:
+            indices['coordenadas'] = location_meta
+        if lat_meta is not None:
+            indices['latitud'] = lat_meta
+            indices['latitude'] = lat_meta
+        if lon_meta is not None:
+            indices['longitud'] = lon_meta
+            indices['longitude'] = lon_meta
+
         # Exponer información enviada por el dashboard (hora cliente) si está disponible
+        meta = None
         try:
             meta = getattr(self, '_last_dashboard_time_meta', None)
             if isinstance(meta, dict) and meta.get('iso'):
@@ -1615,7 +1681,37 @@ class EnvironmentalIndices:
                     'explicacion': 'Hora reportada por dashboard cliente',
                 }
         except Exception:
-            pass
+            meta = None
+        if context_time is None and isinstance(meta, dict) and meta.get('iso'):
+            if not indices.get('hora_cliente_iso'):
+                indices['hora_cliente_iso'] = meta.get('iso')
+                indices['context_time_iso'] = meta.get('iso')
+            try:
+                parsed = datetime.datetime.fromisoformat(meta.get('iso'))
+                if parsed.tzinfo is None:
+                    parsed = parsed.replace(tzinfo=timezone.utc)
+                indices['context_time_epoch'] = parsed.timestamp()
+            except Exception:
+                pass
+        # Si hay un tiempo de contexto computado (forzado o derivado), exponerlo
+        if context_time is not None:
+            try:
+                context_iso = context_time.isoformat()
+                if not indices.get('hora_cliente_iso'):
+                    indices['hora_cliente_iso'] = context_iso
+                indices['context_time_iso'] = context_iso
+            except Exception:
+                context_iso = None
+            try:
+                indices['context_time_epoch'] = context_time.timestamp()
+            except Exception:
+                pass
+            try:
+                off = context_time.utcoffset()
+                if off is not None:
+                    indices['context_timezone_offset_minutes'] = int(off.total_seconds() / 60)
+            except Exception:
+                pass
         # Sensores base
         temp = self._get_sensor("temperatura")
         viento = self._get_sensor("viento", fallback=0)
