@@ -797,18 +797,25 @@ function updateHero(data) {
         setText('hero-temp-value', formatValueForKey(temp.key, temp.value, tempUnit));
         const sensacion = data?.meteo?.derivadas?.sensacion_termica;
         if (sensacion && sensacion.value !== undefined && sensacion.value !== null) {
-            setText('hero-feels', fmt(sensacion.value, sensacion.unit || '°C'));
+            const text = fmt(sensacion.value, sensacion.unit || '°C');
+            setText('hero-feels', text);
+            setText('hero-feels-inline', text);
             try {
                 const el = document.getElementById('hero-feels');
+                const el2 = document.getElementById('hero-feels-inline');
                 const metodo = sensacion.metodo || sensacion.name || '';
-                const expl = sensacion.explicacion || sensacion.explicacion || '';
-                if (el) el.setAttribute('title', metodo ? `${metodo} — ${expl}` : expl);
+                const expl = sensacion.explicacion || sensacion.explanation || '';
+                const title = metodo ? `${metodo} — ${expl}` : expl;
+                if (el) el.setAttribute('title', title);
+                if (el2) el2.setAttribute('title', title);
             } catch (e) {
                 // ignore
             }
         } else {
-            setText('hero-feels', formatValueForKey(temp.key, temp.value, tempUnit));
-            try { const el = document.getElementById('hero-feels'); if (el) el.removeAttribute('title'); } catch(e){}
+            const fallback = formatValueForKey(temp.key, temp.value, tempUnit);
+            setText('hero-feels', fallback);
+            setText('hero-feels-inline', '—');
+            try { const el = document.getElementById('hero-feels'); if (el) el.removeAttribute('title'); const el2 = document.getElementById('hero-feels-inline'); if (el2) el2.removeAttribute('title'); } catch(e){}
         }
     }
     if (hum) {
