@@ -851,31 +851,23 @@ function placeSolarOverlay() {
         const heroCard = document.querySelector('.hero-card--compact');
         if (!overlay || !heroCard) return;
 
+        // Volver al cálculo original: tamaño proporcional y desplazamiento moderado
         const heroRect = heroCard.getBoundingClientRect();
         const MARGIN = 16;
-        const MIN_WIDTH = 120;
-        const viewWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
-        const availWidth = Math.max(MIN_WIDTH, Math.min(viewWidth - MARGIN * 2, heroRect.width * 1.25));
-        const rawWidth = Math.max(MIN_WIDTH, Math.min(availWidth, heroRect.width * 1.15));
+        const SCALE_FACTOR = 0.70; // tamaño relativo al ancho de la tarjeta
+        const Y_OFFSET = 40; // desplazamiento vertical original
 
-        // Ajustes: aumentar ligeramente tamaño del arco (más cercano a la versión previa)
-        const SIZE_SCALE = 0.8; // escala del radio respecto al ancho disponible
-        const radius = Math.max(30, Math.min((rawWidth / 2) * SIZE_SCALE, heroRect.height * 0.7));
-        const arcWidth = radius * 2;
-        const arcHeight = radius;
-        // Convertir coordenadas del rect viewport a coordenadas del documento
+        // Convertir a coordenadas de documento (overlay es absolute)
         const scrollX = window.scrollX || window.pageXOffset || 0;
         const scrollY = window.scrollY || window.pageYOffset || 0;
-        const centerX = heroRect.left + scrollX + heroRect.width / 2;
-        const rawLeft = centerX - arcWidth / 2;
-        const left = Math.max(MARGIN, Math.min(rawLeft, viewWidth - arcWidth - MARGIN));
 
-        // baseline situado ligeramente por debajo de la tarjeta para "bajar" el arco (document coords)
-        const baselineY = heroRect.top + scrollY + heroRect.height + 12;
-        const Y_DOWN = 90; // desplazar un poco más hacia abajo
-        const top = Math.max(MARGIN, baselineY - arcHeight + Y_DOWN);
+        const scaledWidth = heroRect.width * SCALE_FACTOR;
+        const scaledHeight = (heroRect.width * 0.35) * SCALE_FACTOR;
+        const leftAdjusted = heroRect.left + scrollX + (heroRect.width - scaledWidth) / 2;
+        const topAdjusted = heroRect.top + scrollY + heroRect.height - scaledHeight - Y_OFFSET;
 
-        renderSolarSVG({ left, top, width: arcWidth, height: arcHeight });
+        const adjRect = { left: leftAdjusted, top: topAdjusted, width: scaledWidth, height: scaledHeight };
+        renderSolarSVG(adjRect);
     } catch (e) {
         // no bloquear la UI por errores de posicionamiento
     }
