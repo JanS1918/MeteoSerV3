@@ -329,27 +329,26 @@ body[data-layout="free"] .panel .panel {
 
 body[data-layout="columns"] .console-grid {
     grid-template-areas:
-    "solar solar solar solar temp temp sensors sensors sensors sensors rec rec"
-    "solar solar solar solar temp temp sensors sensors sensors sensors rec rec"
+    "temp temp temp temp temp temp sensors sensors sensors sensors rec rec"
+    "temp temp temp temp temp temp sensors sensors sensors sensors rec rec"
     "indices indices indices indices indices indices alertas alertas alertas alertas alertas alertas"
         "organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer";
 }
 
 body[data-layout="default"] .console-grid {
     grid-template-areas:
-    "solar solar solar solar temp temp sensors sensors sensors sensors rec rec"
+    "temp temp temp temp temp temp sensors sensors sensors sensors rec rec"
     "indices indices indices indices indices indices alertas alertas alertas alertas alertas alertas"
     "organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer";
 }
 
 body[data-layout="stacked"] .console-grid {
     grid-template-areas:
-        "solar"
         "temp"
         "sensors"
         "rec"
         "indices"
-    "alertas"
+        "alertas"
         "organizer";
 }
 
@@ -728,10 +727,17 @@ body[data-layout="free"] .panel.dragging {
     color: var(--muted);
 }
 
-.solar-panel {
+.solar-compact-wrapper {
+    width: 100%;
+    margin-top: 12px;
     display: flex;
-    justify-content: space-between;
-    gap: 16px;
+    justify-content: center;
+}
+.solar-compact-inner {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .solar-arc {
