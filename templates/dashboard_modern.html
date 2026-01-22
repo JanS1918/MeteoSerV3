@@ -53,6 +53,13 @@
             </article>
 
             <article class="hero-card hero-card--compact">
+                <div class="hero-card__solar-arc" aria-hidden="true">
+                    <svg class="solar-arc" viewBox="0 0 360 320" preserveAspectRatio="xMidYMid meet" role="presentation">
+                        <path id="solar-arc-top" class="solar-arc__path" d="M25 190 Q180 38 335 190" />
+                        <path class="solar-arc__path solar-arc__path--mirror" d="M25 226 Q180 380 335 226" />
+                        <circle id="solar-arc-sun" class="solar-arc__sun" cx="180" cy="114" r="9" />
+                    </svg>
+                </div>
                 <div class="hero-card__sun"><span id="hero-sunrise">--:--</span></div>
                 <div class="hero-card__sun"><span id="hero-sunset">--:--</span></div>
                 <div class="hero-card__sun">Duración día <span id="hero-solar-duration">--</span></div>
