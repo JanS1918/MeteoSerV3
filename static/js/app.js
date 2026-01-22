@@ -828,18 +828,199 @@ function updateSolar(indices) {
     setText('hero-solar-arc', arco !== undefined && arco !== null ? `${fmt(arco)}°` : '--');
     setText('hero-solar-duration', duracion !== undefined && duracion !== null ? `${fmt(duracion)} h` : '--');
     const esDia = indices.es_dia_astronomico ?? indices.es_dia_sensor;
-    const arc = document.getElementById('solar-arc');
-    if (arc) {
-        if (esDia === false) arc.classList.add('solar-arc--night');
-        else arc.classList.remove('solar-arc--night');
-    }
     const lunar = indices.fase_lunar || {};
     const faseLabel = lunar?.etapa || '--';
     const direccion = lunar?.direccion ? capitalize(lunar.direccion) : '--';
     setText('hero-moon-icon', lunar?.icono || '🌙');
     setText('hero-moon-phase', faseLabel);
     setText('hero-moon-direction', direccion);
+    const overlay = document.getElementById('solar-overlay');
+    if (overlay) {
+        overlay.classList.toggle('solar-overlay--night', esDia === false);
+    }
+    try {
+        window._lastSolarIndices = indices;
+        setTimeout(placeSolarOverlay, 60);
+    } catch (e) {}
 }
+
+/* Posiciona el arco solar en la capa overlay para evitar que sea recortado por otros contenedores */
+function placeSolarOverlay() {
+    try {
+        const overlay = document.getElementById('solar-overlay');
+        const heroCard = document.querySelector('.hero-card--compact');
+        if (!overlay || !heroCard) return;
+
+        const heroRect = heroCard.getBoundingClientRect();
+        const MARGIN = 16;
+        const MIN_WIDTH = 120;
+        const viewWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
+        const availWidth = Math.max(MIN_WIDTH, Math.min(viewWidth - MARGIN * 2, heroRect.width * 1.25));
+        const rawWidth = Math.max(MIN_WIDTH, Math.min(availWidth, heroRect.width * 1.0));
+
+        // Ajustes: reducir tamaño general del arco y situarlo más bajo
+        const SIZE_SCALE = 0.65; // escala del radio respecto al ancho disponible
+        const radius = Math.max(28, Math.min((rawWidth / 2) * SIZE_SCALE, heroRect.height * 0.55));
+        const arcWidth = radius * 2;
+        const arcHeight = radius;
+        const centerX = heroRect.left + heroRect.width / 2;
+        const rawLeft = centerX - arcWidth / 2;
+        const left = Math.max(MARGIN, Math.min(rawLeft, viewWidth - arcWidth - MARGIN));
+
+        // baseline situado ligeramente por debajo de la tarjeta para "bajar" el arco
+        const baselineY = heroRect.top + heroRect.height + 12;
+        const Y_DOWN = 80; // desplazar un poco más hacia abajo
+        const top = Math.max(MARGIN, baselineY - arcHeight + Y_DOWN);
+
+        renderSolarSVG({ left, top, width: arcWidth, height: arcHeight });
+    } catch (e) {
+        // no bloquear la UI por errores de posicionamiento
+    }
+}
+
+function renderSolarSVG(arcRect) {
+    try {
+        const overlay = document.getElementById('solar-overlay');
+        if (!overlay || !arcRect) return;
+        let svg = document.getElementById('solar-arc-svg');
+        if (!svg) {
+            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('id', 'solar-arc-svg');
+            svg.style.position = 'absolute';
+            svg.style.left = '0';
+            svg.style.top = '0';
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.style.pointerEvents = 'none';
+            svg.style.zIndex = '241';
+            overlay.appendChild(svg);
+        }
+        const viewW = Math.max(window.innerWidth, document.documentElement.clientWidth);
+        const viewH = Math.max(window.innerHeight, document.documentElement.clientHeight);
+        svg.setAttribute('viewBox', `0 0 ${viewW} ${viewH}`);
+        svg.setAttribute('width', String(viewW));
+        svg.setAttribute('height', String(viewH));
+        svg.innerHTML = '';
+
+        const radius = arcRect.width / 2;
+        const centerX = arcRect.left + radius;
+        const baseY = arcRect.top + arcRect.height;
+        const arcY = baseY - radius;
+        const startX = centerX - radius;
+        const endX = centerX + radius;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const d = `M ${startX} ${arcY} A ${radius} ${radius} 0 0 1 ${endX} ${arcY}`;
+        path.setAttribute('d', d);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'rgba(255,255,255,0.18)');
+        path.setAttribute('stroke-width', '1.5');
+        path.setAttribute('stroke-dasharray', '8 8');
+        path.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(path);
+
+        const sun = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        const sunRadius = Math.max(4, Math.round(radius * 0.12));
+        sun.setAttribute('r', String(sunRadius));
+        sun.setAttribute('fill', '#facc15');
+        sun.setAttribute('stroke', 'rgba(250,204,21,0.4)');
+        sun.setAttribute('stroke-width', Math.max(1, Math.round(radius * 0.05)));
+        sun.style.filter = 'drop-shadow(0 0 12px rgba(250,204,21,0.6))';
+        svg.appendChild(sun);
+
+        const indices = window._lastSolarIndices || {};
+        const frac = computeSolarFraction(indices);
+        if (!Number.isFinite(frac)) {
+            sun.setAttribute('visibility', 'hidden');
+            return;
+        }
+        const clamped = Math.max(0, Math.min(1, frac));
+        if (clamped <= 0 || clamped >= 1) {
+            sun.setAttribute('visibility', 'hidden');
+            return;
+        }
+        const totalLen = path.getTotalLength();
+        const point = path.getPointAtLength(totalLen * clamped);
+        sun.setAttribute('cx', String(point.x));
+        sun.setAttribute('cy', String(point.y));
+        sun.setAttribute('visibility', 'visible');
+    } catch (e) {
+        // no bloquear UI
+    }
+}
+
+// Parse time string `HH:MM` or ISO to a Date on today's date (local). Returns null if invalid.
+function parseTimeToToday(timeStr) {
+    if (!timeStr) return null;
+    try {
+        if (typeof timeStr === 'number') {
+            // assume seconds or ms
+            const n = Number(timeStr);
+            const ms = n > 1e12 ? n : (n < 1e12 ? n * 1000 : n);
+            return new Date(ms);
+        }
+        const s = String(timeStr).trim();
+        // If ISO-like, try Date parsing
+        if (s.includes('T') || s.includes('-')) {
+            const d = new Date(s);
+            if (!Number.isNaN(d.getTime())) return d;
+        }
+        // HH:MM or H:MM
+        const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+        if (m) {
+            const now = new Date();
+            const hh = Number(m[1]);
+            const mm = Number(m[2]);
+            const ss = m[3] ? Number(m[3]) : 0;
+            const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, ss);
+            return d;
+        }
+        // fallback: attempt Date parse
+        const d2 = new Date(s);
+        return Number.isNaN(d2.getTime()) ? null : d2;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Compute fraction of day [0..1] between amanecer and atardecer using indices.
+function computeSolarFraction(indices) {
+    try {
+        if (!indices) return NaN;
+        const amanecer = indices.amanecer || indices.amanecer_hibrido || indices.amanecer_astronomico || indices.amanecer_astronomico || null;
+        const atardecer = indices.atardecer || indices.atardecer_hibrido || indices.atardecer_astronomico || null;
+        const start = parseTimeToToday(amanecer);
+        const end = parseTimeToToday(atardecer);
+        if (!start || !end) return NaN;
+        const now = new Date();
+        const total = end.getTime() - start.getTime();
+        if (total <= 0) return NaN;
+        const frac = (now.getTime() - start.getTime()) / total;
+        return Math.max(0, Math.min(1, frac));
+    } catch (e) {
+        return NaN;
+    }
+}
+
+// Reposicionar al cargar estado y al cambiar tamaño de ventana
+window.addEventListener('resize', () => {
+    // pequeño debounce
+    if (window._solarOverlayTimer) clearTimeout(window._solarOverlayTimer);
+    window._solarOverlayTimer = setTimeout(() => placeSolarOverlay(), 120);
+});
+
+// Intentar posicionar periódicamente tras actualizaciones UI
+const _original_loadEstado = typeof loadEstado === 'function' ? loadEstado : null;
+if (_original_loadEstado) {
+    // envolver la función para asegurar posicionamiento tras la carga
+    window.loadEstado = async function() {
+        await _original_loadEstado();
+        setTimeout(placeSolarOverlay, 80);
+    };
+}
+
+// Posicionar al inicializar la página
+document.addEventListener('DOMContentLoaded', () => setTimeout(placeSolarOverlay, 200));
 
 function updateSensors(data) {
     const sensors = data?.sensores || {};
