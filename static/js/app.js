@@ -952,21 +952,24 @@ function renderSolarSVG(arcRect) {
             const sunriseText = document.getElementById('hero-sunrise')?.textContent || '';
             const sunsetText = document.getElementById('hero-sunset')?.textContent || '';
 
+            const footY = baseY + Math.max(12, sunRadius + 6);
             const txtStart = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             txtStart.setAttribute('x', String(startPt.x));
-            txtStart.setAttribute('y', String(startPt.y + sunRadius + 18));
-            txtStart.setAttribute('fill', 'rgba(255,255,255,0.9)');
+            txtStart.setAttribute('y', String(footY));
+            txtStart.setAttribute('fill', 'rgba(255,255,255,0.92)');
             txtStart.setAttribute('font-size', '12');
             txtStart.setAttribute('text-anchor', 'middle');
+            txtStart.setAttribute('dominant-baseline', 'hanging');
             txtStart.textContent = sunriseText;
             svg.appendChild(txtStart);
 
             const txtEnd = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             txtEnd.setAttribute('x', String(endPt.x));
-            txtEnd.setAttribute('y', String(endPt.y + sunRadius + 18));
-            txtEnd.setAttribute('fill', 'rgba(255,255,255,0.9)');
+            txtEnd.setAttribute('y', String(footY));
+            txtEnd.setAttribute('fill', 'rgba(255,255,255,0.92)');
             txtEnd.setAttribute('font-size', '12');
             txtEnd.setAttribute('text-anchor', 'middle');
+            txtEnd.setAttribute('dominant-baseline', 'hanging');
             txtEnd.textContent = sunsetText;
             svg.appendChild(txtEnd);
 
