@@ -13,5 +13,10 @@
   "hourlyrainin": {"tipo": "lluvia", "unidad": "in", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 85.0, "offset": 0.0, "scale": 1.0},
   "lightning": {"tipo": "rayos", "unidad": "count", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 70.0, "offset": 0.0, "scale": 1.0},
   "sismografo": {"tipo": "sismo", "unidad": "rel", "fuente": "interno", "origen": "interno", "fiabilidad": 50.0, "offset": 0.0, "scale": 1.0},
-  "sonometro": {"tipo": "ruido", "unidad": "dB", "fuente": "interno", "origen": "interno", "fiabilidad": 65.0, "offset": 0.0, "scale": 1.0}
+  "sonometro": {"tipo": "ruido", "unidad": "dB", "fuente": "interno", "origen": "interno", "fiabilidad": 65.0, "offset": 0.0, "scale": 1.0},
+  "humedad_especifica": {"tipo": "humedad", "unidad": "kg/kg", "fuente": "meteoser", "origen": "derivado", "fiabilidad": 85.0},
+  "vpd_q": {"tipo": "vpd", "unidad": "kg/kg", "fuente": "meteoser", "origen": "derivado", "fiabilidad": 80.0},
+  "pm25_corregido": {"tipo": "pm25", "unidad": "ug/m3", "fuente": "meteoser", "origen": "derivado", "fiabilidad": 75.0},
+  "pm10_corregido": {"tipo": "pm10", "unidad": "ug/m3", "fuente": "meteoser", "origen": "derivado", "fiabilidad": 70.0},
+  "evapotranspiracion_penman_monteith": {"tipo": "evapotranspiracion", "unidad": "mm/dia", "fuente": "meteoser", "origen": "derivado", "fiabilidad": 78.0}
 }

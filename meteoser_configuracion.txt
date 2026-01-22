@@ -21,3 +21,7 @@ python arrancar_meteoser.py
 ipconfig
 
 # Si tienes dudas, consulta este archivo o pide ayuda a GitHub Copilot.
+
+# Coordenadas manuales añadidas por el usuario
+latitud: 41.5507
+longitud: -2.3957

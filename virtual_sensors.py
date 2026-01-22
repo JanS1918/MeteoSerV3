@@ -6,6 +6,8 @@
 import math
 import time
 from typing import Dict, Any, List, Optional
+from core.sensors.pm_calibration import apply_pm_calibration
+from core.sensors.sensor_aliases import canonical_sensor_name
 
 # Intentamos importar el registro de sensores si existe.
 try:
@@ -172,10 +174,14 @@ class VirtualSensorManager:
         """
         results = {}
         for vid, vs in self.virtuals.items():
+            normalized_inputs: Dict[str, float] = {}
+            for key, value in inputs.items():
+                canonical_key = canonical_sensor_name(key)
+                normalized_inputs[canonical_key or key] = value
             # contar inputs presentes
             required = vs.spec.get("inputs", [])
-            present = sum(1 for r in required if r in inputs)
-            value = vs.compute(inputs)
+            present = sum(1 for r in required if r in normalized_inputs)
+            value = vs.compute(normalized_inputs)
             # evaluar y clasificar
             vs.reliability = self.evaluator.classify(vs.history, present, len(required))
             # activar si es fuerte o moderado y tiene valor
@@ -254,6 +260,120 @@ class VirtualSensorManager:
             return None
         return s / total_w
 
+    @staticmethod
+    def _normalize_pressure(value: float | None) -> float | None:
+        if value is None:
+            return None
+        try:
+            raw = float(value)
+        except Exception:
+            return None
+        if raw > 1500:
+            return raw / 1000.0
+        if raw > 300:
+            return raw / 10.0
+        if 6.0 <= raw <= 40.0:
+            return raw * 3.386389
+        return raw
+
+    @staticmethod
+    def _calc_specific_humidity(temp: float, rh: float, pressure: float) -> float | None:
+        if pressure is None or pressure <= 0:
+            return None
+        rh_val = max(0.0, min(100.0, rh))
+        es = 0.6108 * math.exp((17.27 * temp) / (temp + 237.3))
+        ea = es * (rh_val / 100.0)
+        denom = pressure - 0.378 * ea
+        if denom <= 0:
+            return None
+        return 0.62197 * ea / denom
+
+    @staticmethod
+    def fn_specific_humidity(inputs: Dict[str, float], **params):
+        temp = inputs.get("temperatura")
+        rh = inputs.get("humedad")
+        pres = inputs.get("presion")
+        if temp is None or rh is None or pres is None:
+            return None
+        pressure = VirtualSensorManager._normalize_pressure(pres)
+        if pressure is None:
+            return None
+        try:
+            return VirtualSensorManager._calc_specific_humidity(float(temp), float(rh), pressure)
+        except Exception:
+            return None
+
+    @staticmethod
+    def fn_vpd_q(inputs: Dict[str, float], **params):
+        temp = inputs.get("temperatura")
+        rh = inputs.get("humedad")
+        pres = inputs.get("presion")
+        if temp is None or rh is None or pres is None:
+            return None
+        pressure = VirtualSensorManager._normalize_pressure(pres)
+        if pressure is None:
+            return None
+        try:
+            t_val = float(temp)
+            rh_val = float(rh)
+            q_act = VirtualSensorManager._calc_specific_humidity(t_val, rh_val, pressure)
+            q_sat = VirtualSensorManager._calc_specific_humidity(t_val, 100.0, pressure)
+            if q_act is None or q_sat is None:
+                return None
+            return max(0.0, q_sat - q_act)
+        except Exception:
+            return None
+
+    @staticmethod
+    def fn_pm_corrected(inputs: Dict[str, float], pm_key: str, humidity_key: str = "humedad"):
+        pm_val = inputs.get(pm_key)
+        rh = inputs.get(humidity_key)
+        if pm_val is None or rh is None:
+            return None
+        try:
+            pm = float(pm_val)
+            rh_val = float(rh)
+        except Exception:
+            return None
+        model = inputs.get("pm_model")
+        calibrated = apply_pm_calibration(pm, rh_val, model)
+        if calibrated is not None:
+            return calibrated
+        rh_clamped = max(0.0, min(100.0, rh_val))
+        factor = 1.0 + 0.025 * max(0.0, rh_clamped - 40.0)
+        return pm / max(0.1, factor)
+
+    @staticmethod
+    def fn_penman_monteith(inputs: Dict[str, float], **params):
+        temp = inputs.get("temperatura")
+        rh = inputs.get("humedad")
+        rad = inputs.get("radiacion")
+        wind = inputs.get("viento")
+        pres = inputs.get("presion")
+        if None in (temp, rh, rad, wind, pres):
+            return None
+        pressure = VirtualSensorManager._normalize_pressure(pres)
+        if pressure is None:
+            pressure = 101.325
+        try:
+            t_val = float(temp)
+            rh_val = float(rh)
+            rad_val = float(rad)
+            wind_val = max(0.1, float(wind))
+        except Exception:
+            return None
+        es = 0.6108 * math.exp((17.27 * t_val) / (t_val + 237.3))
+        ea = es * (rh_val / 100.0)
+        delta = 4098 * es / ((t_val + 237.3) ** 2)
+        gamma = 0.000665 * pressure
+        rn = rad_val * 0.0864
+        g = 0.0
+        denominator = delta + gamma * (1 + 0.34 * wind_val)
+        if denominator == 0:
+            return None
+        eto = (0.408 * delta * (rn - g) + gamma * (900 / (t_val + 273.0)) * wind_val * (es - ea)) / denominator
+        return max(0.0, eto)
+
 
 # ------------------------------------------------------------
 # EJEMPLO DE ESPECIFICACIONES PREDEFINIDAS (PUEDES BORRARLAS)
@@ -280,7 +400,61 @@ def default_specs():
             "params": {},
             "capabilities": ["co2_index"],
         },
+        "sonometro": {
+            "inputs": ["microfono", "ruido", "audio_peak"],
+            "fn": lambda inputs, **params: max(
+                inputs.get("ruido", 0),
+                inputs.get("microfono", 0),
+                inputs.get("audio_peak", 0)
+            ),
+            "params": {},
+            "capabilities": ["ruido", "sonometro"],
+        },
+        "sismografo": {
+            "inputs": ["giroscopio", "acelerometro", "vibracion", "microfono", "audio_peak"],
+            "fn": lambda inputs, **params: max(
+                abs(inputs.get("giroscopio", 0)),
+                abs(inputs.get("acelerometro", 0)),
+                abs(inputs.get("vibracion", 0)),
+                abs(inputs.get("microfono", 0)),
+                abs(inputs.get("audio_peak", 0))
+            ),
+            "params": {},
+            "capabilities": ["sismo", "sismografo"],
+        },
     }
+    specs.update({
+        "humedad_especifica": {
+            "inputs": ["temperatura", "humedad", "presion"],
+            "fn": VirtualSensorManager.fn_specific_humidity,
+            "params": {},
+            "capabilities": ["humedad_especifica", "humedad"],
+        },
+        "vpd_q": {
+            "inputs": ["temperatura", "humedad", "presion"],
+            "fn": VirtualSensorManager.fn_vpd_q,
+            "params": {},
+            "capabilities": ["vpd", "vpd_q"],
+        },
+        "pm25_corregido": {
+            "inputs": ["pm25", "humedad"],
+            "fn": lambda inputs, **params: VirtualSensorManager.fn_pm_corrected(inputs, pm_key="pm25"),
+            "params": {},
+            "capabilities": ["pm25", "calidad_aire"],
+        },
+        "pm10_corregido": {
+            "inputs": ["pm10", "humedad"],
+            "fn": lambda inputs, **params: VirtualSensorManager.fn_pm_corrected(inputs, pm_key="pm10"),
+            "params": {},
+            "capabilities": ["pm10", "calidad_aire"],
+        },
+        "evapotranspiracion_penman_monteith": {
+            "inputs": ["temperatura", "humedad", "radiacion", "viento", "presion"],
+            "fn": VirtualSensorManager.fn_penman_monteith,
+            "params": {},
+            "capabilities": ["et", "evapotranspiracion"],
+        },
+    })
     return specs
 
 

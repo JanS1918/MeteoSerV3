@@ -30,6 +30,9 @@ class UnifiedRecommendationEngine:
 
         datos = self.indices.obtener_todos()
         pred = PredictionEngine(self.system).predecir()
+        contexto = pred.get("contexto", {}) if isinstance(pred, dict) else {}
+        es_noche = bool(contexto.get("es_noche", False))
+        hora = float(contexto.get("hora", 0.0) or 0.0)
 
 
         st = datos.get("sensacion_termica")
@@ -124,33 +127,37 @@ class UnifiedRecommendationEngine:
         nub_val = nubosidad["valor"] if isinstance(nubosidad, dict) and "valor" in nubosidad else nubosidad
         if nub_val is not None:
             if nub_val >= 80:
-                motivos["nubosidad"] = "Cielo muy nublado, baja radiación solar."
+                motivos["nubosidad"] = "Cielo muy nublado." if es_noche else "Cielo muy nublado, baja radiación solar."
             elif nub_val >= 60:
-                motivos["nubosidad"] = "Nubosidad alta, luz solar reducida."
+                motivos["nubosidad"] = "Nubosidad alta." if es_noche else "Nubosidad alta, luz solar reducida."
 
-        # Astronomía local
+        # Astronomía local — solo tiene sentido por la noche
         cielo_val = cielo_astr["valor"] if isinstance(cielo_astr, dict) and "valor" in cielo_astr else cielo_astr
         cielo_obs_val = cielo_obs["valor"] if isinstance(cielo_obs, dict) and "valor" in cielo_obs else cielo_obs
-        if cielo_val is not None:
-            if cielo_val >= 75:
-                motivos["astronomia"] = "Noche excelente para observar el cielo."
-            elif cielo_val >= 45:
-                motivos["astronomia"] = "Noche regular para observación astronómica."
-            else:
-                motivos["astronomia"] = "Mala noche para observar el cielo."
-        elif cielo_obs_val is not None and nub_val is not None:
-            if cielo_obs_val >= 70 and nub_val < 40:
-                motivos["astronomia"] = "Cielo bastante despejado para observar."
+        if es_noche:
+            if cielo_val is not None:
+                if cielo_val >= 75:
+                    motivos["astronomia"] = "Noche excelente para observar el cielo."
+                elif cielo_val >= 45:
+                    motivos["astronomia"] = "Noche regular para observación astronómica."
+                else:
+                    motivos["astronomia"] = "Mala noche para observar el cielo."
+            elif cielo_obs_val is not None and nub_val is not None:
+                if cielo_obs_val >= 70 and nub_val < 40:
+                    motivos["astronomia"] = "Cielo bastante despejado para observar."
 
-        # Cetrería local
+        # Cetrería local — no sugerir actividades diurnas si es de noche
         cetreria_val = cetreria["valor"] if isinstance(cetreria, dict) and "valor" in cetreria else cetreria
         if cetreria_val is not None:
-            if cetreria_val >= 75:
-                motivos["cetreria"] = "Condiciones excelentes para cetrería."
-            elif cetreria_val >= 45:
-                motivos["cetreria"] = "Condiciones aceptables para cetrería."
+            if es_noche:
+                motivos["cetreria"] = "Es de noche — no recomendable programar cetrería ahora."
             else:
-                motivos["cetreria"] = "Condiciones poco favorables para cetrería."
+                if cetreria_val >= 75:
+                    motivos["cetreria"] = "Condiciones excelentes para cetrería."
+                elif cetreria_val >= 45:
+                    motivos["cetreria"] = "Condiciones aceptables para cetrería."
+                else:
+                    motivos["cetreria"] = "Condiciones poco favorables para cetrería."
 
         # Rayos
         rayos_val = rayos["valor"] if isinstance(rayos, dict) and "valor" in rayos else rayos

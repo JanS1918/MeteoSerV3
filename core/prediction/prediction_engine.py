@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import time
 import os
 import math
@@ -27,13 +28,30 @@ class PredictionEngine:
             self.feedback_uncertainty_threshold = 12.0
 
     def _time_features(self) -> dict:
-        now = time.localtime()
-        hour = now.tm_hour + now.tm_min / 60.0
+        context_now = None
+        try:
+            indices = getattr(self.system, "indices", None)
+            if indices and hasattr(indices, "_get_context_time"):
+                context_now = indices._get_context_time()
+        except Exception:
+            context_now = None
+        if context_now is None:
+            context_now = datetime.now(timezone.utc).astimezone()
+        else:
+            try:
+                context_now = context_now.astimezone()
+            except Exception:
+                pass
+        hour = context_now.hour + context_now.minute / 60.0 + context_now.second / 3600.0
+        tz_offset = context_now.utcoffset()
+        offset_minutes = int(tz_offset.total_seconds() / 60) if tz_offset is not None else 0
         return {
             "hora": hour,
+            "hora_iso": context_now.isoformat(),
             "es_noche": 1 if (hour < 6 or hour >= 20) else 0,
-            "mes": now.tm_mon,
-            "doy": now.tm_yday,
+            "mes": context_now.month,
+            "doy": context_now.timetuple().tm_yday,
+            "timezone_offset_minutes": offset_minutes,
         }
 
     def _rolling_stats(self, nombre: str, window_s: int = 1800) -> tuple[Optional[float], Optional[float]]:
@@ -357,11 +375,15 @@ class PredictionEngine:
         try:
             contexto = {
                 "hora": round(float(time_feats.get("hora", 0.0) or 0.0), 3),
+                "hora_iso": time_feats.get("hora_iso"),
                 "es_noche": bool(es_noche_hibrido) if es_noche_hibrido is not None else bool(time_feats.get("es_noche")),
                 "doy": int(time_feats.get("doy", 0) or 0),
                 "mes": int(time_feats.get("mes", 0) or 0),
                 "coordenadas": loc,
                 "station_model": station_model,
+                "timezone_offset_minutes": time_feats.get("timezone_offset_minutes"),
+                "context_time_epoch": indices.get("context_time_epoch") if isinstance(indices, dict) else None,
+                "context_timezone_offset_minutes": indices.get("context_timezone_offset_minutes") if isinstance(indices, dict) else None,
             }
             # incorporar información detallada de día/noche/arco solar si existe
             try:

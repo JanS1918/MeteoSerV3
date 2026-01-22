@@ -1,0 +1,10 @@
+<Resumen breve en imperativo>
+
+Descripción:
+- Explica brevemente qué se cambió y por qué.
+
+Impacto:
+- Archivos/módulos afectados, riesgos conocidos.
+
+Refs:
+- Issue/Ticket: #

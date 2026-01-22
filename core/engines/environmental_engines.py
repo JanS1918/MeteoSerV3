@@ -416,12 +416,14 @@ class MotorPrediccionLocal(MotorBase):
             pass
 
         noche_incomoda = None
+        es_noche = contexto.get("es_noche")
         try:
-            if hora is not None:
-                h = float(hora)
-                es_noche = h >= 20 or h < 7
-            else:
-                es_noche = False
+            if es_noche is None:
+                if hora is not None:
+                    h = float(hora)
+                    es_noche = h >= 20 or h < 7
+                else:
+                    es_noche = False
             if es_noche:
                 if riesgo_helada is not None and float(riesgo_helada) > 60:
                     noche_incomoda = "fría"
@@ -582,8 +584,8 @@ class MotorNocturno(MotorBase):
         viento = contexto.get("viento")
         temperatura = contexto.get("temperatura_exterior")
 
-        es_noche = None
-        if hora is not None:
+        es_noche = contexto.get("es_noche")
+        if es_noche is None and hora is not None:
             try:
                 h = float(hora)
                 es_noche = h >= 20 or h < 7
@@ -648,14 +650,16 @@ class MotorIntrusion(MotorBase):
         alerta = None
         detalles = []
 
-        try:
-            if hora is not None:
-                h = float(hora)
-                es_noche = h >= 22 or h < 6
-            else:
+        es_noche = contexto.get("es_noche")
+        if es_noche is None:
+            try:
+                if hora is not None:
+                    h = float(hora)
+                    es_noche = h >= 22 or h < 6
+                else:
+                    es_noche = False
+            except Exception:
                 es_noche = False
-        except Exception:
-            es_noche = False
 
         try:
             if ruido is not None and float(ruido) > 70 and es_noche:
