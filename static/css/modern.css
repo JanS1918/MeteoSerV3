@@ -212,6 +212,18 @@ body {
     display: block;
 }
 
+/* Posicionar la hora del amanecer dentro del área del arco, a la izquierda entre las curvas */
+.hero-card__sun--left {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 12;
+    pointer-events: none;
+    color: var(--muted);
+    font-weight: 600;
+}
+
 .solar-arc__path {
     fill: none;
     stroke: rgba(255, 255, 255, 0.32);
@@ -229,6 +241,14 @@ body {
     stroke: rgba(0, 0, 0, 0.25);
     stroke-width: 1;
     filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.6));
+}
+
+/* Arco lunar: más tenue y compacto */
+.lunar-arc__moon {
+    fill: rgba(235, 235, 255, 0.98);
+    stroke: rgba(0, 0, 0, 0.12);
+    stroke-width: 0.6;
+    filter: drop-shadow(0 0 4px rgba(235,235,255,0.25));
 }
 
 .solar-arc--night .solar-arc__sun {
