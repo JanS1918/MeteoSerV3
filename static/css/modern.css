@@ -97,8 +97,8 @@ body {
 }
 
 .hero-card {
-    background: var(--card);
-    border: 1px solid var(--card-border);
+    background: rgba(0, 0, 0, 0.0);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     padding: 16px;
     display: flex;
@@ -114,8 +114,44 @@ body {
 }
 
 .hero-card__value {
-    font-size: clamp(2rem, 3vw, 2.6rem);
+    font-size: clamp(2rem, 2.6vw, 2.2rem); /* temperatura y sensación un poco más contenidas */
     font-weight: 600;
+}
+
+.hero-card__temperature-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.hero-card__temperature-row > div:first-child {
+    flex: 1;
+}
+
+.hero-card__feels-inline {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 6px 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.hero-card__feels-inline strong {
+    font-size: clamp(2rem, 2.6vw, 2.2rem);
+    font-weight: 600;
+    line-height: 1.05;
+}
+
+.hero-card__feels-inline:hover,
+.hero-card__feels-inline:focus-visible {
+    background: rgba(255, 255, 255, 0.04);
+    outline: 1px solid rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
 }
 
 .hero-card__mood {
@@ -155,6 +191,7 @@ body {
     position: relative;
     /* estar por encima de paneles vecinos para mostrar el sol */
     z-index: 60;
+    background: rgba(0, 0, 0, 0.0);
 }
 
 .solar-arc--night .solar-arc__sun {
@@ -183,8 +220,8 @@ body {
 }
 
 .panel {
-    background: rgba(10, 17, 20, 0.95);
-    border: 1px solid var(--card-border);
+    background: rgba(0, 0, 0, 0.0);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     padding: 18px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);

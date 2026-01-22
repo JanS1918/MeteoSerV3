@@ -798,24 +798,24 @@ function updateHero(data) {
         const sensacion = data?.meteo?.derivadas?.sensacion_termica;
         if (sensacion && sensacion.value !== undefined && sensacion.value !== null) {
             const text = fmt(sensacion.value, sensacion.unit || '°C');
-            setText('hero-feels', text);
             setText('hero-feels-inline', text);
             try {
-                const el = document.getElementById('hero-feels');
-                const el2 = document.getElementById('hero-feels-inline');
+                const el = document.getElementById('hero-feels-inline');
                 const metodo = sensacion.metodo || sensacion.name || '';
                 const expl = sensacion.explicacion || sensacion.explanation || '';
                 const title = metodo ? `${metodo} — ${expl}` : expl;
                 if (el) el.setAttribute('title', title);
-                if (el2) el2.setAttribute('title', title);
             } catch (e) {
                 // ignore
             }
         } else {
-            const fallback = formatValueForKey(temp.key, temp.value, tempUnit);
-            setText('hero-feels', fallback);
             setText('hero-feels-inline', '—');
-            try { const el = document.getElementById('hero-feels'); if (el) el.removeAttribute('title'); const el2 = document.getElementById('hero-feels-inline'); if (el2) el2.removeAttribute('title'); } catch(e){}
+            try {
+                const el = document.getElementById('hero-feels-inline');
+                if (el) el.removeAttribute('title');
+            } catch (e) {
+                // ignore
+            }
         }
     }
     if (hum) {
@@ -1462,6 +1462,19 @@ function renderSubmenuHiddenList() {
         .join('');
 }
 
+function initHeroFeelsShortcut() {
+    const el = document.getElementById('hero-feels-inline');
+    if (!el) return;
+    const open = () => openSubmenu('indice', 'sensacion_termica');
+    el.addEventListener('click', open);
+    el.addEventListener('keydown', evt => {
+        if (evt.key === 'Enter' || evt.key === ' ') {
+            evt.preventDefault();
+            open();
+        }
+    });
+}
+
 function initSubmenuControls() {
     const renameSave = document.getElementById('submenu-rename-save');
     const renameReset = document.getElementById('submenu-rename-reset');
@@ -1872,6 +1885,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSensorDetalle();
     initItemSubmenu();
     initSubmenuControls();
+    initHeroFeelsShortcut();
     initDraggablePanels();
     bindActions();
     initVoiceControls();

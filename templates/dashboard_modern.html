@@ -24,27 +24,35 @@
 
         <section class="hero-grid">
             <article class="hero-card hero-card--primary">
-                <div class="hero-card__label">Temperatura actual</div>
-                <div class="hero-card__value" id="hero-temp-value">— <small id="hero-feels-inline" class="hero-card__feels-inline">—</small></div>
+                <div class="hero-card__temperature-row">
+                    <div>
+                        <div class="hero-card__label">Temperatura actual</div>
+                        <div class="hero-card__value" id="hero-temp-value">—</div>
+                    </div>
+                    <div class="hero-card__feels-inline" role="button" tabindex="0" aria-label="Ver detalle de sensación" data-submenu-kind="indice" data-submenu-key="sensacion_termica">
+                        <span class="hero-card__detail-label">Sensación</span>
+                        <strong id="hero-feels-inline">—</strong>
+                    </div>
+                </div>
                 <p class="hero-card__mood" id="hero-summary">Estado pendiente</p>
                 <p class="hero-card__recommendation" id="hero-recommendation-detail">Recomendación activa</p>
                 <div class="hero-card__details">
                     <div>
-                        <span class="hero-card__detail-label">Sensacion</span>
-                        <strong id="hero-feels">—</strong>
-                    </div>
-                    <div>
                         <span class="hero-card__detail-label">Humedad</span>
                         <strong id="hero-humidity">—</strong>
+                    </div>
+                    <div>
+                        <span class="hero-card__detail-label">Viento</span>
+                        <strong id="hero-wind">—</strong>
+                    </div>
+                    <div>
+                        <span class="hero-card__detail-label">Presión</span>
+                        <strong id="hero-pressure">—</strong>
                     </div>
                 </div>
             </article>
 
             <article class="hero-card hero-card--compact">
-                <div class="hero-card__label">Viento</div>
-                <strong class="hero-card__value" id="hero-wind">—</strong>
-                <div class="hero-card__label">Presion</div>
-                <strong class="hero-card__value" id="hero-pressure">—</strong>
                 <div class="hero-card__sun"><span id="hero-sunrise">--:--</span></div>
                 <div class="hero-card__sun"><span id="hero-sunset">--:--</span></div>
                 <div class="hero-card__sun">Duración día <span id="hero-solar-duration">--</span></div>
