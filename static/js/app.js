@@ -856,11 +856,11 @@ function placeSolarOverlay() {
         const MIN_WIDTH = 120;
         const viewWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
         const availWidth = Math.max(MIN_WIDTH, Math.min(viewWidth - MARGIN * 2, heroRect.width * 1.25));
-        const rawWidth = Math.max(MIN_WIDTH, Math.min(availWidth, heroRect.width * 1.0));
+        const rawWidth = Math.max(MIN_WIDTH, Math.min(availWidth, heroRect.width * 1.15));
 
-        // Ajustes: reducir tamaño general del arco y situarlo más bajo
-        const SIZE_SCALE = 0.65; // escala del radio respecto al ancho disponible
-        const radius = Math.max(28, Math.min((rawWidth / 2) * SIZE_SCALE, heroRect.height * 0.55));
+        // Ajustes: aumentar ligeramente tamaño del arco (más cercano a la versión previa)
+        const SIZE_SCALE = 0.8; // escala del radio respecto al ancho disponible
+        const radius = Math.max(30, Math.min((rawWidth / 2) * SIZE_SCALE, heroRect.height * 0.7));
         const arcWidth = radius * 2;
         const arcHeight = radius;
         const centerX = heroRect.left + heroRect.width / 2;
@@ -869,7 +869,7 @@ function placeSolarOverlay() {
 
         // baseline situado ligeramente por debajo de la tarjeta para "bajar" el arco
         const baselineY = heroRect.top + heroRect.height + 12;
-        const Y_DOWN = 80; // desplazar un poco más hacia abajo
+        const Y_DOWN = 90; // desplazar un poco más hacia abajo
         const top = Math.max(MARGIN, baselineY - arcHeight + Y_DOWN);
 
         renderSolarSVG({ left, top, width: arcWidth, height: arcHeight });
@@ -944,6 +944,60 @@ function renderSolarSVG(arcRect) {
         sun.setAttribute('cx', String(point.x));
         sun.setAttribute('cy', String(point.y));
         sun.setAttribute('visibility', 'visible');
+        
+        // Añadir textos de amanecer/atardecer centrados en los pies del arco
+        try {
+            const startPt = path.getPointAtLength(0);
+            const endPt = path.getPointAtLength(totalLen);
+            const sunriseText = document.getElementById('hero-sunrise')?.textContent || '';
+            const sunsetText = document.getElementById('hero-sunset')?.textContent || '';
+
+            const txtStart = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            txtStart.setAttribute('x', String(startPt.x));
+            txtStart.setAttribute('y', String(startPt.y + sunRadius + 18));
+            txtStart.setAttribute('fill', 'rgba(255,255,255,0.9)');
+            txtStart.setAttribute('font-size', '12');
+            txtStart.setAttribute('text-anchor', 'middle');
+            txtStart.textContent = sunriseText;
+            svg.appendChild(txtStart);
+
+            const txtEnd = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            txtEnd.setAttribute('x', String(endPt.x));
+            txtEnd.setAttribute('y', String(endPt.y + sunRadius + 18));
+            txtEnd.setAttribute('fill', 'rgba(255,255,255,0.9)');
+            txtEnd.setAttribute('font-size', '12');
+            txtEnd.setAttribute('text-anchor', 'middle');
+            txtEnd.textContent = sunsetText;
+            svg.appendChild(txtEnd);
+
+            // Radiación y UV dentro del arco (si existen en índices)
+            const radVal = indices.radiacion !== undefined ? (typeof indices.radiacion === 'object' ? indices.radiacion.valor ?? indices.radiacion : indices.radiacion) : null;
+            const uvVal = indices.uv !== undefined ? (typeof indices.uv === 'object' ? indices.uv.valor ?? indices.uv : indices.uv) : null;
+            const mid1 = path.getPointAtLength(totalLen * 0.36);
+            const mid2 = path.getPointAtLength(totalLen * 0.64);
+            if (radVal !== null) {
+                const radTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                radTxt.setAttribute('x', String(mid1.x));
+                radTxt.setAttribute('y', String(mid1.y - 14));
+                radTxt.setAttribute('fill', 'rgba(255,255,255,0.9)');
+                radTxt.setAttribute('font-size', '11');
+                radTxt.setAttribute('text-anchor', 'middle');
+                radTxt.textContent = `${fmt(radVal)} W/m²`;
+                svg.appendChild(radTxt);
+            }
+            if (uvVal !== null) {
+                const uvTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                uvTxt.setAttribute('x', String(mid2.x));
+                uvTxt.setAttribute('y', String(mid2.y - 14));
+                uvTxt.setAttribute('fill', 'rgba(255,255,255,0.9)');
+                uvTxt.setAttribute('font-size', '11');
+                uvTxt.setAttribute('text-anchor', 'middle');
+                uvTxt.textContent = `UV ${fmt(uvVal)}`;
+                svg.appendChild(uvTxt);
+            }
+        } catch (e) {
+            // ignore positioning errors
+        }
     } catch (e) {
         // no bloquear UI
     }
