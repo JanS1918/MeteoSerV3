@@ -36,6 +36,24 @@
                 <span class="divider">|</span>
                 <span id="ubicacion"></span>
             </div>
+            <div class="console-context" id="console-context">
+                <span class="context-badge" id="context-client-time-badge">
+                    <span class="context-badge__label">Reloj del dashboard</span>
+                    <span class="context-badge__value" id="context-client-time">—</span>
+                </span>
+                <span class="context-badge" id="context-client-sync-badge">
+                    <span class="context-badge__label">Sincronía</span>
+                    <span class="context-badge__value" id="context-client-sync">—</span>
+                </span>
+                <span class="context-badge" id="context-offset-badge">
+                    <span class="context-badge__label">Zona horaria</span>
+                    <span class="context-badge__value" id="context-client-offset">—</span>
+                </span>
+                <span class="context-badge" id="context-coords-badge">
+                    <span class="context-badge__label">Coordenadas usadas</span>
+                    <span class="context-badge__value" id="context-client-coords">—</span>
+                </span>
+            </div>
             <div class="console-actions">
                 <button id="voice-btn" class="console-btn voice-btn">🎙 VOZ</button>
                 <div id="voice-visualizer" class="voice-visualizer hidden">
@@ -57,6 +75,9 @@
                 <div class="panel-title">☀️ ARCO SOLAR</div>
                 <div class="panel-body solar-panel">
                     <div class="solar-left">
+                        <div class="solar-arc" id="solar-arc">
+                            <span class="solar-arc__sun" id="solar-arc-sun" aria-hidden="true" data-testid="hero-solar-sun"></span>
+                        </div>
                         <canvas id="graficoArcoSolar" width="260" height="120"></canvas>
                         <div id="alerta-arco-solar" class="panel-alert"></div>
                         <div class="solar-times">
@@ -72,6 +93,14 @@
                         <div class="kpi">
                             <span class="kpi-label">Sincronía</span>
                             <span class="kpi-value" id="arco-sincronia">--</span>
+                        </div>
+                        <div class="kpi moon-widget">
+                            <span class="moon-icon" id="hero-moon-icon">🌙</span>
+                            <div class="moon-details">
+                                <span class="kpi-label">Fase lunar</span>
+                                <span class="kpi-value" id="hero-moon-phase">--</span>
+                                <span class="moon-direction" id="hero-moon-direction">--</span>
+                            </div>
                         </div>
                     </div>
                 </div>

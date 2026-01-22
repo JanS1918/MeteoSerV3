@@ -88,6 +88,12 @@ function normalizeNumeric(value) {
     return n;
 }
 
+function capitalize(text) {
+    if (!text) return '';
+    const str = String(text);
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function classifyValue(key, value, unit = '') {
     const normalized = normalizeNumeric(value);
     if (normalized === null) return '';
@@ -692,6 +698,62 @@ function updateLocation(indices) {
         setText('ubicacion', `Lat ${Number(lat).toFixed(4)} | Lon ${Number(lon).toFixed(4)} (${origen || 'n/d'})`);
     }
 }
+function formatClientTimeIso(iso) {
+    if (!iso) return '—';
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) return iso;
+    return parsed.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function formatSkewValue(skew) {
+    if (skew === undefined || skew === null) return '—';
+    const seconds = Number(skew);
+    if (Number.isNaN(seconds)) return '—';
+    const sign = seconds >= 0 ? '+' : '';
+    return `${sign}${seconds}s`;
+}
+
+function formatOffsetMinutes(minutes) {
+    if (minutes === undefined || minutes === null) return 'UTC —';
+    const total = Number(minutes);
+    if (Number.isNaN(total)) return 'UTC —';
+    const sign = total >= 0 ? '+' : '-';
+    const absMinutes = Math.abs(total);
+    const hours = Math.floor(absMinutes / 60);
+    const mins = absMinutes % 60;
+    return `UTC${sign}${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+}
+
+function formatCoordsValue(coords) {
+    if (!coords) return '—';
+    let lat;
+    let lon;
+    if (Array.isArray(coords)) {
+        [lat, lon] = coords;
+    } else if (typeof coords === 'object') {
+        lat = coords.lat ?? coords.latitude ?? coords.latitud;
+        lon = coords.lon ?? coords.longitude ?? coords.longitud;
+    }
+    const latNum = Number(lat);
+    const lonNum = Number(lon);
+    if (Number.isNaN(latNum) || Number.isNaN(lonNum)) return '—';
+    return `Lat ${latNum.toFixed(4)} · Lon ${lonNum.toFixed(4)}`;
+}
+
+function updateContextMetadata(data) {
+    const contexto = data?.predicciones?.contexto || {};
+    const indices = data?.indices || {};
+    const horaClienteIso = contexto.hora_cliente_iso || indices.hora_cliente_iso || (indices.hora_cliente && indices.hora_cliente.valor);
+    setText('context-client-time', formatClientTimeIso(horaClienteIso));
+    const confidence = contexto.hora_cliente_confianza ?? (indices.hora_cliente && indices.hora_cliente.confianza);
+    const skew = contexto.hora_cliente_skew_seconds ?? (indices.hora_cliente && indices.hora_cliente.skew_seconds);
+    const confidenceLabel = confidence ? capitalize(String(confidence)) : '—';
+    setText('context-client-sync', `Confianza ${confidenceLabel} · Skew ${formatSkewValue(skew)}`);
+    const offset = contexto.timezone_offset_minutes ?? contexto.context_timezone_offset_minutes ?? indices.context_timezone_offset_minutes;
+    setText('context-client-offset', formatOffsetMinutes(offset));
+    const coords = contexto.coordenadas || indices.coordenadas;
+    setText('context-client-coords', formatCoordsValue(coords));
+}
 
 function getSensorBase(data, keys) {
     const sensores = data?.sensores || {};
@@ -757,12 +819,19 @@ function updateSolar(indices) {
         if (esDia === false) arc.classList.add('solar-arc--night');
         else arc.classList.remove('solar-arc--night');
     }
+    const lunar = indices.fase_lunar || {};
+    const faseLabel = lunar?.etapa || '--';
+    const direccion = lunar?.direccion ? capitalize(lunar.direccion) : '--';
+    setText('hero-moon-icon', lunar?.icono || '🌙');
+    setText('hero-moon-phase', faseLabel);
+    setText('hero-moon-direction', direccion);
 }
 
 function updateSensors(data) {
     const sensors = data?.sensores || {};
     const meteo = data?.meteo?.sensores || {};
     const indices = data?.indices || {};
+    const derivedMetadata = lastEstado?.sensores_derivados_metadata || {};
     const extraKeys = ['nubosidad_estimada'];
     Object.keys(sensors).forEach(key => cacheState.sensors.add(key));
     Object.keys(meteo).forEach(key => cacheState.sensors.add(key));
@@ -786,7 +855,8 @@ function updateSensors(data) {
             lluvia_acumulada: 'mm',
             mqtt_temp: '°C'
         };
-        const unit = unitMap[key] || norm?.unit || '';
+        const derivedInfo = derivedMetadata[key] || {};
+        const unit = unitMap[key] || norm?.unit || derivedInfo.unidad || '';
         const value = sensors[key] ?? norm?.value ?? indexValue;
         const warn = value === undefined || value === null || value === '';
         return { label: getDisplayLabel(key), value, unit, key, warn, kind: 'sensor' };
@@ -1093,6 +1163,7 @@ async function loadEstado() {
             console.error('Error updating recommendation', recErr);
         }
         updateLocation(data.indices);
+        updateContextMetadata(data);
         updateHero(data);
         updateSolar(data.indices);
         updateSensors(data);
@@ -1635,7 +1706,43 @@ function initVoiceControls() {
 
 function updateClock() {
     const now = new Date();
-    setText('fecha-hora', now.toLocaleString('es-ES'));
+    const seasonInfo = getSeasonInfo(now);
+    const fecha = now.toLocaleDateString('es-ES');
+    const hora = now.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+    const html = `${seasonInfo.icon} ${seasonInfo.name} — ${fecha} / ${hora}`;
+    setHTML('fecha-hora', html);
+    // enviar la hora del dashboard al servidor cada 30s
+    if (!window._lastClientTimeSent || (Date.now() - window._lastClientTimeSent) > 30000) {
+        postClientTime(now.toISOString());
+        window._lastClientTimeSent = Date.now();
+    }
+}
+
+function setHTML(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+}
+
+function getSeasonInfo(dt) {
+    const m = dt.getMonth() + 1; // 1-12
+    // Meteorological seasons (northern hemisphere)
+    if (m === 12 || m === 1 || m === 2) return {name: 'Invierno', icon: '❄️'};
+    if (m >= 3 && m <= 5) return {name: 'Primavera', icon: '🌱'};
+    if (m >= 6 && m <= 8) return {name: 'Verano', icon: '☀️'};
+    return {name: 'Otoño', icon: '🍂'};
+}
+
+async function postClientTime(iso) {
+    try {
+        await fetch('/client_time', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({iso: iso}),
+        });
+    } catch (err) {
+        // no bloquear si falla
+        console.debug('postClientTime error', err);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
