@@ -216,7 +216,18 @@ body {
 .hero-card__sun--left {
     position: absolute;
     left: 14px;
-    top: 50%;
+    top: calc(50% + 10px); /* bajar 10px respecto al centro del área */
+    transform: translateY(-50%);
+    z-index: 12;
+    pointer-events: none;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.hero-card__sun--right {
+    position: absolute;
+    right: 14px;
+    top: calc(50% + 10px); /* bajar 10px respecto al centro del área */
     transform: translateY(-50%);
     z-index: 12;
     pointer-events: none;
