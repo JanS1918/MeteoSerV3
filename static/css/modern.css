@@ -29,6 +29,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    /* permitir que elementos sobresalgan del layout principal (sol del arco) */
+    overflow: visible;
 }
 
 .hero {
@@ -71,6 +73,27 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
+    /* no recortar las tarjetas internas */
+    overflow: visible;
+}
+
+/* Contenedor overlay que mostrará el arco solar sin ser recortado */
+.solar-overlay {
+    position: absolute; /* cambiar a absolute para que se mueva con el documento */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 240;
+}
+
+.solar-overlay .solar-arc {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
 }
 
 .hero-card {
@@ -126,42 +149,12 @@ body {
     color: var(--muted);
 }
 
-.solar-arc {
+/* permitir que las tarjetas compactas muestren contenido que sobresale */
+.hero-card--compact {
+    overflow: visible;
     position: relative;
-    width: 100%;
-    /* reducir altura máxima para evitar desbordes en paneles pequeños */
-    height: clamp(20px, 4.5vw, 44px);
-    margin: 6px 0 6px;
-    border: 1.5px solid rgba(255, 255, 255, 0.20);
-    border-bottom: none;
-    /* radio más contenido para no sobresalir del panel */
-    border-radius: 90px 90px 0 0;
-    overflow: hidden;
-    background: linear-gradient(180deg, rgba(56, 242, 192, 0.12), rgba(6, 10, 12, 0));
-}
-
-.solar-arc::after {
-    content: "";
-    position: absolute;
-    /* ajustar inset para mantener la franja interior proporcional */
-    inset: 5px 8px 0 8px;
-    border: 1px dashed rgba(255, 255, 255, 0.14);
-    border-bottom: none;
-    border-radius: 90px 90px 0 0;
-    opacity: 0.8;
-}
-
-.solar-arc__sun {
-    position: absolute;
-    /* mantener el sol ligeramente por debajo del borde pero sin salirse */
-    bottom: -5px;
-    left: 50%;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #facc15;
-    box-shadow: 0 0 10px rgba(250, 204, 21, 0.55);
-    transform: translateX(-50%);
+    /* estar por encima de paneles vecinos para mostrar el sol */
+    z-index: 60;
 }
 
 .solar-arc--night .solar-arc__sun {
