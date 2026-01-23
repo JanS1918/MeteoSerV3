@@ -2108,21 +2108,61 @@ def _estado_impl():
     indices["origen_ubicacion"] = origen_ubicacion
     # Añadir posiciones astronómicas calculadas en servidor (preferir Astral si está disponible)
     try:
+        # Si ya hay sensores que reportan valores astronómicos, preferirlos.
+        try:
+            sensor_map = {
+                'sun_azimuth': ['sun_azimuth', 'solar_azimuth', 'solar_az'],
+                'sun_altitude': ['sun_altitude', 'solar_altitude', 'solar_el'],
+                'moon_azimuth': ['moon_azimuth', 'lunar_azimuth'],
+                'moon_altitude': ['moon_altitude', 'lunar_altitude'],
+                'moon_illumination': ['moon_illumination', 'moon_frac', 'moon_fraction'],
+                'moon_age_days': ['moon_age', 'moon_age_days', 'moon_phase']
+            }
+            # `sensores` variable contiene lecturas crudas (si existe persisted_sensores se copió antes)
+            try:
+                provided = sensores if 'sensores' in locals() else system.sensores
+            except Exception:
+                provided = system.sensores
+            for out_key, candidates in sensor_map.items():
+                if out_key in indices:
+                    continue
+                for cand in candidates:
+                    if cand in provided and provided.get(cand) is not None:
+                        indices[out_key] = provided.get(cand)
+                        break
+            # recoger elevación si la reporta algún sensor
+            elevation = None
+            for elev_key in ('elevation', 'elevacion', 'altitud', 'altitud_m', 'altura'):
+                if elev_key in provided and provided.get(elev_key) is not None:
+                    elevation = provided.get(elev_key)
+                    try:
+                        elevation = float(elevation)
+                    except Exception:
+                        elevation = None
+                    break
+
+        except Exception:
+            elevation = None
+
         from core.utils.daynight import compute_astronomy
         try:
             now_dt = datetime.datetime.now().astimezone()
-            astro = compute_astronomy(latitud, longitud, now_dt)
-            if isinstance(astro, dict):
-                for k, v in astro.items():
-                    try:
+            # solo calcular los campos que no hayan sido proporcionados por sensores
+            need_calc = True
+            for k in ('sun_azimuth', 'sun_altitude', 'moon_illumination', 'moon_age_days', 'moon_azimuth', 'moon_altitude'):
+                if k not in indices:
+                    need_calc = True
+                    break
+                need_calc = False
+            if need_calc:
+                astro = compute_astronomy(latitud, longitud, now_dt, elevation)
+                if isinstance(astro, dict):
+                    for k, v in astro.items():
+                        # no sobrescribir campos ya proporcionados por sensores
+                        if k in indices and indices.get(k) is not None:
+                            continue
                         if v is None:
                             continue
-                        # redondear floats razonablemente
-                        if isinstance(v, float):
-                            indices[k] = round(v, 6) if abs(v) < 100 else round(v, 3)
-                        else:
-                            indices[k] = v
-                    except Exception:
                         indices[k] = v
         except Exception:
             pass

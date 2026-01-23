@@ -219,7 +219,7 @@ def moon_illumination(when: Optional[datetime] = None) -> Dict[str, Optional[flo
         return {"moon_age_days": None, "moon_illumination": None}
 
 
-def compute_astronomy(lat: Optional[float], lon: Optional[float], when: Optional[datetime] = None) -> Dict[str, Optional[float]]:
+def compute_astronomy(lat: Optional[float], lon: Optional[float], when: Optional[datetime] = None, elevation: Optional[float] = 0) -> Dict[str, Optional[float]]:
     """
     Intenta calcular posiciones astronómicas precisas usando `astral` si está disponible.
     Devuelve un diccionario con claves posibles: `sun_azimuth`, `sun_altitude`,
@@ -234,7 +234,13 @@ def compute_astronomy(lat: Optional[float], lon: Optional[float], when: Optional
         from astral.sun import azimuth as astral_sun_azimuth, elevation as astral_sun_elevation
         from astral import moon as astral_moon
 
-        obs = Observer(latitude=float(lat), longitude=float(lon), elevation=0) if lat is not None and lon is not None else None
+        obs = None
+        if lat is not None and lon is not None:
+            try:
+                elev = float(elevation) if elevation is not None else 0
+            except Exception:
+                elev = 0
+            obs = Observer(latitude=float(lat), longitude=float(lon), elevation=elev)
         if obs is not None:
             try:
                 saz = astral_sun_azimuth(obs, when)
