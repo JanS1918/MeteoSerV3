@@ -243,8 +243,18 @@ body {
     stroke-dasharray: 6 9;
 }
 
+/* Arco superior: amarillo tenue */
+#solar-arc-top.solar-arc__path {
+    stroke: rgba(255, 230, 160, 0.75);
+}
+
+/* Arco inferior (mirror): azul marino */
 .solar-arc__path--mirror {
-    stroke: rgba(255, 255, 255, 0.18);
+    /* Azul claro para destacar sobre fondo oscuro */
+    stroke: rgba(100, 170, 255, 0.95);
+    stroke-width: 2;
+    /* pequeño resplandor para mejorar visibilidad */
+    filter: drop-shadow(0 6px 12px rgba(100,170,255,0.08));
 }
 
 .solar-arc__sun {
@@ -262,6 +272,18 @@ body {
     filter: drop-shadow(0 0 4px rgba(235,235,255,0.25));
 }
 
+/* Colores de etiquetas: usar los mismos tonos que los arcos */
+.duration-day,
+#hero-solar-duration,
+#hero-sunrise,
+#hero-sunset {
+    color: rgba(255, 230, 160, 0.95); /* mismo tono que #solar-arc-top */
+}
+
+.duration-night,
+#hero-night-duration {
+    color: rgba(100, 170, 255, 0.95); /* mismo tono que .solar-arc__path--mirror */
+}
 .solar-arc--night .solar-arc__sun {
     opacity: 0;
 }
