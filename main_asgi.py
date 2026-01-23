@@ -2106,27 +2106,24 @@ def _estado_impl():
     indices["latitud"] = latitud
     indices["longitud"] = longitud
     indices["origen_ubicacion"] = origen_ubicacion
-    # Añadir posiciones astronómicas aproximadas (sol y luna) calculadas en servidor
+    # Añadir posiciones astronómicas calculadas en servidor (preferir Astral si está disponible)
     try:
-        from core.utils.daynight import sun_position, moon_illumination
-
+        from core.utils.daynight import compute_astronomy
         try:
             now_dt = datetime.datetime.now().astimezone()
-            sunpos = sun_position(latitud, longitud, now_dt)
-            if isinstance(sunpos, dict):
-                if sunpos.get('sun_azimuth') is not None:
-                    indices['sun_azimuth'] = round(float(sunpos.get('sun_azimuth')), 3)
-                if sunpos.get('sun_altitude') is not None:
-                    indices['sun_altitude'] = round(float(sunpos.get('sun_altitude')), 3)
-        except Exception:
-            pass
-        try:
-            m = moon_illumination(now_dt)
-            if isinstance(m, dict):
-                if m.get('moon_illumination') is not None:
-                    indices['moon_illumination'] = m.get('moon_illumination')
-                if m.get('moon_age_days') is not None:
-                    indices['moon_age_days'] = m.get('moon_age_days')
+            astro = compute_astronomy(latitud, longitud, now_dt)
+            if isinstance(astro, dict):
+                for k, v in astro.items():
+                    try:
+                        if v is None:
+                            continue
+                        # redondear floats razonablemente
+                        if isinstance(v, float):
+                            indices[k] = round(v, 6) if abs(v) < 100 else round(v, 3)
+                        else:
+                            indices[k] = v
+                    except Exception:
+                        indices[k] = v
         except Exception:
             pass
     except Exception:

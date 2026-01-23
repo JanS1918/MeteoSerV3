@@ -217,3 +217,81 @@ def moon_illumination(when: Optional[datetime] = None) -> Dict[str, Optional[flo
         return {"moon_age_days": round(age, 3), "moon_illumination": round(illum, 4)}
     except Exception:
         return {"moon_age_days": None, "moon_illumination": None}
+
+
+def compute_astronomy(lat: Optional[float], lon: Optional[float], when: Optional[datetime] = None) -> Dict[str, Optional[float]]:
+    """
+    Intenta calcular posiciones astronómicas precisas usando `astral` si está disponible.
+    Devuelve un diccionario con claves posibles: `sun_azimuth`, `sun_altitude`,
+    `moon_azimuth`, `moon_altitude`, `moon_illumination`, `moon_age_days`.
+    Si `astral` no está instalado, cae al cálculo aproximado implementado en este módulo.
+    """
+    when = when or datetime.now().astimezone()
+    out: Dict[str, Optional[float]] = {}
+    try:
+        # intentar usar astral para mayor precisión
+        from astral import Observer
+        from astral.sun import azimuth as astral_sun_azimuth, elevation as astral_sun_elevation
+        from astral import moon as astral_moon
+
+        obs = Observer(latitude=float(lat), longitude=float(lon), elevation=0) if lat is not None and lon is not None else None
+        if obs is not None:
+            try:
+                saz = astral_sun_azimuth(obs, when)
+                salt = astral_sun_elevation(obs, when)
+                out["sun_azimuth"] = round(float(saz), 6)
+                out["sun_altitude"] = round(float(salt), 6)
+            except Exception:
+                pass
+            # astral.moon puede proveer fase/iluminación
+            try:
+                # fase en días
+                phase = astral_moon.phase(when)
+                # intentar obtener iluminación si existe
+                illum = None
+                if hasattr(astral_moon, "illumination"):
+                    try:
+                        illum = astral_moon.illumination(when)
+                    except Exception:
+                        illum = None
+                # fallback: usar calculadora local
+                if illum is None:
+                    mi = moon_illumination(when)
+                    illum = mi.get("moon_illumination")
+                    age = mi.get("moon_age_days")
+                else:
+                    # intentar estimar edad aproximada desde phase()
+                    age = float(phase) if phase is not None else None
+                out["moon_illumination"] = round(float(illum), 6) if illum is not None else None
+                out["moon_age_days"] = round(float(age), 6) if age is not None else None
+            except Exception:
+                # fallback a calculadora local
+                mi = moon_illumination(when)
+                out.update(mi)
+        else:
+            # sin coordenadas, usar solo fase/iluminación
+            out.update(moon_illumination(when))
+        # algunos entornos de astral ofrecen azimut lunar; intentar extraerlo
+        try:
+            if obs is not None and hasattr(astral_moon, 'moon_azimuth') and hasattr(astral_moon, 'moon_altitude'):
+                try:
+                    maz = astral_moon.moon_azimuth(obs, when)
+                    malt = astral_moon.moon_altitude(obs, when)
+                    out['moon_azimuth'] = round(float(maz), 6)
+                    out['moon_altitude'] = round(float(malt), 6)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        return out
+    except Exception:
+        # si astral no está disponible o falla, usar aproximaciones propias
+        try:
+            sp = sun_position(lat, lon, when)
+            mi = moon_illumination(when)
+            res = {}
+            res.update(sp)
+            res.update(mi)
+            return res
+        except Exception:
+            return {}
