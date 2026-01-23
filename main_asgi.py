@@ -1784,16 +1784,33 @@ def _estado_impl():
     ubicacion_manual = None
     try:
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+            elevation_cfg = None
             for line in f:
                 if "latitud" in line.lower():
                     latitud = float(line.split(":")[-1].strip())
                 if "longitud" in line.lower():
                     longitud = float(line.split(":")[-1].strip())
+                if any(x in line.lower() for x in ("elevacion", "elevation", "altitud", "altura")):
+                    try:
+                        elevation_cfg = float(line.split(":")[-1].strip())
+                    except Exception:
+                        elevation_cfg = None
                 if "ubicacion" in line.lower():
                     ubicacion_manual = line.split(":", 1)[-1].strip()
         if latitud is not None and longitud is not None:
-            manager.set_manual_coordinates(latitud, longitud, label=ubicacion_manual)
+            # pasar elevation si existe
+            try:
+                manager.set_manual_coordinates(latitud, longitud, label=ubicacion_manual, elevation=elevation_cfg)
+            except TypeError:
+                manager.set_manual_coordinates(latitud, longitud, label=ubicacion_manual)
             origen_ubicacion = "manual"
+            # exponer altitud/lelevation en indices para que sea fácil de encontrar
+            if elevation_cfg is not None:
+                try:
+                    indices["elevation_m"] = round(float(elevation_cfg), 3)
+                    indices["altitud_m"] = round(float(elevation_cfg), 3)
+                except Exception:
+                    pass
     except Exception:
         pass
 
