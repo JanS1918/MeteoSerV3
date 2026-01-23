@@ -197,6 +197,131 @@
         </div>
     </div>
 
+    <!-- Animación del arco solar: recorrido automático del sol y la luna -->
+    <script>
+    (function(){
+        // Posicionamiento limpio y astronómico: sol entre amanecer->atardecer, luna entre atardecer->siguiente amanecer
+        try {
+            const svgReady = () => document.querySelector('svg.solar-arc') && document.getElementById('solar-arc-top');
+
+            function parseTimeToToday(timeStr){
+                if (!timeStr) return null;
+                try {
+                    if (typeof timeStr === 'number'){
+                        const n = Number(timeStr);
+                        const ms = n > 1e12 ? n : (n < 1e12 ? n * 1000 : n);
+                        return new Date(ms);
+                    }
+                    const s = String(timeStr).trim();
+                    const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+                    if (m){
+                        const now = new Date(); const hh = Number(m[1]); const mm = Number(m[2]); const ss = m[3]?Number(m[3]):0;
+                        return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, ss);
+                    }
+                    const d = new Date(s); return Number.isNaN(d.getTime())? null : d;
+                } catch(e){ return null; }
+            }
+
+            function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+
+            function placeOnPath(path, el, frac, reverse=false){
+                try{
+                    const len = path.getTotalLength();
+                    const t = reverse ? (1 - frac) : frac;
+                    const pt = path.getPointAtLength(t * len);
+                    el.setAttribute('cx', pt.x);
+                    el.setAttribute('cy', pt.y);
+                }catch(e){/* ignore */}
+            }
+
+            function useBestTimes(){
+                const idx = window._lastSolarIndices || {};
+                // prefer server astronomical fields
+                let amanecer = idx.amanecer_astronomico || idx.amanecer_hibrido || idx.amanecer;
+                let atardecer = idx.atardecer_astronomico || idx.atardecer_hibrido || idx.atardecer;
+                // labels last
+                const txtRise = (document.getElementById('hero-sunrise')||{}).textContent || '';
+                const txtSet = (document.getElementById('hero-sunset')||{}).textContent || '';
+                if ((!amanecer || amanecer === '--:--') && txtRise && txtRise !== '--:--') amanecer = txtRise;
+                if ((!atardecer || atardecer === '--:--') && txtSet && txtSet !== '--:--') atardecer = txtSet;
+                return { amanecer: parseTimeToToday(amanecer), atardecer: parseTimeToToday(atardecer) };
+            }
+
+            function computeFractions(amanecer, atardecer){
+                const now = new Date();
+                if (!amanecer || !atardecer) return { sunFrac: NaN, moonFrac: NaN, dayDurationMs: NaN };
+
+                // normalize to today's dates
+                const sunrise = new Date(amanecer.getFullYear(), amanecer.getMonth(), amanecer.getDate(), amanecer.getHours(), amanecer.getMinutes(), amanecer.getSeconds()).getTime();
+                const sunset = new Date(atardecer.getFullYear(), atardecer.getMonth(), atardecer.getDate(), atardecer.getHours(), atardecer.getMinutes(), atardecer.getSeconds()).getTime();
+                const nowt = now.getTime();
+
+                // Sun fraction: between sunrise and sunset (today). If sunset <= sunrise assume sunset next day (polar/edge cases).
+                let s = sunrise, e = sunset;
+                if (e <= s) e = e + 24*3600*1000;
+                const sunFracRaw = (nowt - s) / (e - s);
+                const sunFrac = clamp01(sunFracRaw);
+
+                // Moon fraction: compute night segment that contains 'now'
+                // Define nightStart and nightEnd so that nightStart < nightEnd and now is between them when it's night.
+                let nightStart, nightEnd;
+                if (nowt >= s && nowt <= e){
+                    // day time: moon fraction based on previous night (optional). We'll place moon along mirror using previous night fraction.
+                    nightStart = e - 24*3600*1000; // yesterday sunset
+                    nightEnd = s; // today's sunrise
+                } else {
+                    if (nowt > e){
+                        // after today's sunset -> night is from today's sunset to tomorrow's sunrise
+                        nightStart = e;
+                        nightEnd = s + 24*3600*1000;
+                    } else {
+                        // before today's sunrise -> night is from yesterday's sunset to today's sunrise
+                        nightStart = e - 24*3600*1000;
+                        nightEnd = s;
+                    }
+                }
+                const moonFracRaw = (nowt - nightStart) / (nightEnd - nightStart);
+                const moonFrac = clamp01(moonFracRaw);
+
+                const dayDurationMs = e - s;
+                return { sunFrac, moonFrac, dayDurationMs };
+            }
+
+            function formatDuration(ms){
+                if (!ms || !isFinite(ms)) return '--';
+                const mins = Math.round(ms/60000);
+                const h = Math.floor(mins/60); const m = mins%60;
+                return (h>0? (h+'h '):'') + (m+'m');
+            }
+
+            async function updatePositions(){
+                if (!svgReady()) return;
+                const top = document.getElementById('solar-arc-top');
+                const mirror = document.querySelector('.solar-arc__path--mirror') || document.getElementById('solar-arc-mirror');
+                const sun = document.getElementById('solar-arc-sun');
+                const moon = document.getElementById('lunar-arc-moon');
+                const durEl = document.getElementById('hero-solar-duration');
+                if (!top || !sun || !mirror || !moon) return;
+
+                const times = useBestTimes();
+                const { sunFrac, moonFrac, dayDurationMs } = computeFractions(times.amanecer, times.atardecer);
+
+                // place elements (always clamp on path so they never leave the arc)
+                if (!Number.isNaN(sunFrac)) placeOnPath(top, sun, sunFrac, false);
+                if (!Number.isNaN(moonFrac)) placeOnPath(mirror, moon, moonFrac, true);
+
+                // show duration text if possible
+                if (durEl) durEl.textContent = isFinite(dayDurationMs) ? formatDuration(dayDurationMs) : '--';
+            }
+
+            if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(updatePositions,200);
+            else window.addEventListener('DOMContentLoaded', ()=>setTimeout(updatePositions,200));
+            // update every 1s for responsiveness, can be relaxed later
+            setInterval(updatePositions, 1000);
+
+        } catch (e) { console.error('Solar animation error', e); }
+    })();
+    </script>
     <div class="overlay" id="overlay-noticias">
         <div class="overlay-panel">
             <header class="overlay-header">
