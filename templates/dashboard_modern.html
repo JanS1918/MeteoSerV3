@@ -53,7 +53,7 @@
             </article>
 
             <article class="hero-card hero-card--compact">
-                <div class="hero-card__solar-arc" aria-hidden="true">
+                <div class="hero-card__solar-arc" aria-hidden="true" style="position:relative;">
                     <svg class="solar-arc" viewBox="0 0 360 320" preserveAspectRatio="xMidYMid meet" role="presentation">
                         <!-- Arco solar (superior) -->
                         <path id="solar-arc-top" class="solar-arc__path" d="M25 190 Q180 38 335 190" />
@@ -63,6 +63,17 @@
                         <!-- Luna: usar el arco inferior existente como reflejo -->
                         <circle id="lunar-arc-moon" class="lunar-arc__moon" cx="273" cy="275" r="7" />
                     </svg>
+
+                    <!-- Radiación (izq) y UV (dcha) posicionadas respecto al panel del arco solar -->
+                    <div id="hero-radiation-meta" style="position:absolute; left:12px; top:8px; font-size:12px; color:var(--muted);">
+                        <strong style="font-weight:600;">Radiación:</strong>
+                        <span id="hero-radiation">-- W/m²</span>
+                    </div>
+                    <div id="hero-uv-meta" style="position:absolute; right:12px; top:8px; font-size:12px; color:var(--muted); text-align:right;">
+                        <strong style="font-weight:600;">UV:</strong>
+                        <span id="hero-uv">--</span>
+                    </div>
+
                     <div class="hero-card__sun hero-card__sun--left"><span id="hero-sunrise">--:--</span></div>
                     <div class="hero-card__sun hero-card__sun--right"><span id="hero-sunset">--:--</span></div>
                 </div>
