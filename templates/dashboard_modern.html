@@ -17,6 +17,15 @@
             <div>
                 <p class="hero-eyebrow">Observatorio domestico</p>
                 <h1 class="hero-title">MeteoSer Central</h1>
+                <div id="hero-moon-phase" class="hero-moon-phase" style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                    <svg id="header-moon-svg" width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+                        <circle id="header-moon" cx="18" cy="18" r="9" fill="#ebebff"></circle>
+                        <circle id="header-moon-shadow" cx="18" cy="18" r="9" fill="#0b1220"></circle>
+                    </svg>
+                    <div style="font-size:13px;color:var(--muted);">
+                        <div id="header-moon-name">—</div>
+                    </div>
+                </div>
                 <p id="ubicacion" class="hero-location">Cargando ubicacion...</p>
             </div>
             <div class="hero-clock" id="fecha-hora">--</div>
@@ -315,7 +324,7 @@
                 // fase lunar: calcular y posicionar la sombra
                 try {
                     const shadow = document.getElementById('lunar-arc-shadow');
-                    if (shadow && moon) {
+                        if (shadow && moon) {
                         // calcular fase (0=new, 0.5=full, 1=next new)
                         function moonPhaseFraction(d){
                             const dt = new Date(d);
@@ -347,6 +356,27 @@
                         shadow.setAttribute('cx', shadowCx);
                         shadow.setAttribute('cy', moonCy);
                         shadow.setAttribute('r', r);
+
+                        // actualizar pequeño icono y nombre en header
+                        try {
+                            const headerShadow = document.getElementById('header-moon-shadow');
+                            const headerMoon = document.getElementById('header-moon');
+                            const headerName = document.getElementById('header-moon-name');
+                            if (headerShadow && headerMoon) {
+                                const hr = Number(headerMoon.getAttribute('r')) || 9;
+                                const hMaxOffset = hr * 2.2;
+                                const hOffset = (1 - illum) * hMaxOffset;
+                                const hSide = side;
+                                const hCx = 18 + hSide * hOffset;
+                                headerShadow.setAttribute('cx', hCx);
+                                headerShadow.setAttribute('cy', 18);
+                            }
+                            if (headerName) {
+                                const phaseNames = ['Luna nueva','Creciente','Cuarto creciente','Gibosa creciente','Luna llena','Gibosa menguante','Cuarto menguante','Creciente menguante'];
+                                const idx = Math.floor((phase + 0.0625) / 0.125) % 8;
+                                headerName.textContent = phaseNames[idx] || '—';
+                            }
+                        } catch(e){}
                     }
                 } catch(e){/* ignore */}
 
