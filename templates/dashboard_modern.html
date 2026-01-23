@@ -62,6 +62,8 @@
 
                         <!-- Luna: usar el arco inferior existente como reflejo -->
                         <circle id="lunar-arc-moon" class="lunar-arc__moon" cx="273" cy="275" r="9.8" />
+                        <!-- sombra para representar la fase lunar: se posiciona por JS respecto a la luna -->
+                        <circle id="lunar-arc-shadow" class="lunar-arc__shadow" cx="273" cy="275" r="9.8" fill="#0b1220" />
                     </svg>
                     <div class="hero-card__sun hero-card__sun--left"><span id="hero-sunrise">--:--</span></div>
                     <div class="hero-card__sun hero-card__sun--right"><span id="hero-sunset">--:--</span></div>
@@ -309,6 +311,44 @@
                 // place elements (always clamp on path so they never leave the arc)
                 if (!Number.isNaN(sunFrac)) placeOnPath(top, sun, sunFrac, false);
                 if (!Number.isNaN(moonFrac)) placeOnPath(mirror, moon, moonFrac, true);
+
+                // fase lunar: calcular y posicionar la sombra
+                try {
+                    const shadow = document.getElementById('lunar-arc-shadow');
+                    if (shadow && moon) {
+                        // calcular fase (0=new, 0.5=full, 1=next new)
+                        function moonPhaseFraction(d){
+                            const dt = new Date(d);
+                            const yy = dt.getFullYear();
+                            let mm = dt.getMonth() + 1;
+                            let dd = dt.getDate() + dt.getHours()/24 + dt.getMinutes()/1440 + dt.getSeconds()/86400;
+                            let y = yy;
+                            if (mm < 3) { y--; mm += 12; }
+                            ++mm;
+                            const c = 365.25 * y;
+                            const e = 30.6 * mm;
+                            const jd = c + e + dd - 694039.09; // days since some epoch
+                            const b = jd / 29.5305882;
+                            const phase = b - Math.floor(b);
+                            return phase; // 0..1
+                        }
+                        const phase = moonPhaseFraction(new Date());
+                        // illuminated fraction (0..1)
+                        const illum = (1 - Math.cos(2 * Math.PI * phase)) / 2;
+                        // distance to move the dark disc: when illum==0 -> cover center; illum==1 -> move far away
+                        const r = Number(moon.getAttribute('r')) || 9.8;
+                        const maxOffset = r * 2.4;
+                        const offset = (1 - illum) * maxOffset;
+                        const side = (phase <= 0.5) ? 1 : -1; // waxing: lit on right -> shadow moves right to reveal right side
+                        const moonCx = parseFloat(moon.getAttribute('cx')) || 0;
+                        const moonCy = parseFloat(moon.getAttribute('cy')) || 0;
+                        // shadow positioned relative to moon
+                        const shadowCx = moonCx + side * offset;
+                        shadow.setAttribute('cx', shadowCx);
+                        shadow.setAttribute('cy', moonCy);
+                        shadow.setAttribute('r', r);
+                    }
+                } catch(e){/* ignore */}
 
                 // show duration text if possible
                 if (durEl) durEl.textContent = isFinite(dayDurationMs) ? formatDuration(dayDurationMs) : '--';
