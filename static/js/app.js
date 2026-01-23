@@ -853,7 +853,71 @@ function updateSolar(indices) {
     // Graphic overlay removed; preserve indices for calculations and uses
     window._lastSolarIndices = indices;
 }
-    // placeSolarOverlay and renderSolarSVG removed: graphic rendering of the arc is disabled
+// Auxiliares para etiquetas en arcos
+function clearSvgGroup(group) {
+    while (group && group.firstChild) group.removeChild(group.firstChild);
+}
+
+function renderArcHourLabels(indices) {
+    const topPath = document.getElementById('solar-arc-top');
+    const mirrorPath = document.querySelector('.solar-arc__path--mirror');
+    const topGroup = document.getElementById('solar-arc-top-labels');
+    const mirrorGroup = document.getElementById('solar-arc-mirror-labels');
+    if (!topPath || !mirrorPath || !topGroup || !mirrorGroup) return;
+    // preferir astronómicas
+    const amanecerStr = indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? null;
+    const atardecerStr = indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? null;
+    const amanecer = parseTimeToToday(amanecerStr);
+    const atardecer = parseTimeToToday(atardecerStr);
+    clearSvgGroup(topGroup);
+    clearSvgGroup(mirrorGroup);
+    if (amanecer && atardecer) {
+        const total = atardecer.getTime() - amanecer.getTime();
+        if (total > 0) {
+            const len = topPath.getTotalLength();
+            // etiquetas cada hora (redondeadas dentro del intervalo)
+            const startHour = Math.ceil(amanecer.getHours());
+            const endHour = Math.floor(atardecer.getHours());
+            for (let h = startHour; h <= endHour; h++) {
+                const d = new Date(amanecer.getFullYear(), amanecer.getMonth(), amanecer.getDate(), h, 0, 0);
+                if (d < amanecer || d > atardecer) continue;
+                const frac = (d.getTime() - amanecer.getTime()) / total;
+                const pt = topPath.getPointAtLength(frac * len);
+                const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                txt.setAttribute('x', pt.x);
+                txt.setAttribute('y', (pt.y - 8).toFixed(2));
+                txt.setAttribute('class', 'solar-arc__hour solar-arc__hour--day');
+                txt.textContent = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                topGroup.appendChild(txt);
+            }
+        }
+    }
+    // Night labels: from sunset to next day's sunrise
+    const sunset = atardecer;
+    const nextSunrise = amanecer ? new Date(amanecer.getTime() + 24*3600*1000) : null;
+    if (sunset && nextSunrise) {
+        let totalN = nextSunrise.getTime() - sunset.getTime();
+        if (totalN > 0) {
+            const lenM = mirrorPath.getTotalLength();
+            const start = new Date(sunset.getTime());
+            start.setMinutes(0,0,0);
+            start.setHours(sunset.getHours() + 1);
+            for (let t = new Date(start); t.getTime() < nextSunrise.getTime(); t.setHours(t.getHours() + 1)) {
+                const frac = (t.getTime() - sunset.getTime()) / totalN;
+                const tt = Math.max(0, Math.min(1, frac));
+                const pt = mirrorPath.getPointAtLength(tt * lenM);
+                const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                txt.setAttribute('x', pt.x);
+                txt.setAttribute('y', (pt.y + 14).toFixed(2));
+                txt.setAttribute('class', 'solar-arc__hour solar-arc__hour--night');
+                txt.textContent = t.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                mirrorGroup.appendChild(txt);
+            }
+        }
+    }
+}
+
+// placeSolarOverlay and renderSolarSVG removed: graphic rendering of the arc is disabled
 function placeSolarOverlay() { /* gráfico eliminado */ }
 
 function renderSolarSVG(arcRect) { /* gráfico eliminado */ }
@@ -896,8 +960,9 @@ function parseTimeToToday(timeStr) {
 function computeSolarFraction(indices) {
     try {
         if (!indices) return NaN;
-        const amanecer = indices.amanecer || indices.amanecer_hibrido || indices.amanecer_astronomico || indices.amanecer_astronomico || null;
-        const atardecer = indices.atardecer || indices.atardecer_hibrido || indices.atardecer_astronomico || null;
+        // Preferir horas astronómicas si están disponibles, luego híbridas y por último etiquetas genéricas
+        const amanecer = indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? null;
+        const atardecer = indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? null;
         const start = parseTimeToToday(amanecer);
         const end = parseTimeToToday(atardecer);
         if (!start || !end) return NaN;
@@ -910,6 +975,66 @@ function computeSolarFraction(indices) {
         return NaN;
     }
 }
+
+// Posicionar y escalar sol/luna según fracción a lo largo del arco.
+function updateSolarPositions() {
+    try {
+        const top = document.getElementById('solar-arc-top');
+        const mirror = document.querySelector('.solar-arc__path--mirror');
+        const sun = document.getElementById('solar-arc-sun');
+        const moon = document.getElementById('lunar-arc-moon');
+        if (!top || !mirror || !sun || !moon) return;
+
+        const indices = window._lastSolarIndices || lastEstado?.indices || {};
+        const sunFrac = computeSolarFraction(indices);
+        // moon fraction: approximate using sunrise/sunset span but for night segment
+        let moonFrac = NaN;
+        try {
+            const amanecer = parseTimeToToday(indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? null);
+            const atardecer = parseTimeToToday(indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? null);
+            if (amanecer && atardecer) {
+                // compute night segment containing now
+                const now = new Date().getTime();
+                let s = atardecer.getTime();
+                let e = amanecer.getTime();
+                if (e <= s) e += 24*3600*1000;
+                // if now after sunset use that night, if before sunrise use previous night
+                let nowt = new Date().getTime();
+                if (nowt < amanecer.getTime()) nowt += 0; // before today's sunrise -> now between yesterday sunset and today sunrise
+                const raw = (nowt - s) / (e - s);
+                moonFrac = Math.max(0, Math.min(1, raw));
+            }
+        } catch (e) { moonFrac = NaN; }
+
+        function placeAndScale(path, el, frac, reverse=false) {
+            try {
+                const len = path.getTotalLength();
+                const t = reverse ? (1 - frac) : frac;
+                const pt = path.getPointAtLength(t * len);
+                el.setAttribute('cx', pt.x);
+                el.setAttribute('cy', pt.y);
+                // scale: smaller at ends, larger at center
+                const minScale = 0.6;
+                const peak = 1.0;
+                const factor = Math.max(0, 1 - 4 * Math.pow(frac - 0.5, 2));
+                const scale = minScale + factor * (peak - minScale);
+                // preserve base radius in data attribute
+                let baseR = Number(el.dataset.baseR || el.getAttribute('r') || 0);
+                if (!baseR) baseR = Number(el.getAttribute('r')) || 8;
+                el.dataset.baseR = String(baseR);
+                el.setAttribute('r', (baseR * scale).toFixed(2));
+            } catch (e) { /* ignore */ }
+        }
+
+        if (!Number.isNaN(sunFrac)) placeAndScale(top, sun, sunFrac, false);
+        if (!Number.isNaN(moonFrac)) placeAndScale(mirror, moon, moonFrac, true);
+    } catch (e) {
+        // ignore
+    }
+}
+
+// Ejecutar cada segundo para mantener sincronía con el reloj
+setInterval(updateSolarPositions, 1000);
 
 // Reposicionar al cargar estado y al cambiar tamaño de ventana
 window.addEventListener('resize', () => {
@@ -1339,8 +1464,9 @@ async function loadEstado() {
         window.addEventListener('devicemotion', event => {
             const accel = event.accelerationIncludingGravity || event.acceleration;
             if (!accel) return;
-            const ax = accel.x || 0;
-            const ay = accel.y || 0;
+            // Mostrar preferentemente las horas astronómicas cuando estén disponibles
+            setText('hero-sunrise', indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? '--:--');
+            setText('hero-sunset', indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? '--:--');
             const az = accel.z || 0;
             const magnitude = Math.sqrt(ax * ax + ay * ay + az * az);
             const now = Date.now();
@@ -1354,6 +1480,11 @@ function initOverlays() {
     const openButtons = document.querySelectorAll('[data-overlay-target]');
     openButtons.forEach(btn => {
         btn.addEventListener('click', () => {
+            // Actualizar duración de la noche: usar índice si existe, sino derive de 24h - duracion día
+            const durNoche = indices.duracion_noche_h?.valor ?? indices.duracion_noche_h ?? (typeof duracion === 'number' ? (24 - Number(duracion)) : null);
+            setText('hero-night-duration', durNoche !== undefined && durNoche !== null ? `${fmt(durNoche)} h` : '--');
+            // Renderizar etiquetas horarias en los arcos con base en horas astronómicas
+            try { renderArcHourLabels(indices); } catch (e) { /* ignore */ }
             const id = btn.getAttribute('data-overlay-target');
             const overlay = document.getElementById(id);
             if (!overlay) return;

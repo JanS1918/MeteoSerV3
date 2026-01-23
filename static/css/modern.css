@@ -284,6 +284,17 @@ body {
 #hero-night-duration {
     color: rgba(100, 170, 255, 0.95); /* mismo tono que .solar-arc__path--mirror */
 }
+
+/* Etiquetas horarias sobre arcos */
+.solar-arc__labels text {
+    font-size: 10px;
+    font-family: inherit;
+    fill: rgba(255,255,255,0.9);
+    text-anchor: middle;
+    pointer-events: none;
+}
+.solar-arc__labels text.solar-arc__hour--day { fill: rgba(255, 230, 160, 0.95); }
+.solar-arc__labels text.solar-arc__hour--night { fill: rgba(100, 170, 255, 0.95); }
 .solar-arc--night .solar-arc__sun {
     opacity: 0;
 }
