@@ -2186,6 +2186,117 @@ def _estado_impl():
     except Exception:
         # no bloquear respuesta si falla el cálculo
         pass
+    # ---- Cálculo PMV/PPD (Fanger) usando pythermalcomfort si está disponible ----
+    try:
+        # recopilar entradas desde sensores/indices
+        ta = None
+        rh = None
+        vel = None
+        rad = None
+        # sensores pueden venir en 'sensores' dict
+        try:
+            provided = sensores if 'sensores' in locals() else system.sensores
+        except Exception:
+            provided = system.sensores
+        # nombres comunes
+        for key in ('temperatura', 'temp', 'tempc', 'air_temperature', 'ta'):
+            if key in provided and provided.get(key) is not None:
+                try:
+                    ta = float(provided.get(key))
+                    break
+                except Exception:
+                    ta = None
+        for key in ('humedad', 'rh', 'humidity', 'hum'):
+            if key in provided and provided.get(key) is not None:
+                try:
+                    rh = float(provided.get(key))
+                    break
+                except Exception:
+                    rh = None
+        for key in ('viento', 'wind', 'wind_speed', 'wind_m_s', 'wind_kmh'):
+            if key in provided and provided.get(key) is not None:
+                try:
+                    v = float(provided.get(key))
+                    # si está en km/h convertir a m/s
+                    if 'kmh' in key or (v > 50 and 'wind_kmh' not in key and 'kmh' in key):
+                        v = v / 3.6
+                    vel = v
+                    break
+                except Exception:
+                    vel = None
+        for key in ('radiacion', 'radiation', 'rad', 'solarradiation'):
+            if key in provided and provided.get(key) is not None:
+                try:
+                    rad = float(provided.get(key))
+                    break
+                except Exception:
+                    rad = None
+        # sensible defaults
+        if ta is None:
+            ta = None
+        if rh is None:
+            rh = 50.0
+        if vel is None:
+            vel = 0.5
+        if rad is None:
+            rad = 0.0
+
+        # estimar MRT a partir de radiación: usar estimador físico (más robusto)
+        mrt = None
+        try:
+            from core.utils.thermal import mrt_from_radiation
+            mrt = mrt_from_radiation(ta, rad, absorptivity=0.7, epsilon=0.95)
+            # fallback muy simple si la función no devolviese nada
+            if mrt is None and ta is not None:
+                mrt = float(ta) + (float(rad) * 0.02)
+        except Exception:
+            try:
+                mrt = float(ta) + (float(rad) * 0.02) if ta is not None else None
+            except Exception:
+                mrt = None
+
+        # defaults para metabolismo y ropa (configurables más adelante)
+        met = 1.2  # met
+        # ropa basada en temperatura (prioriza temperatura sobre estación)
+        clo = 0.5
+        try:
+            ttmp = float(ta) if ta is not None else None
+            if ttmp is not None:
+                if ttmp <= 0:
+                    clo = 1.3
+                elif ttmp <= 10:
+                    clo = 1.0
+                elif ttmp <= 16:
+                    clo = 0.8
+                elif ttmp <= 24:
+                    clo = 0.6
+                elif ttmp <= 30:
+                    clo = 0.4
+                else:
+                    clo = 0.3
+        except Exception:
+            clo = 0.5
+
+        try:
+            from pythermalcomfort.models import pmv_ppd
+            # pmv_ppd expects ta, tr, vel (m/s), rh (%), met, clo
+            if ta is not None and mrt is not None:
+                res = pmv_ppd(ta=ta, tr=mrt, vel=vel, rh=rh, met=met, clo=clo)
+                # res is dict with 'pmv' and 'ppd'
+                pmv_val = res.get('pmv')
+                ppd_val = res.get('ppd')
+                if pmv_val is not None:
+                    indices['pmv'] = {'valor': round(float(pmv_val), 3), 'explicacion': 'PMV (Fanger)'}
+                if ppd_val is not None:
+                    indices['ppd'] = {'valor': round(float(ppd_val), 1), 'explicacion': 'PPD (Fanger)'}
+                indices['pmv_met'] = met
+                indices['pmv_clo'] = clo
+                indices['pmv_mrt_estimator'] = 'rad_mrt_physical_absorbed_v1'
+        except Exception:
+            # fallback: no pythermalcomfort -> no change
+            pass
+    except Exception:
+        pass
     contexto = _build_contexto(sensores, indices)
     ambiental = MotorAmbiental().analizar(contexto)
     confort = MotorConfort().analizar(contexto)
