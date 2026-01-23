@@ -1,6 +1,8 @@
 import math
 import datetime
 from typing import Dict
+from core.indices import registry as _indices_registry
+from core.indices.registry import register_index
 
 def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float) -> float:
     """
@@ -218,7 +220,29 @@ def indice_entalpia_kjkg(temp_c: float, humedad: float, presion_kpa: float = 101
 
 
 def indice_wbgt(temp_c: float, humedad: float, radiacion: float = 0.0, viento_kmh: float = 0.0) -> float:
-    # WBGT aproximado con bulbo húmedo y globo estimado
+    # Preferir una implementación registrada (p. ej. pythermalcomfort)
+    impl = _indices_registry.get_index_impl("wbgt")
+    if impl:
+        try:
+            # Try common signatures
+            # pythermalcomfort usually expects tdb, tr, v (m/s), rh
+            try:
+                res = impl(tdb=temp_c, rh=humedad, v=viento_kmh / 3.6)
+            except TypeError:
+                try:
+                    res = impl(temp_c, humedad, radiacion, viento_kmh)
+                except Exception:
+                    res = impl(temp_c, humedad, viento_kmh)
+            if isinstance(res, dict):
+                val = res.get("wbgt") or res.get("WBGT")
+                if val is not None:
+                    return float(val)
+            else:
+                return float(res)
+        except Exception:
+            pass
+
+    # Fallback: WBGT aproximado con bulbo húmedo y globo estimado
     tw: float = indice_bulbo_humedo_c(temp_c, humedad)
     tg: float = temp_c + (radiacion / 1000.0) * 12.0 - (viento_kmh * 0.5)
     tg: float = max(temp_c - 5, min(temp_c + 20, tg))
@@ -226,11 +250,42 @@ def indice_wbgt(temp_c: float, humedad: float, radiacion: float = 0.0, viento_km
 
 
 def indice_pmv_ppd_simple(temp_c: float, humedad: float, viento_kmh: float = 0.0) -> Dict[str, float]:
-    # Aproximación simple basada en temperatura/HR/viento
+    # Preferir una implementación registrada (p. ej. pythermalcomfort.pm v_ppd)
+    impl = _indices_registry.get_index_impl("pmv_ppd")
+    if impl:
+        try:
+            # try common signatures
+            try:
+                v_ms = float(viento_kmh) / 3.6
+                res = impl(ta=float(temp_c), tr=float(temp_c), vel=float(v_ms), rh=float(humedad), met=1.2, clo=0.5)
+            except TypeError:
+                try:
+                    res = impl(float(temp_c), float(temp_c), float(v_ms), float(humedad))
+                except Exception:
+                    res = impl(float(temp_c), float(humedad), float(viento_kmh))
+            if isinstance(res, dict):
+                pmv_val = res.get("pmv") or res.get("PMV")
+                ppd_val = res.get("ppd") or res.get("PPD")
+                if pmv_val is not None and ppd_val is not None:
+                    return {"pmv": round(float(pmv_val), 2), "ppd": round(float(ppd_val), 1)}
+            else:
+                # If library returns a single pmv value, estimate ppd
+                pmv_val = float(res)
+                ppd_val = 100.0 - 95.0 * math.exp(-0.03353 * pmv_val ** 4 - 0.2179 * pmv_val ** 2)
+                return {"pmv": round(pmv_val, 2), "ppd": round(ppd_val, 1)}
+        except Exception:
+            pass
+
+    # Fallback: Aproximación simple basada en temperatura/HR/viento
     v: float = viento_kmh / 3.6
     pmv: float = (temp_c - 24) / 4 + (humedad - 50) / 100 - v * 0.2
     pmv: float = max(-3.0, min(3.0, pmv))
     ppd: float = 100.0 - 95.0 * math.exp(-0.03353 * pmv ** 4 - 0.2179 * pmv ** 2)
+    # Registrar esta implementación como fallback para que el registry la conozca
+    try:
+        register_index("pmv_ppd", lambda ta, tr, vel, rh, met=1.2, clo=0.5: {"pmv": pmv, "ppd": ppd}, priority=10)
+    except Exception:
+        pass
     return {"pmv": round(pmv, 2), "ppd": round(ppd, 1)}
 
 

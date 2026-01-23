@@ -10,3 +10,4 @@ pyttsx3
 httpx
 requests
 astral
+pythermalcomfort

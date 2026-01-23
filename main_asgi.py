@@ -105,6 +105,8 @@ try:
     from core.indices.index_catalog import INDEX_CATALOG
 except Exception:
     INDEX_CATALOG = {}
+from core.indices.auto_updater import start_auto_index_updater
+from core.indices import registry as indices_registry
 
 
 def _is_test_env() -> bool:
@@ -150,6 +152,43 @@ if "app" not in globals():
     app = FastAPI()
 
 _require_official_start()
+
+
+@app.on_event("startup")
+async def _start_index_autoupdater() -> None:
+    try:
+        start_auto_index_updater(app)
+    except Exception as exc:
+        logging.getLogger(__name__).warning("No se pudo iniciar index auto-updater: %s", exc)
+
+
+@app.post("/admin/indices/audit")
+async def admin_trigger_index_audit(request: Request) -> JSONResponse:
+    """Endpoint admin para forzar auditoría de índices y devolver el estado generado."""
+    try:
+        # Ejecutar auditoría script
+        import subprocess
+        tools_dir = pathlib.Path(__file__).resolve().parent / "tools"
+        script = tools_dir / "indices_audit.py"
+        try:
+            subprocess.run([sys.executable, str(script)], check=False)
+        except Exception:
+            pass
+        # Actualizar registro y estado
+        try:
+            indices_registry.update_registry_and_write_status()
+        except Exception:
+            pass
+        # Leer estado
+        status_file = pathlib.Path(__file__).resolve().parents[0] / "data" / "indices_registry_status.json"
+        if status_file.exists():
+            content = json.loads(status_file.read_text(encoding="utf-8"))
+        else:
+            content = {"error": "status file not found"}
+        return JSONResponse(content)
+    except Exception as exc:
+        logging.getLogger(__name__).exception("Error en admin_trigger_index_audit")
+        return JSONResponse({"error": str(exc)}, status_code=500)
 
 MAX_SENSOR_FRESHNESS_SECONDS = 300
 SENSOR_SMOOTHING_ALPHA = 0.5
