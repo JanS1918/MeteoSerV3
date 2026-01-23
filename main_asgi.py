@@ -2106,6 +2106,32 @@ def _estado_impl():
     indices["latitud"] = latitud
     indices["longitud"] = longitud
     indices["origen_ubicacion"] = origen_ubicacion
+    # Añadir posiciones astronómicas aproximadas (sol y luna) calculadas en servidor
+    try:
+        from core.utils.daynight import sun_position, moon_illumination
+
+        try:
+            now_dt = datetime.datetime.now().astimezone()
+            sunpos = sun_position(latitud, longitud, now_dt)
+            if isinstance(sunpos, dict):
+                if sunpos.get('sun_azimuth') is not None:
+                    indices['sun_azimuth'] = round(float(sunpos.get('sun_azimuth')), 3)
+                if sunpos.get('sun_altitude') is not None:
+                    indices['sun_altitude'] = round(float(sunpos.get('sun_altitude')), 3)
+        except Exception:
+            pass
+        try:
+            m = moon_illumination(now_dt)
+            if isinstance(m, dict):
+                if m.get('moon_illumination') is not None:
+                    indices['moon_illumination'] = m.get('moon_illumination')
+                if m.get('moon_age_days') is not None:
+                    indices['moon_age_days'] = m.get('moon_age_days')
+        except Exception:
+            pass
+    except Exception:
+        # no bloquear respuesta si falla el cálculo
+        pass
     contexto = _build_contexto(sensores, indices)
     ambiental = MotorAmbiental().analizar(contexto)
     confort = MotorConfort().analizar(contexto)

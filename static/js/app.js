@@ -993,6 +993,20 @@ function updateSolarPositions() {
             const lat = Number(indices.latitud ?? indices.latitude ?? indices.lat) || null;
             const lon = Number(indices.longitud ?? indices.longitude ?? indices.lon) || null;
             const now = new Date();
+            // Preferir campos calculados en servidor si existen
+            if (indices && (indices.sun_azimuth !== undefined || indices.sun_altitude !== undefined)) {
+                try {
+                    const sDeg = Number(indices.sun_azimuth);
+                    if (!Number.isNaN(sDeg)) {
+                        let sFrac = (sDeg - 90) / 180;
+                        sFrac = Math.max(0, Math.min(1, sFrac));
+                        sunFrac = sFrac;
+                        const sunEl = sun;
+                        const alt = Number(indices.sun_altitude);
+                        if (sunEl) sunEl.style.opacity = (!Number.isNaN(alt) && alt > 0) ? '1' : '0.25';
+                    }
+                } catch (e) { /* fallback to other methods */ }
+            }
             if (window.SunCalc && lat && lon) {
                 // Sun
                 try {
