@@ -10,6 +10,8 @@ class LocationEngine:
         self.lat = None
         self.lon = None
         self.manual = False
+        self.label = None
+        self.elevation = None
         if base_dir is None:
             base_dir = Path(__file__).resolve().parents[2]
         self._data_path = base_dir / "data" / "last_location.json"
@@ -24,24 +26,46 @@ class LocationEngine:
             self.lat = data.get("lat")
             self.lon = data.get("lon")
             self.manual = bool(data.get("manual", False))
+            self.label = data.get("label")
+            self.elevation = data.get("elevation")
         except Exception:
             pass
 
     def _save(self):
         try:
-            payload = {"lat": self.lat, "lon": self.lon, "manual": self.manual}
+            payload = {
+                "lat": self.lat,
+                "lon": self.lon,
+                "manual": self.manual,
+                "label": self.label,
+                "elevation": self.elevation,
+            }
             self._data_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         except Exception:
             pass
-
-    def set_manual_coordinates(self, lat: float, lon: float):
+    
+    def set_manual_coordinates(self, lat: float, lon: float, label: str | None = None):
         self.lat = float(lat)
         self.lon = float(lon)
         self.manual = True
+        self.label = label
+        # elevation can be set later via attribute; keep for compatibility
+        self._save()
+
+    def set_manual_coordinates_with_elevation(self, lat: float, lon: float, elevation: Optional[float] = None, label: str | None = None):
+        self.lat = float(lat)
+        self.lon = float(lon)
+        self.manual = True
+        self.label = label
+        try:
+            self.elevation = float(elevation) if elevation is not None else None
+        except Exception:
+            self.elevation = None
         self._save()
 
     def clear_manual(self):
         self.manual = False
+        self.label = None
         self._save()
 
     def _estimate_lat_from_radiation(self, rad_max: float) -> float:
@@ -92,10 +116,18 @@ class LocationEngine:
 
     def get_coordinates(self, system) -> Optional[Dict[str, float]]:
         if self.manual and self.lat is not None and self.lon is not None:
-            return {"lat": self.lat, "lon": self.lon, "origen": "manual"}
+            payload = {"lat": self.lat, "lon": self.lon, "origen": "manual"}
+            if self.label:
+                payload["ubicacion"] = self.label
+            if self.elevation is not None:
+                payload["elevation"] = self.elevation
+            return payload
         estimated = self.estimate_coordinates(system)
         if estimated:
             return estimated
         if self.lat is not None and self.lon is not None:
-            return {"lat": self.lat, "lon": self.lon, "origen": "estimada"}
+            payload = {"lat": self.lat, "lon": self.lon, "origen": "estimada"}
+            if self.label:
+                payload["ubicacion"] = self.label
+            return payload
         return None

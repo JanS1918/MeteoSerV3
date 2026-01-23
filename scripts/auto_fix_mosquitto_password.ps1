@@ -30,7 +30,7 @@ $mosq_passwd = 'C:\Program Files\Mosquitto\mosquitto_passwd.exe'
 $confDir = 'C:\mosquitto\conf'
 $pwGenerated = Join-Path $confDir 'generated_password.txt'
 $pwFile = Join-Path $confDir 'passwordfile'
-$pwTmp = Join-Path $confDir 'passwordfile.tmp'
+$pwTmp = Join-Path $env:TEMP ('passwordfile.tmp.' + [guid]::NewGuid().ToString())
 
 Log "nssm: $nssm"
 Log "mosquitto_passwd: $mosq_passwd"
@@ -44,6 +44,9 @@ Get-Process -Name mosquitto -ErrorAction SilentlyContinue | ForEach-Object { Log
 
 # 4) asegurar carpeta
 New-Item -ItemType Directory -Path $confDir -Force | Out-Null
+try {
+  & 'C:\Windows\System32\icacls.exe' $confDir /grant 'NT AUTHORITY\SYSTEM:(OI)(CI)F' /grant 'BUILTIN\Administradores:(OI)(CI)F' /grant 'BUILTIN\Usuarios:(OI)(CI)M' /T 2>&1 | ForEach-Object { Log $_ }
+} catch { Log "icacls error (confDir): $_" }
 
 # 5) obtener o generar password
 if (Test-Path $pwGenerated) {
@@ -60,7 +63,7 @@ if (Test-Path $pwGenerated) {
 if (Test-Path $mosq_passwd) {
   try {
     if (Test-Path $pwTmp) { Remove-Item $pwTmp -Force -ErrorAction SilentlyContinue }
-    & $mosq_passwd -b $pwTmp meteoser $pw 2>&1 | ForEach-Object { Log $_ }
+    & $mosq_passwd -b -c $pwTmp meteoser $pw 2>&1 | ForEach-Object { Log $_ }
   } catch {
     Log "mosquitto_passwd execution failed: $_"
   }
@@ -74,10 +77,10 @@ if (Test-Path $mosq_passwd) {
 }
 
 # 7) mover .tmp a passwordfile de forma atómica y ajustar ACLs
-try {
-  Move-Item -Path $pwTmp -Destination $pwFile -Force
-  Log "Moved $pwTmp -> $pwFile"
-} catch { Log "Move-Item failed: $_"; exit 1 }
+  try {
+    Move-Item -Path $pwTmp -Destination $pwFile -Force
+    Log "Moved $pwTmp -> $pwFile"
+  } catch { Log "Move-Item failed: $_"; exit 1 }
 
 & 'C:\Windows\System32\icacls.exe' $pwFile /grant 'NT AUTHORITY\SYSTEM:F' /grant 'BUILTIN\Administradores:F' /grant 'BUILTIN\Usuarios:M' 2>&1 | ForEach-Object { Log $_ }
 & 'C:\Windows\System32\icacls.exe' 'C:\mosquitto' /grant 'NT AUTHORITY\SYSTEM:(OI)(CI)F' /grant 'BUILTIN\Administradores:(OI)(CI)F' /grant 'BUILTIN\Usuarios:(OI)(CI)M' /T 2>&1 | ForEach-Object { Log $_ }

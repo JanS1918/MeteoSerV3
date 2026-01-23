@@ -36,6 +36,7 @@ data/*.jsonl
 # Secrets
 .env
 secrets.json
+scripts/generated_password.txt
 
 # Ignore compiled python caches anywhere
 **/__pycache__/

@@ -61,7 +61,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import os
-from core.system.system_manager import SystemManager
+from core.system.singleton import get_manager, get_system
 from core.learning.learning_simulation import LearningEngine, SimulationEngine
 from core.sensors.sensor_fusion import SensorFusion
 from core.engines.autoimprovement_engine import AutoImprovementSystem
@@ -78,8 +78,8 @@ app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")
 @app.get("/dashboard.html")
 def dashboard():
     return FileResponse(os.path.join(STATIC_PATH, "dashboard_modern.html"))
-manager = SystemManager()
-system = manager.iniciar()
+manager = get_manager()
+system = get_system()
 BASE_PATH = os.path.join(os.path.dirname(__file__), '../../data')
 learning_engine = LearningEngine(BASE_PATH)
 simulation_engine = SimulationEngine(BASE_PATH, learning_engine=learning_engine)

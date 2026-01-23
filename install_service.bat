@@ -1,5 +1,11 @@
 @echo off
-sc.exe create MeteoSerBackend binPath=  C:\Windows\System32\cmd.exe /c C:\Users\kioko\Desktop\MeteoSerV3\start_service.bat start= auto
-sc.exe description MeteoSerBackend MeteoSer backend 
-sc.exe failure MeteoSerBackend reset= 30 actions= restart/60000
-net start MeteoSerBackend
+REM Instalación recomendada del servicio usando NSSM y wrapper de arranque
+REM Este script requiere privilegios de Administrador.
+
+SET REPO_ROOT=%~dp0
+pushd "%REPO_ROOT%"
+
+pwsh -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%scripts\register_service_nssm.ps1"
+
+popd
+exit /B %ERRORLEVEL%

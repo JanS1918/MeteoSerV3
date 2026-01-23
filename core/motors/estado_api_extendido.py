@@ -1,10 +1,10 @@
 from fastapi import APIRouter
-from core.system.system_manager import SystemManager
+from core.system.singleton import get_manager, get_system
 from core.meteo.meteo_engine import get_full_meteo_snapshot
 
 router = APIRouter()
-manager = SystemManager()
-system = manager.iniciar()
+manager = get_manager()
+system = get_system()
 
 @router.get("/estado")
 def obtener_estado():

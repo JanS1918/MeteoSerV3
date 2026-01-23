@@ -40,8 +40,16 @@ class SystemManager:
         self.system: SystemCore = self.launcher.launch()
         return self.system
 
-    def set_manual_coordinates(self, lat: float, lon: float) -> None:
-        self.location.set_manual_coordinates(lat, lon)
+    def set_manual_coordinates(self, lat: float, lon: float, label: str | None = None, elevation: float | None = None) -> None:
+        # backward-compatible: if location engine supports elevation, use richer setter
+        if hasattr(self.location, 'set_manual_coordinates_with_elevation'):
+            try:
+                self.location.set_manual_coordinates_with_elevation(lat, lon, elevation, label)
+                return
+            except Exception:
+                pass
+        # fallback to original method
+        self.location.set_manual_coordinates(lat, lon, label)
 
     def obtener_coordenadas(self) -> None | Dict[str, float]:
         if not self.system:

@@ -24,33 +24,66 @@
 
         <section class="hero-grid">
             <article class="hero-card hero-card--primary">
-                <div class="hero-card__label">Temperatura actual</div>
-                <div class="hero-card__value" id="hero-temp-value">—</div>
-                <p class="hero-card__mood" id="hero-summary">Estado pendiente</p>
-                <div class="hero-card__details">
+                <div class="hero-card__temperature-row">
                     <div>
-                        <span class="hero-card__detail-label">Sensacion</span>
-                        <strong id="hero-feels">—</strong>
+                        <div class="hero-card__label">Temperatura actual</div>
+                        <div class="hero-card__value" id="hero-temp-value">—</div>
                     </div>
+                    <div class="hero-card__feels-inline" role="button" tabindex="0" aria-label="Ver detalle de sensación" data-submenu-kind="indice" data-submenu-key="sensacion_termica">
+                        <span class="hero-card__detail-label">Sensación</span>
+                        <strong id="hero-feels-inline">—</strong>
+                    </div>
+                </div>
+                <p class="hero-card__mood" id="hero-summary">Estado pendiente</p>
+                <p class="hero-card__recommendation" id="hero-recommendation-detail">Recomendación activa</p>
+                <div class="hero-card__details">
                     <div>
                         <span class="hero-card__detail-label">Humedad</span>
                         <strong id="hero-humidity">—</strong>
+                    </div>
+                    <div>
+                        <span class="hero-card__detail-label">Viento</span>
+                        <strong id="hero-wind">—</strong>
+                    </div>
+                    <div>
+                        <span class="hero-card__detail-label">Presión</span>
+                        <strong id="hero-pressure">—</strong>
                     </div>
                 </div>
             </article>
 
             <article class="hero-card hero-card--compact">
-                <div class="hero-card__label">Viento</div>
-                <strong class="hero-card__value" id="hero-wind">—</strong>
-                <div class="hero-card__label">Presion</div>
-                <strong class="hero-card__value" id="hero-pressure">—</strong>
-                <div class="solar-arc" id="solar-arc">
-                    <span class="solar-arc__sun" id="solar-arc-sun" aria-hidden="true"></span>
+                <div class="hero-card__solar-arc" aria-hidden="true" style="position:relative;">
+                    <svg class="solar-arc" viewBox="0 0 360 320" preserveAspectRatio="xMidYMid meet" role="presentation">
+                        <!-- Arco solar (superior) -->
+                        <path id="solar-arc-top" class="solar-arc__path" d="M25 190 Q180 38 335 190" />
+                        <path class="solar-arc__path solar-arc__path--mirror" d="M25 226 Q180 380 335 226" />
+                        <!-- Contenedores para etiquetas de horas en arcos -->
+                        <g id="solar-arc-top-labels" class="solar-arc__labels"></g>
+                        <g id="solar-arc-mirror-labels" class="solar-arc__labels"></g>
+                        <circle id="solar-arc-sun" class="solar-arc__sun" cx="180" cy="114" r="9" />
+
+                        <!-- Luna: usar el arco inferior existente como reflejo -->
+                        <circle id="lunar-arc-moon" class="lunar-arc__moon" cx="273" cy="275" r="7" />
+                    </svg>
+
+                    <!-- Radiación (izq) y UV (dcha) posicionadas respecto al panel del arco solar -->
+                    <div id="hero-radiation-meta" style="position:absolute; left:7px; top:58px; font-size:12px; color:var(--muted);">
+                        <strong style="font-weight:600;">Radiación:</strong>
+                        <span id="hero-radiation">-- W/m²</span>
+                    </div>
+                    <div id="hero-uv-meta" style="position:absolute; right:12px; top:58px; font-size:12px; color:var(--muted); text-align:right;">
+                        <strong style="font-weight:600;">UV:</strong>
+                        <span id="hero-uv">--</span>
+                    </div>
+
+                    <div class="hero-card__sun hero-card__sun--left" style="transform:translate(-20px,-7px);"><span id="hero-sunrise">--:--</span></div>
+                    <div class="hero-card__sun hero-card__sun--right" style="transform:translate(17px,-7px);"><span id="hero-sunset">--:--</span></div>
                 </div>
-                <div class="hero-card__sun">Amanecer <span id="hero-sunrise">--:--</span></div>
-                <div class="hero-card__sun">Atardecer <span id="hero-sunset">--:--</span></div>
-                <div class="hero-card__sun">Arco solar <span id="hero-solar-arc">--</span></div>
-                <div class="hero-card__sun">Duración día <span id="hero-solar-duration">--</span></div>
+                    <div class="hero-card__sun" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="duration-day">Duración día <span id="hero-solar-duration">--</span></div>
+                        <div class="duration-night" style="text-align:right; margin-right:35px;">Duración noche <span id="hero-night-duration">--</span></div>
+                    </div>
             </article>
 
             <article class="hero-card hero-card--chart">
@@ -59,6 +92,8 @@
                 <p class="hero-card__hint">Temperatura y humedad cada dato disponible</p>
             </article>
         </section>
+
+        <!-- Overlay gráfico del arco solar eliminado; cálculos siguen disponibles en índices -->
 
         <section class="dashboard-grid">
             <article class="panel panel--wide" id="sensors-panel">
@@ -75,15 +110,6 @@
                 </header>
                 <div id="indices-grid" class="data-list data-list--indices"></div>
                 <button class="ghost-btn" data-overlay-target="overlay-indices">Ver índices ocultos</button>
-            </article>
-            <article class="panel" id="recommendations-panel">
-                <header class="panel-header">
-                    <span class="panel-title">Recomendaciones</span>
-                    <small class="panel-subtitle">Vinculadas a riesgos/alertas</small>
-                </header>
-                <p id="recomendacion" class="panel-body panel-body--text">Sin recomendaciones</p>
-                <div id="recommendation-summary" class="panel-body panel-body--badge"></div>
-                <button class="ghost-btn" data-overlay-target="overlay-historico">Histórico</button>
             </article>
             <article class="panel" id="alerts-panel">
                 <header class="panel-header">
@@ -330,5 +356,7 @@
         </div>
     </div>
     <script src="/static/js/app.js"></script>
+    <!-- SunCalc: calcular azimut/altitud para sol y luna en cliente -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.8.0/suncalc.min.js"></script>
 </body>
 </html>

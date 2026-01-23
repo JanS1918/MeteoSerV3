@@ -2,11 +2,9 @@
 # MÓDULO H — PUNTO DE ENTRADA PRINCIPAL (meteoser.py)
 # ============================================================
 
-from core.system.system_manager import SystemManager
+from core.system.singleton import get_manager, get_system
 from core.indices.environmental_indices import EnvironmentalIndices
-from core.recommendations.unified_recommendation_engine import (
-    UnifiedRecommendationEngine,
-)
+from core.recommendations.unified_recommendation_engine import UnifiedRecommendationEngine
 from core.meteo_interface import MeteoSerInterface
 
 EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
@@ -18,8 +16,8 @@ def main():
     Expone la interfaz universal MeteoSerInterface con datos reales.
     """
     # Motores reales
-    system_manager = SystemManager()
-    system = system_manager.iniciar()
+    system_manager = get_manager()
+    system = get_system()
     indices_engine = EnvironmentalIndices(system)
     recommendation_engine = UnifiedRecommendationEngine(system, indices_engine)
 

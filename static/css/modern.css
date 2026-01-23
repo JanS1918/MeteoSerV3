@@ -29,6 +29,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    /* permitir que elementos sobresalgan del layout principal (sol del arco) */
+    overflow: visible;
 }
 
 .hero {
@@ -71,11 +73,32 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
+    /* no recortar las tarjetas internas */
+    overflow: visible;
+}
+
+/* Contenedor overlay que mostrará el arco solar sin ser recortado */
+.solar-overlay {
+    position: absolute; /* cambiar a absolute para que se mueva con el documento */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 240;
+}
+
+.solar-overlay .solar-arc {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
 }
 
 .hero-card {
-    background: var(--card);
-    border: 1px solid var(--card-border);
+    background: rgba(0, 0, 0, 0.0);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     padding: 16px;
     display: flex;
@@ -91,14 +114,58 @@ body {
 }
 
 .hero-card__value {
-    font-size: clamp(2rem, 3vw, 2.6rem);
+    font-size: clamp(2rem, 2.6vw, 2.2rem); /* temperatura y sensación un poco más contenidas */
     font-weight: 600;
+}
+
+.hero-card__temperature-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.hero-card__temperature-row > div:first-child {
+    flex: 1;
+}
+
+.hero-card__feels-inline {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 6px 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.hero-card__feels-inline strong {
+    font-size: clamp(2rem, 2.6vw, 2.2rem);
+    font-weight: 600;
+    line-height: 1.05;
+}
+
+.hero-card__feels-inline:hover,
+.hero-card__feels-inline:focus-visible {
+    background: rgba(255, 255, 255, 0.04);
+    outline: 1px solid rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
 }
 
 .hero-card__mood {
     margin: 0;
     color: var(--muted);
     font-size: 0.9rem;
+}
+
+.hero-card__recommendation {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    min-height: 2.5rem;
 }
 
 .hero-card__details {
@@ -118,40 +185,116 @@ body {
     color: var(--muted);
 }
 
-.solar-arc {
+/* permitir que las tarjetas compactas muestren contenido que sobresale */
+.hero-card--compact {
+    overflow: visible;
     position: relative;
-    width: 100%;
-    height: clamp(28px, 6vw, 52px);
-    margin: 6px 0 6px;
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    border-bottom: none;
-    border-radius: 120px 120px 0 0;
-    overflow: hidden;
-    background: linear-gradient(180deg, rgba(56, 242, 192, 0.12), rgba(6, 10, 12, 0));
+    /* estar por encima de paneles vecinos para mostrar el sol */
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.0);
 }
 
-.solar-arc::after {
-    content: "";
+.hero-card__solar-arc {
     position: absolute;
-    inset: 6px 8px 0 8px;
-    border: 1px dashed rgba(255, 255, 255, 0.18);
-    border-bottom: none;
-    border-radius: 100px 100px 0 0;
-    opacity: 0.8;
+    left: 50%;
+    transform: translateX(-50%);
+    top: -64px; /* bajado 5px desde -69px */
+    width: calc(100% - 32px);
+    max-width: 560px;
+    height: 300px; /* altura fija: 300px dentro del panel */
+    pointer-events: none;
+    z-index: 6;
+}
+
+.solar-arc {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Posicionar la hora del amanecer dentro del área del arco, a la izquierda entre las curvas */
+.hero-card__sun--left {
+    position: absolute;
+    left: 59px; /* mover 5px más hacia el centro */
+    top: calc(50% + 43px); /* bajar 2px adicional */
+    transform: translateY(-50%);
+    z-index: 12;
+    pointer-events: none;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.hero-card__sun--right {
+    position: absolute;
+    right: 59px; /* mover 5px más hacia el centro */
+    top: calc(50% + 43px); /* bajar 2px adicional */
+    transform: translateY(-50%);
+    z-index: 12;
+    pointer-events: none;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.solar-arc__path {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.32);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 6 9;
+}
+
+/* Arco superior: amarillo tenue */
+#solar-arc-top.solar-arc__path {
+    stroke: rgba(255, 230, 160, 0.75);
+}
+
+/* Arco inferior (mirror): azul marino */
+.solar-arc__path--mirror {
+    /* Azul claro para destacar sobre fondo oscuro */
+    stroke: rgba(100, 170, 255, 0.95);
+    stroke-width: 2;
+    /* pequeño resplandor para mejorar visibilidad */
+    filter: drop-shadow(0 6px 12px rgba(100,170,255,0.08));
 }
 
 .solar-arc__sun {
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #facc15;
-    box-shadow: 0 0 12px rgba(250, 204, 21, 0.6);
-    transform: translateX(-50%);
+    fill: #ffd166;
+    stroke: rgba(0, 0, 0, 0.25);
+    stroke-width: 1;
+    filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.6));
 }
 
+/* Arco lunar: más tenue y compacto */
+.lunar-arc__moon {
+    fill: rgba(235, 235, 255, 0.98);
+    stroke: rgba(0, 0, 0, 0.12);
+    stroke-width: 0.6;
+    filter: drop-shadow(0 0 4px rgba(235,235,255,0.25));
+}
+
+/* Colores de etiquetas: usar los mismos tonos que los arcos */
+.duration-day,
+#hero-solar-duration,
+#hero-sunrise,
+#hero-sunset {
+    color: rgba(255, 230, 160, 0.95); /* mismo tono que #solar-arc-top */
+}
+
+.duration-night,
+#hero-night-duration {
+    color: rgba(100, 170, 255, 0.95); /* mismo tono que .solar-arc__path--mirror */
+}
+
+/* Etiquetas horarias sobre arcos */
+.solar-arc__labels text {
+    font-size: 10px;
+    font-family: inherit;
+    fill: rgba(255,255,255,0.9);
+    text-anchor: middle;
+    pointer-events: none;
+}
+.solar-arc__labels text.solar-arc__hour--day { fill: rgba(255, 230, 160, 0.95); }
+.solar-arc__labels text.solar-arc__hour--night { fill: rgba(100, 170, 255, 0.95); }
 .solar-arc--night .solar-arc__sun {
     opacity: 0;
 }
@@ -178,8 +321,8 @@ body {
 }
 
 .panel {
-    background: rgba(10, 17, 20, 0.95);
-    border: 1px solid var(--card-border);
+    background: rgba(0, 0, 0, 0.0);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     padding: 18px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);

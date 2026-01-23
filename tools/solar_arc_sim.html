@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulación Arco Solar - Test</title>
+  <style>
+    body{font-family:Inter,Arial;margin:18px;color:#ddd;background:#111}
+    .container{max-width:720px;margin:0 auto}
+    svg{width:100%;height:320px;background:transparent}
+    .controls{display:flex;gap:8px;align-items:center;margin:12px 0}
+    button{padding:8px 12px}
+    label{font-size:0.9rem}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Simulación Arco Solar (demo)</h2>
+    <div class="controls">
+      <label>Duración simulada (seg): <input id="duration" type="number" value="20" style="width:72px" /></label>
+      <button id="play-sun">Simular día (sol)</button>
+      <button id="play-moon">Simular noche (luna)</button>
+      <button id="stop">Detener</button>
+      <input id="scrub" type="range" min="0" max="100" value="0" style="flex:1" />
+    </div>
+
+    <svg viewBox="0 0 360 320" preserveAspectRatio="xMidYMid meet" id="svg">
+      <path id="solar-arc-top" class="solar-arc__path" d="M25 190 Q180 38 335 190" stroke="#fff" stroke-opacity="0.6" stroke-width="2" fill="none" stroke-dasharray="6 9" stroke-linecap="round" />
+      <path id="solar-arc-mirror" class="solar-arc__path solar-arc__path--mirror" d="M25 226 Q180 380 335 226" stroke="#fff" stroke-opacity="0.25" stroke-width="2" fill="none" stroke-dasharray="6 9" stroke-linecap="round" />
+      <circle id="solar-arc-sun" cx="180" cy="114" r="12.6" fill="#ffd166" stroke="#000" stroke-opacity="0.25" />
+      <circle id="lunar-arc-moon" cx="273" cy="275" r="9.8" fill="#ebebff" stroke="#000" stroke-opacity="0.12" />
+    </svg>
+
+    <p style="color:#aaa">Usa los botones para reproducir una simulación acelerada del recorrido.</p>
+  </div>
+
+  <script>
+    const sun = document.getElementById('solar-arc-sun');
+    const moon = document.getElementById('lunar-arc-moon');
+    const top = document.getElementById('solar-arc-top');
+    const mirror = document.getElementById('solar-arc-mirror');
+    const playSun = document.getElementById('play-sun');
+    const playMoon = document.getElementById('play-moon');
+    const stopBtn = document.getElementById('stop');
+    const durationInput = document.getElementById('duration');
+    const scrub = document.getElementById('scrub');
+
+    let raf = null;
+    let startTime = 0;
+    let total = 20000; // ms
+    let mode = null; // 'sun' or 'moon'
+
+    function placeOnPath(path, el, frac, reverse=false){
+      const len = path.getTotalLength();
+      const t = reverse ? (1 - frac) : frac;
+      const pt = path.getPointAtLength(t * len);
+      el.setAttribute('cx', pt.x);
+      el.setAttribute('cy', pt.y);
+    }
+
+    function animateFrame(ts){
+      if (!startTime) startTime = ts;
+      const elapsed = ts - startTime;
+      const frac = Math.max(0, Math.min(1, elapsed / total));
+      scrub.value = Math.round(frac*100);
+      if (mode === 'sun'){
+        placeOnPath(top, sun, frac, false); // sun left->right
+      } else if (mode === 'moon'){
+        placeOnPath(mirror, moon, frac, true); // moon right->left (reverse)
+      }
+      if (frac >= 1){ cancelAnim(); return; }
+      raf = requestAnimationFrame(animateFrame);
+    }
+
+    function cancelAnim(){
+      if (raf) cancelAnimationFrame(raf); raf = null; startTime = 0; mode = null;
+    }
+
+    playSun.addEventListener('click', ()=>{
+      cancelAnim(); mode='sun'; total = Math.max(1000,Number(durationInput.value)*1000); startTime=0; raf = requestAnimationFrame(animateFrame);
+    });
+    playMoon.addEventListener('click', ()=>{
+      cancelAnim(); mode='moon'; total = Math.max(1000,Number(durationInput.value)*1000); startTime=0; raf = requestAnimationFrame(animateFrame);
+    });
+    stopBtn.addEventListener('click', ()=>{ cancelAnim(); });
+
+    scrub.addEventListener('input', ()=>{
+      const frac = Number(scrub.value)/100;
+      if (mode==='sun' || mode===null){ placeOnPath(top, sun, frac, false); }
+      if (mode==='moon' || mode===null){ placeOnPath(mirror, moon, frac, true); }
+    });
+
+    // initial placement
+    placeOnPath(top, sun, 0, false);
+    placeOnPath(mirror, moon, 0, true);
+  </script>
+</body>
+</html>

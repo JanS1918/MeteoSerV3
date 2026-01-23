@@ -90,17 +90,105 @@ from core.motors.tareas_motor import MotorTareas
 from core.pas.pas_engine import PASEngine
 from core.prediction.prediction_engine import PredictionEngine
 from core.system.system_manager import SystemManager
-from meteoser_ia import block_f as voice_engine
+try:
+    from meteoser_ia import block_f as voice_engine
+except Exception as exc:
+    voice_engine = None
+    logging.getLogger(__name__).warning(
+        "No se puede cargar meteoser_ia.block_f (%s). El asistente de voz se deshabilita.",
+        exc,
+    )
 from tools.arco_solar import arco_solar
+from core.utils.daynight import estado_dia_hibrido
 
 try:
     from core.indices.index_catalog import INDEX_CATALOG
 except Exception:
     INDEX_CATALOG = {}
+from core.indices.auto_updater import start_auto_index_updater
+from core.indices import registry as indices_registry
+
+
+def _is_test_env() -> bool:
+    return bool(
+        os.environ.get("PYTEST_CURRENT_TEST")
+        or os.environ.get("METEOSER_TESTING") == "1"
+        or "pytest" in sys.modules
+    )
+
+
+def _require_official_start() -> None:
+    if _is_test_env():
+        return
+    if os.environ.get("METEOSER_REQUIRE_OFFICIAL", "1") != "1":
+        return
+    if os.environ.get("METEOSER_OFFICIAL_START") != "1":
+        logging.getLogger(__name__).error("Arranque no oficial bloqueado. Usa el arranque oficial.")
+        raise SystemExit(2)
+    if os.environ.get("METEOSER_OFFICIAL_PARENT_OK") != "1":
+        logging.getLogger(__name__).error("Arranque no oficial bloqueado (sello inválido).")
+        raise SystemExit(2)
+    token = os.environ.get("METEOSER_OFFICIAL_TOKEN")
+    if not token:
+        logging.getLogger(__name__).error("Arranque no oficial bloqueado (token ausente).")
+        raise SystemExit(2)
+    try:
+        token_path = pathlib.Path(__file__).resolve().parent / "logs" / "official.token"
+        if not token_path.exists():
+            logging.getLogger(__name__).error("Arranque no oficial bloqueado (token no encontrado).")
+            raise SystemExit(2)
+        stored = token_path.read_text(encoding="utf-8").strip()
+        if stored != token:
+            logging.getLogger(__name__).error("Arranque no oficial bloqueado (token inválido).")
+            raise SystemExit(2)
+    except SystemExit:
+        raise
+    except Exception:
+        logging.getLogger(__name__).error("Arranque no oficial bloqueado (error validando token).")
+        raise SystemExit(2)
 
 # Crear `app` en caso de que no exista (algunas secciones del archivo definen rutas antes)
 if "app" not in globals():
     app = FastAPI()
+
+_require_official_start()
+
+
+@app.on_event("startup")
+async def _start_index_autoupdater() -> None:
+    try:
+        start_auto_index_updater(app)
+    except Exception as exc:
+        logging.getLogger(__name__).warning("No se pudo iniciar index auto-updater: %s", exc)
+
+
+@app.post("/admin/indices/audit")
+async def admin_trigger_index_audit(request: Request) -> JSONResponse:
+    """Endpoint admin para forzar auditoría de índices y devolver el estado generado."""
+    try:
+        # Ejecutar auditoría script
+        import subprocess
+        tools_dir = pathlib.Path(__file__).resolve().parent / "tools"
+        script = tools_dir / "indices_audit.py"
+        try:
+            subprocess.run([sys.executable, str(script)], check=False)
+        except Exception:
+            pass
+        # Actualizar registro y estado
+        try:
+            indices_registry.update_registry_and_write_status()
+        except Exception:
+            pass
+        # Leer estado
+        status_file = pathlib.Path(__file__).resolve().parents[0] / "data" / "indices_registry_status.json"
+        if status_file.exists():
+            content = json.loads(status_file.read_text(encoding="utf-8"))
+        else:
+            content = {"error": "status file not found"}
+        return JSONResponse(content)
+    except Exception as exc:
+        logging.getLogger(__name__).exception("Error en admin_trigger_index_audit")
+        return JSONResponse({"error": str(exc)}, status_code=500)
 
 MAX_SENSOR_FRESHNESS_SECONDS = 300
 SENSOR_SMOOTHING_ALPHA = 0.5
@@ -126,6 +214,18 @@ def _canonical_name(nombre: Optional[str]) -> Optional[str]:
     if not nombre:
         return None
     n = nombre.lower().replace("-", "_")
+    if ("indoor" in n or "interior" in n) and ("temp" in n or "temperatura" in n):
+        return "temperatura_interior"
+    if ("outdoor" in n or "exterior" in n) and ("temp" in n or "temperatura" in n):
+        return "temperatura_exterior"
+    if ("indoor" in n or "interior" in n) and ("hum" in n or "humidity" in n or "humedad" in n):
+        return "humedad_interior"
+    if ("outdoor" in n or "exterior" in n) and ("hum" in n or "humidity" in n or "humedad" in n):
+        return "humedad_exterior"
+    if ("indoor" in n or "interior" in n) and ("pres" in n or "pressure" in n or "baro" in n):
+        return "presion_interior"
+    if ("outdoor" in n or "exterior" in n) and ("pres" in n or "pressure" in n or "baro" in n):
+        return "presion_exterior"
     if "icasa" in n and "co2" in n:
         return "co2"
     if "meter" in n and "co2" in n:
@@ -160,30 +260,78 @@ def _canonical_name(nombre: Optional[str]) -> Optional[str]:
         return "pm10"
     if "pm1" in n:
         return "pm1"
+    if "pm4" in n:
+        return "pm4"
+    if "pm05" in n or "pm0_5" in n or "pm0.5" in n or "pm_0_5" in n:
+        return "pm05"
+    if "o3" in n or "ozono" in n or "ozone" in n:
+        return "o3"
+    if "no2" in n or "nitrogen_dioxide" in n:
+        return "no2"
+    if "so2" in n or "sulfur_dioxide" in n:
+        return "so2"
+    if "nh3" in n or "ammonia" in n:
+        return "nh3"
+    if "hcho" in n or "formaldehyde" in n or "formaldehido" in n:
+        return "hcho"
+    if "radon" in n:
+        return "radon"
+    if "tvoc" in n:
+        return "tvoc"
+    if "co" in n and "co2" not in n and "carbon" not in n:
+        return "co"
     if "wh51" in n:
         return "wh51"
     if "soil" in n or "suelo" in n or "hum_suelo" in n or "humedad_suelo" in n:
         return "wh51"
+    if "solar" in n or "irradi" in n or "radiac" in n:
+        return "radiacion"
+    if "lluvia_rate" in n or "rain_rate" in n or "rainrate" in n:
+        return "lluvia_rate"
     return None
 
 
 def _default_unit(canonical: str) -> Optional[str]:
     if canonical == "temperatura":
         return "C"
+    if canonical in ("temperatura_interior", "temperatura_exterior"):
+        return "C"
     if canonical == "humedad":
+        return "%"
+    if canonical in ("humedad_interior", "humedad_exterior"):
         return "%"
     if canonical == "presion":
         return "hPa"
+    if canonical in ("presion_interior", "presion_exterior"):
+        return "hPa"
     if canonical in ("pm25", "pm10", "pm1"):
+        return "µg/m³"
+    if canonical in ("pm4", "pm05"):
         return "µg/m³"
     if canonical == "co2":
         return "ppm"
+    if canonical == "co":
+        return "ppm"
+    if canonical in ("o3", "no2", "so2", "nh3", "hcho", "tvoc", "voc"):
+        return "ppb"
+    if canonical == "radon":
+        return "Bq/m³"
     if canonical == "viento":
+        return "km/h"
+    if canonical == "viento_racha":
         return "km/h"
     if canonical == "lluvia":
         return "mm"
+    if canonical == "lluvia_rate":
+        return "mm/h"
     if canonical == "wh51":
         return "%"
+    if canonical == "radiacion":
+        return "W/m²"
+    if canonical == "luz":
+        return "lux"
+    if canonical == "uv":
+        return "index"
     return None
 
 
@@ -486,6 +634,114 @@ async def sensor_virtual(payload: dict = Body(...)):
         )
 
 
+# Endpoint para recibir la hora/fecha mostrada en el dashboard (cliente)
+@app.post("/client_time")
+async def client_time(payload: dict = Body(...)):
+    """Recibe JSON {"iso": "2026-01-21T23:23:00Z"} y lo guarda en data/last_dashboard_time.json."""
+    iso = None
+    try:
+        iso = payload.get("iso")
+    except Exception:
+        iso = None
+    try:
+        p = BASE_DIR / "data" / "last_dashboard_time.json"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("w", encoding="utf-8") as f:
+            f.write(json.dumps({"iso": iso}, ensure_ascii=False))
+    except Exception:
+        pass
+    # Calcular skew con el servidor y decidir si la hora cliente es confiable
+    try:
+        from datetime import datetime, timezone
+        server_now = datetime.now(timezone.utc)
+        meta = {
+            "iso": iso,
+            "server_iso": server_now.isoformat(),
+            "skew_seconds": None,
+            "confianza": "unknown",
+        }
+        if iso:
+            try:
+                # aceptar Z y offsets
+                try:
+                    client_dt = datetime.fromisoformat(iso)
+                except Exception:
+                    client_dt = datetime.fromisoformat(iso.replace('Z', '+00:00'))
+                # normalizar a UTC
+                if client_dt.tzinfo is None:
+                    client_dt = client_dt.replace(tzinfo=timezone.utc)
+                client_utc = client_dt.astimezone(timezone.utc)
+                skew = abs((server_now - client_utc).total_seconds())
+                meta["skew_seconds"] = int(skew)
+                # umbral configurable (segundos)
+                try:
+                    SKEW_TH = int(os.environ.get("METEOSER_CLIENT_TIME_SKEW_SEC", "300"))
+                except Exception:
+                    SKEW_TH = 300
+                meta["confianza"] = "high" if skew <= SKEW_TH else "low"
+            except Exception:
+                meta["confianza"] = "invalid"
+        # persistir metadata
+        try:
+            pmeta = BASE_DIR / "data" / "last_dashboard_time.json"
+            pmeta.parent.mkdir(parents=True, exist_ok=True)
+            with pmeta.open("w", encoding="utf-8") as f:
+                f.write(json.dumps(meta, ensure_ascii=False))
+        except Exception:
+            pass
+        # Propagar al motor de índices sólo si la confianza es alta
+        try:
+            if meta.get("confianza") == "high" and hasattr(system, 'indices') and hasattr(system.indices, 'set_context_time'):
+                try:
+                    system.indices.set_context_time(iso)
+                except Exception:
+                    try:
+                        dt = datetime.fromisoformat(iso)
+                        system.indices.set_context_time(dt)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        # Guardar la meta también en la instancia de índices para exponerla en obtener_todos
+        try:
+            if hasattr(system, 'indices'):
+                try:
+                    system.indices._last_dashboard_time_meta = meta
+                except Exception:
+                    pass
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return JSONResponse({"ok": True})
+
+
+# Endpoint para fijar coordenadas manuales desde la UI/cliente
+@app.post("/set_location")
+async def set_location(payload: dict = Body(...)):
+    """Recibe JSON {"lat": 41.5507, "lon": -2.3957} y actualiza las coordenadas manuales del gestor."""
+    lat = payload.get("lat")
+    lon = payload.get("lon")
+    ubicacion_label = payload.get("ubicacion")
+    try:
+        if lat is None or lon is None:
+            return JSONResponse({"ok": False, "error": "Faltan lat o lon"}, status_code=400)
+        try:
+            latf = float(lat)
+            lonf = float(lon)
+        except Exception:
+            return JSONResponse({"ok": False, "error": "lat/lon no numéricos"}, status_code=400)
+        try:
+            manager.set_manual_coordinates(latf, lonf, label=ubicacion_label)
+            # Forzar escritura en location engine ya hace save
+            return JSONResponse({"ok": True, "lat": latf, "lon": lonf})
+        except Exception as e:
+            logger.exception("Error estableciendo coordenadas manuales: %s", e)
+            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+    except Exception:
+        return JSONResponse({"ok": False}, status_code=500)
+
+
 def _feedback_snapshot() -> dict:
     try:
         indices = system.indices.obtener_todos() if system.indices else {}
@@ -551,6 +807,40 @@ async def feedback_prediccion(payload: dict = Body(...)):
     return {"ok": True, "msg": "Feedback registrado"}
 
 
+# Endpoint para adjuntar metadata/attachments a un sensor/índice sin alterar su valor
+@app.post("/sensors/{nombre}/attach")
+async def attach_sensor(nombre: str, payload: dict = Body(...)):
+    try:
+        if not hasattr(system, "sensores_derivados_metadata"):
+            system.sensores_derivados_metadata = {}
+        meta = system.sensores_derivados_metadata.setdefault(nombre, {}) or {}
+        attachments = meta.setdefault("attachments", [])
+        entry = {"ts": datetime.datetime.now().isoformat(), "payload": payload}
+        attachments.append(entry)
+        # persistir en archivo para trazabilidad
+        try:
+            p = BASE_DIR / "data" / "sensor_attachments.jsonl"
+            p.parent.mkdir(parents=True, exist_ok=True)
+            with p.open("a", encoding="utf-8") as f:
+                f.write(json.dumps({"sensor": nombre, "entry": entry}, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+        return {"ok": True, "msg": "attached", "entry": entry}
+    except Exception as e:
+        logger.exception("Error attaching to sensor %s: %s", nombre, e)
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+
+@app.get("/sensors/{nombre}/attachments")
+def get_attachments(nombre: str):
+    try:
+        meta = getattr(system, "sensores_derivados_metadata", {}) or {}
+        attachments = meta.get(nombre, {}).get("attachments", [])
+        return {"sensor": nombre, "attachments": attachments}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
 # Configurar logging robusto
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
@@ -581,8 +871,9 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Inicializar sistema MeteoSer y forzar motores, con protección ante errores
 try:
-    manager = SystemManager()
-    system = manager.iniciar()
+    from core.system.singleton import get_manager, get_system
+    manager = get_manager()
+    system = get_system()
     if not isinstance(system.indices, EnvironmentalIndices):
         system.indices = EnvironmentalIndices(system)
     logger.info("MeteoSer backend inicializado correctamente.")
@@ -599,6 +890,28 @@ except Exception as e:
 
     manager = Dummy()
     system = Dummy()
+
+
+# Endpoint de diagnóstico para calibración de sensores
+@app.get("/internal/sensor_calibration")
+def internal_sensor_calibration():
+    try:
+        metadata = getattr(system, "sensores_metadata", {}) or {}
+        ewma_state = getattr(system, "_sensor_ewma_state", {}) or {}
+        calib_store = getattr(system, "_sensor_calibration_info", {}) or {}
+        calib_info = {}
+        for nombre in set(list(metadata.keys()) + list(calib_store.keys())):
+            try:
+                calib_info[nombre] = system.obtener_sensor_calibration_info(nombre)
+            except Exception:
+                calib_info[nombre] = {}
+        return JSONResponse({
+            "sensores_metadata": metadata,
+            "sensor_ewma_state": ewma_state,
+            "sensor_calibration_info": calib_info,
+        })
+    except Exception as exc:
+        return JSONResponse({"error": str(exc)}, status_code=500)
 
 _autocalib_worker = None
 try:
@@ -1410,10 +1723,39 @@ def estado():
         try:
             if not isinstance(system.indices, EnvironmentalIndices):
                 system.indices = EnvironmentalIndices(system)
+            _sync_indices_timestamp(system)
             indices = system.indices.obtener_todos()
         except Exception:
             indices = {}
-        return {"error": str(e), "sensores": system.sensores.copy(), "indices": indices}
+        derived_fallback = getattr(system, "sensores_derivados", {}) or {}
+        sensores_fallback = system.sensores.copy()
+        sensores_fallback.update(derived_fallback)
+        return {
+            "error": str(e),
+            "sensores": sensores_fallback,
+            "sensores_derivados": derived_fallback,
+            "sensores_metadata": system.sensores_metadata,
+            "sensores_derivados_metadata": getattr(system, "sensores_derivados_metadata", {}),
+            "indices": indices,
+        }
+
+
+def _sync_indices_timestamp(system, timestamp=None):
+    if not isinstance(system.indices, EnvironmentalIndices):
+        return
+    if timestamp is None:
+        latest_ts = None
+        for value in getattr(system, "sensores_timestamp", {}).values():
+            try:
+                candidate = float(value)
+            except Exception:
+                continue
+            if math.isnan(candidate):
+                continue
+            if latest_ts is None or candidate > latest_ts:
+                latest_ts = candidate
+        timestamp = latest_ts
+    system.indices.set_context_time(timestamp)
 
 
 def _estado_impl():
@@ -1455,6 +1797,7 @@ def _estado_impl():
     if not isinstance(system.indices, EnvironmentalIndices):
         system.indices = EnvironmentalIndices(system)
     meteo_snapshot = get_full_meteo_snapshot(system)
+    _sync_indices_timestamp(system)
     indices = system.indices.obtener_todos()
     pred_engine = PredictionEngine(system)
     predicciones = pred_engine.predecir()
@@ -1477,16 +1820,36 @@ def _estado_impl():
     latitud = None
     longitud = None
     origen_ubicacion = "estimada"
+    ubicacion_manual = None
     try:
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+            elevation_cfg = None
             for line in f:
                 if "latitud" in line.lower():
                     latitud = float(line.split(":")[-1].strip())
                 if "longitud" in line.lower():
                     longitud = float(line.split(":")[-1].strip())
+                if any(x in line.lower() for x in ("elevacion", "elevation", "altitud", "altura")):
+                    try:
+                        elevation_cfg = float(line.split(":")[-1].strip())
+                    except Exception:
+                        elevation_cfg = None
+                if "ubicacion" in line.lower():
+                    ubicacion_manual = line.split(":", 1)[-1].strip()
         if latitud is not None and longitud is not None:
-            manager.set_manual_coordinates(latitud, longitud)
+            # pasar elevation si existe
+            try:
+                manager.set_manual_coordinates(latitud, longitud, label=ubicacion_manual, elevation=elevation_cfg)
+            except TypeError:
+                manager.set_manual_coordinates(latitud, longitud, label=ubicacion_manual)
             origen_ubicacion = "manual"
+            # exponer altitud/lelevation en indices para que sea fácil de encontrar
+            if elevation_cfg is not None:
+                try:
+                    indices["elevation_m"] = round(float(elevation_cfg), 3)
+                    indices["altitud_m"] = round(float(elevation_cfg), 3)
+                except Exception:
+                    pass
     except Exception:
         pass
 
@@ -1600,6 +1963,16 @@ def _estado_impl():
         sensores = persisted_sensores.copy()
     else:
         sensores = system.sensores.copy()
+
+    # Asegurar presencia de sensores 'fijos' esperados (ej: sonometro)
+    try:
+        meta_all = getattr(system, "sensores_metadata", {}) or {}
+        # Si el metadata declara un sonómetro, garantizar que exista en el mapa de sensores
+        if "sonometro" in meta_all and "sonometro" not in sensores:
+            # Usamos 0 como valor por defecto (sin ruido detectado) para que el sensor sea visible en la UI
+            sensores["sonometro"] = 0
+    except Exception:
+        pass
     # No forzar valores simulados si faltan sensores base
 
     # Añadir arco solar a los índices
@@ -1789,6 +2162,205 @@ def _estado_impl():
     indices["latitud"] = latitud
     indices["longitud"] = longitud
     indices["origen_ubicacion"] = origen_ubicacion
+    # Añadir posiciones astronómicas calculadas en servidor (preferir Astral si está disponible)
+    try:
+        # Si ya hay sensores que reportan valores astronómicos, preferirlos.
+        try:
+            sensor_map = {
+                'sun_azimuth': ['sun_azimuth', 'solar_azimuth', 'solar_az'],
+                'sun_altitude': ['sun_altitude', 'solar_altitude', 'solar_el'],
+                'moon_azimuth': ['moon_azimuth', 'lunar_azimuth'],
+                'moon_altitude': ['moon_altitude', 'lunar_altitude'],
+                'moon_illumination': ['moon_illumination', 'moon_frac', 'moon_fraction'],
+                'moon_age_days': ['moon_age', 'moon_age_days', 'moon_phase']
+            }
+            # `sensores` variable contiene lecturas crudas (si existe persisted_sensores se copió antes)
+            try:
+                provided = sensores if 'sensores' in locals() else system.sensores
+            except Exception:
+                provided = system.sensores
+            for out_key, candidates in sensor_map.items():
+                if out_key in indices:
+                    continue
+                for cand in candidates:
+                    if cand in provided and provided.get(cand) is not None:
+                        indices[out_key] = provided.get(cand)
+                        break
+            # recoger elevación si la reporta algún sensor
+            elevation = None
+            for elev_key in ('elevation', 'elevacion', 'altitud', 'altitud_m', 'altura'):
+                if elev_key in provided and provided.get(elev_key) is not None:
+                    elevation = provided.get(elev_key)
+                    try:
+                        elevation = float(elevation)
+                    except Exception:
+                        elevation = None
+                    break
+
+        except Exception:
+            elevation = None
+
+        from core.utils.daynight import compute_astronomy
+        try:
+            now_dt = datetime.datetime.now().astimezone()
+            # solo calcular los campos que no hayan sido proporcionados por sensores
+            need_calc = True
+            for k in ('sun_azimuth', 'sun_altitude', 'moon_illumination', 'moon_age_days', 'moon_azimuth', 'moon_altitude'):
+                if k not in indices:
+                    need_calc = True
+                    break
+                need_calc = False
+            if need_calc:
+                astro = compute_astronomy(latitud, longitud, now_dt, elevation)
+                if isinstance(astro, dict):
+                    for k, v in astro.items():
+                        # no sobrescribir campos ya proporcionados por sensores
+                        if k in indices and indices.get(k) is not None:
+                            continue
+                        if v is None:
+                            continue
+                        indices[k] = v
+        except Exception:
+            pass
+    except Exception:
+        # no bloquear respuesta si falla el cálculo
+        pass
+    # ---- Cálculo PMV/PPD (Fanger) usando pythermalcomfort si está disponible ----
+    try:
+        # recopilar entradas desde sensores/indices
+        ta = None
+        rh = None
+        vel = None
+        rad = None
+        # sensores pueden venir en 'sensores' dict
+        try:
+            provided = sensores if 'sensores' in locals() else system.sensores
+        except Exception:
+            provided = system.sensores
+        # nombres comunes
+        for key in ('temperatura', 'temp', 'tempc', 'air_temperature', 'ta'):
+            if key in provided and provided.get(key) is not None:
+                try:
+                    ta = float(provided.get(key))
+                    break
+                except Exception:
+                    ta = None
+        for key in ('humedad', 'rh', 'humidity', 'hum'):
+            if key in provided and provided.get(key) is not None:
+                try:
+                    rh = float(provided.get(key))
+                    break
+                except Exception:
+                    rh = None
+        for key in ('viento', 'wind', 'wind_speed', 'wind_m_s', 'wind_kmh'):
+            if key in provided and provided.get(key) is not None:
+                try:
+                    v = float(provided.get(key))
+                    # si está en km/h convertir a m/s
+                    if 'kmh' in key or (v > 50 and 'wind_kmh' not in key and 'kmh' in key):
+                        v = v / 3.6
+                    vel = v
+                    break
+                except Exception:
+                    vel = None
+        for key in ('radiacion', 'radiation', 'rad', 'solarradiation'):
+            if key in provided and provided.get(key) is not None:
+                try:
+                    rad = float(provided.get(key))
+                    break
+                except Exception:
+                    rad = None
+        # sensible defaults
+        if ta is None:
+            ta = None
+        if rh is None:
+            rh = 50.0
+        if vel is None:
+            vel = 0.5
+        if rad is None:
+            rad = 0.0
+
+        # estimar MRT a partir de radiación: usar estimador físico (más robusto)
+        mrt = None
+        try:
+            # preferir estimador que use altitud solar si está disponible
+            from core.utils.thermal import mrt_from_radiation_with_solar, mrt_from_radiation
+
+            sun_alt = None
+            try:
+                sun_alt = indices.get('sun_altitude') if 'indices' in locals() else None
+                if sun_alt is None:
+                    # intentar leer sensor alternativo
+                    for alt_k in ('solar_altitude', 'sun_elevation', 'solar_el'):
+                        if alt_k in provided and provided.get(alt_k) is not None:
+                            try:
+                                sun_alt = float(provided.get(alt_k))
+                                break
+                            except Exception:
+                                sun_alt = None
+            except Exception:
+                sun_alt = None
+
+            if sun_alt is not None:
+                mrt = mrt_from_radiation_with_solar(ta, rad, sun_altitude_deg=sun_alt,
+                                                    absorptivity=0.7, proj_factor=0.7, epsilon=0.95)
+            else:
+                mrt = mrt_from_radiation(ta, rad, absorptivity=0.7, epsilon=0.95)
+
+            # fallback muy simple si la función no devolviese nada
+            if mrt is None and ta is not None:
+                mrt = float(ta) + (float(rad) * 0.02)
+        except Exception:
+            try:
+                mrt = float(ta) + (float(rad) * 0.02) if ta is not None else None
+            except Exception:
+                mrt = None
+
+        # defaults para metabolismo y ropa (configurables más adelante)
+        met = 1.2  # met
+        # ropa basada en temperatura (prioriza temperatura sobre estación)
+        clo = 0.5
+        try:
+            ttmp = float(ta) if ta is not None else None
+            if ttmp is not None:
+                if ttmp <= 0:
+                    clo = 1.3
+                elif ttmp <= 10:
+                    clo = 1.0
+                elif ttmp <= 16:
+                    clo = 0.8
+                elif ttmp <= 24:
+                    clo = 0.6
+                elif ttmp <= 30:
+                    clo = 0.4
+                else:
+                    clo = 0.3
+        except Exception:
+            clo = 0.5
+
+        try:
+            from pythermalcomfort.models import pmv_ppd
+            # pmv_ppd expects ta, tr, vel (m/s), rh (%), met, clo
+            if ta is not None and mrt is not None:
+                res = pmv_ppd(ta=ta, tr=mrt, vel=vel, rh=rh, met=met, clo=clo)
+                # res is dict with 'pmv' and 'ppd'
+                pmv_val = res.get('pmv')
+                ppd_val = res.get('ppd')
+                if pmv_val is not None:
+                    indices['pmv'] = {'valor': round(float(pmv_val), 3), 'explicacion': 'PMV (Fanger)'}
+                if ppd_val is not None:
+                    indices['ppd'] = {'valor': round(float(ppd_val), 1), 'explicacion': 'PPD (Fanger)'}
+                indices['pmv_met'] = met
+                indices['pmv_clo'] = clo
+                # indicar qué estimador se usó
+                indices['pmv_mrt_estimator'] = 'rad_mrt_physical_absorbed_v1'
+                if 'sun_alt' in locals() and sun_alt is not None:
+                    indices['pmv_mrt_estimator'] += '+solar_proj'
+        except Exception:
+            # fallback: no pythermalcomfort -> no change
+            pass
+    except Exception:
+        pass
     contexto = _build_contexto(sensores, indices)
     ambiental = MotorAmbiental().analizar(contexto)
     confort = MotorConfort().analizar(contexto)
@@ -1930,8 +2502,12 @@ def _estado_impl():
         "departamentos": departamentos,
         "asistente": asistente,
     }
+    derived_sensores = getattr(system, "sensores_derivados", {}) or {}
+    sensores_para_respuesta = dict(sensores)
+    sensores_para_respuesta.update(derived_sensores)
     return {
-        "sensores": sensores,
+        "sensores": sensores_para_respuesta,
+        "sensores_derivados": derived_sensores,
         "sensores_metadata": system.sensores_metadata,
         "sensores_derivados_metadata": system.sensores_derivados_metadata,
         "indices_catalogo": INDEX_CATALOG,
@@ -2862,6 +3438,8 @@ def _build_contexto(sensores: dict, indices: dict) -> dict:
     if luz is None:
         luz = 30.0
 
+    estado_hibrido = estado_dia_hibrido(indices)
+
     contexto = {
         "temperatura_exterior": sensores.get("temperatura"),
         "humedad_exterior": sensores.get("humedad"),
@@ -2891,8 +3469,13 @@ def _build_contexto(sensores: dict, indices: dict) -> dict:
         "ireav": _val(indices, "ireav"),
         "irsd": _val(indices, "irsd"),
         "ot": sensores.get("temperatura_interior") or sensores.get("temperatura"),
-        "hora_local": datetime.datetime.now().hour
-        + datetime.datetime.now().minute / 60.0,
+        "hora_local": estado_hibrido.get("hora_actual_min") and (estado_hibrido.get("hora_actual_min")/60.0) or (datetime.datetime.now().hour + datetime.datetime.now().minute / 60.0),
+        "es_dia": estado_hibrido.get("es_dia"),
+        "es_noche": estado_hibrido.get("es_noche"),
+        "fecha": estado_hibrido.get("fecha"),
+        "estacion": estado_hibrido.get("estacion"),
+        "solar_elevation": estado_hibrido.get("solar_elevation"),
+        "arco_solar_deg": estado_hibrido.get("arco_solar_deg"),
     }
     return contexto
 
@@ -3105,6 +3688,11 @@ async def recibir_ecowitt(request: Request):
         puerto = request.url.port or "desconocido"
     except Exception:
         puerto = "desconocido"
+    # Capturar predicciones previas para compararlas tras procesar el payload
+    try:
+        prev_indices = system.indices.obtener_todos() if getattr(system, 'indices', None) else {}
+    except Exception:
+        prev_indices = {}
     print(f"[Ecowitt] Datos recibidos en puerto {puerto}:")
     for k, v in data.items():
         print(f"  {k}: {v}")
@@ -3523,4 +4111,120 @@ async def recibir_ecowitt(request: Request):
                     pass
             except Exception:
                 pass
-    return {"status": "OK", "received": True}
+        # Tras recalcular índices, detectar lluvia observada y generar feedback automático
+        try:
+            # obtener predicción previa para 'indice_lluvia' si existe
+            prev_val = None
+            if isinstance(prev_indices, dict):
+                prev_info = prev_indices.get('indice_lluvia') or prev_indices.get('indice_lluvia')
+                if isinstance(prev_info, dict):
+                    try:
+                        prev_val = float(prev_info.get('valor'))
+                    except Exception:
+                        prev_val = None
+
+            # obtener valor observado de lluvia tras actualizar sensores
+            obs_lluvia = None
+            try:
+                obs_lluvia_raw = system.sensores.get('lluvia') or system.sensores.get('lluvia_rate')
+                if obs_lluvia_raw is not None:
+                    obs_lluvia = float(obs_lluvia_raw)
+            except Exception:
+                obs_lluvia = None
+
+            if obs_lluvia is not None and obs_lluvia > 0:
+                # Registrar feedback cuantitativo para todas las predicciones/probabilidades relacionadas con lluvia
+                try:
+                    # helper: calcular umbral dinámico según histórico de feedback de lluvia
+                    def _dynamic_threshold_for_rain():
+                        import math, os
+                        try:
+                            path = BASE_DIR / "data" / "feedback_registros.jsonl"
+                            if not path.exists():
+                                n = 0
+                            else:
+                                n = 0
+                                with path.open("r", encoding="utf-8") as fh:
+                                    for line in fh:
+                                        try:
+                                            low = line.lower()
+                                            if '"nombre"' in low and 'lluv' in low:
+                                                n += 1
+                                        except Exception:
+                                            continue
+                        except Exception:
+                            n = 0
+                        # parámetros (ajustables)
+                        initial = 0.5
+                        min_thresh = 0.2
+                        decay_rate = 0.03
+                        exp_limit = 50
+                        add_after_exp = 0.1
+                        max_limit = 0.7
+                        base = max(min_thresh, initial - decay_rate * math.log1p(n))
+                        if n >= exp_limit:
+                            base = min(max_limit, base + add_after_exp)
+                        return base
+
+                    dynamic_thresh = _dynamic_threshold_for_rain()
+                    for nombre_idx, info in (prev_indices.items() if isinstance(prev_indices, dict) else []):
+                        try:
+                            lname = str(nombre_idx).lower()
+                            related = any(tok in lname for tok in ("lluv", "lluvia", "prob", "riesgo", "indice"))
+                            if not related:
+                                continue
+                            # extraer valor previo (se asume % o 0-100)
+                            val = None
+                            if isinstance(info, dict):
+                                val = info.get("valor")
+                            else:
+                                val = info
+                            try:
+                                val_num = float(val) if val is not None else None
+                            except Exception:
+                                val_num = None
+                            if val_num is None:
+                                continue
+                            # interpretar como probabilidad [0..1]
+                            prob = max(0.0, min(1.0, val_num / 100.0)) if abs(val_num) > 1e-6 else 0.0
+                            observed = 1.0 if obs_lluvia > 0 else 0.0
+                            match_score = 1.0 - abs(observed - prob)
+                            # feedback label: acierto si match_score >= dynamic_thresh, parcial si (0, dynamic_thresh), error si 0
+                            if match_score >= dynamic_thresh:
+                                feedback_label = "acierto"
+                            elif match_score > 0.0:
+                                feedback_label = "parcial"
+                            else:
+                                feedback_label = "error"
+                            detalle = {
+                                "fecha": datetime.datetime.now().isoformat(),
+                                "tipo": "prediccion",
+                                "nombre": nombre_idx,
+                                "valor": val_num,
+                                "valor_real": obs_lluvia,
+                                "valor_real_binary": observed,
+                                "match_score": round(match_score, 4),
+                                "feedback": feedback_label,
+                                "modelo": "auto_observacion",
+                                "confianza": val_num,
+                                "snapshot": _feedback_snapshot(),
+                            }
+                            try:
+                                _append_feedback_log(detalle)
+                            except Exception:
+                                pass
+                            try:
+                                auto_improvement = getattr(system, "auto_improvement_engine", None)
+                                if auto_improvement:
+                                    # registrar como acierto/ error cuantitativo en el motor
+                                    auto_improvement.feedback(nombre_idx, error=(feedback_label=="error"), detalle=detalle)
+                            except Exception:
+                                pass
+                        except Exception:
+                            continue
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        return {"status": "OK", "received": True}

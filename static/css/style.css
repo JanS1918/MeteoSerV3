@@ -127,6 +127,38 @@ html, body {
     align-items: center;
 }
 
+.console-context {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+    color: var(--muted);
+}
+
+.context-badge {
+    border: 1px solid rgba(56, 242, 192, 0.4);
+    border-radius: 8px;
+    padding: 4px 10px;
+    background: rgba(24, 255, 160, 0.08);
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+.context-badge__label {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2px;
+}
+
+.context-badge__value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
 .console-actions {
     display: flex;
     align-items: center;
@@ -297,27 +329,26 @@ body[data-layout="free"] .panel .panel {
 
 body[data-layout="columns"] .console-grid {
     grid-template-areas:
-    "solar solar solar solar temp temp sensors sensors sensors sensors rec rec"
-    "solar solar solar solar temp temp sensors sensors sensors sensors rec rec"
+    "temp temp temp temp temp temp sensors sensors sensors sensors rec rec"
+    "temp temp temp temp temp temp sensors sensors sensors sensors rec rec"
     "indices indices indices indices indices indices alertas alertas alertas alertas alertas alertas"
         "organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer";
 }
 
 body[data-layout="default"] .console-grid {
     grid-template-areas:
-    "solar solar solar solar temp temp sensors sensors sensors sensors rec rec"
+    "temp temp temp temp temp temp sensors sensors sensors sensors rec rec"
     "indices indices indices indices indices indices alertas alertas alertas alertas alertas alertas"
     "organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer organizer";
 }
 
 body[data-layout="stacked"] .console-grid {
     grid-template-areas:
-        "solar"
         "temp"
         "sensors"
         "rec"
         "indices"
-    "alertas"
+        "alertas"
         "organizer";
 }
 
@@ -696,10 +727,95 @@ body[data-layout="free"] .panel.dragging {
     color: var(--muted);
 }
 
-.solar-panel {
+.solar-time-item {
     display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+}
+
+.solar-time-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.solar-stats {
+    display: flex;
+    gap: 12px;
     justify-content: space-between;
-    gap: 16px;
+}
+
+.solar-stat {
+    flex: 1;
+    border: 1px solid rgba(56, 242, 192, 0.4);
+    border-radius: 8px;
+    padding: 6px 8px;
+    background: rgba(24, 255, 160, 0.08);
+}
+
+.solar-stat-label {
+    display: block;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+}
+
+.solar-stat strong {
+    font-size: 0.9rem;
+}
+
+.solar-compact-wrapper {
+    width: 100%;
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+}
+.solar-compact-inner {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.solar-arc {
+    width: 100%;
+    height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-bottom: none;
+    border-radius: 90px 90px 0 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0));
+    position: relative;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.solar-arc::after {
+    content: "";
+    position: absolute;
+    inset: 5px 8px 0 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-bottom: none;
+    border-radius: 90px 90px 0 0;
+    opacity: 0.8;
+}
+
+.solar-arc__sun {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #facc15;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.6);
+    transform: translateX(-50%);
+}
+
+.solar-arc--night .solar-arc__sun {
+    opacity: 0;
 }
 
 .solar-left {
@@ -720,6 +836,29 @@ body[data-layout="free"] .panel.dragging {
     padding: 8px 10px;
     border-radius: 6px;
     background: rgba(0, 255, 156, 0.04);
+}
+
+.moon-widget {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.moon-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.moon-icon {
+    font-size: 1.9rem;
+}
+
+.moon-direction {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: capitalize;
 }
 
 .kpi-label {

@@ -2,7 +2,7 @@
 # MÓDULO G — MAIN UI (INTERFAZ PRINCIPAL)
 # ============================================================
 
-from core.system.system_manager import SystemManager
+from core.system.singleton import get_manager, get_system
 
 EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
 
@@ -13,8 +13,8 @@ class MainUI:
     """
 
     def __init__(self):
-        self.manager = SystemManager()
-        self.system = None
+        self.manager = get_manager()
+        self.system = get_system()
 
     # --------------------------------------------------------
     # ARRANQUE

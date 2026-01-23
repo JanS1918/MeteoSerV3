@@ -36,6 +36,24 @@
                 <span class="divider">|</span>
                 <span id="ubicacion"></span>
             </div>
+            <div class="console-context" id="console-context">
+                <span class="context-badge" id="context-client-time-badge">
+                    <span class="context-badge__label">Reloj del dashboard</span>
+                    <span class="context-badge__value" id="context-client-time">—</span>
+                </span>
+                <span class="context-badge" id="context-client-sync-badge">
+                    <span class="context-badge__label">Sincronía</span>
+                    <span class="context-badge__value" id="context-client-sync">—</span>
+                </span>
+                <span class="context-badge" id="context-offset-badge">
+                    <span class="context-badge__label">Zona horaria</span>
+                    <span class="context-badge__value" id="context-client-offset">—</span>
+                </span>
+                <span class="context-badge" id="context-coords-badge">
+                    <span class="context-badge__label">Coordenadas usadas</span>
+                    <span class="context-badge__value" id="context-client-coords">—</span>
+                </span>
+            </div>
             <div class="console-actions">
                 <button id="voice-btn" class="console-btn voice-btn">🎙 VOZ</button>
                 <div id="voice-visualizer" class="voice-visualizer hidden">
@@ -53,29 +71,7 @@
         </header>
 
         <main class="console-grid" style="min-height: 90vh;">
-            <section class="panel wide solar" draggable="true" data-panel-id="solar">
-                <div class="panel-title">☀️ ARCO SOLAR</div>
-                <div class="panel-body solar-panel">
-                    <div class="solar-left">
-                        <canvas id="graficoArcoSolar" width="260" height="120"></canvas>
-                        <div id="alerta-arco-solar" class="panel-alert"></div>
-                        <div class="solar-times">
-                            <span id="amanecer-label">Amanecer: --:--</span>
-                            <span id="atardecer-label">Atardecer: --:--</span>
-                        </div>
-                    </div>
-                    <div class="solar-right">
-                        <div class="kpi">
-                            <span class="kpi-label">Estado</span>
-                            <span class="kpi-value" id="arco-estado">--</span>
-                        </div>
-                        <div class="kpi">
-                            <span class="kpi-label">Sincronía</span>
-                            <span class="kpi-value" id="arco-sincronia">--</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <!-- Arco solar movido: se muestra ahora dentro del panel de Temperatura/Humedad para mayor visibilidad -->
 
             <section class="panel compact temp-hum" draggable="true" data-panel-id="temp-hum">
                 <div class="panel-title">🌡️ TEMPERATURA / HUMEDAD</div>
@@ -87,6 +83,53 @@
                 <div id="temp-hum-values" class="panel-kpi">--</div>
                 <div class="panel-body chart-mini">
                     <canvas id="graficoTempHum" width="160" height="60"></canvas>
+                </div>
+                <div class="solar-compact-wrapper">
+                    <div class="solar-compact-inner">
+                        <div class="solar-arc" id="solar-arc">
+                            <span class="solar-arc__sun" id="solar-arc-sun" aria-hidden="true" data-testid="hero-solar-sun"></span>
+                        </div>
+                        <canvas id="graficoArcoSolar" width="260" height="120"></canvas>
+                        <div id="alerta-arco-solar" class="panel-alert"></div>
+                            <div class="solar-times">
+                                <div class="solar-time-item">
+                                    <span class="solar-time-label">Amanecer</span>
+                                    <strong id="hero-sunrise">--:--</strong>
+                                </div>
+                                <div class="solar-time-item">
+                                    <span class="solar-time-label">Atardecer</span>
+                                    <strong id="hero-sunset">--:--</strong>
+                                </div>
+                            </div>
+                            <div class="solar-stats">
+                                <div class="solar-stat">
+                                    <span class="solar-stat-label">Arco solar</span>
+                                    <strong id="hero-solar-arc">--</strong>
+                                </div>
+                                <div class="solar-stat">
+                                    <span class="solar-stat-label">Duración día</span>
+                                    <strong id="hero-solar-duration">--</strong>
+                                </div>
+                            </div>
+                        <div class="solar-kpis">
+                            <div class="kpi">
+                                <span class="kpi-label">Estado</span>
+                                <span class="kpi-value" id="arco-estado">--</span>
+                            </div>
+                            <div class="kpi">
+                                <span class="kpi-label">Sincronía</span>
+                                <span class="kpi-value" id="arco-sincronia">--</span>
+                            </div>
+                            <div class="kpi moon-widget">
+                                <span class="moon-icon" id="hero-moon-icon">🌙</span>
+                                <div class="moon-details">
+                                    <span class="kpi-label">Fase lunar</span>
+                                    <span class="kpi-value" id="hero-moon-phase">--</span>
+                                    <span class="moon-direction" id="hero-moon-direction">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 

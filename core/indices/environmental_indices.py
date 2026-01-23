@@ -1,21 +1,8 @@
+import math
+import datetime
 from typing import Dict
-
-# ------------------------------------------------------------
-# ALERTA DE FRÍO EXTREMO
-# ------------------------------------------------------------
-def indice_alerta_polvo(pm25: float, viento: float) -> float:
-    """
-    Calcula un índice de alerta por polvo/suciedad en el aire basado en PM2.5 y viento.
-    Devuelve un valor entre 0 y 100 (mayor = más riesgo).
-    """
-    # Fórmula simple: riesgo crece con PM2.5 y viento
-    riesgo: float = pm25 * (1 + 0.1 * viento)
-    # Normalización básica
-    if riesgo > 100:
-        riesgo = 100
-    if riesgo < 0:
-        riesgo = 0
-    return riesgo
+from core.indices import registry as _indices_registry
+from core.indices.registry import register_index
 
 def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float) -> float:
     """
@@ -111,6 +98,119 @@ def indice_vpd_kpa(temp_c: float, humedad: float) -> float:
     return max(0.0, es - ea)
 
 
+def _pressure_value_to_kpa(value: float, unit_hint: str | None = None) -> float | None:
+    if value is None:
+        return None
+    try:
+        raw = float(value)
+    except Exception:
+        return None
+    if math.isnan(raw):
+        return None
+    unit = (unit_hint or "").lower()
+    if "inhg" in unit:
+        return raw * 3.386389
+    if unit in ("hpa", "mbar", "mb"):
+        return raw / 10.0
+    if unit == "pa":
+        return raw / 1000.0
+    if unit == "kpa":
+        return raw
+    if raw > 1500:
+        return raw / 1000.0
+    if raw > 300:
+        return raw / 10.0
+    if 6.0 <= raw <= 40.0:
+        return raw * 3.386389
+    if 80.0 <= raw <= 200.0:
+        return raw / 10.0
+    return raw
+
+
+def _specific_humidity_value(temp_c: float, rh_pct: float, pressure_kpa: float) -> float | None:
+    if pressure_kpa is None or pressure_kpa <= 0:
+        return None
+    rh = max(0.0, min(100.0, rh_pct))
+    es: float = 0.6108 * math.exp((17.27 * temp_c) / (temp_c + 237.3))
+    ea: float = es * (rh / 100.0)
+    denominator = pressure_kpa - 0.378 * ea
+    if denominator <= 0:
+        return None
+    return 0.62197 * ea / denominator
+
+
+def _dew_point(temp_c: float, rh_pct: float) -> float:
+    a, b = 17.27, 237.7
+    alpha: float = ((a * temp_c) / (b + temp_c)) + math.log(max(1e-6, rh_pct) / 100.0)
+    return (b * alpha) / (a - alpha)
+
+
+def _extraterrestrial_radiation(lat_deg: float, day_of_year: int) -> float:
+    lat_rad = math.radians(lat_deg)
+    dr = 1 + 0.033 * math.cos(2 * math.pi * day_of_year / 365)
+    solar_decl = 0.409 * math.sin(2 * math.pi * day_of_year / 365 - 1.39)
+    tmp = -math.tan(lat_rad) * math.tan(solar_decl)
+    ws = math.acos(min(max(tmp, -1.0), 1.0))
+    ra = (24 * 60 / math.pi) * 0.0820 * dr * (
+        ws * math.sin(lat_rad) * math.sin(solar_decl)
+        + math.cos(lat_rad) * math.cos(solar_decl) * math.sin(ws)
+    )
+    return ra
+
+
+def _net_radiation(rad_global: float, temp_c: float, dew_point_c: float, ea: float, lat: float, altitude: float, day_of_year: int, albedo: float = 0.23) -> float | None:
+    if rad_global is None or lat is None or altitude is None:
+        return None
+    ra = _extraterrestrial_radiation(lat, day_of_year)
+    if ra <= 0:
+        return None
+    rso = (0.75 + 2e-5 * altitude) * ra
+    rs = rad_global
+    rns = (1 - albedo) * rs
+    temp_k = temp_c + 273.15
+    dew_k = dew_point_c + 273.15
+    sigma = 4.903e-9
+    term = min(1.35 * min(rs / rso, 1.0) - 0.35, 1.0)
+    term = max(term, 0.0)
+    rnl = sigma * ((temp_k ** 4 + dew_k ** 4) / 2) * (0.34 - 0.14 * math.sqrt(max(ea, 0.0))) * term
+    return rns - rnl
+
+
+def _soil_heat_flux_estimate(rn: float, temp_c: float) -> float:
+    return max(0.0, 0.1 * rn)
+
+
+def _penman_monteith_full(rn: float, g: float, delta: float, gamma: float, temp_c: float, u2: float, es: float, ea: float) -> float | None:
+    denominator = delta + gamma * (1 + 0.34 * u2)
+    if denominator == 0:
+        return None
+    numerator = 0.408 * delta * (rn - g) + gamma * (900 / (temp_c + 273.0)) * u2 * (es - ea)
+    return max(0.0, numerator / denominator)
+
+
+def _correct_pressure_to_sea_level(pressure_kpa: float, altitude_m: float, temp_c: float | None = None) -> float | None:
+    """Corregir presión medida a presión equivalente al nivel del mar (kPa).
+    Basado en la ecuación barométrica usando temperatura aproximada si no se proporciona.
+    """
+    if pressure_kpa is None or altitude_m is None:
+        return None
+    try:
+        p_pa = float(pressure_kpa) * 1000.0
+        h = float(altitude_m)
+    except Exception:
+        return None
+    # Constantes físicas
+    g = 9.80665
+    M = 0.0289644
+    R = 8.3144598
+    T = 273.15 + (float(temp_c) if temp_c is not None else 15.0)
+    try:
+        p0_pa = p_pa * math.exp((g * M * h) / (R * T))
+        return p0_pa / 1000.0
+    except Exception:
+        return None
+
+
 def indice_entalpia_kjkg(temp_c: float, humedad: float, presion_kpa: float = 101.325) -> float:
     # Entalpía del aire húmedo (kJ/kg)
     es: float = 0.6108 * math.exp((17.27 * temp_c) / (temp_c + 237.3))
@@ -120,7 +220,29 @@ def indice_entalpia_kjkg(temp_c: float, humedad: float, presion_kpa: float = 101
 
 
 def indice_wbgt(temp_c: float, humedad: float, radiacion: float = 0.0, viento_kmh: float = 0.0) -> float:
-    # WBGT aproximado con bulbo húmedo y globo estimado
+    # Preferir una implementación registrada (p. ej. pythermalcomfort)
+    impl = _indices_registry.get_index_impl("wbgt")
+    if impl:
+        try:
+            # Try common signatures
+            # pythermalcomfort usually expects tdb, tr, v (m/s), rh
+            try:
+                res = impl(tdb=temp_c, rh=humedad, v=viento_kmh / 3.6)
+            except TypeError:
+                try:
+                    res = impl(temp_c, humedad, radiacion, viento_kmh)
+                except Exception:
+                    res = impl(temp_c, humedad, viento_kmh)
+            if isinstance(res, dict):
+                val = res.get("wbgt") or res.get("WBGT")
+                if val is not None:
+                    return float(val)
+            else:
+                return float(res)
+        except Exception:
+            pass
+
+    # Fallback: WBGT aproximado con bulbo húmedo y globo estimado
     tw: float = indice_bulbo_humedo_c(temp_c, humedad)
     tg: float = temp_c + (radiacion / 1000.0) * 12.0 - (viento_kmh * 0.5)
     tg: float = max(temp_c - 5, min(temp_c + 20, tg))
@@ -128,11 +250,42 @@ def indice_wbgt(temp_c: float, humedad: float, radiacion: float = 0.0, viento_km
 
 
 def indice_pmv_ppd_simple(temp_c: float, humedad: float, viento_kmh: float = 0.0) -> Dict[str, float]:
-    # Aproximación simple basada en temperatura/HR/viento
+    # Preferir una implementación registrada (p. ej. pythermalcomfort.pm v_ppd)
+    impl = _indices_registry.get_index_impl("pmv_ppd")
+    if impl:
+        try:
+            # try common signatures
+            try:
+                v_ms = float(viento_kmh) / 3.6
+                res = impl(ta=float(temp_c), tr=float(temp_c), vel=float(v_ms), rh=float(humedad), met=1.2, clo=0.5)
+            except TypeError:
+                try:
+                    res = impl(float(temp_c), float(temp_c), float(v_ms), float(humedad))
+                except Exception:
+                    res = impl(float(temp_c), float(humedad), float(viento_kmh))
+            if isinstance(res, dict):
+                pmv_val = res.get("pmv") or res.get("PMV")
+                ppd_val = res.get("ppd") or res.get("PPD")
+                if pmv_val is not None and ppd_val is not None:
+                    return {"pmv": round(float(pmv_val), 2), "ppd": round(float(ppd_val), 1)}
+            else:
+                # If library returns a single pmv value, estimate ppd
+                pmv_val = float(res)
+                ppd_val = 100.0 - 95.0 * math.exp(-0.03353 * pmv_val ** 4 - 0.2179 * pmv_val ** 2)
+                return {"pmv": round(pmv_val, 2), "ppd": round(ppd_val, 1)}
+        except Exception:
+            pass
+
+    # Fallback: Aproximación simple basada en temperatura/HR/viento
     v: float = viento_kmh / 3.6
     pmv: float = (temp_c - 24) / 4 + (humedad - 50) / 100 - v * 0.2
     pmv: float = max(-3.0, min(3.0, pmv))
     ppd: float = 100.0 - 95.0 * math.exp(-0.03353 * pmv ** 4 - 0.2179 * pmv ** 2)
+    # Registrar esta implementación como fallback para que el registry la conozca
+    try:
+        register_index("pmv_ppd", lambda ta, tr, vel, rh, met=1.2, clo=0.5: {"pmv": pmv, "ppd": ppd}, priority=10)
+    except Exception:
+        pass
     return {"pmv": round(pmv, 2), "ppd": round(ppd, 1)}
 
 
@@ -302,9 +455,12 @@ def _clasificar_indice_cielo(valor: float | None) -> str:
     return "mala"
 
 
-from datetime import datetime
+import datetime
+from datetime import timezone
 from typing import Dict, Any
 import math
+from core.sensors.pm_calibration import apply_pm_calibration
+from core.sensors.sensor_aliases import sensor_candidate_names
 
 # ------------------------------------------------------------
 # ALERTA DE TORMENTA
@@ -398,8 +554,6 @@ class EnvironmentalIndices:
         Calcula la radiación solar teórica en superficie horizontal (W/m2) según la hora y latitud.
         Devuelve un dict con valor, estimado y explicación.
         """
-        import math
-        from datetime import datetime
         # Constante solar (W/m2)
         S = 1367
         # Obtener latitud
@@ -407,7 +561,7 @@ class EnvironmentalIndices:
         if lat is None:
             return {"valor": None, "estimado": True, "explicacion": "Falta latitud"}
         # Día del año
-        now: datetime = datetime.utcnow()
+        now: datetime.datetime = self._get_context_time()
         n: int = now.timetuple().tm_yday
         # Hora decimal UTC
         hora_decimal: float = now.hour + now.minute / 60 + now.second / 3600
@@ -429,13 +583,63 @@ class EnvironmentalIndices:
         """
         Devuelve (lat, lon) si el sistema tiene método obtener_coordenadas, si no (None, None).
         """
-        if hasattr(self.system, "obtener_coordenadas"):
-            coords = self.system.obtener_coordenadas()
-            if coords and isinstance(coords, (list, tuple)) and len(coords) == 2:
-                return coords[0], coords[1]
-            if isinstance(coords, dict) and "lat" in coords and "lon" in coords:
-                return coords["lat"], coords["lon"]
+        meta = self._get_location_meta()
+        if isinstance(meta, dict):
+            lat = meta.get("lat")
+            lon = meta.get("lon")
+            if lat is not None and lon is not None:
+                return lat, lon
+        elif isinstance(meta, (list, tuple)) and len(meta) >= 2:
+            lat = meta[0]
+            lon = meta[1]
+            if lat is not None and lon is not None:
+                return lat, lon
         return None, None
+
+    def _get_location_meta(self):
+        if hasattr(self.system, "obtener_coordenadas"):
+            try:
+                coords = self.system.obtener_coordenadas()
+                if coords:
+                    return coords
+            except Exception:
+                pass
+        return None
+
+    def _get_altitude(self) -> float | None:
+        """Intentar obtener la altitud del sistema en metros.
+        Busca sensores comunes (`altitud`, `elev`, `elevation`) o una coordenada con alt.
+        """
+        # 1) sensor directo
+        for key in ("altitud", "elev", "elevation", "alt"): 
+            try:
+                v = self.system.obtener_sensor(key)
+            except Exception:
+                v = None
+            if v is not None:
+                try:
+                    return float(v)
+                except Exception:
+                    continue
+        # 2) coordenadas devuelven (lat, lon) o dict con alt
+        if hasattr(self.system, "obtener_coordenadas"):
+            try:
+                coords = self.system.obtener_coordenadas()
+                if isinstance(coords, (list, tuple)) and len(coords) >= 3:
+                    try:
+                        return float(coords[2])
+                    except Exception:
+                        pass
+                if isinstance(coords, dict):
+                    for k in ("alt", "elev", "elevation", "altitud"):
+                        if k in coords:
+                            try:
+                                return float(coords[k])
+                            except Exception:
+                                pass
+            except Exception:
+                pass
+        return None
 
     def __init__(self, system_core) -> None:
         self.system = system_core
@@ -457,6 +661,78 @@ class EnvironmentalIndices:
                 self._lag_indices = DEFAULT_LAG_INDICES.copy()
         self._lag_buffer: dict[str, list[tuple[float, float]]] = {}
         self._lag_last: dict[str, dict] = {}
+        try:
+            self._high_fidelity = bool(int(os.environ.get("METEOSER_HIGH_FIDELITY", "0")))
+        except Exception:
+            self._high_fidelity = False
+        self._forced_context_time: datetime.datetime | None = None
+        self._computed_context_time: datetime.datetime | None = None
+
+    def set_context_time(self, timestamp: datetime.datetime | float | int | str | None) -> None:
+        """Permite fijar un instante explícito para los cálculos temporales."""
+        normalized = self._normalize_context_timestamp(timestamp)
+        self._forced_context_time = normalized
+        self._computed_context_time = normalized
+
+    def clear_context_time(self) -> None:
+        """Restablece la referencia temporal automática."""
+        self._forced_context_time = None
+        self._computed_context_time = None
+
+    def _normalize_context_timestamp(self, timestamp: datetime.datetime | float | int | str | None) -> datetime.datetime | None:
+        if timestamp is None:
+            return None
+        if isinstance(timestamp, datetime.datetime):
+            if timestamp.tzinfo is None:
+                return timestamp.replace(tzinfo=timezone.utc)
+            return timestamp
+        if isinstance(timestamp, (int, float)):
+            try:
+                return datetime.datetime.utcfromtimestamp(float(timestamp)).replace(tzinfo=timezone.utc)
+            except (OverflowError, OSError, ValueError):
+                return None
+        if isinstance(timestamp, str):
+            try:
+                dt = datetime.datetime.fromisoformat(timestamp)
+                if dt.tzinfo is None:
+                    return dt.replace(tzinfo=timezone.utc)
+                return dt
+            except Exception:
+                pass
+            try:
+                return datetime.datetime.utcfromtimestamp(float(timestamp)).replace(tzinfo=timezone.utc)
+            except Exception:
+                return None
+        return None
+
+    def _derive_context_time(self) -> datetime.datetime:
+        timestamps = getattr(self.system, "sensores_timestamp", {}) or {}
+        latest: float | None = None
+        for value in timestamps.values():
+            try:
+                candidate = float(value)
+            except Exception:
+                continue
+            if math.isnan(candidate):
+                continue
+            if latest is None or candidate > latest:
+                latest = candidate
+        if latest is not None:
+            try:
+                return datetime.datetime.utcfromtimestamp(latest).replace(tzinfo=timezone.utc)
+            except Exception:
+                pass
+        return datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
+
+    def _get_context_time(self) -> datetime.datetime:
+        if self._computed_context_time is not None:
+            return self._computed_context_time
+        if self._forced_context_time is not None:
+            self._computed_context_time = self._forced_context_time
+            return self._computed_context_time
+        derived = self._derive_context_time()
+        self._computed_context_time = derived
+        return derived
 
     def _sensor_confidence(self, nombre: str) -> float | None:
         try:
@@ -473,14 +749,84 @@ class EnvironmentalIndices:
             val = val / 100.0
         return max(0.0, min(1.0, val))
 
-    def _apply_lag(self, indices: Dict[str, Any]) -> Dict[str, Any]:
-        # Defensive initialization: some instances may have been created
-        # without running the full constructor (e.g. hot-reloads or older instances).
+    def _ensure_lag_configuration(self) -> None:
         if not hasattr(self, "_lag_buffer"):
             self._lag_buffer = {}
         if not hasattr(self, "_lag_last"):
             self._lag_last = {}
+        if not hasattr(self, "_lag_indices") or not self._lag_indices:
+            self._lag_indices = DEFAULT_LAG_INDICES.copy()
+        if not hasattr(self, "_lag_seconds"):
+            self._lag_seconds = 10
 
+    def _store_derived_sensor(self, nombre: str, valor: float, metadata: Dict[str, Any] | None = None) -> None:
+        if valor is None:
+            return
+        if hasattr(self.system, "actualizar_sensor_derivado"):
+            try:
+                self.system.actualizar_sensor_derivado(nombre, valor, metadata=metadata or {})
+            except Exception:
+                pass
+
+    def _pressure_sensor_lookup(self) -> tuple[float | None, str | None]:
+        candidates = [
+            "presion",
+            "presion_absoluta_interior",
+            "presion_relativa_interior",
+            "presion_absoluta_exterior",
+            "presion_relativa_exterior",
+            "baromabsin",
+            "baromrelin",
+        ]
+        for nombre in candidates:
+            sensor = self._get_sensor(nombre)
+            if sensor["valor"] is None:
+                continue
+            unidad = None
+            try:
+                meta = self.system.obtener_sensor_metadata(nombre)
+                if isinstance(meta, dict):
+                    unidad = meta.get("unidad")
+            except Exception:
+                unidad = None
+            kpa = _pressure_value_to_kpa(sensor["valor"], unit_hint=unidad)
+            if kpa is not None and kpa > 0:
+                return kpa, nombre
+        return None, None
+
+    def _sensor_model_hint(self, nombre: str | None) -> str | None:
+        if not nombre:
+            return None
+        meta = {}
+        try:
+            meta = self.system.obtener_sensor_metadata(nombre) or {}
+        except Exception:
+            meta = {}
+        if isinstance(meta, dict):
+            for key in ("modelo", "model", "sensor_model", "modelo_sensor"):
+                val = meta.get(key)
+                if val:
+                    return str(val)
+        return None
+
+    def _first_available_sensor(self, nombres: list[str]) -> dict[str, Any] | None:
+        for nombre in nombres:
+            sensor = self._get_sensor(nombre)
+            if sensor["valor"] is not None:
+                return sensor
+        return None
+
+    def _pm_humidity_correction(self, pm_val: float, rh: float, base_sensor: str | None = None) -> float:
+        rh_clamped = max(0.0, min(100.0, rh))
+        model_hint = self._sensor_model_hint(base_sensor)
+        calibrated = apply_pm_calibration(pm_val, rh_clamped, model_hint)
+        if calibrated is not None:
+            return max(0.0, calibrated)
+        factor = 1.0 + 0.025 * max(0.0, rh_clamped - 40.0)
+        return pm_val / max(0.1, factor)
+
+    def _apply_lag(self, indices: Dict[str, Any]) -> Dict[str, Any]:
+        self._ensure_lag_configuration()
         if not self._lag_indices or self._lag_seconds <= 0:
             return indices
         now = time.time()
@@ -517,12 +863,21 @@ class EnvironmentalIndices:
                 lag_ts = self._lag_last[nombre].get("ts")
             if lag_val is not None:
                 self._lag_last[nombre] = {"valor": lag_val, "ts": lag_ts or now}
-            entry["valor_crudo"] = raw_val
-            entry["valor"] = lag_val
-            entry["lagged"] = True
-            entry["lag_s"] = self._lag_seconds
-            entry["ts_crudo"] = now
-            entry["ts_lag"] = lag_ts
+                # We have a lagged value available
+                entry["valor_crudo"] = raw_val
+                entry["valor"] = lag_val
+                entry["lagged"] = True
+                entry["lag_s"] = self._lag_seconds
+                entry["ts_crudo"] = now
+                entry["ts_lag"] = lag_ts
+            else:
+                # No lagged value yet: fall back to current raw so UI shows a value
+                entry["valor_crudo"] = raw_val
+                entry["valor"] = raw_val
+                entry["lagged"] = False
+                entry["lag_s"] = self._lag_seconds
+                entry["ts_crudo"] = now
+                entry["ts_lag"] = None
         return indices
 
     def calcular_indices(self):
@@ -546,6 +901,38 @@ class EnvironmentalIndices:
             explicacion_sismo_externa = "No disponible lat/lon para validación externa sismos"
         # Aquí iría el cálculo y retorno de los índices, por ejemplo:
         indices = {}
+        # Computed context time for this call (forced or derived)
+        context_time = self._get_context_time()
+        # Obtener el tiempo de contexto computado (puede venir forzado o derivado de sensores)
+        context_time = self._get_context_time()
+        context_time = self._get_context_time()
+        location_meta = self._get_location_meta()
+        lat_meta, lon_meta = self._get_location()
+        if location_meta:
+            indices["coordenadas"] = location_meta
+        if lat_meta is not None:
+            indices["latitud"] = lat_meta
+            indices["latitude"] = lat_meta
+        if lon_meta is not None:
+            indices["longitud"] = lon_meta
+            indices["longitude"] = lon_meta
+        if context_time is not None:
+            context_iso = context_time.isoformat()
+            context_epoch = None
+            try:
+                context_epoch = context_time.timestamp()
+            except Exception:
+                context_epoch = None
+            indices["hora_cliente_iso"] = context_iso
+            indices["context_time_iso"] = context_iso
+            if context_epoch is not None:
+                indices["context_time_epoch"] = context_epoch
+            offset = context_time.utcoffset()
+            if offset is not None:
+                try:
+                    indices["context_timezone_offset_minutes"] = int(offset.total_seconds() / 60)
+                except Exception:
+                    pass
         # Ejemplo: indices["sismo"] = sismos
         return indices
 
@@ -611,22 +998,51 @@ class EnvironmentalIndices:
 
     def fase_lunar(self):
         try:
-            import datetime
             # Epoch: new moon 2000-01-06 18:14 UTC
             epoch = datetime.datetime(2000, 1, 6, 18, 14)
-            now = datetime.datetime.utcnow()
+            now = self._get_context_time()
             days = (now - epoch).total_seconds() / 86400.0
             synodic = 29.53058867
             phase = days % synodic
+            phase_frac = (phase / synodic) % 1.0
             # 0=new, 0.5=full
-            illum = 0.5 * (1 - math.cos(2 * math.pi * phase / synodic))
+            illum = 0.5 * (1 - math.cos(2 * math.pi * phase_frac))
+            if phase_frac < 0.0625 or phase_frac >= 0.9375:
+                etapa, icono = "Luna nueva", "🌑"
+            elif phase_frac < 0.1875:
+                etapa, icono = "Luna creciente", "🌒"
+            elif phase_frac < 0.3125:
+                etapa, icono = "Cuarto creciente", "🌓"
+            elif phase_frac < 0.4375:
+                etapa, icono = "Gibosa creciente", "🌔"
+            elif phase_frac < 0.5625:
+                etapa, icono = "Luna llena", "🌕"
+            elif phase_frac < 0.6875:
+                etapa, icono = "Gibosa menguante", "🌖"
+            elif phase_frac < 0.8125:
+                etapa, icono = "Cuarto menguante", "🌗"
+            else:
+                etapa, icono = "Luna menguante", "🌘"
+            direccion = "creciente" if phase_frac <= 0.5 else "menguante"
             return {
                 "valor": round(illum * 100.0, 2),
                 "estimado": True,
-                "explicacion": "Fase lunar estimada (iluminación %)"
+                "explicacion": "Fase lunar estimada (iluminación %)",
+                "etapa": etapa,
+                "icono": icono,
+                "direccion": direccion,
+                "fase_fraccion": round(phase_frac, 4),
             }
         except Exception:
-            return {"valor": None, "estimado": True, "explicacion": "Fase lunar no disponible"}
+            return {
+                "valor": None,
+                "estimado": True,
+                "explicacion": "Fase lunar no disponible",
+                "etapa": "Desconocida",
+                "icono": "🌙",
+                "direccion": None,
+                "fase_fraccion": None,
+            }
     def riesgo_niebla(self):
         """
         Índice de riesgo de niebla: alta humedad, baja temperatura, poca radiación y poco viento.
@@ -698,22 +1114,46 @@ class EnvironmentalIndices:
 
 
     def _get_sensor(self, nombre, fallback=None):
-        v = self.system.obtener_sensor(nombre)
-        if v is not None:
-            conf = self._sensor_confidence(nombre)
-            estimado = False if conf is None else conf < getattr(self, "_min_confidence", 0.4)
-            return {"valor": v, "estimado": estimado, "fuente": nombre, "confianza_sensor": conf}
-        if fallback is not None and not REAL_ONLY_SENSORS:
-            return {"valor": fallback, "estimado": True, "fuente": f"estimado_{nombre}", "confianza_sensor": None}
-        return {"valor": None, "estimado": True, "fuente": f"no_disponible_{nombre}", "confianza_sensor": None}
+        candidates = sensor_candidate_names(nombre) or [nombre]
+        valor = None
+        fuente_sensor = None
+        for candidate in candidates:
+            valor = self.system.obtener_sensor(candidate)
+            if valor is not None:
+                fuente_sensor = candidate
+                break
+        if valor is None:
+            base = candidates[0] if candidates else nombre
+            if fallback is not None and not REAL_ONLY_SENSORS:
+                return {"valor": fallback, "estimado": True, "fuente": f"estimado_{base}", "confianza_sensor": None}
+            return {"valor": None, "estimado": True, "fuente": f"no_disponible_{base}", "confianza_sensor": None}
+
+        source_name = fuente_sensor or nombre
+        conf = self._sensor_confidence(source_name)
+        estimado = False if conf is None else conf < getattr(self, "_min_confidence", 0.4)
+        result = {"valor": valor, "estimado": estimado, "fuente": source_name, "confianza_sensor": conf}
+        info = self.system.obtener_sensor_calibration_info(source_name)
+        if info:
+            if "valor_crudo" in info:
+                result["valor_crudo"] = info["valor_crudo"]
+            if "offset" in info:
+                result["calibrado_offset"] = info["offset"]
+            if "scale" in info:
+                result["calibrado_scale"] = info["scale"]
+            if info.get("aplicado_ewma"):
+                result["aplicado_ewma"] = True
+                if info.get("ewma_alpha") is not None:
+                    result["ewma_alpha"] = info["ewma_alpha"]
+        return result
 
     def _get_sensor_any(self, nombres: list[str], fallback=None):
         for nombre in nombres:
-            v = self.system.obtener_sensor(nombre)
-            if v is not None:
-                conf = self._sensor_confidence(nombre)
-                estimado = False if conf is None else conf < getattr(self, "_min_confidence", 0.4)
-                return {"valor": v, "estimado": estimado, "fuente": nombre, "confianza_sensor": conf}
+            for candidate in sensor_candidate_names(nombre):
+                v = self.system.obtener_sensor(candidate)
+                if v is not None:
+                    conf = self._sensor_confidence(candidate)
+                    estimado = False if conf is None else conf < getattr(self, "_min_confidence", 0.4)
+                    return {"valor": v, "estimado": estimado, "fuente": candidate, "confianza_sensor": conf}
         if fallback is not None and not REAL_ONLY_SENSORS:
             base = nombres[0] if nombres else "sensor"
             return {"valor": fallback, "estimado": True, "fuente": f"estimado_{base}", "confianza_sensor": None}
@@ -947,6 +1387,197 @@ class EnvironmentalIndices:
         var = sum((v - mean) ** 2 for v in samples) / max(1, (len(samples) - 1))
         return var ** 0.5
 
+    def humedad_especifica(self):
+        temp = self._get_sensor("temperatura")
+        rh = self._get_sensor("humedad")
+        if temp["valor"] is None or rh["valor"] is None:
+            return {"valor": None, "estimado": True, "explicacion": "Faltan sensores T/HR"}
+        try:
+            t_val = float(temp["valor"])
+            rh_val = float(rh["valor"])
+        except Exception:
+            return {"valor": None, "estimado": True, "explicacion": "Valores T/HR inválidos"}
+        pressure_kpa, pres_sensor = self._pressure_sensor_lookup()
+        # Alta fidelidad: corregir presión al nivel del mar si hay altitud y modo activo
+        if pressure_kpa is None:
+            pressure_kpa = 101.325
+        elif getattr(self, "_high_fidelity", False):
+            alt = self._get_altitude()
+            if alt is not None:
+                corrected = _correct_pressure_to_sea_level(pressure_kpa, alt, t_val)
+                if corrected is not None:
+                    pressure_kpa = corrected
+        q_val = _specific_humidity_value(t_val, rh_val, pressure_kpa)
+        if q_val is None:
+            return {"valor": None, "estimado": True, "explicacion": "No se pudo calcular q"}
+        estimado = temp["estimado"] or rh["estimado"]
+        detalles = f"T={t_val}C, HR={rh_val}%, presion {round(pressure_kpa, 2)}kPa"
+        metadata = {
+            "sensores": ["temperatura", "humedad"],
+            "presion_sensor": pres_sensor or "presion_estimada",
+        }
+        self._store_derived_sensor("humedad_especifica", q_val, metadata)
+        return {
+            "valor": round(q_val, 6),
+            "estimado": estimado,
+            "explicacion": f"Humedad específica ({detalles})",
+        }
+
+    def indice_vpd_q(self):
+        temp = self._get_sensor("temperatura")
+        rh = self._get_sensor("humedad")
+        if temp["valor"] is None or rh["valor"] is None:
+            return {"valor": None, "estimado": True, "explicacion": "Faltan sensores T/HR"}
+        try:
+            t_val = float(temp["valor"])
+            rh_val = float(rh["valor"])
+        except Exception:
+            return {"valor": None, "estimado": True, "explicacion": "Valores T/HR inválidos"}
+        pressure_kpa, pres_sensor = self._pressure_sensor_lookup()
+        if pressure_kpa is None:
+            pressure_kpa = 101.325
+        elif getattr(self, "_high_fidelity", False):
+            alt = self._get_altitude()
+            if alt is not None:
+                corrected = _correct_pressure_to_sea_level(pressure_kpa, alt, t_val)
+                if corrected is not None:
+                    pressure_kpa = corrected
+        q_act = _specific_humidity_value(t_val, rh_val, pressure_kpa)
+        q_sat = _specific_humidity_value(t_val, 100.0, pressure_kpa)
+        if q_act is None or q_sat is None:
+            return {"valor": None, "estimado": True, "explicacion": "No fue posible calcular q"}
+        vpd_q_val = max(0.0, q_sat - q_act)
+        estimado = temp["estimado"] or rh["estimado"]
+        metadata = {
+            "sensores": ["temperatura", "humedad"],
+            "presion_sensor": pres_sensor or "presion_estimada",
+        }
+        self._store_derived_sensor("vpd_q", vpd_q_val, metadata)
+        return {
+            "valor": round(vpd_q_val, 6),
+            "estimado": estimado,
+            "explicacion": f"VPD por q (T={t_val}C, HR={rh_val}%)",
+        }
+
+    def pm25_corregido(self):
+        pm_sensor = self._first_available_sensor(["pm25", "pm25_ch1", "pm2_5", "pm2.5", "pm_25"])
+        humedad = self._get_sensor("humedad")
+        if not pm_sensor or humedad["valor"] is None:
+            return {"valor": None, "estimado": True, "explicacion": "Faltan PM2.5 o HR"}
+        try:
+            pm_val = float(pm_sensor["valor"])
+            rh_val = float(humedad["valor"])
+        except Exception:
+            return {"valor": None, "estimado": True, "explicacion": "Valores PM/HR inválidos"}
+        corrected = self._pm_humidity_correction(pm_val, rh_val, pm_sensor.get("fuente"))
+        estimado = pm_sensor.get("estimado", True) or humedad["estimado"]
+        metadata = {
+            "sensor_base": pm_sensor.get("fuente", "pm25"),
+            "humedad_sensor": "humedad",
+            "modelo_sensor": self._sensor_model_hint(pm_sensor.get("fuente")) or pm_sensor.get("fuente"),
+        }
+        self._store_derived_sensor("pm25_corregido", corrected, metadata)
+        return {
+            "valor": round(corrected, 2),
+            "estimado": estimado,
+            "explicacion": f"PM2.5 corregido por HR ({rh_val}% HR)",
+        }
+
+    def pm10_corregido(self):
+        pm_sensor = self._first_available_sensor(["pm10", "pm10_ch1", "pm10_ch2", "pm_10"])
+        humedad = self._get_sensor("humedad")
+        if not pm_sensor or humedad["valor"] is None:
+            return {"valor": None, "estimado": True, "explicacion": "Faltan PM10 o HR"}
+        try:
+            pm_val = float(pm_sensor["valor"])
+            rh_val = float(humedad["valor"])
+        except Exception:
+            return {"valor": None, "estimado": True, "explicacion": "Valores PM/HR inválidos"}
+        corrected = self._pm_humidity_correction(pm_val, rh_val, pm_sensor.get("fuente"))
+        estimado = pm_sensor.get("estimado", True) or humedad["estimado"]
+        metadata = {
+            "sensor_base": pm_sensor.get("fuente", "pm10"),
+            "humedad_sensor": "humedad",
+            "modelo_sensor": self._sensor_model_hint(pm_sensor.get("fuente")) or pm_sensor.get("fuente"),
+        }
+        self._store_derived_sensor("pm10_corregido", corrected, metadata)
+        return {
+            "valor": round(corrected, 2),
+            "estimado": estimado,
+            "explicacion": f"PM10 corregido por HR ({rh_val}% HR)",
+        }
+
+    def evapotranspiracion_penman_monteith(self):
+        temp = self._get_sensor("temperatura")
+        humedad = self._get_sensor("humedad")
+        viento = self._get_sensor("viento", fallback=0)
+        radiacion = self._get_sensor("radiacion")
+        if temp["valor"] is None or humedad["valor"] is None:
+            return {"valor": None, "estimado": True, "explicacion": "Faltan sensores para ET"}
+        rad_val = radiacion["valor"]
+        rad_estimado = radiacion["estimado"]
+        if rad_val is None:
+            rad_teor = self.radiacion_teorica()
+            rad_val = rad_teor.get("valor")
+            rad_estimado = True
+        if rad_val is None:
+            return {"valor": None, "estimado": True, "explicacion": "Sin radiación disponible"}
+        try:
+            t_val = float(temp["valor"])
+            rh_val = float(humedad["valor"])
+            v_val = float(viento["valor"] or 0.0)
+            r_val = float(rad_val)
+        except Exception:
+            return {"valor": None, "estimado": True, "explicacion": "Valores inválidos para ET"}
+        presion_kpa, pres_sensor = self._pressure_sensor_lookup()
+        if presion_kpa is None:
+            presion_kpa = 101.325
+        elif getattr(self, "_high_fidelity", False):
+            alt = self._get_altitude()
+            if alt is not None:
+                corrected = _correct_pressure_to_sea_level(presion_kpa, alt, t_val)
+                if corrected is not None:
+                    presion_kpa = corrected
+        es = 0.6108 * math.exp((17.27 * t_val) / (t_val + 237.3))
+        ea = es * (rh_val / 100.0)
+        delta = 4098 * es / ((t_val + 237.3) ** 2)
+        gamma = 0.000665 * presion_kpa
+        u2 = max(0.1, v_val)
+        eto_val: float | None = None
+        rn_simple = r_val * 0.0864
+        rn = rn_simple
+        if getattr(self, "_high_fidelity", False):
+            lat, _ = self._get_location()
+            alt = self._get_altitude()
+            if lat is not None and alt is not None:
+                dew_point = _dew_point(t_val, rh_val)
+                day_of_year = self._get_context_time().timetuple().tm_yday
+                rn_full = _net_radiation(r_val, t_val, dew_point, ea, lat, alt, day_of_year)
+                if rn_full is not None:
+                    g_full = _soil_heat_flux_estimate(rn_full, t_val)
+                    eto_full = _penman_monteith_full(rn_full, g_full, delta, gamma, t_val, u2, es, ea)
+                    if eto_full is not None:
+                        eto_val = eto_full
+                        rn = rn_full
+        if eto_val is None:
+            g = 0.0
+            denominator = delta + gamma * (1 + 0.34 * u2)
+            if denominator == 0:
+                return {"valor": None, "estimado": True, "explicacion": "Denominador ET inválido"}
+            eto = (0.408 * delta * (rn - g) + gamma * (900 / (t_val + 273.0)) * u2 * (es - ea)) / denominator
+            eto_val = max(0.0, eto)
+        estimado = temp["estimado"] or humedad["estimado"] or rad_estimado or viento["estimado"]
+        metadata = {
+            "sensores": ["temperatura", "humedad", "radiacion", "viento"],
+            "presion_sensor": pres_sensor or "presion_estimada",
+        }
+        self._store_derived_sensor("evapotranspiracion_penman_monteith", eto_val, metadata)
+        return {
+            "valor": round(eto_val, 2),
+            "estimado": estimado,
+            "explicacion": f"Penman-Monteith avanzada (Rn={round(rn, 2)}MJ/m2, V={v_val}m/s)",
+        }
+
     def sensacion_termica(self):
         temp = self._get_sensor("temperatura")
         viento = self._get_sensor("viento", fallback=0)
@@ -960,12 +1591,109 @@ class EnvironmentalIndices:
             v_val = float(viento["valor"])
         except (TypeError, ValueError):
             v_val = 0.0
-        st: float = t_val - (v_val * 0.7)
-        return {
-            "valor": round(st, 2),
-            "estimado": temp["estimado"] or viento["estimado"],
-            "explicacion": f"{'Estimado' if temp['estimado'] or viento['estimado'] else 'Directo'}: T={t_val}C, V={v_val}m/s"
-        }
+        # Determinar si es de día o de noche (usar radiación o sensor UV si está disponible)
+        rad = self._get_sensor("radiacion", fallback=0)
+        uv = self._get_sensor("uv", fallback=0)
+        rad_val = None
+        try:
+            rad_val = rad.get("valor") if isinstance(rad, dict) else None
+        except Exception:
+            rad_val = None
+        uv_val = None
+        try:
+            uv_val = uv.get("valor") if isinstance(uv, dict) else None
+        except Exception:
+            uv_val = None
+
+        es_dia = False
+        try:
+            if rad_val is not None and float(rad_val) >= 50:
+                es_dia = True
+            if uv_val is not None and float(uv_val) > 0.1:
+                es_dia = True
+        except Exception:
+            es_dia = False
+        if not es_dia:
+            now = self._get_context_time()
+            hour = now.hour if hasattr(now, "hour") else None
+            if hour is not None:
+                es_dia = 6 <= hour < 20
+
+        # Intentar usar fórmulas estándar: wind-chill para noche, heat-index/humidex para día
+        humedad = self._get_sensor("humedad", fallback=None)
+        h_val = None
+        try:
+            h_val = float(humedad["valor"]) if isinstance(humedad, dict) and humedad.get("valor") is not None else None
+        except Exception:
+            h_val = None
+
+        estimado_flag = temp["estimado"] or viento["estimado"] or (humedad["estimado"] if isinstance(humedad, dict) else False)
+        # Construir candidatos
+        candidates = {}
+        try:
+            if h_val is not None:
+                try:
+                    hi = indice_heat_index_c(t_val, h_val)
+                    candidates['heat_index'] = (float(hi), f"Heat-index (NOAA). T={t_val}C, HR={h_val}%", ['temperatura','humedad'])
+                except Exception:
+                    pass
+                try:
+                    hdx = indice_humidex(t_val, h_val)
+                    candidates['humidex'] = (float(hdx), f"Humidex. T={t_val}C, HR={h_val}%", ['temperatura','humedad'])
+                except Exception:
+                    pass
+                # WBGT aproximado
+                try:
+                    v_kmh = (v_val * 3.6) if v_val is not None else 0.0
+                    rad_n = float(rad_val) if rad_val is not None else 0.0
+                    wb = indice_wbgt(t_val, h_val, rad_n, v_kmh)
+                    candidates['wbgt'] = (float(wb), f"WBGT aprox: T={t_val}C, HR={h_val}%, Rad={rad_n}", ['temperatura','humedad','radiacion'])
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        try:
+            if v_val is not None:
+                try:
+                    v_kmh = v_val * 3.6
+                    wc = indice_wind_chill_c(t_val, v_kmh)
+                    candidates['wind_chill'] = (float(wc), f"Wind-chill: T={t_val}C, V={v_val}m/s", ['temperatura','viento'])
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        # Prioridad dinámica según temperatura
+        try:
+            if t_val <= 10:
+                order = ['wind_chill', 'wbgt', 'heat_index', 'humidex']
+            elif t_val >= 25:
+                order = ['wbgt', 'heat_index', 'humidex', 'wind_chill']
+            else:
+                order = ['heat_index', 'humidex', 'wbgt', 'wind_chill']
+        except Exception:
+            order = ['heat_index', 'humidex', 'wbgt', 'wind_chill']
+
+        eps = 0.15
+        selected = None
+        for key in order:
+            if key in candidates:
+                val, expl, deps = candidates[key]
+                if abs(val - t_val) > eps:
+                    selected = (key, val, expl, deps)
+                    break
+        if selected is None:
+            for key in order:
+                if key in candidates:
+                    val, expl, deps = candidates[key]
+                    selected = (key, val, expl, deps)
+                    break
+
+        if selected is not None:
+            key, val, expl, deps = selected
+            return {"valor": round(val, 2), "estimado": estimado_flag, "explicacion": expl, "metodo": key}
+        # Si ninguna candidata disponible, fallback a temperatura directa
+        return {"valor": round(t_val, 2), "estimado": estimado_flag, "explicacion": f"Temperatura directa T={t_val}C", "metodo": "temperatura_directa"}
 
     def indice_uv(self):
         uv = self._get_sensor("uv")
@@ -1064,6 +1792,63 @@ class EnvironmentalIndices:
             self._lag_last = {}
 
         indices = {}
+        context_time = self._get_context_time()
+        # Obtener ubicación conocida si está disponible
+        location_meta = self._get_location_meta()
+        lat_meta, lon_meta = self._get_location()
+        if location_meta:
+            indices['coordenadas'] = location_meta
+        if lat_meta is not None:
+            indices['latitud'] = lat_meta
+            indices['latitude'] = lat_meta
+        if lon_meta is not None:
+            indices['longitud'] = lon_meta
+            indices['longitude'] = lon_meta
+
+        # Exponer información enviada por el dashboard (hora cliente) si está disponible
+        meta = None
+        try:
+            meta = getattr(self, '_last_dashboard_time_meta', None)
+            if isinstance(meta, dict) and meta.get('iso'):
+                indices['hora_cliente'] = {
+                    'valor': meta.get('iso'),
+                    'confianza': meta.get('confianza'),
+                    'skew_seconds': meta.get('skew_seconds'),
+                    'estimado': False,
+                    'explicacion': 'Hora reportada por dashboard cliente',
+                }
+        except Exception:
+            meta = None
+        if context_time is None and isinstance(meta, dict) and meta.get('iso'):
+            if not indices.get('hora_cliente_iso'):
+                indices['hora_cliente_iso'] = meta.get('iso')
+                indices['context_time_iso'] = meta.get('iso')
+            try:
+                parsed = datetime.datetime.fromisoformat(meta.get('iso'))
+                if parsed.tzinfo is None:
+                    parsed = parsed.replace(tzinfo=timezone.utc)
+                indices['context_time_epoch'] = parsed.timestamp()
+            except Exception:
+                pass
+        # Si hay un tiempo de contexto computado (forzado o derivado), exponerlo
+        if context_time is not None:
+            try:
+                context_iso = context_time.isoformat()
+                if not indices.get('hora_cliente_iso'):
+                    indices['hora_cliente_iso'] = context_iso
+                indices['context_time_iso'] = context_iso
+            except Exception:
+                context_iso = None
+            try:
+                indices['context_time_epoch'] = context_time.timestamp()
+            except Exception:
+                pass
+            try:
+                off = context_time.utcoffset()
+                if off is not None:
+                    indices['context_timezone_offset_minutes'] = int(off.total_seconds() / 60)
+            except Exception:
+                pass
         # Sensores base
         temp = self._get_sensor("temperatura")
         viento = self._get_sensor("viento", fallback=0)
@@ -1112,6 +1897,11 @@ class EnvironmentalIndices:
         if et["valor"] is not None:
             et["confianza"] = self._confianza(et["estimado"], fiable=True)
             indices["evapotranspiracion"] = et
+
+        et_penman = self.evapotranspiracion_penman_monteith()
+        if et_penman.get("valor") is not None:
+            et_penman["confianza"] = self._confianza(et_penman["estimado"], fiable=True)
+            indices["evapotranspiracion_penman_monteith"] = et_penman
         # Radiación teórica y nubosidad estimada
         rad_teor = self.radiacion_teorica()
         if rad_teor["valor"] is not None:
@@ -1258,8 +2048,7 @@ class EnvironmentalIndices:
             # Buscar lluvia real o prevista en la ventana de 1h antes/después del último rayo
             lluvia_detectada = False
             try:
-                import datetime
-                ahora = datetime.datetime.now()
+                ahora = self._get_context_time()
                 # Obtener fecha/hora del último rayo
                 rayo_time = None
                 if lightning_time["valor"] is not None:
@@ -1348,6 +2137,16 @@ class EnvironmentalIndices:
         if pr["valor"] is not None:
             pr["confianza"] = self._confianza(pr["estimado"], fiable=True)
             indices["punto_rocio"] = pr
+
+            humesp = self.humedad_especifica()
+            if humesp.get("valor") is not None:
+                humesp["confianza"] = self._confianza(humesp["estimado"], fiable=True)
+                indices["humedad_especifica"] = humesp
+
+            vpdq = self.indice_vpd_q()
+            if vpdq.get("valor") is not None:
+                vpdq["confianza"] = self._confianza(vpdq["estimado"], fiable=True)
+                indices["vpd_q"] = vpdq
 
         # --- Cetrería local ---
         try:
@@ -1578,6 +2377,16 @@ class EnvironmentalIndices:
                 }
             except Exception:
                 pass
+
+        pm25_corr = self.pm25_corregido()
+        if pm25_corr.get("valor") is not None:
+            pm25_corr["confianza"] = self._confianza(pm25_corr["estimado"], fiable=True)
+            indices["pm25_corregido"] = pm25_corr
+
+        pm10_corr = self.pm10_corregido()
+        if pm10_corr.get("valor") is not None:
+            pm10_corr["confianza"] = self._confianza(pm10_corr["estimado"], fiable=True)
+            indices["pm10_corregido"] = pm10_corr
 
         # Índices compuestos (fusión de fórmulas)
         try:

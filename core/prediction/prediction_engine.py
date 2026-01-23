@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import time
 import os
 import math
 from typing import Any, Dict, List, Optional
 
 from core.logger import get_logger
+from core.utils.daynight import estado_dia_hibrido
 
 
 class PredictionEngine:
@@ -26,13 +28,30 @@ class PredictionEngine:
             self.feedback_uncertainty_threshold = 12.0
 
     def _time_features(self) -> dict:
-        now = time.localtime()
-        hour = now.tm_hour + now.tm_min / 60.0
+        context_now = None
+        try:
+            indices = getattr(self.system, "indices", None)
+            if indices and hasattr(indices, "_get_context_time"):
+                context_now = indices._get_context_time()
+        except Exception:
+            context_now = None
+        if context_now is None:
+            context_now = datetime.now(timezone.utc).astimezone()
+        else:
+            try:
+                context_now = context_now.astimezone()
+            except Exception:
+                pass
+        hour = context_now.hour + context_now.minute / 60.0 + context_now.second / 3600.0
+        tz_offset = context_now.utcoffset()
+        offset_minutes = int(tz_offset.total_seconds() / 60) if tz_offset is not None else 0
         return {
             "hora": hour,
+            "hora_iso": context_now.isoformat(),
             "es_noche": 1 if (hour < 6 or hour >= 20) else 0,
-            "mes": now.tm_mon,
-            "doy": now.tm_yday,
+            "mes": context_now.month,
+            "doy": context_now.timetuple().tm_yday,
+            "timezone_offset_minutes": offset_minutes,
         }
 
     def _rolling_stats(self, nombre: str, window_s: int = 1800) -> tuple[Optional[float], Optional[float]]:
@@ -150,6 +169,21 @@ class PredictionEngine:
         pred: Dict[str, Any] = {}
         indices: Dict[str, Any] | None = None
         time_feats = self._time_features()
+        # intentar obtener ubicación y modelo de estación al inicio (para contexto)
+        try:
+            loc = None
+            try:
+                loc = self.system.obtener_coordenadas()
+            except Exception:
+                loc = None
+        except Exception:
+            loc = None
+        try:
+            station_model = (getattr(self.system, 'sensores', {}) or {}).get('model')
+            if not station_model:
+                station_model = (getattr(self.system, 'sensores_metadata', {}) or {}).get('station_model')
+        except Exception:
+            station_model = None
         try:
             from core.indices.environmental_indices import EnvironmentalIndices
             if not isinstance(self.system.indices, EnvironmentalIndices):
@@ -157,6 +191,17 @@ class PredictionEngine:
             indices = self.system.indices.obtener_todos()
         except Exception:
             indices = None
+        # Determinar día/noche híbrido a partir de índices (amanecer/atardecer híbrido)
+        es_noche_hibrido = None
+        try:
+            if isinstance(indices, dict):
+                dia_info = estado_dia_hibrido(indices)
+                es_noche_hibrido = dia_info.get("es_noche")
+            else:
+                dia_info = {}
+        except Exception:
+            es_noche_hibrido = None
+            dia_info = {}
         # Tendencias
         tendencia_temp = self._trend("temperatura")
         tendencia_pres = self._trend("presion")
@@ -196,7 +241,13 @@ class PredictionEngine:
                     base += min(30.0, abs(tendencia_pres) * 10)
             if radiacion is not None and radiacion < 100:
                 base += 10.0
-            if time_feats.get("es_noche") == 1 and radiacion is not None and radiacion < 50:
+            # usar bandera híbrida si está disponible, sino caer a la hora local
+            use_es_noche = None
+            if es_noche_hibrido is not None:
+                use_es_noche = es_noche_hibrido
+            else:
+                use_es_noche = bool(time_feats.get("es_noche"))
+            if use_es_noche and radiacion is not None and radiacion < 50:
                 base += 5.0
             if std_pres_30m is not None and std_pres_30m > 1.5:
                 base += min(10.0, std_pres_30m * 3.0)
@@ -212,7 +263,61 @@ class PredictionEngine:
 
         if prob_lluvia is not None:
             support = self._support_factor(["humedad", "presion", "radiacion", "lluvia_rate", "lluvia"])
-            support *= self._support_from_indices(indices, ["riesgo_lluvia", "riesgo_micro_lluvias", "alerta_tormenta"])
+            # incluir nubosidad_estimada como apoyo adicional (no decisorio por sí misma)
+            support *= self._support_from_indices(indices, ["riesgo_lluvia", "riesgo_micro_lluvias", "alerta_tormenta", "nubosidad_estimada"])
+            # Contextual multiplier basado en ubicación, día/año, estación, día/noche y hora
+            try:
+                loc = None
+                try:
+                    loc = self.system.obtener_coordenadas()
+                except Exception:
+                    loc = None
+                station_model = None
+                try:
+                    # intentar recoger modelo/estación desde sensores o metadata
+                    station_model = (getattr(self.system, 'sensores', {}) or {}).get('model')
+                    if not station_model:
+                        station_model = (getattr(self.system, 'sensores_metadata', {}) or {}).get('station_model')
+                except Exception:
+                    station_model = None
+                # preferir la versión híbrida calculada desde índices
+                is_day = not bool(es_noche_hibrido) if es_noche_hibrido is not None else not bool(time_feats.get('es_noche'))
+                doy = int(time_feats.get('doy', 0) or 0)
+                hour = float(time_feats.get('hora', 0.0) or 0.0)
+                # multiplicador base
+                ctx_mult = 1.0
+                if loc and isinstance(loc, (list, tuple)) and len(loc) == 2 and loc[0] is not None:
+                    ctx_mult += 0.03
+                # día aumenta importancia de radiación/nubosidad
+                ctx_mult += 0.02 if is_day else -0.02
+                # influencia horaria: potenciar ligeramente cerca del mediodía, minorar por la noche
+                try:
+                    # valor entre -0.03 y +0.03 con pico al mediodía
+                    hour_influence = 0.03 * math.cos(math.pi * (hour - 12.0) / 12.0)
+                    ctx_mult += hour_influence
+                except Exception:
+                    pass
+                # efecto estacional suave según día del año
+                try:
+                    import math as _math
+                    seasonal = 0.02 * _math.cos(2.0 * _math.pi * (doy / 365.0)) if doy else 0.0
+                    ctx_mult += seasonal
+                except Exception:
+                    pass
+                # confianza según modelo de estación conocido (pequeño ajuste)
+                try:
+                    good_models = ("HP2550", "HP2550A", "EasyWeather", "WH65", "PMS5003")
+                    if station_model:
+                        sm = str(station_model)
+                        if any(g in sm for g in good_models):
+                            ctx_mult += 0.03
+                except Exception:
+                    pass
+                # limitar multiplicador
+                ctx_mult = max(0.7, min(1.25, ctx_mult))
+                support *= ctx_mult
+            except Exception:
+                pass
             prob_lluvia = max(0.0, min(100.0, prob_lluvia * support))
             estimadores: List[float] = [prob_lluvia]
             # Estimador alterno basado en históricos cortos
@@ -265,6 +370,44 @@ class PredictionEngine:
                     "incertidumbre": round(incert, 2),
                     "solicitar_feedback": incert >= self.feedback_uncertainty_threshold,
                 }
+
+        # Añadir contexto general en la salida para que todas las fórmulas puedan registrarlo
+        try:
+            contexto = {
+                "hora": round(float(time_feats.get("hora", 0.0) or 0.0), 3),
+                "hora_iso": time_feats.get("hora_iso"),
+                "es_noche": bool(es_noche_hibrido) if es_noche_hibrido is not None else bool(time_feats.get("es_noche")),
+                "doy": int(time_feats.get("doy", 0) or 0),
+                "mes": int(time_feats.get("mes", 0) or 0),
+                "coordenadas": loc,
+                "station_model": station_model,
+                "timezone_offset_minutes": time_feats.get("timezone_offset_minutes"),
+                "context_time_epoch": indices.get("context_time_epoch") if isinstance(indices, dict) else None,
+                "context_timezone_offset_minutes": indices.get("context_timezone_offset_minutes") if isinstance(indices, dict) else None,
+            }
+            # incorporar información detallada de día/noche/arco solar si existe
+            try:
+                if dia_info:
+                    contexto.update({
+                        "fecha": dia_info.get("fecha"),
+                        "estacion": dia_info.get("estacion"),
+                        "solar_elevation": dia_info.get("solar_elevation"),
+                        "arco_solar_deg": dia_info.get("arco_solar_deg"),
+                        "es_noche_astronomico": dia_info.get("es_noche_astronomico"),
+                    })
+            except Exception:
+                pass
+            try:
+                hora_cliente = indices.get("hora_cliente") if isinstance(indices, dict) else None
+                if isinstance(hora_cliente, dict):
+                    contexto["hora_cliente_iso"] = hora_cliente.get("valor")
+                    contexto["hora_cliente_confianza"] = hora_cliente.get("confianza")
+                    contexto["hora_cliente_skew_seconds"] = hora_cliente.get("skew_seconds")
+            except Exception:
+                pass
+            pred["contexto"] = contexto
+        except Exception:
+            pass
 
         # Predicción de incomodidad térmica (simple)
         temp = self._last("temperatura")

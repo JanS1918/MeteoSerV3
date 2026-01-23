@@ -88,6 +88,12 @@ function normalizeNumeric(value) {
     return n;
 }
 
+function capitalize(text) {
+    if (!text) return '';
+    const str = String(text);
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function classifyValue(key, value, unit = '') {
     const normalized = normalizeNumeric(value);
     if (normalized === null) return '';
@@ -109,6 +115,13 @@ function classifyValue(key, value, unit = '') {
     if (normalized >= 70) return 'value--high';
     if (normalized >= 35) return 'value--med';
     return 'value--low';
+}
+
+function toArray(value) {
+    if (value == null) return [];
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'object') return Object.values(value);
+    return [value];
 }
 
 function isAnomaly(key, value) {
@@ -681,9 +694,79 @@ function updateLocation(indices) {
     const lat = indices.latitud;
     const lon = indices.longitud;
     const origen = indices.origen_ubicacion;
+    const locationMeta = indices.coordenadas;
     if (lat !== undefined && lon !== undefined) {
-        setText('ubicacion', `Lat ${Number(lat).toFixed(4)} | Lon ${Number(lon).toFixed(4)} (${origen || 'n/d'})`);
+        let origenLabel = origen || 'n/d';
+        if (locationMeta && typeof locationMeta === 'object') {
+            const label = locationMeta.ubicacion || locationMeta.label || locationMeta.nombre;
+            if (label) {
+                origenLabel = label;
+            }
+        }
+        if (!locationMeta && String(origen).toLowerCase() === 'manual') {
+            origenLabel = 'Argentona';
+        }
+        setText('ubicacion', `Lat ${Number(lat).toFixed(4)} | Lon ${Number(lon).toFixed(4)} (${origenLabel})`);
     }
+}
+function formatClientTimeIso(iso) {
+    if (!iso) return '—';
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) return iso;
+    return parsed.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function formatSkewValue(skew) {
+    if (skew === undefined || skew === null) return '—';
+    const seconds = Number(skew);
+    if (Number.isNaN(seconds)) return '—';
+    const sign = seconds >= 0 ? '+' : '';
+    return `${sign}${seconds}s`;
+}
+
+function formatOffsetMinutes(minutes) {
+    if (minutes === undefined || minutes === null) return 'UTC —';
+    const total = Number(minutes);
+    if (Number.isNaN(total)) return 'UTC —';
+    const sign = total >= 0 ? '+' : '-';
+    const absMinutes = Math.abs(total);
+    const hours = Math.floor(absMinutes / 60);
+    const mins = absMinutes % 60;
+    return `UTC${sign}${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+}
+
+function formatCoordsValue(coords) {
+    if (!coords) return '—';
+    let lat;
+    let lon;
+    let locationLabel = '';
+    if (Array.isArray(coords)) {
+        [lat, lon] = coords;
+    } else if (typeof coords === 'object') {
+        locationLabel = coords.ubicacion || coords.label || coords.nombre || '';
+        lat = coords.lat ?? coords.latitude ?? coords.latitud;
+        lon = coords.lon ?? coords.longitude ?? coords.longitud;
+    }
+    const latNum = Number(lat);
+    const lonNum = Number(lon);
+    if (Number.isNaN(latNum) || Number.isNaN(lonNum)) return '—';
+    const coordText = `Lat ${latNum.toFixed(4)} · Lon ${lonNum.toFixed(4)}`;
+    return locationLabel ? `${locationLabel} · ${coordText}` : coordText;
+}
+
+function updateContextMetadata(data) {
+    const contexto = data?.predicciones?.contexto || {};
+    const indices = data?.indices || {};
+    const horaClienteIso = contexto.hora_cliente_iso || indices.hora_cliente_iso || (indices.hora_cliente && indices.hora_cliente.valor);
+    setText('context-client-time', formatClientTimeIso(horaClienteIso));
+    const confidence = contexto.hora_cliente_confianza ?? (indices.hora_cliente && indices.hora_cliente.confianza);
+    const skew = contexto.hora_cliente_skew_seconds ?? (indices.hora_cliente && indices.hora_cliente.skew_seconds);
+    const confidenceLabel = confidence ? capitalize(String(confidence)) : '—';
+    setText('context-client-sync', `Confianza ${confidenceLabel} · Skew ${formatSkewValue(skew)}`);
+    const offset = contexto.timezone_offset_minutes ?? contexto.context_timezone_offset_minutes ?? indices.context_timezone_offset_minutes;
+    setText('context-client-offset', formatOffsetMinutes(offset));
+    const coords = contexto.coordenadas || indices.coordenadas;
+    setText('context-client-coords', formatCoordsValue(coords));
 }
 
 function getSensorBase(data, keys) {
@@ -714,9 +797,25 @@ function updateHero(data) {
         setText('hero-temp-value', formatValueForKey(temp.key, temp.value, tempUnit));
         const sensacion = data?.meteo?.derivadas?.sensacion_termica;
         if (sensacion && sensacion.value !== undefined && sensacion.value !== null) {
-            setText('hero-feels', fmt(sensacion.value, sensacion.unit || '°C'));
+            const text = fmt(sensacion.value, sensacion.unit || '°C');
+            setText('hero-feels-inline', text);
+            try {
+                const el = document.getElementById('hero-feels-inline');
+                const metodo = sensacion.metodo || sensacion.name || '';
+                const expl = sensacion.explicacion || sensacion.explanation || '';
+                const title = metodo ? `${metodo} — ${expl}` : expl;
+                if (el) el.setAttribute('title', title);
+            } catch (e) {
+                // ignore
+            }
         } else {
-            setText('hero-feels', formatValueForKey(temp.key, temp.value, tempUnit));
+            setText('hero-feels-inline', '—');
+            try {
+                const el = document.getElementById('hero-feels-inline');
+                if (el) el.removeAttribute('title');
+            } catch (e) {
+                // ignore
+            }
         }
     }
     if (hum) {
@@ -742,20 +841,271 @@ function updateSolar(indices) {
     setText('hero-sunset', indices.atardecer || '--:--');
     const arco = indices.arco_solar?.valor ?? indices.arco_solar;
     const duracion = indices.duracion_dia_h?.valor ?? indices.duracion_dia_h;
-    setText('hero-solar-arc', arco !== undefined && arco !== null ? `${fmt(arco)}°` : '--');
+    // Valor numérico del arco eliminado de la UI (solo se mantienen los cálculos)
     setText('hero-solar-duration', duracion !== undefined && duracion !== null ? `${fmt(duracion)} h` : '--');
     const esDia = indices.es_dia_astronomico ?? indices.es_dia_sensor;
-    const arc = document.getElementById('solar-arc');
-    if (arc) {
-        if (esDia === false) arc.classList.add('solar-arc--night');
-        else arc.classList.remove('solar-arc--night');
+    const lunar = indices.fase_lunar || {};
+    const faseLabel = lunar?.etapa || '--';
+    const direccion = lunar?.direccion ? capitalize(lunar.direccion) : '--';
+    setText('hero-moon-icon', lunar?.icono || '🌙');
+    setText('hero-moon-phase', faseLabel);
+    setText('hero-moon-direction', direccion);
+    // Graphic overlay removed; preserve indices for calculations and uses
+    window._lastSolarIndices = indices;
+}
+// Auxiliares para etiquetas en arcos
+function clearSvgGroup(group) {
+    while (group && group.firstChild) group.removeChild(group.firstChild);
+}
+
+function renderArcHourLabels(indices) {
+    const topPath = document.getElementById('solar-arc-top');
+    const mirrorPath = document.querySelector('.solar-arc__path--mirror');
+    const topGroup = document.getElementById('solar-arc-top-labels');
+    const mirrorGroup = document.getElementById('solar-arc-mirror-labels');
+    if (!topPath || !mirrorPath || !topGroup || !mirrorGroup) return;
+    // preferir astronómicas
+    const amanecerStr = indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? null;
+    const atardecerStr = indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? null;
+    const amanecer = parseTimeToToday(amanecerStr);
+    const atardecer = parseTimeToToday(atardecerStr);
+    clearSvgGroup(topGroup);
+    clearSvgGroup(mirrorGroup);
+    if (amanecer && atardecer) {
+        const total = atardecer.getTime() - amanecer.getTime();
+        if (total > 0) {
+            const len = topPath.getTotalLength();
+            // etiquetas cada hora (redondeadas dentro del intervalo)
+            const startHour = Math.ceil(amanecer.getHours());
+            const endHour = Math.floor(atardecer.getHours());
+            for (let h = startHour; h <= endHour; h++) {
+                const d = new Date(amanecer.getFullYear(), amanecer.getMonth(), amanecer.getDate(), h, 0, 0);
+                if (d < amanecer || d > atardecer) continue;
+                const frac = (d.getTime() - amanecer.getTime()) / total;
+                const pt = topPath.getPointAtLength(frac * len);
+                const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                txt.setAttribute('x', pt.x);
+                txt.setAttribute('y', (pt.y - 8).toFixed(2));
+                txt.setAttribute('class', 'solar-arc__hour solar-arc__hour--day');
+                txt.textContent = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                topGroup.appendChild(txt);
+            }
+        }
+    }
+    // Night labels: from sunset to next day's sunrise
+    const sunset = atardecer;
+    const nextSunrise = amanecer ? new Date(amanecer.getTime() + 24*3600*1000) : null;
+    if (sunset && nextSunrise) {
+        let totalN = nextSunrise.getTime() - sunset.getTime();
+        if (totalN > 0) {
+            const lenM = mirrorPath.getTotalLength();
+            const start = new Date(sunset.getTime());
+            start.setMinutes(0,0,0);
+            start.setHours(sunset.getHours() + 1);
+            for (let t = new Date(start); t.getTime() < nextSunrise.getTime(); t.setHours(t.getHours() + 1)) {
+                const frac = (t.getTime() - sunset.getTime()) / totalN;
+                const tt = Math.max(0, Math.min(1, frac));
+                const pt = mirrorPath.getPointAtLength(tt * lenM);
+                const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                txt.setAttribute('x', pt.x);
+                txt.setAttribute('y', (pt.y + 14).toFixed(2));
+                txt.setAttribute('class', 'solar-arc__hour solar-arc__hour--night');
+                txt.textContent = t.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                mirrorGroup.appendChild(txt);
+            }
+        }
     }
 }
+
+// placeSolarOverlay and renderSolarSVG removed: graphic rendering of the arc is disabled
+function placeSolarOverlay() { /* gráfico eliminado */ }
+
+function renderSolarSVG(arcRect) { /* gráfico eliminado */ }
+
+// Parse time string `HH:MM` or ISO to a Date on today's date (local). Returns null if invalid.
+function parseTimeToToday(timeStr) {
+    if (!timeStr) return null;
+    try {
+        if (typeof timeStr === 'number') {
+            // assume seconds or ms
+            const n = Number(timeStr);
+            const ms = n > 1e12 ? n : (n < 1e12 ? n * 1000 : n);
+            return new Date(ms);
+        }
+        const s = String(timeStr).trim();
+        // If ISO-like, try Date parsing
+        if (s.includes('T') || s.includes('-')) {
+            const d = new Date(s);
+            if (!Number.isNaN(d.getTime())) return d;
+        }
+        // HH:MM or H:MM
+        const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+        if (m) {
+            const now = new Date();
+            const hh = Number(m[1]);
+            const mm = Number(m[2]);
+            const ss = m[3] ? Number(m[3]) : 0;
+            const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, ss);
+            return d;
+        }
+        // fallback: attempt Date parse
+        const d2 = new Date(s);
+        return Number.isNaN(d2.getTime()) ? null : d2;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Compute fraction of day [0..1] between amanecer and atardecer using indices.
+function computeSolarFraction(indices) {
+    try {
+        if (!indices) return NaN;
+        // Preferir horas astronómicas si están disponibles, luego híbridas y por último etiquetas genéricas
+        const amanecer = indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? null;
+        const atardecer = indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? null;
+        const start = parseTimeToToday(amanecer);
+        const end = parseTimeToToday(atardecer);
+        if (!start || !end) return NaN;
+        const now = new Date();
+        const total = end.getTime() - start.getTime();
+        if (total <= 0) return NaN;
+        const frac = (now.getTime() - start.getTime()) / total;
+        return Math.max(0, Math.min(1, frac));
+    } catch (e) {
+        return NaN;
+    }
+}
+
+// Posicionar y escalar sol/luna según fracción a lo largo del arco.
+function updateSolarPositions() {
+    try {
+        const top = document.getElementById('solar-arc-top');
+        const mirror = document.querySelector('.solar-arc__path--mirror');
+        const sun = document.getElementById('solar-arc-sun');
+        const moon = document.getElementById('lunar-arc-moon');
+        if (!top || !mirror || !sun || !moon) return;
+
+        const indices = window._lastSolarIndices || lastEstado?.indices || {};
+        // intentar calcular azimut/altitud con SunCalc si hay lat/lon
+        let sunFrac = computeSolarFraction(indices);
+        let moonFrac = NaN;
+        try {
+            const lat = Number(indices.latitud ?? indices.latitude ?? indices.lat) || null;
+            const lon = Number(indices.longitud ?? indices.longitude ?? indices.lon) || null;
+            const now = new Date();
+            // Preferir campos calculados en servidor si existen
+            if (indices && (indices.sun_azimuth !== undefined || indices.sun_altitude !== undefined)) {
+                try {
+                    const sDeg = Number(indices.sun_azimuth);
+                    if (!Number.isNaN(sDeg)) {
+                        let sFrac = (sDeg - 90) / 180;
+                        sFrac = Math.max(0, Math.min(1, sFrac));
+                        sunFrac = sFrac;
+                        const sunEl = sun;
+                        const alt = Number(indices.sun_altitude);
+                        if (sunEl) sunEl.style.opacity = (!Number.isNaN(alt) && alt > 0) ? '1' : '0.25';
+                    }
+                } catch (e) { /* fallback to other methods */ }
+            }
+            if (window.SunCalc && lat && lon) {
+                // Sun
+                try {
+                    const sPos = SunCalc.getPosition(now, lat, lon);
+                    // SunCalc.azimuth is in radians; convert to degrees [0..360]
+                    let sDeg = (sPos.azimuth * 180 / Math.PI + 180) % 360;
+                    // Map azimuth 90 (E) -> 0 .. 270 (W) -> 1 along arc
+                    let sFrac = (sDeg - 90) / 180;
+                    sFrac = Math.max(0, Math.min(1, sFrac));
+                    sunFrac = sFrac;
+                    // use altitude for visibility/opacity
+                    const sunEl = sun;
+                    if (sunEl) sunEl.style.opacity = sPos.altitude > 0 ? '1' : '0.25';
+                } catch (e) { /* fallback to time fraction */ }
+                // Moon
+                try {
+                    const mPos = SunCalc.getMoonPosition(now, lat, lon);
+                    let mDeg = (mPos.azimuth * 180 / Math.PI + 180) % 360;
+                    let mFrac = (mDeg - 90) / 180;
+                    mFrac = Math.max(0, Math.min(1, mFrac));
+                    moonFrac = mFrac;
+                    const moonEl = moon;
+                    if (moonEl) moonEl.style.opacity = mPos.altitude > 0 ? '1' : '0.4';
+                } catch (e) { moonFrac = NaN; }
+            }
+        } catch (e) { /* ignore */ }
+        // si no calculamos moonFrac con SunCalc, intentar aproximar por intervalo nocturno
+        if (Number.isNaN(moonFrac)) {
+            try {
+                const amanecer = parseTimeToToday(indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? null);
+                const atardecer = parseTimeToToday(indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? null);
+                if (amanecer && atardecer) {
+                    const now = new Date().getTime();
+                    let s = atardecer.getTime();
+                    let e = amanecer.getTime();
+                    if (e <= s) e += 24*3600*1000;
+                    let nowt = new Date().getTime();
+                    if (nowt < amanecer.getTime()) nowt += 0;
+                    const raw = (nowt - s) / (e - s);
+                    moonFrac = Math.max(0, Math.min(1, raw));
+                }
+            } catch (e) { moonFrac = NaN; }
+        }
+
+        function placeAndScale(path, el, frac, reverse=false) {
+            try {
+                const len = path.getTotalLength();
+                const t = reverse ? (1 - frac) : frac;
+                const pt = path.getPointAtLength(t * len);
+                el.setAttribute('cx', pt.x);
+                el.setAttribute('cy', pt.y);
+                // scale: smaller at ends, larger at center
+                const minScale = 0.6;
+                const peak = 1.0;
+                const factor = Math.max(0, 1 - 4 * Math.pow(frac - 0.5, 2));
+                const scale = minScale + factor * (peak - minScale);
+                // preserve base radius in data attribute
+                let baseR = Number(el.dataset.baseR || el.getAttribute('r') || 0);
+                if (!baseR) baseR = Number(el.getAttribute('r')) || 8;
+                el.dataset.baseR = String(baseR);
+                el.setAttribute('r', (baseR * scale).toFixed(2));
+            } catch (e) { /* ignore */ }
+        }
+
+        if (!Number.isNaN(sunFrac)) placeAndScale(top, sun, sunFrac, false);
+        if (!Number.isNaN(moonFrac)) placeAndScale(mirror, moon, moonFrac, true);
+    } catch (e) {
+        // ignore
+    }
+}
+
+// Ejecutar cada segundo para mantener sincronía con el reloj
+setInterval(updateSolarPositions, 1000);
+
+// Reposicionar al cargar estado y al cambiar tamaño de ventana
+window.addEventListener('resize', () => {
+    // pequeño debounce
+    if (window._solarOverlayTimer) clearTimeout(window._solarOverlayTimer);
+    window._solarOverlayTimer = setTimeout(() => placeSolarOverlay(), 120);
+});
+
+// Intentar posicionar periódicamente tras actualizaciones UI
+const _original_loadEstado = typeof loadEstado === 'function' ? loadEstado : null;
+if (_original_loadEstado) {
+    // envolver la función para asegurar posicionamiento tras la carga
+    window.loadEstado = async function() {
+        await _original_loadEstado();
+        setTimeout(placeSolarOverlay, 80);
+    };
+}
+
+// Posicionar al inicializar la página
+document.addEventListener('DOMContentLoaded', () => setTimeout(placeSolarOverlay, 200));
 
 function updateSensors(data) {
     const sensors = data?.sensores || {};
     const meteo = data?.meteo?.sensores || {};
     const indices = data?.indices || {};
+    const derivedMetadata = lastEstado?.sensores_derivados_metadata || {};
     const extraKeys = ['nubosidad_estimada'];
     Object.keys(sensors).forEach(key => cacheState.sensors.add(key));
     Object.keys(meteo).forEach(key => cacheState.sensors.add(key));
@@ -779,7 +1129,8 @@ function updateSensors(data) {
             lluvia_acumulada: 'mm',
             mqtt_temp: '°C'
         };
-        const unit = unitMap[key] || norm?.unit || '';
+        const derivedInfo = derivedMetadata[key] || {};
+        const unit = unitMap[key] || norm?.unit || derivedInfo.unidad || '';
         const value = sensors[key] ?? norm?.value ?? indexValue;
         const warn = value === undefined || value === null || value === '';
         return { label: getDisplayLabel(key), value, unit, key, warn, kind: 'sensor' };
@@ -833,12 +1184,18 @@ function updateIndices(data) {
 
 function updateRecomendacion(data) {
     const rec = data?.recomendacion;
+    // Log para depuración: ver qué viene en la recomendación
+    try {
+        console.debug('updateRecomendacion - rec raw:', rec);
+    } catch (e) {
+        // ignore
+    }
     const recText = rec && typeof rec === 'object'
         ? (rec.estado || rec.mensaje || rec.texto || rec.text || '')
         : String(rec || '');
     const recMotivos = rec && typeof rec === 'object' && rec.motivos ? Object.values(rec.motivos) : [];
-    const alerts = [...(data?.meteorologico?.alertas || []), ...(data?.intrusion?.alertas || [])].map(String);
-    const avisos = (data?.avisos_practicos || []).map(String);
+    const alerts = [...toArray(data?.meteorologico?.alertas), ...toArray(data?.intrusion?.alertas)].map(String);
+    const avisos = toArray(data?.avisos_practicos).map(String);
     const indices = data?.indices || {};
     const riesgos = Object.keys(indices)
         .filter(key => key.startsWith('riesgo_') || key.startsWith('alerta_'))
@@ -850,32 +1207,99 @@ function updateRecomendacion(data) {
         })
         .filter(Boolean);
 
-    const signals = [...alerts, ...avisos, ...riesgos, ...recMotivos];
-    const shouldShow = Boolean(recText);
-    const text = shouldShow ? recText : 'Sin recomendaciones';
-    setText('recomendacion', text);
-    if (shouldShow) {
+    const signals = [...alerts, ...avisos, ...riesgos, ...recMotivos].filter(Boolean);
+    const hasSignals = signals.length > 0;
+
+    // Heurísticas para construir una frase unificada y coloquial
+    function getNumericIndex(key) {
+        const v = indices[key];
+        if (v === undefined || v === null) return null;
+        return typeof v === 'object' && 'valor' in v ? normalizeNumeric(v.valor) : normalizeNumeric(v);
+    }
+
+    const sensacion = getNumericIndex('sensacion_termica') || (data?.meteo?.derivadas?.sensacion_termica?.value ?? null);
+    const nub = getNumericIndex('nubosidad_estimada') || null;
+    const lluviaRisk = getNumericIndex('riesgo_lluvia') || getNumericIndex('lluvia') || null;
+
+    const parts = [];
+    // Temperatura / sensación
+    if (sensacion !== null) {
+        parts.push(`Hace ${sensacion < 15 ? 'fresco' : (sensacion > 25 ? 'calor' : 'bueno')}`);
+    }
+
+    // Nubosidad y luminosidad
+    if (nub !== null) {
+        if (nub >= 80) parts.push('hay muchas nubes');
+        else if (nub >= 40) parts.push('hay bastantes nubes');
+        else parts.push('hay pocas nubes');
+        if (nub >= 70) parts.push('y el día está bastante oscuro');
+        else if (nub >= 40) parts.push('y el día está algo poco soleado');
+    }
+
+    // Recomendaciones prácticas (abrigo, paraguas)
+    const actions = [];
+    if (sensacion !== null && sensacion < 15) actions.push('abrígate');
+    if (lluviaRisk !== null) {
+        if (lluviaRisk >= 60) actions.push('lleva paraguas, hay alto riesgo de lluvia');
+        else if (lluviaRisk >= 30) actions.push('coge paraguas, riesgo moderado de lluvia');
+    }
+
+    // Cetrería (si aparece en motivos)
+    const cetreriaActive = recMotivos.some(m => String(m).toLowerCase().includes('cetrer'));
+    // Polvo / mala calidad del aire (interior detection heuristic)
+    const polvoIndex = getNumericIndex('alerta_polvo') || getNumericIndex('riesgo_polvo') || null;
+    let polvoText = '';
+    if (polvoIndex !== null && polvoIndex >= 60) {
+        // intentar detectar si el sensor que mide PM25 está en interior
+        const sensoresKeys = Object.keys(data?.sensores || {});
+        const pmInterior = sensoresKeys.some(k => k.toLowerCase().includes('pm25') && (k.toLowerCase().includes('in') || k.toLowerCase().includes('interior') || k.toLowerCase().includes('inside')));
+        polvoText = `Riesgo alto de polvo o mala calidad del aire ${pmInterior ? 'en casa' : ''}`.trim();
+    }
+
+    // Unificar la frase
+    const mainPhrase = [];
+    if (parts.length) mainPhrase.push(parts.join(', '));
+    if (actions.length) mainPhrase.push(actions.join(' y '));
+    let finalText = mainPhrase.join('. ');
+    if (finalText) finalText = finalText.replace(/\s+\./g, '.');
+    if (cetreriaActive) finalText += (finalText ? '. ' : '') + 'Aun así, es un día aceptable para la cetrería.';
+    if (polvoText) finalText += (finalText ? ' ' : '') + polvoText + '.';
+
+    // Fallback: si no hay señales ni texto, decir que no hay recomendaciones
+    let text = '';
+    if (hasSignals) {
+        text = finalText || signals.slice(0, 4).join(' · ');
+    } else {
+        text = 'Sin recomendaciones';
+    }
+
+    const friendly = makeFriendlyTone(text);
+    setText('recomendacion', friendly);
+    setText('hero-recommendation-detail', friendly);
+    const moodText = hasSignals ? 'Recomendación activa' : 'Sin recomendaciones activas';
+    setText('hero-summary', moodText);
+    if (hasSignals) {
         const summary = signals.slice(0, 4).join(' · ');
         setHTML('recommendation-summary', `<span>${summary}</span>`);
     } else {
         setHTML('recommendation-summary', '');
     }
 
-    const changedRec = String(recText || '') !== String(cacheState.lastRec || '');
+    const changedRec = String(friendly || '') !== String(cacheState.lastRec || '');
     const changedSignals = signals.join('|') !== cacheState.lastSignals.join('|');
-    if (shouldShow && (changedRec || changedSignals)) {
+    if (hasSignals && (changedRec || changedSignals)) {
         const entry = {
-            text: String(recText),
+            text: friendly,
             ts: new Date().toLocaleString('es-ES'),
             signals: signals.slice(0, 6)
         };
         cacheState.recHistory.unshift(entry);
         cacheState.recHistory = cacheState.recHistory.slice(0, 20);
-        cacheState.lastRec = recText;
+        cacheState.lastRec = friendly;
         cacheState.lastSignals = signals.slice(0, 12);
     }
 
-    if (!shouldShow && cacheState.lastRec && cacheState.lastSignals.length) {
+    if (!hasSignals && cacheState.lastRec && cacheState.lastSignals.length) {
         const entry = {
             text: `Finalizada: ${cacheState.lastRec}`,
             ts: new Date().toLocaleString('es-ES'),
@@ -898,6 +1322,27 @@ function updateRecomendacion(data) {
     }
 }
 
+// Transforma una frase en un tono más coloquial, cariñoso y un poco bromista.
+function makeFriendlyTone(text) {
+    if (!text || text === 'Sin recomendaciones') return text;
+    // Pequeñas transformaciones para suavizar y unir frases
+    let t = String(text).trim();
+    // Replaces comunes para evitar estilo telegrama
+    t = t.replace(/\bHace\s+fresco\b/gi, 'Hace fresco');
+    t = t.replace(/\bHace\s+calor\b/gi, 'Hace calor');
+    // Añadir conectores más naturales
+    t = t.replace(/\.(\s*)/g, ', ');
+    t = t.replace(/\s+,/g, ',');
+    // Limpiar repeticiones de comas
+    t = t.replace(/,\s*,/g, ',');
+    // Añadir prefacio cariñoso y remate afectuoso
+    const prefix = 'Oye,';
+    const suffix = ' Cuídate ❤️';
+    // Capitalizar primera letra después del prefijo
+    t = t.charAt(0).toLowerCase() === t.charAt(0) ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+    return `${prefix} ${t.trim()}.${suffix}`;
+}
+
 function updateAlertas(data) {
     const alerts = [];
     const meteo = data?.meteorologico?.alertas || [];
@@ -910,7 +1355,7 @@ function updateAlertas(data) {
 
 function updateRiesgos(data) {
     const riesgos = [];
-    const avisos = data?.avisos_practicos || [];
+    const avisos = toArray(data?.avisos_practicos);
     riesgos.push(...avisos.map(String));
     const indices = data?.indices || {};
     Object.keys(indices).forEach(key => {
@@ -974,15 +1419,29 @@ function updateEffects(data) {
 }
 
 async function loadEstado() {
+    let data;
     try {
-        const data = await fetchJSON(STATE_URL);
+        data = await fetchJSON(STATE_URL);
+    } catch (err) {
+        console.error('Error fetching /estado', err);
+        setText('recomendacion', 'Error al cargar estado');
+        return;
+    }
+    try {
         lastEstado = data;
+        // Mostrar recomendación primero para evitar que fallos en otras
+        // actualizaciones impidan que el usuario vea recomendaciones.
+        try {
+            updateRecomendacion(data);
+        } catch (recErr) {
+            console.error('Error updating recommendation', recErr);
+        }
         updateLocation(data.indices);
+        updateContextMetadata(data);
         updateHero(data);
         updateSolar(data.indices);
         updateSensors(data);
         updateIndices(data);
-        updateRecomendacion(data);
         updateAlertas(data);
         updateRiesgos(data);
         updateOrganizer(data);
@@ -995,7 +1454,7 @@ async function loadEstado() {
             await updateCharts(tempKey, humKey);
         }
     } catch (err) {
-        setText('recomendacion', 'Error al cargar estado');
+        console.error('Error updating estado UI', err);
     }
 }
 
@@ -1050,8 +1509,9 @@ async function loadEstado() {
         window.addEventListener('devicemotion', event => {
             const accel = event.accelerationIncludingGravity || event.acceleration;
             if (!accel) return;
-            const ax = accel.x || 0;
-            const ay = accel.y || 0;
+            // Mostrar preferentemente las horas astronómicas cuando estén disponibles
+            setText('hero-sunrise', indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? '--:--');
+            setText('hero-sunset', indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? '--:--');
             const az = accel.z || 0;
             const magnitude = Math.sqrt(ax * ax + ay * ay + az * az);
             const now = Date.now();
@@ -1065,6 +1525,11 @@ function initOverlays() {
     const openButtons = document.querySelectorAll('[data-overlay-target]');
     openButtons.forEach(btn => {
         btn.addEventListener('click', () => {
+            // Actualizar duración de la noche: usar índice si existe, sino derive de 24h - duracion día
+            const durNoche = indices.duracion_noche_h?.valor ?? indices.duracion_noche_h ?? (typeof duracion === 'number' ? (24 - Number(duracion)) : null);
+            setText('hero-night-duration', durNoche !== undefined && durNoche !== null ? `${fmt(durNoche)} h` : '--');
+            // Renderizar etiquetas horarias en los arcos con base en horas astronómicas
+            try { renderArcHourLabels(indices); } catch (e) { /* ignore */ }
             const id = btn.getAttribute('data-overlay-target');
             const overlay = document.getElementById(id);
             if (!overlay) return;
@@ -1103,6 +1568,19 @@ function openSubmenu(kind, key) {
         value = info?.valor ?? raw;
         unit = indicesCatalogo?.[key]?.unidad || '';
         descripcion = info?.explicacion || indicesCatalogo?.[key]?.descripcion || 'Índice calculado.';
+        // Si existe una derivada en meteo, usar su metodo/explicacion adicional
+        try {
+            const derived = lastEstado?.meteo?.derivadas?.[key];
+            if (derived) {
+                const metodo = derived.metodo || derived.name || '';
+                const expl = derived.explicacion || derived.explanation || '';
+                if (metodo || expl) {
+                    descripcion = `${metodo ? metodo + ': ' : ''}${expl || descripcion}`;
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
     }
     setText('submenu-item-title', getDisplayLabel(key));
     setText('submenu-item-key', key);
@@ -1158,6 +1636,19 @@ function renderSubmenuHiddenList() {
             `;
         })
         .join('');
+}
+
+function initHeroFeelsShortcut() {
+    const el = document.getElementById('hero-feels-inline');
+    if (!el) return;
+    const open = () => openSubmenu('indice', 'sensacion_termica');
+    el.addEventListener('click', open);
+    el.addEventListener('keydown', evt => {
+        if (evt.key === 'Enter' || evt.key === ' ') {
+            evt.preventDefault();
+            open();
+        }
+    });
 }
 
 function initSubmenuControls() {
@@ -1521,7 +2012,43 @@ function initVoiceControls() {
 
 function updateClock() {
     const now = new Date();
-    setText('fecha-hora', now.toLocaleString('es-ES'));
+    const seasonInfo = getSeasonInfo(now);
+    const fecha = now.toLocaleDateString('es-ES');
+    const hora = now.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+    const html = `${seasonInfo.icon} ${seasonInfo.name} — ${fecha} / ${hora}`;
+    setHTML('fecha-hora', html);
+    // enviar la hora del dashboard al servidor cada 30s
+    if (!window._lastClientTimeSent || (Date.now() - window._lastClientTimeSent) > 30000) {
+        postClientTime(now.toISOString());
+        window._lastClientTimeSent = Date.now();
+    }
+}
+
+function setHTML(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+}
+
+function getSeasonInfo(dt) {
+    const m = dt.getMonth() + 1; // 1-12
+    // Meteorological seasons (northern hemisphere)
+    if (m === 12 || m === 1 || m === 2) return {name: 'Invierno', icon: '❄️'};
+    if (m >= 3 && m <= 5) return {name: 'Primavera', icon: '🌱'};
+    if (m >= 6 && m <= 8) return {name: 'Verano', icon: '☀️'};
+    return {name: 'Otoño', icon: '🍂'};
+}
+
+async function postClientTime(iso) {
+    try {
+        await fetch('/client_time', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({iso: iso}),
+        });
+    } catch (err) {
+        // no bloquear si falla
+        console.debug('postClientTime error', err);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1534,6 +2061,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSensorDetalle();
     initItemSubmenu();
     initSubmenuControls();
+    initHeroFeelsShortcut();
     initDraggablePanels();
     bindActions();
     initVoiceControls();

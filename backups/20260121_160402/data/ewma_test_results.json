@@ -1,0 +1,325 @@
+{
+  "status": 200,
+  "summary": {
+    "PASSKEY": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "baromabsin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "baromrelin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "dailyrainin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "dateutc": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "eventrainin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "freq": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "hourlyrainin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "humidity": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "humidityin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "last24hrainin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "lightning": {
+      "valor_crudo": 12.0,
+      "valor_final": 12.0,
+      "offset": 0.0,
+      "scale": 1.0,
+      "ewma_alpha": null,
+      "aplicado_ewma": false
+    },
+    "lightning_num": {
+      "valor_crudo": 0.0,
+      "valor_final": 0.0,
+      "offset": 0.0,
+      "scale": 1.0,
+      "ewma_alpha": null,
+      "aplicado_ewma": false
+    },
+    "lightning_time": {
+      "valor_crudo": 1768668857.0,
+      "valor_final": 1768668857.0,
+      "offset": 0.0,
+      "scale": 1.0,
+      "ewma_alpha": null,
+      "aplicado_ewma": false
+    },
+    "maxdailygust": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "model": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "monthlyrainin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "pm25_avg_24h_ch1": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "pm25_ch1": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "pm25batt1": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "rainratein": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "soilad1": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "soilbatt1": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "soilmoisture1": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "solarradiation": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "stationtype": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "tempf": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "tempinf": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "uv": {
+      "valor_crudo": 1.0,
+      "valor_final": 1.0,
+      "offset": 0.0,
+      "scale": 1.0,
+      "ewma_alpha": 0.1,
+      "aplicado_ewma": true
+    },
+    "vpd": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "weeklyrainin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "wh25batt": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "wh57batt": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "wh65batt": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "winddir": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "winddir_avg10m": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "windgustmph": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "windspdmph_avg10m": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "windspeedmph": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    },
+    "yearlyrainin": {
+      "valor_crudo": null,
+      "valor_final": null,
+      "offset": null,
+      "scale": null,
+      "ewma_alpha": null,
+      "aplicado_ewma": null
+    }
+  }
+}

@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $timestamp = Get-Date -Format "yyyyMMddHHmmss"
 $mosq = 'C:\mosquitto'
 $backup = "${mosq}_bak_$timestamp"
-$nssm = Join-Path $PSScriptRoot 'tools\nssm\nssm-2.24\win64\nssm.exe'
+$nssm = Join-Path $PSScriptRoot '..\tools\nssm\nssm-2.24\win64\nssm.exe'
 $mosquitto_bin = 'C:\Program Files\Mosquitto\mosquitto.exe'
 $mosquitto_passwd = 'C:\Program Files\Mosquitto\mosquitto_passwd.exe'
 
@@ -39,7 +39,7 @@ New-Item -ItemType Directory -Path (Join-Path $mosq 'data') -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $mosq 'log') -Force | Out-Null
 
 # Copy certs from repo if present
-$repoCerts = Join-Path $PSScriptRoot 'tools\certs'
+$repoCerts = Join-Path $PSScriptRoot '..\tools\certs'
 if (Test-Path $repoCerts) {
     Write-Output 'Copying certificates from repo tools/certs'
     Copy-Item -Path (Join-Path $repoCerts '*') -Destination (Join-Path $mosq 'conf\certs') -Recurse -Force -ErrorAction SilentlyContinue
@@ -57,9 +57,9 @@ log_dest file C:/mosquitto/log/mosquitto.log
 allow_anonymous false
 password_file C:/mosquitto/conf/passwordfile
 # TLS
-cafile C:/mosquitto/conf/certs/ca.crt
-certfile C:/mosquitto/conf/certs/server.crt
-keyfile C:/mosquitto/conf/certs/server.key
+cafile C:/mosquitto/conf/certs/ca.cert.pem
+certfile C:/mosquitto/conf/certs/server.cert.pem
+keyfile C:/mosquitto/conf/certs/server.key.pem
 "@
 
 $confPath = Join-Path $mosq 'conf\mosquitto.conf'
@@ -68,23 +68,31 @@ $conf | Out-File -FilePath $confPath -Encoding ascii
 # Ensure permissions
 & 'C:\Windows\System32\icacls.exe' $mosq /grant 'NT AUTHORITY\SYSTEM:(OI)(CI)F' /grant 'BUILTIN\Administradores:(OI)(CI)F' /grant 'BUILTIN\Usuarios:(OI)(CI)M' /T | Out-Null
 
-# Create passwordfile using generated_password.txt if present
-$pwdSource = Join-Path $PSScriptRoot 'C:\mosquitto\conf\generated_password.txt'
-$repoPwd = Join-Path $PSScriptRoot 'tools\generated_password.txt'
+# Create passwordfile using C:\mosquitto\conf\generated_password.txt
+$pwdSource = 'C:\mosquitto\conf\generated_password.txt'
 $pwdTxt = $null
-if (Test-Path $pwdSource) { $pwdTxt = Get-Content $pwdSource -ErrorAction SilentlyContinue } elseif (Test-Path $repoPwd) { $pwdTxt = Get-Content $repoPwd -ErrorAction SilentlyContinue }
+if (Test-Path $pwdSource) {
+    $pwdTxt = Get-Content $pwdSource -ErrorAction SilentlyContinue
+} else {
+    $bytes = New-Object byte[] 18
+    [System.Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($bytes)
+    $pw = [Convert]::ToBase64String($bytes)
+    $pw | Out-File -FilePath $pwdSource -Encoding ascii
+    $pwdTxt = $pw
+    Write-Output 'generated_password.txt creado automáticamente.'
+}
+
 if ($pwdTxt) {
     $pw = $pwdTxt.Trim()
     $pwfile = Join-Path $mosq 'conf\passwordfile'
     if (Test-Path $mosquitto_passwd) {
-        & $mosquitto_passwd -b $pwfile meteoser $pw | Out-Null
+        & $mosquitto_passwd -b -c $pwfile meteoser $pw | Out-Null
         Write-Output 'Created passwordfile with mosquitto_passwd'
     } else {
-        # fallback: create basic passwordfile using mosquitto_passwd format is complex; write warning
         Write-Output 'mosquitto_passwd not found; please create passwordfile manually or install mosquitto tools'
     }
 } else {
-    Write-Output 'No generated_password.txt found; create passwordfile manually at C:\mosquitto\conf\passwordfile'
+    Write-Output 'No se pudo obtener password; revisa C:\mosquitto\conf\generated_password.txt'
 }
 
 # Install service via NSSM
