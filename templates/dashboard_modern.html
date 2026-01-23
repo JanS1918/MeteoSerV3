@@ -65,7 +65,7 @@
                     </svg>
 
                     <!-- Radiación (izq) y UV (dcha) posicionadas respecto al panel del arco solar -->
-                    <div id="hero-radiation-meta" style="position:absolute; left:2px; top:58px; font-size:12px; color:var(--muted);">
+                    <div id="hero-radiation-meta" style="position:absolute; left:7px; top:58px; font-size:12px; color:var(--muted);">
                         <strong style="font-weight:600;">Radiación:</strong>
                         <span id="hero-radiation">-- W/m²</span>
                     </div>
@@ -77,7 +77,10 @@
                     <div class="hero-card__sun hero-card__sun--left" style="transform:translate(-20px,-7px);"><span id="hero-sunrise">--:--</span></div>
                     <div class="hero-card__sun hero-card__sun--right" style="transform:translate(17px,-7px);"><span id="hero-sunset">--:--</span></div>
                 </div>
-                <div class="hero-card__sun">Duración día <span id="hero-solar-duration">--</span></div>
+                    <div class="hero-card__sun" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>Duración día <span id="hero-solar-duration">--</span></div>
+                        <div style="text-align:right;">Duración noche <span id="hero-night-duration">--</span></div>
+                    </div>
             </article>
 
             <article class="hero-card hero-card--chart">
