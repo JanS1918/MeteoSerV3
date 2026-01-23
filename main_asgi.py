@@ -2244,8 +2244,30 @@ def _estado_impl():
         # estimar MRT a partir de radiación: usar estimador físico (más robusto)
         mrt = None
         try:
-            from core.utils.thermal import mrt_from_radiation
-            mrt = mrt_from_radiation(ta, rad, absorptivity=0.7, epsilon=0.95)
+            # preferir estimador que use altitud solar si está disponible
+            from core.utils.thermal import mrt_from_radiation_with_solar, mrt_from_radiation
+
+            sun_alt = None
+            try:
+                sun_alt = indices.get('sun_altitude') if 'indices' in locals() else None
+                if sun_alt is None:
+                    # intentar leer sensor alternativo
+                    for alt_k in ('solar_altitude', 'sun_elevation', 'solar_el'):
+                        if alt_k in provided and provided.get(alt_k) is not None:
+                            try:
+                                sun_alt = float(provided.get(alt_k))
+                                break
+                            except Exception:
+                                sun_alt = None
+            except Exception:
+                sun_alt = None
+
+            if sun_alt is not None:
+                mrt = mrt_from_radiation_with_solar(ta, rad, sun_altitude_deg=sun_alt,
+                                                    absorptivity=0.7, proj_factor=0.7, epsilon=0.95)
+            else:
+                mrt = mrt_from_radiation(ta, rad, absorptivity=0.7, epsilon=0.95)
+
             # fallback muy simple si la función no devolviese nada
             if mrt is None and ta is not None:
                 mrt = float(ta) + (float(rad) * 0.02)
@@ -2291,7 +2313,10 @@ def _estado_impl():
                     indices['ppd'] = {'valor': round(float(ppd_val), 1), 'explicacion': 'PPD (Fanger)'}
                 indices['pmv_met'] = met
                 indices['pmv_clo'] = clo
+                # indicar qué estimador se usó
                 indices['pmv_mrt_estimator'] = 'rad_mrt_physical_absorbed_v1'
+                if 'sun_alt' in locals() and sun_alt is not None:
+                    indices['pmv_mrt_estimator'] += '+solar_proj'
         except Exception:
             # fallback: no pythermalcomfort -> no change
             pass
