@@ -986,25 +986,56 @@ function updateSolarPositions() {
         if (!top || !mirror || !sun || !moon) return;
 
         const indices = window._lastSolarIndices || lastEstado?.indices || {};
-        const sunFrac = computeSolarFraction(indices);
-        // moon fraction: approximate using sunrise/sunset span but for night segment
+        // intentar calcular azimut/altitud con SunCalc si hay lat/lon
+        let sunFrac = computeSolarFraction(indices);
         let moonFrac = NaN;
         try {
-            const amanecer = parseTimeToToday(indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? null);
-            const atardecer = parseTimeToToday(indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? null);
-            if (amanecer && atardecer) {
-                // compute night segment containing now
-                const now = new Date().getTime();
-                let s = atardecer.getTime();
-                let e = amanecer.getTime();
-                if (e <= s) e += 24*3600*1000;
-                // if now after sunset use that night, if before sunrise use previous night
-                let nowt = new Date().getTime();
-                if (nowt < amanecer.getTime()) nowt += 0; // before today's sunrise -> now between yesterday sunset and today sunrise
-                const raw = (nowt - s) / (e - s);
-                moonFrac = Math.max(0, Math.min(1, raw));
+            const lat = Number(indices.latitud ?? indices.latitude ?? indices.lat) || null;
+            const lon = Number(indices.longitud ?? indices.longitude ?? indices.lon) || null;
+            const now = new Date();
+            if (window.SunCalc && lat && lon) {
+                // Sun
+                try {
+                    const sPos = SunCalc.getPosition(now, lat, lon);
+                    // SunCalc.azimuth is in radians; convert to degrees [0..360]
+                    let sDeg = (sPos.azimuth * 180 / Math.PI + 180) % 360;
+                    // Map azimuth 90 (E) -> 0 .. 270 (W) -> 1 along arc
+                    let sFrac = (sDeg - 90) / 180;
+                    sFrac = Math.max(0, Math.min(1, sFrac));
+                    sunFrac = sFrac;
+                    // use altitude for visibility/opacity
+                    const sunEl = sun;
+                    if (sunEl) sunEl.style.opacity = sPos.altitude > 0 ? '1' : '0.25';
+                } catch (e) { /* fallback to time fraction */ }
+                // Moon
+                try {
+                    const mPos = SunCalc.getMoonPosition(now, lat, lon);
+                    let mDeg = (mPos.azimuth * 180 / Math.PI + 180) % 360;
+                    let mFrac = (mDeg - 90) / 180;
+                    mFrac = Math.max(0, Math.min(1, mFrac));
+                    moonFrac = mFrac;
+                    const moonEl = moon;
+                    if (moonEl) moonEl.style.opacity = mPos.altitude > 0 ? '1' : '0.4';
+                } catch (e) { moonFrac = NaN; }
             }
-        } catch (e) { moonFrac = NaN; }
+        } catch (e) { /* ignore */ }
+        // si no calculamos moonFrac con SunCalc, intentar aproximar por intervalo nocturno
+        if (Number.isNaN(moonFrac)) {
+            try {
+                const amanecer = parseTimeToToday(indices.amanecer_astronomico ?? indices.amanecer_hibrido ?? indices.amanecer ?? null);
+                const atardecer = parseTimeToToday(indices.atardecer_astronomico ?? indices.atardecer_hibrido ?? indices.atardecer ?? null);
+                if (amanecer && atardecer) {
+                    const now = new Date().getTime();
+                    let s = atardecer.getTime();
+                    let e = amanecer.getTime();
+                    if (e <= s) e += 24*3600*1000;
+                    let nowt = new Date().getTime();
+                    if (nowt < amanecer.getTime()) nowt += 0;
+                    const raw = (nowt - s) / (e - s);
+                    moonFrac = Math.max(0, Math.min(1, raw));
+                }
+            } catch (e) { moonFrac = NaN; }
+        }
 
         function placeAndScale(path, el, frac, reverse=false) {
             try {
