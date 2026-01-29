@@ -20,6 +20,23 @@ from core.indices.advanced_field_indices import (
     modelo_bucket_barro,
     visibilidad_kneizys
 )
+from core.indices.advanced_predictive_indices import (
+    indice_alerta_tormenta,
+    indice_alerta_polvo,
+    calcular_cape,
+    filtro_kalman_predict,
+    exponente_hurst,
+    modelo_gultepe_niebla,
+    richardson_bulk_inversion,
+    ventilacion_persily,
+    modelo_pennycuick_vuelo
+)
+from core.indices.fanger_pmv_ppd import (
+    pmv_ppd_fanger,
+    estimar_clo_estacional,
+    estimar_met_actividad
+)
+from core.indices.liljegren_wbgt import wbgt_liljegren
 
 def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float, contexto) -> float:
     """
@@ -638,105 +655,92 @@ def indice_entalpia_kjkg(temp_c: float, humedad: float, presion_kpa: float = 101
 
 def indice_wbgt(temp_c: float, humedad: float, radiacion: float = 0.0, viento_kmh: float = 0.0, lat: float = None, lon: float = None, alt: float = None, dt = None) -> float:
     """
-    WBGT (Wet Bulb Globe Temperature) simplificado.
-    Parámetros obligatorios:
+    WBGT (Wet Bulb Globe Temperature) según modelo Liljegren-Carhart (2008).
+    
+    FASE 3: Modelo termodinámico completo con balance energético.
+    Calcula Tg y Tnwb sin instrumentos físicos.
+    
+    Parámetros:
       - temp_c: temperatura del aire (°C)
       - humedad: humedad relativa (%)
       - radiacion: radiación solar global (W/m2)
       - viento_kmh: velocidad del viento (km/h)
-      - lat: latitud en grados decimales (obligatorio)
-      - lon: longitud en grados decimales (obligatorio)
-      - alt: altitud en metros (obligatorio)
-      - dt: instante temporal de contexto (datetime, obligatorio)
+      - lat: latitud en grados decimales (opcional)
+      - lon: longitud en grados decimales (opcional)
+      - alt: altitud en metros (opcional)
+      - dt: instante temporal de contexto (opcional)
     """
-    # Preferir una implementación registrada (p. ej. pythermalcomfort)
-    impl = _indices_registry.get_index_impl("wbgt")
-    if impl:
-        try:
-            # Try common signatures
-            # pythermalcomfort usually expects tdb, tr, v (m/s), rh
-            try:
-                import logging
-                from pathlib import Path
-                _logger = logging.getLogger("env_indices")
-                _logger.info(f"Solar fallback inputs: lat={lat} lon={lon} alt={alt} dt={dt}")
-                try:
-                    logpath = Path(__file__).resolve().parents[2] / 'logs' / 'servicio_out.log'
-                    with open(logpath, 'a', encoding='utf-8') as _f:
-                        _f.write(f"[ENV] Solar fallback inputs: lat={lat} lon={lon} alt={alt} dt={dt}\n")
-                except Exception:
-                    pass
-                res = impl(tdb=temp_c, rh=humedad, v=viento_kmh / 3.6)
-            except TypeError:
-                try:
-                    res = impl(temp_c, humedad, radiacion, viento_kmh)
-                except Exception:
-                    res = impl(temp_c, humedad, viento_kmh)
-            if isinstance(res, dict):
-                val = res.get("wbgt") or res.get("WBGT")
-                if val is not None:
-                    return float(val)
-            else:
-                return float(res)
-        except Exception:
-            pass
-
-    # Fallback: WBGT aproximado con bulbo húmedo y globo estimado
-    tw: float = indice_bulbo_humedo_c(temp_c, humedad)
-    tg: float = temp_c + (radiacion / 1000.0) * 12.0 - (viento_kmh * 0.5)
-    tg: float = max(temp_c - 5, min(temp_c + 20, tg))
-    return 0.7 * tw + 0.2 * tg + 0.1 * temp_c
+    # Modelo Liljegren-Carhart 2008 (FASE 3: 2026)
+    try:
+        v_ms = viento_kmh / 3.6
+        
+        result = wbgt_liljegren(
+            ta=temp_c,
+            rh=humedad,
+            vel=v_ms,
+            solar=radiacion,
+            lat=lat or 0.0,
+            lon=lon or 0.0,
+            alt=alt or 0.0,
+            dt=dt
+        )
+        
+        return result["wbgt_c"]
+    
+    except Exception:
+        # Fallback: WBGT aproximado (método antiguo)
+        tw: float = indice_bulbo_humedo_c(temp_c, humedad)
+        tg: float = temp_c + (radiacion / 1000.0) * 12.0 - (viento_kmh * 0.5)
+        tg: float = max(temp_c - 5, min(temp_c + 20, tg))
+        return 0.7 * tw + 0.2 * tg + 0.1 * temp_c
 
 
 def indice_pmv_ppd_simple(temp_c: float, humedad: float, viento_kmh: float = 0.0, lat: float = None, lon: float = None, alt: float = None, dt = None) -> Dict[str, float]:
     """
-    PMV/PPD (Predicted Mean Vote/Predicted Percentage of Dissatisfied) simplificado.
+    PMV/PPD (Predicted Mean Vote/Predicted Percentage of Dissatisfied) completo según ISO 7730.
+    
+    FASE 3: Modelo Fanger completo con iteración de balance térmico.
+    
     Parámetros obligatorios:
       - temp_c: temperatura del aire (°C)
       - humedad: humedad relativa (%)
       - viento_kmh: velocidad del viento (km/h)
-      - lat: latitud en grados decimales (obligatorio)
-      - lon: longitud en grados decimales (obligatorio)
-      - alt: altitud en metros (obligatorio)
-      - dt: instante temporal de contexto (datetime, obligatorio)
+      - lat: latitud en grados decimales (opcional)
+      - lon: longitud en grados decimales (opcional)
+      - alt: altitud en metros (opcional)
+      - dt: instante temporal de contexto (opcional)
     """
-    # Preferir una implementación registrada (p. ej. pythermalcomfort.pm v_ppd)
-    impl = _indices_registry.get_index_impl("pmv_ppd")
-    if impl:
-        try:
-            # Try common signatures
-            try:
-                v_ms = float(viento_kmh) / 3.6
-                res = impl(ta=float(temp_c), tr=float(temp_c), vel=float(v_ms), rh=float(humedad), met=1.2, clo=0.5)
-            except TypeError:
-                try:
-                    res = impl(float(temp_c), float(temp_c), float(v_ms), float(humedad))
-                except Exception:
-                    res = impl(float(temp_c), float(humedad), float(viento_kmh))
-            if isinstance(res, dict):
-                pmv_val = res.get("pmv") or res.get("PMV")
-                ppd_val = res.get("ppd") or res.get("PPD")
-                if pmv_val is not None and ppd_val is not None:
-                    return {"pmv": round(float(pmv_val), 2), "ppd": round(float(ppd_val), 1)}
-            else:
-                # If library returns a single pmv value, estimate ppd
-                pmv_val = float(res)
-                ppd_val = 100.0 - 95.0 * math.exp(-0.03353 * pmv_val ** 4 - 0.2179 * pmv_val ** 2)
-                return {"pmv": round(pmv_val, 2), "ppd": round(ppd_val, 1)}
-        except Exception:
-            pass
-
-    # Fallback: Aproximación simple basada en temperatura/HR/viento
-    v: float = viento_kmh / 3.6
-    pmv: float = (temp_c - 24) / 4 + (humedad - 50) / 100 - v * 0.2
-    pmv: float = max(-3.0, min(3.0, pmv))
-    ppd: float = 100.0 - 95.0 * math.exp(-0.03353 * pmv ** 4 - 0.2179 * pmv ** 2)
-    # Registrar esta implementación como fallback para que el registry la conozca
+    # Modelo Fanger completo ISO 7730 (FASE 3: 2026)
     try:
-        register_index("pmv_ppd", lambda ta, tr, vel, rh, met=1.2, clo=0.5: {"pmv": pmv, "ppd": ppd}, priority=10)
+        v_ms = viento_kmh / 3.6
+        
+        # Estimar aislamiento de ropa según temperatura exterior
+        clo = estimar_clo_estacional(temp_c)
+        
+        # Actividad sedentaria típica (oficina/hogar)
+        met = 1.2
+        
+        # Temperatura radiante = temperatura aire (aproximación interior)
+        tr = temp_c
+        
+        result = pmv_ppd_fanger(
+            ta=temp_c,
+            tr=tr,
+            vel=v_ms,
+            rh=humedad,
+            met=met,
+            clo=clo
+        )
+        
+        return {"pmv": result["pmv"], "ppd": result["ppd"]}
+    
     except Exception:
-        pass
-    return {"pmv": round(pmv, 2), "ppd": round(ppd, 1)}
+        # Fallback solo si falla el modelo completo
+        v: float = viento_kmh / 3.6
+        pmv: float = (temp_c - 24) / 4 + (humedad - 50) / 100 - v * 0.2
+        pmv: float = max(-3.0, min(3.0, pmv))
+        ppd: float = 100.0 - 95.0 * math.exp(-0.03353 * pmv ** 4 - 0.2179 * pmv ** 2)
+        return {"pmv": round(pmv, 2), "ppd": round(ppd, 1)}
 
 
 def indice_aqi_pm25(pm25: float) -> float:
@@ -3656,6 +3660,65 @@ class EnvironmentalIndices:
             except Exception:
                 pass
             
+            # 4. CAPE - Energía Potencial Convectiva (FASE 3: Térmicas científicas)
+            try:
+                if temp_val is not None and dew_val is not None:
+                    presion_val = self._get_sensor("presion")["valor"] or 1013.25
+                    alt_val = contexto.elevation_total if hasattr(contexto, 'elevation_total') else 0.0
+                    
+                    cape_result = calcular_cape(
+                        temperatura_c=temp_val,
+                        temperatura_rocio_c=dew_val,
+                        presion_hpa=presion_val,
+                        altura_m=alt_val
+                    )
+                    
+                    indices["cape_termicas"] = {
+                        "valor": round(cape_result["intensidad_termicas"], 2),
+                        "estimado": temp["estimado"] or self._get_sensor("punto_rocio")["estimado"],
+                        "confianza": self._confianza(temp["estimado"], fiable=True),
+                        "explicacion": "CAPE: Energía térmica convectiva (J/kg)",
+                        "cape_jkg": cape_result["cape_jkg"],
+                        "cin_jkg": cape_result["cin_jkg"],
+                        "lfc_m": cape_result["lfc_m"],
+                        "el_m": cape_result["el_m"],
+                        "favorable_termicas": cape_result["favorable_termicas"]
+                    }
+            except Exception:
+                pass
+            
+            # 5. MODELO PENNYCUICK - Viento favorable para vuelo (FASE 3: Aerodinámica)
+            try:
+                if viento_val is not None and temp_val is not None:
+                    dir_viento = self._get_sensor("direccion_viento")["valor"] or 0.0
+                    # Objetivo típico: vuelo en círculo (dirección variable)
+                    # Asumimos dirección objetivo = norte para simplificar
+                    dir_objetivo = 0.0
+                    
+                    presion_val = self._get_sensor("presion")["valor"] or 1013.25
+                    
+                    pennycuick_result = modelo_pennycuick_vuelo(
+                        viento_ms=viento_val / 3.6,
+                        direccion_viento_deg=dir_viento,
+                        direccion_objetivo_deg=dir_objetivo,
+                        masa_ave_kg=0.8,  # Halcón
+                        envergadura_m=1.2,
+                        temperatura_c=temp_val,
+                        presion_hpa=presion_val
+                    )
+                    
+                    indices["viento_favorable_pennycuick"] = {
+                        "valor": round(pennycuick_result["viento_favorable_pct"], 2),
+                        "estimado": viento["estimado"],
+                        "confianza": self._confianza(viento["estimado"], fiable=True),
+                        "explicacion": "Viento favorable: Pennycuick (2008) aerodinámica",
+                        "velocidad_optima_ms": pennycuick_result["velocidad_optima_ms"],
+                        "potencia_requerida_w": pennycuick_result["potencia_requerida_w"],
+                        "viento_componente_ms": pennycuick_result["viento_componente_ms"]
+                    }
+            except Exception:
+                pass
+            
             # Confort ave con Porter & Gates (balance radiativo biofísico)
             if confort_ave_result.get("confort_ave") is not None:
                 indices["confort_ave_porter_gates"] = {
@@ -3865,7 +3928,56 @@ class EnvironmentalIndices:
             rl["confianza"] = self._confianza(rl["estimado"], fiable=True)
             indices["riesgo_lluvia"] = rl
 
-        # Tendencias base (si hay histórico real)
+        # Tendencias Kalman (FASE 3: Predicción adaptativa)
+        try:
+            historial_t = self.system.obtener_historial_sensor("temperatura")
+            if historial_t and len(historial_t) >= 5:
+                kalman_t = filtro_kalman_predict(historial_t, Q=0.01, R=0.1, horizonte_h=1.0)
+                if kalman_t["valor_predicho"] is not None:
+                    indices["tendencia_temperatura_kalman"] = {
+                        "valor": round(kalman_t["tendencia_h"], 4),
+                        "estimado": True,
+                        "confianza": "derivado_fiable",
+                        "explicacion": "Tendencia T (°C/h) - Filtro Kalman",
+                        "prediccion_1h": kalman_t["valor_predicho"],
+                        "confianza_95": kalman_t["confianza_95"]
+                    }
+        except Exception:
+            pass
+        
+        try:
+            historial_h = self.system.obtener_historial_sensor("humedad")
+            if historial_h and len(historial_h) >= 5:
+                kalman_h = filtro_kalman_predict(historial_h, Q=0.02, R=0.2, horizonte_h=1.0)
+                if kalman_h["valor_predicho"] is not None:
+                    indices["tendencia_humedad_kalman"] = {
+                        "valor": round(kalman_h["tendencia_h"], 4),
+                        "estimado": True,
+                        "confianza": "derivado_fiable",
+                        "explicacion": "Tendencia HR (%/h) - Filtro Kalman",
+                        "prediccion_1h": kalman_h["valor_predicho"],
+                        "confianza_95": kalman_h["confianza_95"]
+                    }
+        except Exception:
+            pass
+        
+        try:
+            historial_p = self.system.obtener_historial_sensor("presion")
+            if historial_p and len(historial_p) >= 5:
+                kalman_p = filtro_kalman_predict(historial_p, Q=0.005, R=0.05, horizonte_h=1.0)
+                if kalman_p["valor_predicho"] is not None:
+                    indices["tendencia_presion_kalman"] = {
+                        "valor": round(kalman_p["tendencia_h"], 4),
+                        "estimado": True,
+                        "confianza": "derivado_fiable",
+                        "explicacion": "Tendencia P (hPa/h) - Filtro Kalman",
+                        "prediccion_1h": kalman_p["valor_predicho"],
+                        "confianza_95": kalman_p["confianza_95"]
+                    }
+        except Exception:
+            pass
+
+        # Tendencias base (regresión lineal clásica - mantener compatibilidad)
         trend_t = self._trend("temperatura")
         if trend_t is not None:
             indices["tendencia_temperatura"] = {
@@ -3891,7 +4003,24 @@ class EnvironmentalIndices:
                 "explicacion": "Tendencia presión (hPa/h) desde histórico real"
             }
 
-        # Estabilidad térmica (si hay tendencia)
+        # Estabilidad térmica (Exponente de Hurst - FASE 3)
+        try:
+            historial_t = self.system.obtener_historial_sensor("temperatura")
+            if historial_t and len(historial_t) >= 20:
+                hurst_result = exponente_hurst(historial_t, min_window=10)
+                if hurst_result["H"] is not None:
+                    indices["estabilidad_termica_hurst"] = {
+                        "valor": round(hurst_result["estabilidad_pct"], 2),
+                        "estimado": True,
+                        "confianza": "derivado_fiable",
+                        "explicacion": "Estabilidad térmica: Exponente Hurst (persistencia)",
+                        "H": hurst_result["H"],
+                        "interpretacion": hurst_result["interpretacion"]
+                    }
+        except Exception:
+            pass
+        
+        # Estabilidad térmica (método clásico - mantener compatibilidad)
         if trend_t is not None:
             try:
                 estabilidad: float = max(0.0, 100.0 - min(100.0, abs(trend_t) * 20.0))
@@ -4418,15 +4547,30 @@ class EnvironmentalIndices:
             except Exception:
                 pass
 
-        # Inversión térmica local (si hay interior/exterior)
+        # Inversión térmica local (Richardson Bulk - FASE 3)
         if temp["valor"] is not None and tempint["valor"] is not None:
             try:
-                delta: float = float(tempint["valor"]) - float(temp["valor"])
-                inversion: float = max(0.0, min(100.0, (delta - 2) * 10))
-                indices["inversion_termica"] = {
-                    "valor": round(inversion, 2),
+                # Inversión térmica con Richardson Bulk Number
+                temp_superficie = float(temp["valor"])
+                temp_interior = float(tempint["valor"])
+                viento_superficie = float(viento["valor"] or 0.0) / 3.6  # km/h -> m/s
+                viento_interior = 0.0  # Asumimos viento nulo en interior
+                
+                richardson_result = richardson_bulk_inversion(
+                    temp_superficie_c=temp_superficie,
+                    temp_altura_c=temp_interior,
+                    viento_superficie_ms=viento_superficie,
+                    viento_altura_ms=viento_interior,
+                    delta_z_m=3.0  # Asumimos altura interior típica 3m
+                )
+                
+                indices["inversion_termica_richardson"] = {
+                    "valor": round(richardson_result["inversion_pct"], 2),
                     "estimado": temp["estimado"] or tempint["estimado"],
-                    "explicacion": "Inversión térmica: T_int - T_ext"
+                    "confianza": self._confianza(temp["estimado"], fiable=True),
+                    "explicacion": "Inversión térmica: Richardson Bulk Number (estabilidad)",
+                    "Ri_B": richardson_result["Ri_B"],
+                    "interpretacion": richardson_result["interpretacion"]
                 }
             except Exception:
                 pass
@@ -4445,16 +4589,32 @@ class EnvironmentalIndices:
             except Exception:
                 pass
 
-        # Niebla de advección (HR alta + viento)
-        if humedad["valor"] is not None and viento["valor"] is not None:
+        # Niebla (Modelo Gultepe - FASE 3: Visibilidad científica)
+        if humedad["valor"] is not None and temp["valor"] is not None:
             try:
                 hr = float(humedad["valor"])
-                v_ext = float(viento["valor"])
-                adv: float = max(0.0, min(100.0, (hr - 85) * 2 + (v_ext - 5) * 3))
-                indices["niebla_adveccion"] = {
-                    "valor": round(adv, 2),
-                    "estimado": humedad["estimado"] or viento["estimado"],
-                    "explicacion": "Niebla advección: HR alta + viento"
+                t_ext = float(temp["valor"])
+                v_ext_ms = float(viento["valor"] or 0.0) / 3.6
+                
+                # Punto de rocío para Gultepe
+                dew_val = self._get_sensor("punto_rocio")["valor"]
+                if dew_val is None:
+                    dew_val = t_ext - ((100 - hr) / 5.0)
+                
+                gultepe_result = modelo_gultepe_niebla(
+                    temperatura_c=t_ext,
+                    temperatura_rocio_c=float(dew_val),
+                    viento_ms=v_ext_ms,
+                    humedad_rel=hr
+                )
+                
+                indices["niebla_gultepe"] = {
+                    "valor": round(gultepe_result["riesgo_niebla_pct"], 2),
+                    "estimado": humedad["estimado"] or temp["estimado"],
+                    "confianza": self._confianza(humedad["estimado"], fiable=True),
+                    "explicacion": "Niebla: Gultepe et al. (2007) visibilidad-LWC",
+                    "visibilidad_m": gultepe_result["visibilidad_m"],
+                    "lwc_gm3": gultepe_result["lwc_gm3"]
                 }
             except Exception:
                 pass
@@ -4487,19 +4647,56 @@ class EnvironmentalIndices:
                 }
         except Exception:
             pass
+        
+        # Ventilación Persily (ASHRAE 62.1 - FASE 3)
+        if co2["valor"] is not None:
+            try:
+                co2_ppm = float(co2["valor"])
+                co2_exterior = 420.0  # ppm típico
+                ocupantes = 2  # Asumimos 2 personas típicas
+                volumen_m3 = 100.0  # Volumen típico vivienda (m³)
+                
+                persily_result = ventilacion_persily(
+                    co2_ppm=co2_ppm,
+                    co2_exterior_ppm=co2_exterior,
+                    ocupantes=ocupantes,
+                    volumen_m3=volumen_m3,
+                    generacion_co2_l_h=18.0  # L/h por persona (actividad sedentaria)
+                )
+                
+                indices["ventilacion_persily"] = {
+                    "valor": round(persily_result["calidad_pct"], 2),
+                    "estimado": co2["estimado"],
+                    "confianza": self._confianza(co2["estimado"], fiable=True),
+                    "explicacion": "Ventilación: Persily ASHRAE 62.1 (balance CO2)",
+                    "ACH": persily_result["ACH"],
+                    "ventilacion_ls": persily_result["ventilacion_ls"]
+                }
+            except Exception:
+                pass
 
         # Índices avanzados y creativos
         try:
             # ...existing code...
             # ALERTAS Y PREVISIONES INÉDITAS
-            # Alerta de tormenta
-            uv_val = uv["valor"] if uv["valor"] is not None else 0.0
-            radiacion_val = self._get_sensor("radiacion")["valor"] or 0.0
+            # Alerta de tormenta (K-Index + Lifted Index - FASE 3)
+            temp_val = temp["valor"] if temp["valor"] is not None else 15.0
+            temp_rocio_val = self._get_sensor("punto_rocio")["valor"]
+            if temp_rocio_val is None:
+                # Estimar punto de rocío desde HR
+                humedad_val = humedad["valor"] if humedad["valor"] is not None else 50.0
+                temp_rocio_val = temp_val - ((100 - humedad_val) / 5.0)
             presion_val = self._get_sensor("presion")["valor"] or 1013.0
-            tendencia_presion_val = self._get_sensor("tendencia_presion")["valor"] or 0.0
-            rayos_val = self._get_sensor("rayos")["valor"] or 0.0
-            alerta_tormenta: float = indice_alerta_tormenta(float(uv_val), float(radiacion_val), float(presion_val), float(tendencia_presion_val), float(rayos_val))
-            indices["alerta_tormenta"] = {"valor": round(alerta_tormenta,2), "estimado": False, "explicacion": "Alerta de tormenta: UV, radiación, presión, tendencia y rayos"}
+            tendencia_presion_val = trend_p if trend_p is not None else 0.0
+            rayos_val = self._get_sensor("rayos")["valor"] or 999.0  # km al último rayo
+            alerta_tormenta: float = indice_alerta_tormenta(
+                temperatura_c=float(temp_val),
+                temperatura_rocio_c=float(temp_rocio_val),
+                presion_hpa=float(presion_val),
+                tendencia_presion_hpa_h=float(tendencia_presion_val),
+                rayos_km=float(rayos_val)
+            )
+            indices["alerta_tormenta"] = {"valor": round(alerta_tormenta,2), "estimado": False, "explicacion": "Alerta tormenta: K-Index + Lifted Index (termodinámica)"}
             # Alerta de calor extremo
             temp_val = temp["valor"] if temp["valor"] is not None else 0.0
             humedad_val = humedad["valor"] if humedad["valor"] is not None else 0.0
@@ -4509,10 +4706,21 @@ class EnvironmentalIndices:
             viento_val = viento["valor"] if viento["valor"] is not None else 0.0
             alerta_frio: float = indice_alerta_frio_extremo(float(temp_val), float(viento_val), float(humedad_val), contexto)
             indices["alerta_frio_extremo"] = {"valor": round(alerta_frio,2), "estimado": False, "explicacion": "Alerta de frío extremo: T, viento, HR"}
-            # Alerta de polvo/suciedad
+            # Alerta de polvo (Draxler HYSPLIT - FASE 3)
             pm25_val = pm25["valor"] if pm25["valor"] is not None else 0.0
-            alerta_polvo: float = indice_alerta_polvo(float(pm25_val), float(viento_val))
-            indices["alerta_polvo"] = {"valor": round(alerta_polvo,2), "estimado": False, "explicacion": "Alerta de polvo/suciedad: PM2.5 y viento"}
+            pm10_val = self._get_sensor("pm10")["valor"] or 0.0
+            viento_ms = viento_val / 3.6 if viento_val else 0.0
+            humedad_val = humedad["valor"] if humedad["valor"] is not None else 50.0
+            temp_val = temp["valor"] if temp["valor"] is not None else 15.0
+            alerta_polvo: float = indice_alerta_polvo(
+                pm25_ugm3=float(pm25_val),
+                pm10_ugm3=float(pm10_val),
+                viento_ms=float(viento_ms),
+                humedad_rel=float(humedad_val),
+                temperatura_c=float(temp_val),
+                altura_mezcla_m=1000.0
+            )
+            indices["alerta_polvo"] = {"valor": round(alerta_polvo,2), "estimado": False, "explicacion": "Alerta polvo: Draxler HYSPLIT (dispersión + resuspensión)"}
         except Exception as e:
             indices["error_indices_avanzados"] = {"valor": None, "estimado": True, "explicacion": f"Error en índices avanzados: {e}"}
         # Sonógrafo y sismógrafo siempre presentes
