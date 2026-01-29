@@ -22,6 +22,7 @@ def confort_ave_porter_gates(temperatura_c: float,
                               radiacion_wm2: float,
                               humedad_relativa: float,
                               elevacion_solar_deg: float,
+                              lluvia_mm_h: float = 0.0,
                               masa_ave_kg: float = 0.8,
                               area_proyectada_m2: Optional[float] = None) -> Dict[str, float]:
     """
@@ -93,20 +94,39 @@ def confort_ave_porter_gates(temperatura_c: float,
     calor_latente_vapor = 2450000  # J/kg (a 20°C)
     tasa_evaporacion_kg_s = max(0, vpd_kpa * 0.00001 * area_proyectada_m2)  # Estimación
     Q_evap = tasa_evaporacion_kg_s * calor_latente_vapor
+
+    # 4b. ENFRIAMIENTO POR MOJADO (lluvia + viento)
+    mojado_factor = 0.0
+    try:
+        lluvia_mm_h = max(0.0, float(lluvia_mm_h))
+        viento_ms = max(0.0, float(viento_ms))
+        mojado_factor = min(1.0, lluvia_mm_h / 2.0) * (1.0 + min(1.0, viento_ms / 8.0)) * 0.6
+    except Exception:
+        mojado_factor = 0.0
     
     # 5. PRODUCCIÓN METABÓLICA
     # Tasa metabólica basal (Kleiber, 1932): BMR ≈ 70 × M^0.75 kcal/día
     BMR_W = 70 * (masa_ave_kg ** 0.75) * 4184 / 86400  # Convertir kcal/día a W
     Q_metabol = BMR_W * 1.5  # Factor de actividad (1.5 para ave en reposo)
     
-    # BALANCE ENERGÉTICO
-    balance_total = Q_metabol + Q_solar - Q_convec - Q_radiacion - Q_evap
-    
-    # ÍNDICE DE CONFORT (0-100)
-    # Si balance ≈ 0, confort óptimo (100)
-    # Si |balance| grande, estrés térmico
-    estres_termico = abs(balance_total)
-    confort = max(0, min(100, 100 - (estres_termico / 2.0)))
+    # BALANCE ENERGÉTICO (base)
+    balance_base = Q_metabol + Q_solar - Q_convec - Q_radiacion - Q_evap
+    estres_base = abs(balance_base)
+    confort_base = max(0, min(100, 100 - (estres_base / 2.0)))
+
+    # Aplicar mojado si tiene impacto significativo
+    Q_evap_mojado = Q_evap * (1.0 + mojado_factor)
+    balance_mojado = Q_metabol + Q_solar - Q_convec - Q_radiacion - Q_evap_mojado
+    estres_mojado = abs(balance_mojado)
+    confort_mojado = max(0, min(100, 100 - (estres_mojado / 2.0)))
+    if abs(confort_mojado - confort_base) >= 5.0:
+        balance_total = balance_mojado
+        confort = confort_mojado
+        mojado_aplicado = True
+    else:
+        balance_total = balance_base
+        confort = confort_base
+        mojado_aplicado = False
     
     # Interpretación
     if confort > 80:
@@ -127,6 +147,8 @@ def confort_ave_porter_gates(temperatura_c: float,
         "perdida_conveccion_W": round(Q_convec, 2),
         "perdida_radiacion_W": round(Q_radiacion, 2),
         "perdida_evaporacion_W": round(Q_evap, 2),
+        "enfriamiento_mojado_W": round(Q_evap_mojado - Q_evap, 2),
+        "mojado_aplicado": mojado_aplicado,
         "produccion_metabolica_W": round(Q_metabol, 2),
         "interpretacion": interpretacion
     }

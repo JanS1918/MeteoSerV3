@@ -1,6 +1,7 @@
 import math
 import datetime
 import json
+import logging
 from pathlib import Path
 from typing import Dict, Optional
 from datetime import timezone
@@ -774,8 +775,80 @@ def _media_ponderada(valores: list, pesos: list) -> float:
     return total / total_w
 
 
+def _cambio_significativo(base: float | None, nuevo: float | None, umbral: float = 5.0) -> bool:
+    if base is None or nuevo is None:
+        return False
+    try:
+        return abs(float(nuevo) - float(base)) >= umbral
+    except Exception:
+        return False
+
+
 def _clamp_range(value: float, min_value: float = 0.0, max_value: float = 100.0) -> float:
     return max(min(value, max_value), min_value)
+
+
+def _calcular_qnet_brunt_monteith(temp_c: float | None, humedad: float | None, nubosidad_pct: float | None) -> float | None:
+    if temp_c is None or humedad is None:
+        return None
+    try:
+        t_k = float(temp_c) + 273.15
+        rh = max(1.0, min(100.0, float(humedad)))
+        ea_kpa = 0.6108 * math.exp((17.27 * float(temp_c)) / (float(temp_c) + 237.3)) * (rh / 100.0)
+        cloud = 0.0 if nubosidad_pct is None else max(0.0, min(100.0, float(nubosidad_pct))) / 100.0
+        sigma = 5.670374419e-8
+        emiss = 0.34 - 0.14 * math.sqrt(max(ea_kpa, 1e-6))
+        cloud_corr = 1.0 - 0.35 * (cloud ** 2)
+        qnet = -sigma * (t_k ** 4) * emiss * cloud_corr
+        return qnet
+    except Exception:
+        return None
+
+
+def _pasquill_gifford_nocturno(viento_ms: float | None, nubosidad_pct: float | None) -> tuple[str | None, float | None]:
+    if viento_ms is None:
+        return None, None
+    try:
+        v = float(viento_ms)
+        cloud = 0.0 if nubosidad_pct is None else max(0.0, min(100.0, float(nubosidad_pct)))
+        if cloud >= 50:
+            if v < 2:
+                clase = "E"
+            elif v < 3:
+                clase = "D"
+            elif v < 5:
+                clase = "D"
+            else:
+                clase = "D"
+        else:
+            if v < 2:
+                clase = "F"
+            elif v < 3:
+                clase = "E"
+            elif v < 5:
+                clase = "D"
+            else:
+                clase = "D"
+        escala = {"A": 0.0, "B": 20.0, "C": 40.0, "D": 60.0, "E": 80.0, "F": 100.0}
+        return clase, escala.get(clase, 60.0)
+    except Exception:
+        return None, None
+
+
+def _calcular_fried_r0(seeing_indice: float | None, lambda_nm: float = 550.0) -> float | None:
+    if seeing_indice is None:
+        return None
+    try:
+        seeing = max(0.0, min(100.0, float(seeing_indice)))
+        seeing_arcsec = 0.5 + (seeing / 100.0) * 2.5
+        seeing_rad = seeing_arcsec * (math.pi / 648000.0)
+        if seeing_rad <= 0:
+            return None
+        lambda_m = lambda_nm * 1e-9
+        r0 = 0.98 * lambda_m / seeing_rad
+        return r0
+    except Exception:
+        return None
 
 
 def _calcular_nubosidad_estimada(temp: float | None, dew: float | None, rh: float | None, viento: float | None,
@@ -1921,8 +1994,23 @@ class EnvironmentalIndices:
                 return {"valor": 15.0, "estimado": True, "fuente": f"virtual_{base}", "confianza_sensor": None, "explicacion": "Temperatura virtual forzada"}
             if nombre == "humedad":
                 # Forzar humedad virtual si no hay sensor real
+                logging.getLogger(__name__).warning("[CONSISTENCIA] Usando fallback físico para Humedad - Sensor KO")
+                if hasattr(self, "_refuerzos_consistencia"):
+                    self._refuerzos_consistencia.setdefault("fallbacks", []).append({
+                        "sensor": "humedad",
+                        "fuente": f"virtual_{base}",
+                        "motivo": "Sensor KO"
+                    })
                 return {"valor": 60.0, "estimado": True, "fuente": f"virtual_{base}", "confianza_sensor": None, "explicacion": "Humedad virtual forzada"}
             if fallback is not None and not REAL_ONLY_SENSORS:
+                if nombre == "humedad":
+                    logging.getLogger(__name__).warning("[CONSISTENCIA] Usando fallback físico para Humedad - Sensor KO")
+                    if hasattr(self, "_refuerzos_consistencia"):
+                        self._refuerzos_consistencia.setdefault("fallbacks", []).append({
+                            "sensor": "humedad",
+                            "fuente": f"estimado_{base}",
+                            "motivo": "Sensor KO"
+                        })
                 return {"valor": fallback, "estimado": True, "fuente": f"estimado_{base}", "confianza_sensor": None}
             return {"valor": None, "estimado": True, "fuente": f"no_disponible_{base}", "confianza_sensor": None}
 
@@ -2892,6 +2980,8 @@ class EnvironmentalIndices:
             "calidad_aire_ventilacion": {},
             "vuelo_biomecanica": {},
             "indices_referencia_legado": {},
+            "indices_nocturnos": {},
+            "refuerzos_consistencia": {},
             "metadata": {}  # Coordenadas, hora, etc.
         }
         
@@ -2972,6 +3062,13 @@ class EnvironmentalIndices:
             "visibilidad_local": "visibilidad",
             "visibilidad_kneizys": "visibilidad_kneizys",
             "micro_rafagas": "micro_rafagas"
+        }
+
+        # 3b. ÍNDICES NOCTURNOS
+        nocturnos_map = {
+            "brunt_monteith_qnet": "brunt_monteith_qnet",
+            "pasquill_gifford": "pasquill_gifford",
+            "fried_r0": "fried_r0"
         }
         
         # 4. PREDICCIÓN MATEMÁTICA
@@ -3054,17 +3151,41 @@ class EnvironmentalIndices:
                 reorganizados["confort_y_salud"][confort_map[key]] = value
             elif key in dinamica_map:
                 reorganizados["dinamica_atmosferica"][dinamica_map[key]] = value
+            elif key in nocturnos_map:
+                reorganizados["indices_nocturnos"][nocturnos_map[key]] = value
             elif key in prediccion_map:
                 reorganizados["prediccion_matematica"][prediccion_map[key]] = value
             elif key in calidad_aire_map:
                 reorganizados["calidad_aire_ventilacion"][calidad_aire_map[key]] = value
             elif key in vuelo_map:
                 reorganizados["vuelo_biomecanica"][vuelo_map[key]] = value
+            elif key == "refuerzos_consistencia":
+                reorganizados["refuerzos_consistencia"] = value if isinstance(value, dict) else {"valor": value}
             elif key in legado_map:
                 reorganizados["indices_referencia_legado"][legado_map[key]] = value
             else:
                 # Si no está mapeado, dejarlo en legado con su nombre original
                 reorganizados["indices_referencia_legado"][key] = value
+
+        def _inferir_fiabilidad(grupo: Dict[str, Any]) -> str:
+            estimados = []
+            for v in grupo.values():
+                if isinstance(v, dict) and "estimado" in v:
+                    estimados.append(bool(v.get("estimado")))
+            if not estimados:
+                return "ESTIMADO"
+            if all(e is False for e in estimados):
+                return "REAL"
+            if all(e is True for e in estimados):
+                return "ESTIMADO"
+            return "DEGRADADO"
+
+        for nombre, grupo in reorganizados.items():
+            if nombre == "metadata":
+                grupo["fiabilidad"] = "REAL"
+                continue
+            if isinstance(grupo, dict):
+                grupo["fiabilidad"] = _inferir_fiabilidad(grupo)
         
         return reorganizados
 
@@ -3077,6 +3198,7 @@ class EnvironmentalIndices:
             self._lag_buffer = {}
         if not hasattr(self, "_lag_last"):
             self._lag_last = {}
+        self._refuerzos_consistencia = {"fallbacks": [], "interdependencias": []}
 
         indices = {}
 
@@ -3441,6 +3563,54 @@ class EnvironmentalIndices:
                 "confianza": "derivado_fiable",
                 "explicacion": "Cielo observable nocturno (nubosidad + transparencia + riesgos + luna)"
             }
+
+        # --- Cerebro nocturno: índices avanzados solo si sun_altitude < 0 ---
+        sun_alt_deg = None
+        try:
+            if hasattr(contexto, "solar_altitude"):
+                sun_alt_deg = float(contexto.solar_altitude)
+        except Exception:
+            sun_alt_deg = None
+        if sun_alt_deg is not None and sun_alt_deg < 0:
+            try:
+                qnet = _calcular_qnet_brunt_monteith(
+                    float(temp["valor"]) if temp["valor"] is not None else None,
+                    float(humedad["valor"]) if humedad["valor"] is not None else None,
+                    float(nub_val) if nub_val is not None else None,
+                )
+                if qnet is not None:
+                    indices["brunt_monteith_qnet"] = {
+                        "valor": round(qnet, 2),
+                        "estimado": temp["estimado"] or humedad["estimado"] or nub.get("estimado", True),
+                        "confianza": "derivado_fiable",
+                        "explicacion": "Radiación neta nocturna (Brunt-Monteith)"
+                    }
+                v_ms = float(viento["valor"] or 0.0) / 3.6
+                clase_pg, estabilidad_pg = _pasquill_gifford_nocturno(v_ms, nub_val)
+                if clase_pg is not None and estabilidad_pg is not None:
+                    indices["pasquill_gifford"] = {
+                        "valor": round(estabilidad_pg, 2),
+                        "clase": clase_pg,
+                        "estimado": viento["estimado"] or nub.get("estimado", True),
+                        "confianza": "derivado_fiable",
+                        "explicacion": "Estabilidad nocturna Pasquill-Gifford"
+                    }
+                r0 = _calcular_fried_r0(seeing)
+                if r0 is not None:
+                    indices["fried_r0"] = {
+                        "valor": round(r0, 4),
+                        "estimado": True,
+                        "confianza": "derivado_fiable",
+                        "explicacion": "Parámetro de Fried r0 (seeing astronómico)"
+                    }
+                if hasattr(self, "_refuerzos_consistencia"):
+                    self._refuerzos_consistencia.setdefault("interdependencias", []).append({
+                        "nombre": "indices_nocturnos",
+                        "activo": True,
+                        "condicion": "sun_altitude < 0"
+                    })
+            except Exception:
+                pass
         # Humedad de suelo (WH51)
         if suelo["valor"] is not None:
             indices["humedad_suelo"] = {
@@ -3725,6 +3895,7 @@ class EnvironmentalIndices:
                         radiacion_wm2=rad_val,
                         humedad_relativa=hum_val,
                         elevacion_solar_deg=contexto.solar_altitude if hasattr(contexto, 'solar_altitude') else 45.0,
+                        lluvia_mm_h=lluvia_rate_val if lluvia_rate_val is not None else 0.0,
                         masa_ave_kg=0.8  # Halcón típico
                     )
                 else:
@@ -3927,6 +4098,14 @@ class EnvironmentalIndices:
                     "balance_energetico_W": confort_ave_result.get("balance_energetico_W"),
                     "interpretacion": confort_ave_result.get("interpretacion")
                 }
+                if confort_ave_result.get("mojado_aplicado") and hasattr(self, "_refuerzos_consistencia"):
+                    self._refuerzos_consistencia.setdefault("interdependencias", []).append({
+                        "nombre": "lluvia_ave_viento",
+                        "activo": True,
+                        "detalle": {
+                            "enfriamiento_mojado_W": confort_ave_result.get("enfriamiento_mojado_W")
+                        }
+                    })
             _push_cet("confort_ave", cetreria.get("confort_ave"), "Confort térmico del ave (empírico)")
             _push_cet("indice_viento_cetreria", cetreria.get("indice_viento_cetreria"), "Índice viento cetrería")
             _push_cet("indice_visibilidad_cetreria", cetreria.get("indice_visibilidad_cetreria"), "Índice visibilidad cetrería")
@@ -4422,6 +4601,32 @@ class EnvironmentalIndices:
                     indices["riesgo_moho"]["fusion"] = round(comp, 2)
                     indices["riesgo_moho"]["valor"] = round(comp, 2)
                     indices["riesgo_moho"]["explicacion"] = "Fusión HR/tiempo + punto rocío interior"
+        except Exception:
+            pass
+
+        try:
+            # Refuerzo crítico: Moho + CO2 + Luz (oscuridad)
+            if "riesgo_moho" in indices and co2["valor"] is not None and luz["valor"] is not None:
+                base = indices["riesgo_moho"].get("valor")
+                co2_val = float(co2["valor"])
+                luz_val = float(luz["valor"])
+                osc = _clamp_0_100(100.0 - max(0.0, min(100.0, luz_val)))
+                alt_co2 = _clamp_0_100((co2_val - 800.0) * 0.04)
+                comp = _media_ponderada([base, alt_co2, osc], [0.6, 0.25, 0.15])
+                if _cambio_significativo(base, comp, 5.0):
+                    indices["riesgo_moho"]["base"] = base
+                    indices["riesgo_moho"]["fusion"] = round(comp, 2)
+                    indices["riesgo_moho"]["valor"] = round(comp, 2)
+                    indices["riesgo_moho"]["explicacion"] = "Fusión moho: HR/tiempo + CO2 + oscuridad"
+                    if hasattr(self, "_refuerzos_consistencia"):
+                        self._refuerzos_consistencia.setdefault("interdependencias", []).append({
+                            "nombre": "moho_co2_luz",
+                            "activo": True,
+                            "detalle": {
+                                "co2": co2_val,
+                                "luz": luz_val
+                            }
+                        })
         except Exception:
             pass
 
@@ -4929,6 +5134,9 @@ class EnvironmentalIndices:
         except Exception:
             pass
         indices = self._apply_index_overrides(indices)
+        if isinstance(getattr(self, "_refuerzos_consistencia", None), dict):
+            if self._refuerzos_consistencia.get("fallbacks") or self._refuerzos_consistencia.get("interdependencias"):
+                indices["refuerzos_consistencia"] = self._refuerzos_consistencia
         # REORGANIZACIÓN ESTRUCTURAL DEL ORGANISMO ÚNICO
         indices_reorganizados = self._reorganizar_indices_por_grupos(indices)
         return indices_reorganizados
