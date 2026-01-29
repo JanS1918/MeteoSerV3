@@ -788,6 +788,19 @@ def _clamp_range(value: float, min_value: float = 0.0, max_value: float = 100.0)
     return max(min(value, max_value), min_value)
 
 
+def _page_secado_tiempo_h(mr_objetivo: float, k: float, n: float) -> float | None:
+    """
+    Ecuación de Page (secado no lineal): MR = exp(-k * t^n)
+    Retorna t en horas para alcanzar un MR objetivo.
+    """
+    try:
+        if mr_objetivo <= 0 or k <= 0 or n <= 0:
+            return None
+        return (-(math.log(mr_objetivo)) / k) ** (1.0 / n)
+    except Exception:
+        return None
+
+
 def _calcular_qnet_brunt_monteith(temp_c: float | None, humedad: float | None, nubosidad_pct: float | None) -> float | None:
     if temp_c is None or humedad is None:
         return None
@@ -2982,6 +2995,7 @@ class EnvironmentalIndices:
             "indices_referencia_legado": {},
             "indices_nocturnos": {},
             "refuerzos_consistencia": {},
+            "decisiones_expertas": {},
             "metadata": {}  # Coordenadas, hora, etc.
         }
         
@@ -3141,8 +3155,21 @@ class EnvironmentalIndices:
             "context_timezone_offset_minutes", "hora_cliente"
         ]
         
+        def _indice_sin_valor(val: Any) -> bool:
+            if val is None:
+                return True
+            if isinstance(val, dict):
+                valor = val.get("valor")
+                if valor is None:
+                    campos_utiles = {"valor", "estimado", "confianza", "explicacion", "unidad", "fiabilidad"}
+                    if set(val.keys()).issubset(campos_utiles):
+                        return True
+            return False
+
         # MAPEAR TODOS LOS ÍNDICES A SUS GRUPOS
         for key, value in indices.items():
+            if _indice_sin_valor(value):
+                continue
             if key in metadata_keys:
                 reorganizados["metadata"][key] = value
             elif key in alertas_map:
@@ -3159,6 +3186,8 @@ class EnvironmentalIndices:
                 reorganizados["calidad_aire_ventilacion"][calidad_aire_map[key]] = value
             elif key in vuelo_map:
                 reorganizados["vuelo_biomecanica"][vuelo_map[key]] = value
+            elif key == "decisiones_expertas":
+                reorganizados["decisiones_expertas"] = value if isinstance(value, dict) else {"valor": value}
             elif key == "refuerzos_consistencia":
                 reorganizados["refuerzos_consistencia"] = value if isinstance(value, dict) else {"valor": value}
             elif key in legado_map:
@@ -5126,6 +5155,270 @@ class EnvironmentalIndices:
             indices["alerta_polvo"] = {"valor": round(alerta_polvo,2), "estimado": False, "explicacion": "Alerta polvo: Draxler HYSPLIT (dispersión + resuspensión)"}
         except Exception as e:
             indices["error_indices_avanzados"] = {"valor": None, "estimado": True, "explicacion": f"Error en índices avanzados: {e}"}
+
+        # ------------------------------------------------------------
+        # DECISIONES ESTRATÉGICAS 2026 (decisiones_expertas)
+        # ------------------------------------------------------------
+        try:
+            decisiones: Dict[str, Any] = {}
+
+            # Helpers de tiempo con ContextoMaestro
+            def _fmt_hora_relativa(dt_base: datetime.datetime | None, horas: float | None) -> str | None:
+                if dt_base is None or horas is None:
+                    return None
+                try:
+                    objetivo = dt_base + datetime.timedelta(hours=float(horas))
+                    etiqueta = "Hoy" if objetivo.date() == dt_base.date() else "Mañana"
+                    return f"{etiqueta} {objetivo.strftime('%H:%M')}"
+                except Exception:
+                    return None
+
+            # === 1) Protección contra Heladas (Brunt-Monteith + Yates-McLean) ===
+            qnet_val = None
+            qnet_est = True
+            if isinstance(indices.get("brunt_monteith_qnet"), dict):
+                qnet_val = indices["brunt_monteith_qnet"].get("valor")
+                qnet_est = indices["brunt_monteith_qnet"].get("estimado", True)
+            if qnet_val is None:
+                nub_val = None
+                nub_est = True
+                if isinstance(indices.get("nubosidad_estimada"), dict):
+                    nub_val = indices["nubosidad_estimada"].get("valor")
+                    nub_est = indices["nubosidad_estimada"].get("estimado", True)
+                qnet_val = _calcular_qnet_brunt_monteith(
+                    temp["valor"] if temp else None,
+                    humedad["valor"] if humedad else None,
+                    nub_val,
+                )
+                qnet_est = True if nub_est else qnet_est
+
+            yates_val = None
+            yates_est = True
+            if isinstance(indices.get("riesgo_helada_local"), dict):
+                yates_val = indices["riesgo_helada_local"].get("valor")
+                yates_est = indices["riesgo_helada_local"].get("estimado", True)
+
+            viento_ms = None
+            viento_est = True
+            if viento.get("valor") is not None:
+                try:
+                    viento_ms = float(viento.get("valor")) / 3.6
+                    viento_est = viento.get("estimado", True)
+                except Exception:
+                    viento_ms = None
+
+            proteccion = "Cenit"
+            motivo_helada = ""
+            if qnet_val is not None and viento_ms is not None:
+                if qnet_val <= -50 and viento_ms < 3.0:
+                    proteccion = "Cenit"
+                    motivo_helada = "Pérdida radiativa dominante (Qnet bajo)"
+                elif qnet_val <= -40 and viento_ms >= 3.0:
+                    proteccion = "Global"
+                    motivo_helada = "Radiativa + advección (Qnet bajo y viento)"
+                elif viento_ms >= 4.0:
+                    proteccion = "Laterales"
+                    motivo_helada = "Advección dominante (viento alto)"
+            elif viento_ms is not None and viento_ms >= 4.0:
+                proteccion = "Laterales"
+                motivo_helada = "Advección probable (viento alto)"
+            elif qnet_val is not None and qnet_val <= -45:
+                proteccion = "Cenit"
+                motivo_helada = "Radiativa probable (Qnet bajo)"
+
+            decisiones["proteccion_heladas"] = {
+                "valor": proteccion,
+                "estimado": bool(qnet_est or yates_est or viento_est),
+                "confianza": self._confianza(bool(qnet_est or yates_est or viento_est), fiable=True),
+                "explicacion": f"Yates-McLean={yates_val}, Qnet={qnet_val}, viento_ms={viento_ms}. {motivo_helada}".strip(),
+            }
+
+            # === 2) Cronómetro de Ventilación Superior (Entalpía + Fourier + CO2 + VPD) ===
+            ent_ext = indices.get("entalpia_aire", {}).get("valor") if isinstance(indices.get("entalpia_aire"), dict) else None
+            ent_int = None
+            ent_int_est = True
+            if tempint.get("valor") is not None and humedadint.get("valor") is not None:
+                try:
+                    ent_int = indice_entalpia_kjkg(float(tempint.get("valor")), float(humedadint.get("valor")))
+                    ent_int_est = bool(tempint.get("estimado", True) or humedadint.get("estimado", True))
+                except Exception:
+                    ent_int = None
+                    ent_int_est = True
+            delta_ent = None
+            if ent_int is not None and ent_ext is not None:
+                try:
+                    delta_ent = float(ent_int) - float(ent_ext)
+                except Exception:
+                    delta_ent = None
+
+            co2_val = None
+            co2_est = True
+            if co2.get("valor") is not None:
+                try:
+                    co2_val = float(co2.get("valor"))
+                    co2_est = co2.get("estimado", True)
+                except Exception:
+                    co2_val = None
+
+            vpd_val = indices.get("vpd", {}).get("valor") if isinstance(indices.get("vpd"), dict) else None
+            estabilidad_val = indices.get("estabilidad_termica", {}).get("valor") if isinstance(indices.get("estabilidad_termica"), dict) else None
+
+            tiempo_base = 12.0
+            if co2_val is not None:
+                if co2_val >= 1400:
+                    tiempo_base = 28.0
+                elif co2_val >= 1000:
+                    tiempo_base = 20.0
+                elif co2_val >= 800:
+                    tiempo_base = 16.0
+            if vpd_val is not None and vpd_val >= 1.2:
+                tiempo_base += 4.0
+
+            if estabilidad_val is not None:
+                tiempo_base += (float(estabilidad_val) - 50.0) / 10.0
+            if delta_ent is not None:
+                tiempo_base -= min(8.0, abs(float(delta_ent)) * 0.6)
+
+            tiempo_optimo = max(5.0, min(45.0, tiempo_base))
+            decisiones["tiempo_optimo_ventilacion_min"] = {
+                "valor": round(tiempo_optimo, 1),
+                "estimado": bool(co2_est or ent_int_est or (indices.get("vpd", {}).get("estimado", True) if isinstance(indices.get("vpd"), dict) else True)),
+                "confianza": self._confianza(bool(co2_est or ent_int_est), fiable=True),
+                "explicacion": f"Δentalpía={delta_ent}, CO2={co2_val}, VPD={vpd_val}, estabilidad={estabilidad_val}".strip(),
+            }
+
+            # === 3) Gestión de Suelo y Barro (Page + Bucket) ===
+            lluvia_24h_val = None
+            lluvia_24h_est = True
+            lluvia_24h = self._get_sensor_any(["lluvia_24h", "rain_24h", "lluvia_dia", "rain_day"])
+            if lluvia_24h.get("valor") is not None:
+                try:
+                    lluvia_24h_val = float(lluvia_24h.get("valor"))
+                    lluvia_24h_est = lluvia_24h.get("estimado", True)
+                except Exception:
+                    lluvia_24h_val = None
+            else:
+                lluvia_24h_val, lluvia_24h_est = self._rain_accumulated(["lluvia", "rain", "rainfall"], 86400)
+
+            et_result = self.mejor_evapotranspiracion()
+            et_24h = et_result.get("valor") if isinstance(et_result, dict) else None
+            et_est = et_result.get("estimado", True) if isinstance(et_result, dict) else True
+
+            bucket_result = None
+            if lluvia_24h_val is not None and et_24h is not None:
+                try:
+                    hum_suelo = self._get_sensor_any(["humedad_suelo", "soil_moisture", "soil", "wh51"]).get("valor")
+                    hum_suelo_val = float(hum_suelo) if hum_suelo is not None else None
+                    bucket_result = modelo_bucket_barro(
+                        lluvia_24h_mm=float(lluvia_24h_val),
+                        evapotranspiracion_mm=float(et_24h),
+                        humedad_suelo_actual=hum_suelo_val,
+                        capacidad_campo_mm=200.0,
+                        punto_marchitez_mm=50.0,
+                    )
+                except Exception:
+                    bucket_result = None
+
+            hora_transitabilidad = None
+            if bucket_result:
+                try:
+                    sat_pct = float(bucket_result.get("saturacion_suelo_pct", 0.0))
+                    sat = max(0.0, min(1.0, sat_pct / 100.0))
+                    sat_obj = 0.6
+                    if sat <= sat_obj:
+                        horas_hasta = 0.0
+                    else:
+                        me = 0.1
+                        mr = (sat_obj - me) / max(1e-3, (sat - me))
+                        k = 0.02
+                        if vpd_val is not None:
+                            k += min(0.08, float(vpd_val) * 0.02)
+                        if viento_ms is not None:
+                            k += min(0.05, float(viento_ms) * 0.01)
+                        if et_24h is not None:
+                            k += min(0.05, float(et_24h) / 100.0)
+                        n = 1.2
+                        horas_hasta = _page_secado_tiempo_h(max(0.01, min(0.99, mr)), k, n)
+                    hora_transitabilidad = _fmt_hora_relativa(contexto.hora_utc if contexto else None, horas_hasta)
+                except Exception:
+                    hora_transitabilidad = None
+
+            decisiones["hora_transitabilidad_suelo"] = {
+                "valor": hora_transitabilidad,
+                "estimado": bool(lluvia_24h_est or et_est),
+                "confianza": self._confianza(bool(lluvia_24h_est or et_est), fiable=True),
+                "explicacion": f"Bucket + Page. Lluvia24h={lluvia_24h_val}mm, ET24h={et_24h}mm".strip(),
+            }
+
+            # Estrategia de riego (Diferir/Regar)
+            estrategia_riego = "Diferir"
+            lluvia_prevista = False
+            if hasattr(self.system, "obtener_prediccion_lluvia") and contexto:
+                try:
+                    for delta_h in range(1, 7):
+                        hora_pred = contexto.hora_utc + datetime.timedelta(hours=delta_h)
+                        pred_lluvia = self.system.obtener_prediccion_lluvia(hora_pred)
+                        if pred_lluvia and float(pred_lluvia) > 0.5:
+                            lluvia_prevista = True
+                            break
+                except Exception:
+                    lluvia_prevista = False
+
+            balance_hidrico = None
+            if bucket_result:
+                balance_hidrico = bucket_result.get("balance_neto_mm")
+            if balance_hidrico is not None and float(balance_hidrico) < -5.0 and not lluvia_prevista:
+                estrategia_riego = "Regar"
+
+            decisiones["estrategia_riego"] = {
+                "valor": estrategia_riego,
+                "estimado": bool(lluvia_24h_est or et_est),
+                "confianza": self._confianza(bool(lluvia_24h_est or et_est), fiable=True),
+                "explicacion": f"Balance hídrico={balance_hidrico}mm, lluvia_prevista={lluvia_prevista}".strip(),
+            }
+
+            # === 4) Seguridad de Operación y Vuelo (Pasquill-Gifford) ===
+            nub_val = None
+            if isinstance(indices.get("nubosidad_estimada"), dict):
+                nub_val = indices["nubosidad_estimada"].get("valor")
+            clase_pg, estabilidad_pg = _pasquill_gifford_nocturno(viento_ms, nub_val)
+
+            lluvia_rate = self._get_sensor_any(["lluvia_rate", "rain_rate", "rainrate", "rain_rate_h"]).get("valor")
+            lluvia_rate_val = float(lluvia_rate) if lluvia_rate is not None else 0.0
+
+            fumigacion_apta = bool(
+                viento_ms is not None
+                and 1.0 <= float(viento_ms) <= 4.0
+                and lluvia_rate_val <= 0.1
+                and (estabilidad_pg is None or float(estabilidad_pg) >= 60.0)
+            )
+            ventana_fumigacion = "Ahora +2h" if fumigacion_apta else "No apta"
+            decisiones["ventana_fumigacion_segura"] = {
+                "valor": ventana_fumigacion,
+                "estimado": True,
+                "confianza": self._confianza(True, fiable=True),
+                "explicacion": f"Pasquill-Gifford={clase_pg} ({estabilidad_pg}), viento_ms={viento_ms}, lluvia_rate={lluvia_rate_val}"
+            }
+
+            seguridad_vuelo = indices.get("seguridad_vuelo_cientifica", {}).get("valor") if isinstance(indices.get("seguridad_vuelo_cientifica"), dict) else None
+            vuelo_apta = bool(
+                viento_ms is not None
+                and 1.0 <= float(viento_ms) <= 8.0
+                and lluvia_rate_val <= 0.1
+                and (seguridad_vuelo is None or float(seguridad_vuelo) >= 60.0)
+            )
+            ventana_vuelo = "Ahora +3h" if vuelo_apta else "No apta"
+            decisiones["ventana_vuelo"] = {
+                "valor": ventana_vuelo,
+                "estimado": True,
+                "confianza": self._confianza(True, fiable=True),
+                "explicacion": f"Pasquill-Gifford={clase_pg} ({estabilidad_pg}), seguridad_vuelo={seguridad_vuelo}, viento_ms={viento_ms}"
+            }
+
+            if decisiones:
+                indices["decisiones_expertas"] = decisiones
+        except Exception:
+            pass
         # Sonógrafo y sismógrafo siempre presentes
         indices["sonometro"] = self.indice_sonometro()
         indices["sismografo"] = self.indice_sismografo()
