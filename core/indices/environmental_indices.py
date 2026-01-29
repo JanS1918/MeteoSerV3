@@ -10,6 +10,16 @@ from core.indices import registry as _indices_registry
 from core.indices.registry import register_index
 from core.context.contexto_maestro_global import ContextoMaestroGlobal
 from core.indices.physical_consistency import PhysicalConsistencyValidator
+from core.indices.atmospheric_profiler import (
+    perfil_atmosferico_completo,
+    numero_richardson,
+    indice_scorer
+)
+from core.indices.advanced_field_indices import (
+    confort_ave_porter_gates,
+    modelo_bucket_barro,
+    visibilidad_kneizys
+)
 
 def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float, contexto) -> float:
     """
@@ -2987,6 +2997,40 @@ class EnvironmentalIndices:
             logger = logging.getLogger(__name__)
             logger.exception(f"Error calculando arco/amanecer/atardecer: {e}")
             indices["arco_solar_error"] = str(e)
+        
+        # --- PERFILADOR ATMOSFÉRICO (Física rigurosa 2026) ---
+        try:
+            temp = self._get_sensor("temperatura")
+            humedad = self._get_sensor("humedad")
+            viento = self._get_sensor("viento", fallback=0)
+            pr = self.punto_rocio()
+            
+            if temp["valor"] is not None and pr["valor"] is not None and viento["valor"] is not None:
+                perfil = perfil_atmosferico_completo(
+                    temp_superficie_c=float(temp["valor"]),
+                    punto_rocio_c=float(pr["valor"]),
+                    viento_superficie_ms=float(viento["valor"]) / 3.6,  # km/h -> m/s
+                    altura_sensor_m=contexto.sensor_height_above_ground if hasattr(contexto, 'sensor_height_above_ground') else 13.0,
+                    altura_objetivo_m=100.0,
+                    alpha_hellman=0.143  # Campo abierto
+                )
+                
+                indices["perfil_atmosferico"] = {
+                    "temperatura_100m_c": perfil["temperatura_100m_c"],
+                    "viento_100m_ms": perfil["viento_100m_ms"],
+                    "altura_nubes_lcl_m": perfil["altura_nubes_lcl_m"],
+                    "richardson_Ri": perfil["richardson_Ri"],
+                    "scorer_l2": perfil["scorer_l2"],
+                    "favorable_termicas": perfil["favorable_termicas"],
+                    "favorable_vuelo_planeo": perfil["favorable_vuelo_planeo"],
+                    "interpretacion": perfil["interpretacion_estabilidad"],
+                    "estimado": temp["estimado"] or viento["estimado"],
+                    "explicacion": "Perfil atmosférico hasta 100m (adiabática, Hellman, LCL, Richardson, Scorer)"
+                }
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.exception(f"Error calculando perfil atmosférico: {e}")
         context_time = self._get_context_time()
         # Obtener ubicación conocida si está disponible
         location_meta = self._get_location_meta()
@@ -3469,6 +3513,24 @@ class EnvironmentalIndices:
                 lluvia_rate_est, pm25_est, hum_suelo_est, uv_est
             ])
 
+            # ARQUITECTURA DE ORGANISMO ÚNICO: Calcular cetrería con física rigurosa
+            # Confort Ave usa Porter & Gates (balance radiativo biofísico)
+            try:
+                if temp_val is not None and viento_val is not None and rad_val is not None and hum_val is not None:
+                    confort_ave_result = confort_ave_porter_gates(
+                        temperatura_c=temp_val,
+                        viento_ms=viento_val / 3.6 if viento_val else 0,  # km/h -> m/s
+                        radiacion_wm2=rad_val,
+                        humedad_relativa=hum_val,
+                        elevacion_solar_deg=contexto.solar_altitude if hasattr(contexto, 'solar_altitude') else 45.0,
+                        masa_ave_kg=0.8  # Halcón típico
+                    )
+                else:
+                    confort_ave_result = {"confort_ave": None}
+            except Exception:
+                confort_ave_result = {"confort_ave": None}
+            
+            # Mantener cálculo de cetrería original como apoyo
             cetreria = calcular_cetreria({
                 "viento_medio": viento_val,
                 "rachas": rachas_val,
@@ -3487,6 +3549,7 @@ class EnvironmentalIndices:
                 "uv": uv_val,
                 "viento_std_30m": viento_std_30m,
                 "sensacion_termica": st_val,
+                "confort_ave_porter_gates": confort_ave_result.get("confort_ave")  # Inyectar Porter & Gates
             })
 
             def _push_cet(nombre, valor, explicacion):
@@ -3500,10 +3563,110 @@ class EnvironmentalIndices:
                 }
 
             _push_cet("viento_cetreria", cetreria.get("viento_cetreria"), "Viento apto para cetrería")
-            _push_cet("visibilidad_terreno", cetreria.get("visibilidad_terreno"), "Visibilidad sobre terreno")
-            _push_cet("termales_probabilidad", cetreria.get("termales_probabilidad"), "Probabilidad de térmicas")
-            _push_cet("barro_campo", cetreria.get("barro_campo"), "Barro en campo (lluvia y secado)")
-            _push_cet("confort_ave", cetreria.get("confort_ave"), "Confort térmico del ave")
+            _push_cet("visibilidad_terreno", cetreria.get("visibilidad_terreno"), "Visibilidad sobre terreno (empírico)")
+            _push_cet("termales_probabilidad", cetreria.get("termales_probabilidad"), "Probabilidad de térmicas (empírico)")
+            _push_cet("barro_campo", cetreria.get("barro_campo"), "Barro en campo (empírico)")
+            
+            # ARQUITECTURA DE ORGANISMO ÚNICO: Índices científicos avanzados
+            # 1. BARRO EN CAMPO - Modelo Bucket (Balance hídrico real)
+            try:
+                if lluvia_24h_val is not None:
+                    # Calcular ET usando mejor_evapotranspiracion (Penman-Monteith)
+                    et_result = self.mejor_evapotranspiracion()
+                    et_24h_mm = et_result.get("valor", 3.0) if et_result.get("valor") is not None else 3.0
+                    
+                    barro_bucket = modelo_bucket_barro(
+                        lluvia_24h_mm=lluvia_24h_val,
+                        evapotranspiracion_mm=et_24h_mm,
+                        humedad_suelo_actual=hum_suelo_val,
+                        capacidad_campo_mm=200.0,
+                        punto_marchitez_mm=50.0
+                    )
+                    
+                    indices["barro_bucket"] = {
+                        "valor": round(barro_bucket["indice_barro"], 2),
+                        "estimado": lluvia_24h_est or et_result.get("estimado", True),
+                        "confianza": self._confianza(lluvia_24h_est, fiable=True),
+                        "explicacion": "Barro científico: Balance hídrico (Lluvia - ET - Drenaje)",
+                        "saturacion_suelo_pct": barro_bucket["saturacion_suelo_pct"],
+                        "balance_hidrico_mm": barro_bucket["balance_neto_mm"],
+                        "interpretacion": barro_bucket["interpretacion"]
+                    }
+            except Exception as e:
+                pass
+            
+            # 2. VISIBILIDAD - Fórmula de Kneizys (Ajuste higroscópico)
+            try:
+                if pm25_val is not None and hum_val is not None and temp_val is not None:
+                    visibilidad_result = visibilidad_kneizys(
+                        pm25_ugm3=pm25_val,
+                        humedad_relativa=hum_val,
+                        temperatura_c=temp_val
+                    )
+                    
+                    indices["visibilidad_kneizys"] = {
+                        "valor": round(visibilidad_result["visibilidad_km"], 2),
+                        "estimado": pm25_est,
+                        "confianza": self._confianza(pm25_est, fiable=True),
+                        "explicacion": "Visibilidad científica: Kneizys LOWTRAN (ajuste higroscópico)",
+                        "indice_visibilidad": visibilidad_result["indice_visibilidad"],
+                        "coef_extincion_m-1": visibilidad_result["coef_extincion_total_m-1"],
+                        "factor_higroscopico": visibilidad_result["factor_higroscopico"],
+                        "interpretacion": visibilidad_result["interpretacion"]
+                    }
+            except Exception:
+                pass
+            
+            # 3. SEGURIDAD VUELO - Richardson + Scorer (Turbulencia real)
+            try:
+                perfil_atm = indices.get("perfil_atmosferico")
+                if perfil_atm is not None:
+                    Ri = perfil_atm["richardson_Ri"]
+                    scorer_l2 = perfil_atm["scorer_l2"]
+                    
+                    # Índice de seguridad basado en física atmosférica
+                    # Ri < 0.25: Turbulencia fuerte (riesgo)
+                    # scorer_l2 < 0: Inestabilidad convectiva (riesgo)
+                    
+                    if Ri < 0.1:
+                        seguridad = 20  # Muy peligroso
+                    elif Ri < 0.25:
+                        seguridad = 40  # Peligroso
+                    elif Ri < 0.5:
+                        seguridad = 60  # Moderado
+                    elif Ri < 1.0:
+                        seguridad = 80  # Seguro
+                    else:
+                        seguridad = 100  # Muy seguro
+                    
+                    # Ajustar por Scorer
+                    if scorer_l2 < -0.01:
+                        seguridad *= 0.7  # Penalizar inestabilidad
+                    
+                    indices["seguridad_vuelo_cientifica"] = {
+                        "valor": round(seguridad, 2),
+                        "estimado": perfil_atm.get("estimado", True),
+                        "confianza": self._confianza(True, fiable=True),
+                        "explicacion": "Seguridad vuelo: Richardson + Scorer (turbulencia real)",
+                        "richardson_Ri": Ri,
+                        "scorer_l2": scorer_l2,
+                        "favorable_planeo": perfil_atm["favorable_vuelo_planeo"],
+                        "interpretacion": perfil_atm["interpretacion"]
+                    }
+            except Exception:
+                pass
+            
+            # Confort ave con Porter & Gates (balance radiativo biofísico)
+            if confort_ave_result.get("confort_ave") is not None:
+                indices["confort_ave_porter_gates"] = {
+                    "valor": round(confort_ave_result["confort_ave"], 2),
+                    "estimado": estimado_cetreria,
+                    "confianza": self._confianza(estimado_cetreria, fiable=True),
+                    "explicacion": "Confort térmico biofísico (Porter & Gates 1971)",
+                    "balance_energetico_W": confort_ave_result.get("balance_energetico_W"),
+                    "interpretacion": confort_ave_result.get("interpretacion")
+                }
+            _push_cet("confort_ave", cetreria.get("confort_ave"), "Confort térmico del ave (empírico)")
             _push_cet("indice_viento_cetreria", cetreria.get("indice_viento_cetreria"), "Índice viento cetrería")
             _push_cet("indice_visibilidad_cetreria", cetreria.get("indice_visibilidad_cetreria"), "Índice visibilidad cetrería")
             _push_cet("indice_termales", cetreria.get("indice_termales"), "Índice de térmicas")

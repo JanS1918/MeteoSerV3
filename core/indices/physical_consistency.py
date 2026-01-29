@@ -62,6 +62,83 @@ class PhysicalConsistencyValidator:
         self.max_night_uv = max_night_uv
         self.alertas: List[ConsistencyAlert] = []
     
+    def clear_alertas(self):
+        """Limpia las alertas acumuladas."""
+        self.alertas = []
+    
+    def get_alertas(self) -> List[Dict]:
+        """Obtiene las alertas en formato dict."""
+        return [
+            {
+                "sensor": a.sensor,
+                "tipo": a.tipo,
+                "severidad": a.severidad,
+                "valor_sensor": a.valor_sensor,
+                "valor_esperado": a.valor_esperado,
+                "razon": a.razon,
+                "accion": a.accion,
+                "timestamp": a.timestamp
+            }
+            for a in self.alertas
+        ]
+    
+    def deducir_temperatura_desde_radiacion(self, radiacion_wm2: float, 
+                                           es_dia: bool) -> Optional[float]:
+        """
+        Deduce temperatura aproximada desde radiación solar.
+        Modelo simplificado: T ≈ f(radiación, hora del día)
+        """
+        if not es_dia or radiacion_wm2 < 50:
+            return None
+        
+        # Modelo empírico: T ≈ T_base + k × √(radiación)
+        # Ajustado para latitudes medias
+        T_base = 10.0  # °C (temperatura base)
+        k = 0.15  # Coeficiente de conversión
+        
+        temp_estimada = T_base + k * math.sqrt(radiacion_wm2)
+        return round(temp_estimada, 1)
+    
+    def deducir_humedad_desde_punto_rocio(self, temperatura_c: float,
+                                         punto_rocio_c: float) -> Optional[float]:
+        """
+        Deduce humedad relativa desde temperatura y punto de rocío.
+        Fórmula de Magnus-Tetens inversa.
+        """
+        if temperatura_c is None or punto_rocio_c is None:
+            return None
+        
+        if punto_rocio_c > temperatura_c:
+            # Físicamente imposible
+            return None
+        
+        a, b = 17.27, 237.7
+        
+        # Presión de vapor actual (desde Td)
+        alpha_d = (a * punto_rocio_c) / (b + punto_rocio_c)
+        ea = math.exp(alpha_d)
+        
+        # Presión de vapor saturado (desde T)
+        alpha_t = (a * temperatura_c) / (b + temperatura_c)
+        es = math.exp(alpha_t)
+        
+        # Humedad relativa
+        hr = (ea / es) * 100.0
+        return round(min(100.0, max(0.0, hr)), 1)
+    
+    def deducir_viento_desde_variabilidad(self, viento_actual: Optional[float],
+                                         rachas: Optional[float]) -> Optional[float]:
+        """
+        Deduce viento medio desde rachas si el sensor de viento falla.
+        Típicamente: viento_medio ≈ rachas / 1.5
+        """
+        if rachas is None or rachas <= 0:
+            return None
+        
+        # Relación empírica: rachas son ~50% mayores que viento medio
+        viento_estimado = rachas / 1.5
+        return round(viento_estimado, 1)
+    
     def reset_alertas(self) -> None:
         """Limpia las alertas acumuladas."""
         self.alertas = []
