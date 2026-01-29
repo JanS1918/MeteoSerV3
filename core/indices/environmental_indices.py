@@ -2870,6 +2870,204 @@ class EnvironmentalIndices:
             "explicacion": f"{'Estimado' if temp['estimado'] or rh['estimado'] else 'Directo'}: T={t_val}C, HR={rh_val}%"
         }
 
+    def _reorganizar_indices_por_grupos(self, indices: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Reorganiza todos los índices en grupos lógicos para JSON limpio y eficiente.
+        
+        Grupos:
+        - alertas_meteorologicas: tormentas, polvo, calor, frío, viento...
+        - confort_y_salud: PMV/PPD, WBGT, sensación térmica, confort...
+        - dinamica_atmosferica: CAPE, Richardson, Gultepe, perfil, UTCI...
+        - prediccion_matematica: Kalman, Hurst, tendencias...
+        - calidad_aire_ventilacion: Persily, CO2, PM2.5/PM10, ventilación...
+        - vuelo_biomecanica: Pennycuick, Porter & Gates, cetrería...
+        - indices_referencia_legado: Clásicos y empíricos mantenidos por compatibilidad
+        """
+        # ESTRUCTURA REORGANIZADA
+        reorganizados = {
+            "alertas_meteorologicas": {},
+            "confort_y_salud": {},
+            "dinamica_atmosferica": {},
+            "prediccion_matematica": {},
+            "calidad_aire_ventilacion": {},
+            "vuelo_biomecanica": {},
+            "indices_referencia_legado": {},
+            "metadata": {}  # Coordenadas, hora, etc.
+        }
+        
+        # MAPEO DE ÍNDICES A GRUPOS CON NOMBRES SIMPLIFICADOS
+        
+        # 1. ALERTAS METEOROLÓGICAS
+        alertas_map = {
+            "alerta_tormenta": "tormenta",
+            "alerta_polvo": "polvo",
+            "alerta_calor_extremo": "calor_extremo",
+            "alerta_frio_extremo": "frio_extremo",
+            "riesgo_helada_local": "helada",
+            "riesgo_lluvia": "lluvia",
+            "riesgo_niebla": "niebla",
+            "riesgo_micro_lluvias": "micro_lluvias",
+            "riesgo_rachas_peligrosas": "rachas_peligrosas",
+            "viento_incomodo_dormir": "viento_incomodo",
+            "contador_rayos": "rayos",
+            "ultimo_rayo": "ultimo_rayo"
+        }
+        
+        # 2. CONFORT Y SALUD
+        confort_map = {
+            "pmv": "pmv",
+            "ppd": "ppd",
+            "pmv_ppd_fanger": "fanger_completo",
+            "wbgt": "wbgt_aproximado",
+            "wbgt_liljegren": "wbgt_cientifico",
+            "sensacion_termica": "sensacion",
+            "sensacion_termica_compuesta": "sensacion_compuesta",
+            "utci_calle": "utci_calle",
+            "utci_sensor": "utci_sensor",
+            "steadman": "steadman",
+            "heat_index": "heat_index",
+            "humidex": "humidex",
+            "wind_chill": "wind_chill",
+            "bulbo_humedo": "bulbo_humedo",
+            "confort_general": "confort_general",
+            "confort_nocturno": "confort_nocturno",
+            "bochorno_real": "bochorno",
+            "aire_seco": "aire_seco",
+            "aire_pegajoso": "aire_pegajoso",
+            "aire_pegajoso_exterior": "aire_pegajoso_ext",
+            "frio_incomodo": "frio_incomodo",
+            "estres_termico_exterior": "estres_termico"
+        }
+        
+        # 3. DINÁMICA ATMOSFÉRICA
+        dinamica_map = {
+            "cape_termicas": "cape",
+            "richardson_bulk_inversion": "richardson_bulk",
+            "inversion_termica_richardson": "inversion_termica",
+            "niebla_gultepe": "niebla_gultepe",
+            "perfil_atmosferico": "perfil",
+            "punto_rocio": "punto_rocio",
+            "humedad_especifica": "humedad_especifica",
+            "humedad_absoluta": "humedad_absoluta",
+            "vpd": "vpd",
+            "vpd_q": "vpd_q",
+            "entalpia_aire": "entalpia",
+            "evapotranspiracion": "et",
+            "evapotranspiracion_penman_monteith": "et_penman_monteith",
+            "mejor_evapotranspiracion": "et_mejor",
+            "nubosidad_estimada": "nubosidad",
+            "radiacion_teorica": "radiacion_teorica",
+            "indice_uv": "uv",
+            "fase_lunar": "fase_lunar",
+            "arco_solar": "arco_solar",
+            "amanecer": "amanecer",
+            "atardecer": "atardecer",
+            "elevacion_solar": "elevacion_solar",
+            "duracion_dia_h": "duracion_dia",
+            "duracion_noche_h": "duracion_noche",
+            "transparencia_atmosferica": "transparencia",
+            "seeing_termico_basico": "seeing",
+            "riesgo_empaniamiento_optica": "empaniamiento",
+            "cielo_observable_nocturno": "cielo_nocturno",
+            "visibilidad_local": "visibilidad",
+            "visibilidad_kneizys": "visibilidad_kneizys",
+            "micro_rafagas": "micro_rafagas"
+        }
+        
+        # 4. PREDICCIÓN MATEMÁTICA
+        prediccion_map = {
+            "tendencia_temperatura_kalman": "temperatura_kalman",
+            "tendencia_humedad_kalman": "humedad_kalman",
+            "tendencia_presion_kalman": "presion_kalman",
+            "tendencia_temperatura": "temperatura",
+            "tendencia_humedad": "humedad",
+            "tendencia_presion": "presion",
+            "tendencia_humedad_suelo": "humedad_suelo",
+            "estabilidad_termica_hurst": "estabilidad_hurst",
+            "estabilidad_termica": "estabilidad",
+            "variabilidad_viento_30m": "variabilidad_viento"
+        }
+        
+        # 5. CALIDAD AIRE Y VENTILACIÓN
+        calidad_aire_map = {
+            "ventilacion_persily": "persily",
+            "ventilacion_ideal": "ventilacion_ideal",
+            "ventilacion_compuesta": "ventilacion_compuesta",
+            "aire_cargado": "aire_cargado",
+            "aire_enrarecido": "aire_enrarecido",
+            "calidad_aire_compuesta": "calidad_compuesta",
+            "aqi_pm25": "aqi",
+            "pm25_corregido": "pm25",
+            "pm10_corregido": "pm10",
+            "deshidratacion_ambiental": "deshidratacion",
+            "riesgo_moho": "moho",
+            "riesgo_condensacion_ventanas": "condensacion_ventanas",
+            "riesgo_olor_cerrado": "olor_cerrado",
+            "salud_edificio": "salud_edificio"
+        }
+        
+        # 6. VUELO Y BIOMECÁNICA
+        vuelo_map = {
+            "modelo_pennycuick_vuelo": "pennycuick",
+            "viento_favorable_pennycuick": "viento_favorable",
+            "confort_ave_porter_gates": "confort_ave_cientifico",
+            "confort_ave": "confort_ave",
+            "barro_bucket": "barro_cientifico",
+            "barro_campo": "barro",
+            "visibilidad_terreno": "visibilidad_terreno",
+            "termales_probabilidad": "termales",
+            "seguridad_vuelo_cientifica": "seguridad_cientifica",
+            "viento_cetreria": "viento",
+            "indice_viento_cetreria": "indice_viento",
+            "indice_visibilidad_cetreria": "indice_visibilidad",
+            "indice_termales": "indice_termales",
+            "indice_seguridad_vuelo": "indice_seguridad",
+            "indice_cetreria": "indice_general"
+        }
+        
+        # 7. INDICES DE REFERENCIA/LEGADO (menos prioritarios, pero útiles)
+        legado_map = {
+            "humedad_suelo": "humedad_suelo",
+            "indice_sequia_suelo": "sequia_suelo",
+            "sonometro": "sonometro",
+            "sismografo": "sismografo",
+            "sismo_externo_confirma": "sismo_externo",
+            "sismo_externo_info": "sismo_info",
+            "alertas_consistencia": "consistencia",
+            "error_indices_avanzados": "error"
+        }
+        
+        # METADATA (datos de contexto, no cálculos)
+        metadata_keys = [
+            "coordenadas", "latitud", "latitude", "longitud", "longitude",
+            "hora_cliente_iso", "context_time_iso", "context_time_epoch",
+            "context_timezone_offset_minutes", "hora_cliente"
+        ]
+        
+        # MAPEAR TODOS LOS ÍNDICES A SUS GRUPOS
+        for key, value in indices.items():
+            if key in metadata_keys:
+                reorganizados["metadata"][key] = value
+            elif key in alertas_map:
+                reorganizados["alertas_meteorologicas"][alertas_map[key]] = value
+            elif key in confort_map:
+                reorganizados["confort_y_salud"][confort_map[key]] = value
+            elif key in dinamica_map:
+                reorganizados["dinamica_atmosferica"][dinamica_map[key]] = value
+            elif key in prediccion_map:
+                reorganizados["prediccion_matematica"][prediccion_map[key]] = value
+            elif key in calidad_aire_map:
+                reorganizados["calidad_aire_ventilacion"][calidad_aire_map[key]] = value
+            elif key in vuelo_map:
+                reorganizados["vuelo_biomecanica"][vuelo_map[key]] = value
+            elif key in legado_map:
+                reorganizados["indices_referencia_legado"][legado_map[key]] = value
+            else:
+                # Si no está mapeado, dejarlo en legado con su nombre original
+                reorganizados["indices_referencia_legado"][key] = value
+        
+        return reorganizados
+
     def obtener_todos(self) -> Dict[str, Any]:
         """
         Devuelve todos los índices avanzados, creativos y clásicos, con explicación y nivel de confianza.
@@ -4731,8 +4929,9 @@ class EnvironmentalIndices:
         except Exception:
             pass
         indices = self._apply_index_overrides(indices)
-        # Asegura que no se filtra ni sobrescribe el diccionario de índices, y se devuelven todos los índices calculados
-        return indices
+        # REORGANIZACIÓN ESTRUCTURAL DEL ORGANISMO ÚNICO
+        indices_reorganizados = self._reorganizar_indices_por_grupos(indices)
+        return indices_reorganizados
 """
 Módulo unificado de índices ambientales MeteoSer.
 
