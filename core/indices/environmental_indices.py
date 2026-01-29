@@ -9,8 +9,9 @@ from core.sensors.sensor_aliases import sensor_candidate_names
 from core.indices import registry as _indices_registry
 from core.indices.registry import register_index
 from core.context.contexto_maestro_global import ContextoMaestroGlobal
+from core.indices.physical_consistency import PhysicalConsistencyValidator
 
-def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float, lat: float, lon: float, alt: float, dt) -> float:
+def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float, contexto) -> float:
     """
     Índice de alerta de frío extremo basado en:
     - Temperatura baja
@@ -21,10 +22,8 @@ def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float, lat: 
       - temp: temperatura en °C
       - viento: velocidad del viento en km/h
       - humedad: humedad relativa en %
-      - lat: latitud en grados decimales (obligatorio)
-      - lon: longitud en grados decimales (obligatorio)
-      - alt: altitud en metros (obligatorio)
-      - dt: instante temporal de contexto (datetime, obligatorio)
+      - contexto: ContextoMaestro con información espacio-temporal completa
+    ARQUITECTURA DE ORGANISMO ÚNICO: El contexto maestro es el sistema nervioso compartido.
     """
     score = 0.0
     if temp < 5:
@@ -37,7 +36,7 @@ def indice_alerta_frio_extremo(temp: float, viento: float, humedad: float, lat: 
 # ------------------------------------------------------------
 # ALERTA DE CALOR EXTREMO
 # ------------------------------------------------------------
-def indice_alerta_calor_extremo(temp: float, uv: float, humedad: float, lat: float, lon: float, alt: float, dt) -> float:
+def indice_alerta_calor_extremo(temp: float, uv: float, humedad: float, contexto) -> float:
     """
     Índice de alerta de calor extremo basado en:
     - Temperatura alta
@@ -48,10 +47,8 @@ def indice_alerta_calor_extremo(temp: float, uv: float, humedad: float, lat: flo
       - temp: temperatura en °C
       - uv: índice UV
       - humedad: humedad relativa en %
-      - lat: latitud en grados decimales (obligatorio)
-      - lon: longitud en grados decimales (obligatorio)
-      - alt: altitud en metros (obligatorio)
-      - dt: instante temporal de contexto (datetime, obligatorio)
+      - contexto: ContextoMaestro con información espacio-temporal completa
+    ARQUITECTURA DE ORGANISMO ÚNICO: El contexto maestro es el sistema nervioso compartido.
     """
     score = 0.0
     if temp > 32:
@@ -65,8 +62,10 @@ def indice_alerta_calor_extremo(temp: float, uv: float, humedad: float, lat: flo
 
 # ------------------------------------------------------------
 # ÍNDICES AVANZADOS DE SENSACIÓN TÉRMICA Y AIRE
-def indice_steadman_apparent_temperature(temp_c: float, humedad: float, viento_m_s: float, lat: float, lon: float, alt: float, dt) -> float:
+def indice_steadman_apparent_temperature(temp_c: float, humedad: float, viento_m_s: float, contexto) -> float:
     """Temperatura aparente de Steadman (1984) con resistencia dérmica.
+    ARQUITECTURA DE ORGANISMO ÚNICO: Recibe ContextoMaestro para razonamiento físico.
+    
     Modelo biofísico completo que incluye termorregulación humana.
     
     Referencia:
@@ -75,7 +74,7 @@ def indice_steadman_apparent_temperature(temp_c: float, humedad: float, viento_m
     
     Modelo completo considera:
     - Balance energético corporal
-    - Resistencia térmica de ropa (clo)
+    - Resistencia térmica de ropa (clo) adaptativa según estación del año (contexto)
     - Resistencia evaporativa de la piel
     - Transferencia de calor por convección (viento)
     - Producción metabólica de calor
@@ -85,7 +84,7 @@ def indice_steadman_apparent_temperature(temp_c: float, humedad: float, viento_m
         temp_c: Temperatura del aire (°C)
         humedad: Humedad relativa (%)
         viento_m_s: Velocidad del viento (m/s)
-        lat, lon, alt, dt: Parámetros de contexto obligatorios
+        contexto: ContextoMaestro con ubicación, astronomía y estación
     
     Returns:
         Temperatura aparente (°C)
@@ -94,15 +93,13 @@ def indice_steadman_apparent_temperature(temp_c: float, humedad: float, viento_m
     
     # Resistencia térmica de ropa típica exterior (clo)
     # 1 clo = 0.155 m²·K/W
-    # Ropa ligera verano: ~0.5 clo
-    # Ropa media entretiempo: ~1.0 clo
-    # Asumimos ropa adaptativa según temperatura
-    if temp_c < 10:
-        I_cl = 1.2  # clo (ropa abrigada)
-    elif temp_c < 20:
-        I_cl = 0.8  # clo (ropa media)
-    else:
-        I_cl = 0.5  # clo (ropa ligera)
+    # ADAPTACIÓN CONTEXTUAL: Usar estación del año del contexto maestro
+    if contexto.estacion == "invierno":
+        I_cl = 1.2  # clo (ropa abrigada invierno)
+    elif contexto.estacion in ("primavera", "otono"):
+        I_cl = 0.8  # clo (ropa media entretiempo)
+    else:  # verano
+        I_cl = 0.5  # clo (ropa ligera verano)
     
     # Resistencia térmica de ropa (m²·K/W)
     R_cl = I_cl * 0.155
@@ -161,17 +158,14 @@ def indice_steadman_apparent_temperature(temp_c: float, humedad: float, viento_m
 
 # ------------------------------------------------------------
 
-def indice_heat_index_c(temp_c: float, humedad: float, lat: float, lon: float, alt: float, dt) -> float:
+def indice_heat_index_c(temp_c: float, humedad: float, contexto) -> float:
     """
     NOAA Heat Index (en °C)
     Parámetros obligatorios:
       - temp_c: temperatura en °C
       - humedad: humedad relativa en %
-      - lat: latitud en grados decimales (obligatorio)
-      - lon: longitud en grados decimales (obligatorio)
-      - alt: altitud en metros (obligatorio)
-      - dt: instante temporal de contexto (datetime, obligatorio)
-    Estos parámetros deben ser recogidos y pasados SIEMPRE por el llamador, aunque la fórmula no los use todos.
+      - contexto: ContextoMaestro con información espacio-temporal completa
+    ARQUITECTURA DE ORGANISMO ÚNICO: El contexto maestro es el sistema nervioso compartido.
     """
     t_f: float = temp_c * 9 / 5 + 32
     rh: float = humedad
@@ -183,16 +177,14 @@ def indice_heat_index_c(temp_c: float, humedad: float, lat: float, lon: float, a
     return hi_c
 
 
-def indice_wind_chill_c(temp_c: float, viento_kmh: float, lat: float, lon: float, alt: float, dt) -> float:
+def indice_wind_chill_c(temp_c: float, viento_kmh: float, contexto) -> float:
     """
     Sensación térmica por viento (°C) válida para T<=10C y viento>4.8 km/h
     Parámetros obligatorios:
       - temp_c: temperatura en °C
       - viento_kmh: velocidad del viento en km/h
-      - lat: latitud en grados decimales (obligatorio)
-      - lon: longitud en grados decimales (obligatorio)
-      - alt: altitud en metros (obligatorio)
-      - dt: instante temporal de contexto (datetime, obligatorio)
+      - contexto: ContextoMaestro con información espacio-temporal completa
+    ARQUITECTURA DE ORGANISMO ÚNICO: El contexto maestro es el sistema nervioso compartido.
     """
     v: float = max(viento_kmh, 0.0)
     if temp_c > 10 or v < 4.8:
@@ -200,16 +192,14 @@ def indice_wind_chill_c(temp_c: float, viento_kmh: float, lat: float, lon: float
     return 13.12 + 0.6215 * temp_c - 11.37 * (v ** 0.16) + 0.3965 * temp_c * (v ** 0.16)
 
 
-def indice_bulbo_humedo_c(temp_c: float, humedad: float, lat: float, lon: float, alt: float, dt) -> float:
+def indice_bulbo_humedo_c(temp_c: float, humedad: float, contexto) -> float:
         """
         Aproximación Stull (2011)
         Parámetros obligatorios:
             - temp_c: temperatura en °C
             - humedad: humedad relativa en %
-            - lat: latitud en grados decimales (obligatorio)
-            - lon: longitud en grados decimales (obligatorio)
-            - alt: altitud en metros (obligatorio)
-            - dt: instante temporal de contexto (datetime, obligatorio)
+            - contexto: ContextoMaestro con información espacio-temporal completa
+        ARQUITECTURA DE ORGANISMO ÚNICO: El contexto maestro es el sistema nervioso compartido.
         """
         rh: float = max(1.0, min(100.0, humedad))
         return (temp_c * math.atan(0.151977 * (rh + 8.313659) ** 0.5)
@@ -219,16 +209,14 @@ def indice_bulbo_humedo_c(temp_c: float, humedad: float, lat: float, lon: float,
                         - 4.686035)
 
 
-def indice_humidex(temp_c: float, humedad: float, lat: float, lon: float, alt: float, dt) -> float:
+def indice_humidex(temp_c: float, humedad: float, contexto) -> float:
         """
         Humidex basado en punto de rocío estimado
         Parámetros obligatorios:
             - temp_c: temperatura en °C
             - humedad: humedad relativa en %
-            - lat: latitud en grados decimales (obligatorio)
-            - lon: longitud en grados decimales (obligatorio)
-            - alt: altitud en metros (obligatorio)
-            - dt: instante temporal de contexto (datetime, obligatorio)
+            - contexto: ContextoMaestro con información espacio-temporal completa
+        ARQUITECTURA DE ORGANISMO ÚNICO: El contexto maestro es el sistema nervioso compartido.
         """
         a, b = 17.27, 237.7
         alpha: float = ((a * temp_c) / (b + temp_c)) + math.log(max(1e-6, humedad) / 100.0)
@@ -278,8 +266,10 @@ def indice_humedad_absoluta_gm3(temp_c: float, humedad: float, lat: float, lon: 
     return rho_v
 
 
-def indice_vpd_kpa(temp_c: float, humedad: float, lat: float, lon: float, alt: float, dt) -> float:
-    # Déficit de presión de vapor (kPa)
+def indice_vpd_kpa(temp_c: float, humedad: float, contexto) -> float:
+    """Déficit de presión de vapor (kPa)
+    ARQUITECTURA DE ORGANISMO ÚNICO: El contexto maestro es el sistema nervioso compartido.
+    """
     es: float = 0.6108 * math.exp((17.27 * temp_c) / (temp_c + 237.3))
     ea: float = es * (humedad / 100.0)
     return max(0.0, es - ea)
@@ -295,8 +285,7 @@ def _pressure_value_to_kpa(value: float, unit_hint: str | None = None) -> float 
     if math.isnan(raw):
         return None
     unit = (unit_hint or "").lower()
-def indice_utci(temp_c: float, humedad: float, viento_m_s: float, rad_w_m2: float, lat: float, lon: float, alt: float, dt, 
-                altura_sensor_sobre_suelo: Optional[float] = None, altura_mastil: Optional[float] = None):
+def indice_utci(temp_c: float, humedad: float, viento_m_s: float, rad_w_m2: float, contexto):
         """
         Universal Thermal Climate Index (UTCI) - VERSIÓN PROFESIONAL CON CORRECCIÓN DE VIENTO
         
@@ -309,12 +298,10 @@ def indice_utci(temp_c: float, humedad: float, viento_m_s: float, rad_w_m2: floa
             - humedad: humedad relativa en %
             - viento_m_s: velocidad del viento medida por el sensor en m/s
             - rad_w_m2: radiación solar en W/m²
-            - lat: latitud en grados decimales
-            - lon: longitud en grados decimales
-            - alt: altitud en metros
-            - dt: instante temporal de contexto (datetime)
-            - altura_sensor_sobre_suelo: altura del sensor sobre el nivel del suelo/calle (m)
-            - altura_mastil: altura del mástil sobre la terraza (m)
+            - contexto: ContextoMaestro con información espacio-temporal completa
+        
+        ARQUITECTURA DE ORGANISMO ÚNICO: El contexto maestro es el sistema nervioso compartido.
+        Extrae automáticamente: lat, lon, alt, dt, altura_sensor_sobre_suelo, sensor_height_above_ground
         
         Returns:
             Dict con: {"calle": float, "sensor": float, "tmrt": float, "wind_calle": float, "wind_sensor": float}
@@ -328,6 +315,14 @@ def indice_utci(temp_c: float, humedad: float, viento_m_s: float, rad_w_m2: floa
         import math
         from datetime import datetime, timezone
         from .utci_polynomial import utci_polynomial
+        
+        # ARQUITECTURA DE ORGANISMO ÚNICO: Extraer parámetros del contexto maestro
+        lat = contexto.lat
+        lon = contexto.lon
+        alt = contexto.elevation_ground
+        dt = contexto.hora_utc
+        altura_sensor_sobre_suelo = contexto.elevation_total - contexto.elevation_ground
+        altura_mastil = contexto.sensor_height_above_ground
         
         try:
             # Importar funciones profesionales
@@ -1315,6 +1310,8 @@ class EnvironmentalIndices:
 
     def __init__(self, system_core) -> None:
         self.system = system_core
+        # Inicializar validador de consistencia física (sistema inmunológico)
+        self.consistency_validator = PhysicalConsistencyValidator()
         try:
             self._min_confidence = float(os.environ.get("METEOSER_MIN_CONFIDENCE", "0.4"))
         except Exception:
@@ -1532,6 +1529,49 @@ class EnvironmentalIndices:
         return indices
 
     def calcular_indices(self):
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # ARQUITECTURA DE ORGANISMO ÚNICO: Obtener contexto maestro
+        try:
+            contexto = ContextoMaestroGlobal.obtener_contexto(actualizar=True)
+        except RuntimeError:
+            # Si no está inicializado, crear uno por defecto
+            logger.warning("ContextoMaestro no inicializado, usando valores por defecto")
+            from core.context.contexto_maestro_global import ContextoMaestro
+            lat, lon = self._get_location()
+            alt = self._get_altitude()
+            contexto = ContextoMaestro(
+                elevation_ground=alt or 96.0,
+                elevation_total=(alt or 96.0) + 13.0,
+                lat=lat or 41.5513,
+                lon=lon or 2.3998,
+                sensor_height_above_ground=13.0
+            )
+            contexto.actualizar_astronomia()
+        
+        # Obtener sensores básicos para validación
+        temp_sensor = self._get_sensor("temperatura")
+        humedad_sensor = self._get_sensor("humedad")
+        radiacion_sensor = self._get_sensor("radiacion")
+        uv_sensor = self._get_sensor("uv")
+        presion_sensor = self._get_sensor("presion")
+        
+        # Preparar diccionario de sensores para validación
+        sensores_raw = {
+            'temperatura': temp_sensor.get('valor'),
+            'humedad': humedad_sensor.get('valor'),
+            'radiacion': radiacion_sensor.get('valor'),
+            'uv': uv_sensor.get('valor'),
+            'presion': presion_sensor.get('valor')
+        }
+        
+        # VALIDACIÓN DE CONSISTENCIA FÍSICA (Sistema inmunológico)
+        sensores_validados = self.consistency_validator.validate_all_sensors(contexto, sensores_raw)
+        
+        # Obtener alertas de consistencia
+        alertas_consistencia = self.consistency_validator.get_alertas()
+        
         sismos = self._get_sensor("sismografo")
         try:
             from .external_earthquake_validation import validar_sismo_externo
@@ -1552,6 +1592,11 @@ class EnvironmentalIndices:
             explicacion_sismo_externa = "No disponible lat/lon para validación externa sismos"
         # Aquí iría el cálculo y retorno de los índices, por ejemplo:
         indices = {}
+        
+        # AÑADIR ALERTAS DE CONSISTENCIA AL JSON
+        if alertas_consistencia:
+            indices["alertas_consistencia"] = alertas_consistencia
+        
         # Computed context time for this call (forced or derived)
         # Obtener el tiempo de contexto computado (puede venir forzado o derivado de sensores)
         context_time = self._get_context_time()
@@ -2581,33 +2626,38 @@ class EnvironmentalIndices:
 
         estimado_flag = temp["estimado"] or viento["estimado"] or (humedad["estimado"] if isinstance(humedad, dict) else False)
 
-        # Recoger SIEMPRE contexto global
-        if context is not None:
-            lat = context.get("lat")
-            lon = context.get("lon")
-            alt = context.get("alt")
-            dt = context.get("dt") if "dt" in context else self.get_context_time()
-            # Nuevos parámetros para corrección de viento
-            altura_sensor_sobre_suelo = context.get("sensor_height_above_ground")
-            altura_mastil = context.get("sensor_mast_height")
-        else:
-            coords = self.get_context_coordinates()
-            lat = coords.get("lat")
-            lon = coords.get("lon")
-            alt = coords.get("alt")
-            dt = self.get_context_time()
-            altura_sensor_sobre_suelo = coords.get("sensor_height_above_ground")
-            altura_mastil = coords.get("sensor_mast_height")
+        # ARQUITECTURA DE ORGANISMO ÚNICO: Obtener ContextoMaestro
+        try:
+            contexto = ContextoMaestroGlobal.obtener_contexto(actualizar=True)
+        except RuntimeError:
+            # Si no está inicializado, crear uno desde context dict
+            from core.context.contexto_maestro_global import ContextoMaestro
+            if context is not None:
+                lat = context.get("lat", 41.5507)
+                lon = context.get("lon", -2.3957)
+                alt = context.get("alt", 30.0)
+            else:
+                coords = self.get_context_coordinates()
+                lat = coords.get("lat", 41.5507)
+                lon = coords.get("lon", -2.3957)
+                alt = coords.get("alt", 30.0)
+            
+            contexto = ContextoMaestro(
+                elevation_ground=alt,
+                elevation_total=alt + 13.0,
+                lat=lat,
+                lon=lon,
+                sensor_height_above_ground=13.0
+            )
+            contexto.actualizar_astronomia()
         
-        # Fallback a coordenadas por defecto si faltan (NO retornar None, calcular UTCI de todas formas)
-        if lat is None or lon is None:
-            lat = lat or 41.5507  # Madrid por defecto
-            lon = lon or -2.3957
-        if alt is None:
-            alt = 30.0
-        if dt is None:
-            import datetime
-            dt = datetime.datetime.now(datetime.timezone.utc)
+        # COMPATIBILIDAD: Extraer variables individuales para código legacy
+        lat = contexto.lat
+        lon = contexto.lon
+        alt = contexto.elevation_ground
+        dt = contexto.hora_utc
+        altura_sensor_sobre_suelo = contexto.elevation_total - contexto.elevation_ground
+        altura_mastil = contexto.sensor_height_above_ground
 
         # --- LÓGICA OPTIMIZADA: PREFERIR SIEMPRE UTCI ---
         # UTCI es más fiable que CUALQUIER OTRO índice (Wind Chill, temperatura, etc.)
@@ -2629,7 +2679,7 @@ class EnvironmentalIndices:
         # Paso 2: Calcular UTCI con humedad (real o estimada)
         try:
             from core.indices.environmental_indices import indice_heat_index_c
-            hi = indice_heat_index_c(t_val, h_val, lat, lon, alt, dt)
+            hi = indice_heat_index_c(t_val, h_val, contexto)
             logger.warning(f"[ST_DEBUG] t={t_val} h={h_val} v={v_ms} rad={rad_val} " +
                          f"lat={lat} lon={lon} alt={alt} dt={dt} | HeatIndex={hi} | " +
                          f"Humedad={'REAL' if humedad_es_real else 'ESTIMADA'}")
@@ -2637,13 +2687,11 @@ class EnvironmentalIndices:
             logger.warning(f"[ST_DEBUG] Error calculando heat index: {e}")
         
         try:
-            utci_result = indice_utci(t_val, h_val, v_ms, rad_val, lat, lon, alt, dt, 
-                                      altura_sensor_sobre_suelo=altura_sensor_sobre_suelo,
-                                      altura_mastil=altura_mastil)
+            utci_result = indice_utci(t_val, h_val, v_ms, rad_val, contexto)
             
             # utci_result es un dict con: {"calle": float, "sensor": float, "tmrt": float, "wind_calle": float, "wind_sensor": float}
             from core.indices.environmental_indices import indice_steadman_apparent_temperature
-            steadman = indice_steadman_apparent_temperature(t_val, h_val, v_ms, lat, lon, alt, dt)
+            steadman = indice_steadman_apparent_temperature(t_val, h_val, v_ms, contexto)
             logger.warning(f"[ST_DEBUG] ✓ UTCI Calle: {utci_result['calle']}°C | UTCI Sensor: {utci_result['sensor']}°C | Steadman: {steadman}°C")
             
             # Marcar como estimado si humedad fue estimada O algún sensor base fue estimado
@@ -2671,7 +2719,7 @@ class EnvironmentalIndices:
         if t_val <= 15 and v_kmh >= 4.8:
             try:
                 from core.indices.environmental_indices import indice_wind_chill_c
-                wc = indice_wind_chill_c(t_val, v_kmh, lat, lon, alt, dt)
+                wc = indice_wind_chill_c(t_val, v_kmh, contexto)
                 logger.warning(f"[ST_DEBUG] Fallback Wind Chill: T={t_val} v={v_kmh} -> WC={wc}")
                 return {
                     "valor": round(wc, 2),
@@ -2820,15 +2868,33 @@ class EnvironmentalIndices:
 
         indices = {}
 
+        # ARQUITECTURA DE ORGANISMO ÚNICO: Obtener contexto maestro
+        try:
+            contexto = ContextoMaestroGlobal.obtener_contexto(actualizar=True)
+        except RuntimeError:
+            # Si no está inicializado, crear uno desde coordenadas conocidas
+            from core.context.contexto_maestro_global import ContextoMaestro
+            coords = self.get_context_coordinates()
+            lat_temp = coords.get("lat", 41.5360)
+            lon_temp = coords.get("lon", 2.4480)
+            alt_temp = coords.get("alt", 30.0)
+            contexto = ContextoMaestro(
+                elevation_ground=alt_temp,
+                elevation_total=alt_temp + 13.0,
+                lat=lat_temp,
+                lon=lon_temp,
+                sensor_height_above_ground=13.0
+            )
+            contexto.actualizar_astronomia()
+        
+        # COMPATIBILIDAD: Extraer variables individuales para código legacy
+        lat = contexto.lat
+        lon = contexto.lon
+        alt = contexto.elevation_ground
+        dt = contexto.hora_utc
+
         # --- Cálculos solares/lunares ---
         try:
-            # Obtener coordenadas y fecha
-            coords = self.get_context_coordinates()
-            lat = coords.get("lat", 41.5360)
-            lon = coords.get("lon", 2.4480)
-            alt = coords.get("alt", 30.0)
-            dt = self.get_context_time() or datetime.datetime.now(datetime.timezone.utc)
-
             # Métodos astronómicos (deben existir en la clase o importarse)
             # Fallback: usar las funciones en tools si la instancia no implementa los métodos
             amanecer = None
@@ -2881,41 +2947,41 @@ class EnvironmentalIndices:
             else:
                 elevacion_solar = None
 
-                # Fase lunar
-                if hasattr(self, "fase_lunar_simple"):
-                    fase_lunar = self.fase_lunar_simple(dt)
+            # Fase lunar
+            if hasattr(self, "fase_lunar_simple"):
+                fase_lunar = self.fase_lunar_simple(dt)
+            else:
+                fase_lunar = None
+
+            # Arco solar/lunar (para el gráfico)
+            # Calcular arco_solar con fallback a tools.arco_solar
+            try:
+                if hasattr(self, 'arco_solar'):
+                    arco_val = self.arco_solar(lat, dt.timetuple().tm_yday)
                 else:
-                    fase_lunar = None
+                    from tools.arco_solar import arco_solar as _arco
+                    arco_val = _arco(lat, dt.timetuple().tm_yday)
+            except Exception:
+                arco_val = None
 
-                # Arco solar/lunar (para el gráfico)
-                    # Calcular arco_solar con fallback a tools.arco_solar
-                    try:
-                        if hasattr(self, 'arco_solar'):
-                            arco_val = self.arco_solar(lat, dt.timetuple().tm_yday)
-                        else:
-                            from tools.arco_solar import arco_solar as _arco
-                            arco_val = _arco(lat, dt.timetuple().tm_yday)
-                    except Exception:
-                        arco_val = None
-
-                    arco_solar = {
-                    "amanecer": amanecer.isoformat() if amanecer else None,
-                    "atardecer": atardecer.isoformat() if atardecer else None,
-                        "duracion_dia_h": round(duracion_dia_h, 2) if duracion_dia_h else None,
-                    "duracion_noche_h": round(duracion_noche_h, 2) if duracion_noche_h else None,
-                        "elevacion_solar": round(elevacion_solar, 2) if elevacion_solar is not None else None,
-                        "fase_lunar": round(fase_lunar, 2) if fase_lunar is not None else None,
-                        "arco_solar": round(arco_val, 2) if arco_val is not None else None,
-                    "fecha": dt.isoformat(),
-                }
-                indices["arco_solar"] = arco_solar
-                # También exponer los campos individuales
-                indices["amanecer"] = arco_solar["amanecer"]
-                indices["atardecer"] = arco_solar["atardecer"]
-                indices["duracion_dia_h"] = arco_solar["duracion_dia_h"]
-                indices["duracion_noche_h"] = arco_solar["duracion_noche_h"]
-                indices["elevacion_solar"] = arco_solar["elevacion_solar"]
-                indices["fase_lunar"] = arco_solar["fase_lunar"]
+            arco_solar = {
+                "amanecer": amanecer.isoformat() if amanecer else None,
+                "atardecer": atardecer.isoformat() if atardecer else None,
+                "duracion_dia_h": round(duracion_dia_h, 2) if duracion_dia_h else None,
+                "duracion_noche_h": round(duracion_noche_h, 2) if duracion_noche_h else None,
+                "elevacion_solar": round(elevacion_solar, 2) if elevacion_solar is not None else None,
+                "fase_lunar": round(fase_lunar, 2) if fase_lunar is not None else None,
+                "arco_solar": round(arco_val, 2) if arco_val is not None else None,
+                "fecha": dt.isoformat(),
+            }
+            indices["arco_solar"] = arco_solar
+            # También exponer los campos individuales
+            indices["amanecer"] = arco_solar["amanecer"]
+            indices["atardecer"] = arco_solar["atardecer"]
+            indices["duracion_dia_h"] = arco_solar["duracion_dia_h"]
+            indices["duracion_noche_h"] = arco_solar["duracion_noche_h"]
+            indices["elevacion_solar"] = arco_solar["elevacion_solar"]
+            indices["fase_lunar"] = arco_solar["fase_lunar"]
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
@@ -3279,7 +3345,7 @@ class EnvironmentalIndices:
             h_objetivo = 1.1
             viento_calle_corr = viento_logaritmico(viento_sensor, h_sensor=13.0, h_objetivo=h_objetivo, z0=contexto.z0_calle)
             viento_sensor_corr = viento_logaritmico(viento_sensor, h_sensor=2.0, h_objetivo=h_objetivo, z0=contexto.z0_terraza)
-            utci_result = indice_utci(temp_c, hum, viento_calle_corr, rad, lat, lon, alt, contexto.now)
+            utci_result = indice_utci(temp_c, hum, viento_calle_corr, rad, contexto)
             # indice_utci() retorna un dict, no un número
             if isinstance(utci_result, dict):
                 indices["utci_calle"] = {"valor": utci_result.get("calle"), "unidad": "°C"}
@@ -3456,17 +3522,17 @@ class EnvironmentalIndices:
                 estimado = temp["estimado"] or humedad["estimado"] or viento["estimado"] or radiacion["estimado"]
 
                 # Heat Index y Wind Chill se usan internamente para fusiones, no se exponen
-                hi: float = indice_heat_index_c(t, h)
-                wc: float = indice_wind_chill_c(t, v)
+                hi: float = indice_heat_index_c(t, h, contexto)
+                wc: float = indice_wind_chill_c(t, v, contexto)
                 
-                wb: float = indice_bulbo_humedo_c(t, h)
+                wb: float = indice_bulbo_humedo_c(t, h, contexto)
                 indices["bulbo_humedo"] = {
                     "valor": round(wb, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
                     "explicacion": "Bulbo húmedo (aprox.)"
                 }
-                hdx: float = indice_humidex(t, h)
+                hdx: float = indice_humidex(t, h, contexto)
                 indices["humidex"] = {
                     "valor": round(hdx, 2),
                     "estimado": estimado,
@@ -3480,14 +3546,14 @@ class EnvironmentalIndices:
                     "confianza": self._confianza(estimado, fiable=True),
                     "explicacion": "WBGT aproximado"
                 }
-                abs_h: float = indice_humedad_absoluta_gm3(t, h, lat, lon, alt, dt)
+                abs_h: float = indice_humedad_absoluta_gm3(t, h, contexto)
                 indices["humedad_absoluta"] = {
                     "valor": round(abs_h, 2),
                     "estimado": estimado,
                     "confianza": self._confianza(estimado, fiable=True),
                     "explicacion": "Humedad absoluta (g/m3)"
                 }
-                vpd: float = indice_vpd_kpa(t, h)
+                vpd: float = indice_vpd_kpa(t, h, contexto)
                 indices["vpd"] = {
                     "valor": round(vpd, 3),
                     "estimado": estimado,
@@ -3786,7 +3852,7 @@ class EnvironmentalIndices:
             if "bochorno_real" in indices and tempint["valor"] is not None and humedadint["valor"] is not None:
                 t_i = float(tempint["valor"])
                 h_i = float(humedadint["valor"])
-                hi_i: float = indice_heat_index_c(t_i, h_i)
+                hi_i: float = indice_heat_index_c(t_i, h_i, contexto)
                 alt: float = _clamp_0_100((hi_i - 26) * 4)
                 base = indices["bochorno_real"]["valor"]
                 comp: float = _media_ponderada([base, alt], [0.6, 0.4])
@@ -3803,7 +3869,7 @@ class EnvironmentalIndices:
             if "aire_pegajoso" in indices and tempint["valor"] is not None and humedadint["valor"] is not None:
                 t_i = float(tempint["valor"])
                 h_i = float(humedadint["valor"])
-                hdx_i: float = indice_humidex(t_i, h_i)
+                hdx_i: float = indice_humidex(t_i, h_i, contexto)
                 alt: float = _clamp_0_100((hdx_i - 28) * 4)
                 base = indices["aire_pegajoso"]["valor"]
                 comp: float = _media_ponderada([base, alt], [0.6, 0.4])
@@ -3820,7 +3886,7 @@ class EnvironmentalIndices:
             if "frio_incomodo" in indices and tempint["valor"] is not None:
                 t_i = float(tempint["valor"])
                 v = float(viento["valor"] or 0.0)
-                wc: float = indice_wind_chill_c(t_i, v)
+                wc: float = indice_wind_chill_c(t_i, v, contexto)
                 alt: float = _clamp_0_100((15 - wc) * 5)
                 base = indices["frio_incomodo"]["valor"]
                 comp: float = _media_ponderada([base, alt], [0.6, 0.4])
@@ -3837,7 +3903,7 @@ class EnvironmentalIndices:
             if "deshidratacion_ambiental" in indices and tempint["valor"] is not None and humedadint["valor"] is not None:
                 t_i = float(tempint["valor"])
                 h_i = float(humedadint["valor"])
-                vpd_i: float = indice_vpd_kpa(t_i, h_i)
+                vpd_i: float = indice_vpd_kpa(t_i, h_i, contexto)
                 alt: float = _clamp_0_100(vpd_i * 40)
                 base = indices["deshidratacion_ambiental"]["valor"]
                 comp: float = _media_ponderada([base, alt], [0.6, 0.4])
@@ -4106,10 +4172,7 @@ class EnvironmentalIndices:
                     float(temp["valor"]),
                     float(radiacion_nocturna),
                     float(viento["valor"]),
-                    lat=lat,
-                    lon=lon,
-                    alt=alt,
-                    estacion=estacion_str  # ⭐ EFECTO DOMINÓ: Pasar estación para modelización realista
+                    contexto=contexto  # ⭐ ARQUITECTURA DE ORGANISMO ÚNICO
                 )
                 indices["riesgo_helada_local"] = {
                     "valor": round(valor, 2),
@@ -4277,11 +4340,11 @@ class EnvironmentalIndices:
             # Alerta de calor extremo
             temp_val = temp["valor"] if temp["valor"] is not None else 0.0
             humedad_val = humedad["valor"] if humedad["valor"] is not None else 0.0
-            alerta_calor: float = indice_alerta_calor_extremo(float(temp_val), float(uv_val), float(humedad_val))
+            alerta_calor: float = indice_alerta_calor_extremo(float(temp_val), float(uv_val), float(humedad_val), contexto)
             indices["alerta_calor_extremo"] = {"valor": round(alerta_calor,2), "estimado": False, "explicacion": "Alerta de calor extremo: T, UV, HR"}
             # Alerta de frío extremo
             viento_val = viento["valor"] if viento["valor"] is not None else 0.0
-            alerta_frio: float = indice_alerta_frio_extremo(float(temp_val), float(viento_val), float(humedad_val))
+            alerta_frio: float = indice_alerta_frio_extremo(float(temp_val), float(viento_val), float(humedad_val), contexto)
             indices["alerta_frio_extremo"] = {"valor": round(alerta_frio,2), "estimado": False, "explicacion": "Alerta de frío extremo: T, viento, HR"}
             # Alerta de polvo/suciedad
             pm25_val = pm25["valor"] if pm25["valor"] is not None else 0.0
@@ -4772,12 +4835,9 @@ def indice_riesgo_helada_local(punto_rocio: float,
                                t_ext: float,
                                radiacion_nocturna: float,
                                viento: float,
-                               lat: float = 0.0,
-                               lon: float = 0.0,
-                               alt: float = 0.0,
-                               dt: float = None,
-                               estacion: str = None) -> float:
+                               contexto) -> float:
     """Riesgo de helada según Yates-McLean - Estándar WMO para superficie.
+    ARQUITECTURA DE ORGANISMO ÚNICO: Usa ContextoMaestro para estado astronómico.
     
     Modelo específico para heladas radiativas en superficie, diseñado para agricultura.
     Referencia:
@@ -4789,26 +4849,27 @@ def indice_riesgo_helada_local(punto_rocio: float,
     - Inversión térmica superficial
     - Efecto del viento en mezcla vertical
     - Contenido de vapor (punto de rocío) que reduce enfriamiento radiativo
+    - ESTACIÓN DEL AÑO desde contexto maestro (factor climático local)
     
     Args:
         punto_rocio: Temperatura de punto de rocío (°C)
         t_ext: Temperatura del aire a 2m (°C)
         radiacion_nocturna: Cobertura nubosa (0=cielo despejado, 1=cubierto)
         viento: Velocidad del viento a 10m (m/s)
-        estacion: Estación del año para ajuste climático local
+        contexto: ContextoMaestro con estación del año y ubicación
     
     Returns:
         Riesgo de helada en superficie (0-100)
     """
-    # Factor estacional (climatología local Argentona 41.5°N)
+    # Factor estacional desde ContextoMaestro (climatología local)
     season_factor = 1.0
-    if estacion == "invierno":
+    if contexto.estacion == "invierno":
         season_factor = 1.5  # Heladas frecuentes (dic-feb)
-    elif estacion == "primavera":
+    elif contexto.estacion == "primavera":
         season_factor = 0.8  # Heladas decrecientes (mar-may)
-    elif estacion == "verano":
+    elif contexto.estacion == "verano":
         season_factor = 0.1  # Heladas muy raras (jun-ago)
-    elif estacion == "otono":
+    elif contexto.estacion == "otono":
         season_factor = 1.2  # Heladas crecientes (sep-nov)
     
     # MODELO YATES-MCLEAN

@@ -1,0 +1,13 @@
+{
+  "params": {
+    "cielo_observable_nocturno": {
+      "base_nub": 0.5,
+      "base_transp": 0.5,
+      "penal_niebla": 0.4,
+      "penal_emp": 0.2,
+      "penal_seeing": 0.2,
+      "penal_luna": {"20": 0.0, "50": 0.1, "80": 0.25, "100": 0.4}
+    }
+  },
+  "overrides": {}
+}
