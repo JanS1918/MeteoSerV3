@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeteoSer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/meteo_effects.js"></script>
+</head>
+<body onload="setLayoutColumns()">
+    <script>
+    function setLayoutColumns() {
+        document.body.setAttribute('data-layout', 'columns');
+    }
+    </script>
+    <script>
+    let limpiarEfectoMeteo = null;
+    function activarEfectoMeteo(estado) {
+        if (typeof animarEfectoMeteo !== 'function') return;
+        if (limpiarEfectoMeteo) limpiarEfectoMeteo();
+        limpiarEfectoMeteo = animarEfectoMeteo(estado);
+    }
+    window.activarEfectoMeteo = activarEfectoMeteo;
+    </script>
+    <div class="console-shell">
+        <header class="console-header">
+            <div class="console-brand">
+                <span class="brand-dot"></span>
+                <span class="brand-text">METEOSER // CONSOLE</span>
+            </div>
+            <div class="console-meta">
+                <span id="fecha-hora"></span>
+                <span class="divider">|</span>
+                <span id="ubicacion"></span>
+            </div>
+            <div class="console-actions">
+                <button id="voice-btn" class="console-btn voice-btn">🎙 VOZ</button>
+                <div id="voice-visualizer" class="voice-visualizer hidden">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+                <div class="voice-input">
+                    <input id="voice-text" type="text" placeholder="Escribe un comando..." />
+                </div>
+                <button id="open-submenu" class="console-btn">SUBMENU</button>
+            </div>
+        </header>
+
+        <main class="console-grid" style="min-height: 90vh;">
+            <section class="panel left-drawer" data-panel-id="left-drawer">
+                <div class="panel-title">📊 ESTADOS</div>
+                <div class="panel-body">
+                    <div id="left-drawer-content">
+                        <div class="kpi-compact">
+                            <span class="kpi-label">Última Actualización</span>
+                            <span class="kpi-value" id="last-update">--:--</span>
+                        </div>
+                        <div class="kpi-compact">
+                            <span class="kpi-label">Sensores Activos</span>
+                            <span class="kpi-value" id="active-sensors">0</span>
+                        </div>
+                        <div class="kpi-compact">
+                            <span class="kpi-label">Alertas</span>
+                            <span class="kpi-value alert" id="active-alerts">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="panel main-content">
+                <section class="panel wide solar" draggable="true" data-panel-id="solar">
+                    <div class="panel-title">☀️ ARCO SOLAR</div>
+                    <div class="panel-body solar-panel">
+                        <div class="solar-left">
+                            <canvas id="graficoArcoSolar" width="260" height="120"></canvas>
+                            <div id="alerta-arco-solar" class="panel-alert"></div>
+                            <div class="solar-times">
+                                <span id="amanecer-label">Amanecer: --:--</span>
+                                <span id="atardecer-label">Atardecer: --:--</span>
+                            </div>
+                        </div>
+                        <div class="solar-right">
+                            <div class="kpi">
+                                <span class="kpi-label">Estado</span>
+                                <span class="kpi-value" id="arco-estado">--</span>
+                            </div>
+                            <div class="kpi">
+                                <span class="kpi-label">Sincronía</span>
+                                <span class="kpi-value" id="arco-sincronia">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel compact temp-hum" draggable="true" data-panel-id="temp-hum">
+                    <div class="panel-title">🌡️ TEMPERATURA / HUMEDAD</div>
+                    <div class="panel-lights">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <div id="temp-hum-values" class="panel-kpi">--</div>
+                    <div class="panel-body chart-mini">
+                        <canvas id="graficoTempHum" width="160" height="60"></canvas>
+                    </div>
+                </section>
+
+                <section class="panel sensors" draggable="true" data-panel-id="sensors">
+                    <div class="panel-title">🧭 SENSORES EN VIVO</div>
+                    <div class="panel-body" id="sensores"></div>
+                    <div id="niebla"></div>
+                </section>
+
+                <section class="panel recommendations" draggable="true" data-panel-id="recommendations">
+                    <div class="panel-title">💡 RECOMENDACIONES</div>
+                    <div class="panel-body" id="recomendacion"></div>
+                </section>
+
+                <section class="panel wide indices" draggable="true" data-panel-id="indices">
+                    <div class="panel-title">⚠️ ÍNDICES</div>
+                    <div class="panel-body" id="indices"></div>
+                </section>
+
+                <section class="panel wide alertas" draggable="true" data-panel-id="alertas">
+                    <div class="panel-title">🚨 ALERTAS</div>
+                    <div class="panel-body" id="alertas"></div>
+                </section>
+            </div>
+
+            <section class="panel right-drawer" data-panel-id="right-drawer">
+                <div class="panel-title">🔧 RÁPIDO</div>
+                <div class="panel-body">
+                    <div class="quick-actions">
+                        <button class="console-btn quick-btn" data-action="refresh-all">🔄 REFRESCAR</button>
+                        <button class="console-btn quick-btn" data-action="toggle-layout">📐 LAYOUT</button>
+                        <button class="console-btn quick-btn" data-action="export-data">📥 EXPORTAR</button>
+                        <button class="console-btn quick-btn" data-action="clear-alerts">🗑️ LIMPIAR</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <section class="panel wide organizer" id="organizer-section" draggable="true" data-panel-id="organizer" style="margin-top: 16px;">
+            <div class="panel-title">🗂️ ASISTENTE // ORGANIZACIÓN</div>
+            <div class="panel-body">
+                <div class="assistant-grid">
+                    <div class="assistant-card">
+                        <div class="assistant-header">📰 NOTICIAS</div>
+                        <div id="asistente-noticias" class="assistant-body"></div>
+                    </div>
+                    <div class="assistant-card">
+                        <div class="assistant-header">📺 EVENTOS / TV</div>
+                        <div id="asistente-eventos" class="assistant-body"></div>
+                    </div>
+                    <div class="assistant-card">
+                        <div class="assistant-header">⏰ ALARMAS</div>
+                        <div id="asistente-alarmas" class="assistant-body"></div>
+                    </div>
+                    <div class="assistant-card">
+                        <div class="assistant-header">📅 CALENDARIO</div>
+                        <div id="asistente-calendario" class="assistant-body"></div>
+                    </div>
+                    <div class="assistant-card">
+                        <div class="assistant-header">✅ TAREAS</div>
+                        <div id="asistente-tareas" class="assistant-body"></div>
+                    </div>
+                    <div class="assistant-card">
+                        <div class="assistant-header">🛒 LISTA COMPRA</div>
+                        <div id="asistente-compra" class="assistant-body"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <script src="/static/js/app.js"></script>
+    <script>
+    setLayoutColumns();
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.panel').forEach(function(panel) {
+            panel.style.boxShadow = '0 4px 32px rgba(24,255,160,0.10), 0 1.5px 0 #38f2c0 inset';
+            panel.style.marginBottom = '12px';
+            panel.style.background = 'rgba(15,23,26,0.98)';
+            panel.style.border = '2px solid #38f2c0';
+        });
+    });
+    </script>
+</body>
+</html>
+
