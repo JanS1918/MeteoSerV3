@@ -1,0 +1,60 @@
+{
+  "viento_cetreria": {
+    "weights": {
+      "viento": 0.4,
+      "racha": 0.2,
+      "variabilidad": 0.15,
+      "turbulencia": 0.15,
+      "var_hist": 0.1
+    },
+    "bias": 0.0,
+    "version": 2
+  },
+  "visibilidad_terreno": {
+    "weights": {
+      "nub": 0.4,
+      "saturacion": 0.2,
+      "humedad": 0.15,
+      "aerosol": 0.15,
+      "lluvia": 0.1
+    },
+    "bias": 0.0,
+    "version": 1
+  },
+  "termales_probabilidad": {
+    "weights": {
+      "radiacion": 0.35,
+      "var_termica": 0.15,
+      "nub": 0.15,
+      "viento": 0.1,
+      "humedad": 0.1,
+      "sequedad": 0.1,
+      "tendencia_temp": 0.05
+    },
+    "bias": 0.0,
+    "version": 1
+  },
+  "barro_campo": {
+    "weights": {
+      "lluvia_24h": 0.45,
+      "lluvia_1h": 0.2,
+      "lluvia_rate": 0.1,
+      "suelo": 0.1,
+      "secado": 0.15
+    },
+    "bias": 0.0,
+    "version": 1
+  },
+  "confort_ave": {
+    "weights": {
+      "temp": 0.3,
+      "sensacion": 0.25,
+      "radiacion": 0.15,
+      "viento": 0.1,
+      "humedad": 0.1,
+      "uv": 0.1
+    },
+    "bias": 0.0,
+    "version": 1
+  }
+}
