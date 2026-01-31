@@ -780,23 +780,40 @@ def indice_utci(temp_c: float, humedad: float, viento_m_s: float, rad_w_m2: floa
 
 
 def _specific_humidity_value(temp_c: float, rh_pct: float, pressure_kpa: float) -> float | None:
+    """Humedad específica con Hyland-Wexler + Greenspan.
+    Motor: Diamond_Refined_v1.
+    """
     if pressure_kpa is None or pressure_kpa <= 0:
         return None
     rh = max(0, min(100, rh_pct))
     
-    # FACTOR DE MEJORA DE GREENSPAN
+    # USAR HYLAND-WEXLER EN LUGAR DE MAGNUS PARA PRESIÓN DE SATURACIÓN
     T_k = temp_c + 273.15
     p_pa = pressure_kpa * 1000.0
-    es: float = 0.6108 * math.exp((17.27 * temp_c) / (temp_c + 237.3))
+    
+    # Hyland-Wexler mejorado
+    try:
+        es_pa = saturacion_vapor_hyland_wexler(temp_c, p_pa)
+        es = es_pa / 1000.0  # Pa → kPa
+    except Exception:
+        # Fallback Magnus solo si Hyland-Wexler falla
+        es = 0.6108 * math.exp((17.27 * temp_c) / (temp_c + 237.3))
+    
+    # FACTOR DE MEJORA DE GREENSPAN (aplicado sobre Hyland-Wexler)
     Bm = -1.6e-5 + 1.8e-8 * T_k
     f_greenspan = math.exp(Bm * p_pa / (8.314472 * T_k))
     es_real = es * f_greenspan
     
     ea: float = es_real * (rh / 100.0)
     denominator = pressure_kpa - 0.378 * ea
-    if denominator <= 0:
+    # ESCUDO DE SEGURIDAD 2026: Proteger división
+    if abs(denominator) < 1e-6:
         return None
-    return 0.62197 * ea / denominator
+    resultado = 0.62197 * ea / denominator
+    # Validación física: humedad específica debe ser positiva y < 1
+    if resultado < 0 or resultado > 1 or math.isnan(resultado) or math.isinf(resultado):
+        return None
+    return resultado
 
 
 def _dew_point(temp_c: float, rh_pct: float) -> float:
@@ -895,9 +912,13 @@ def _extraterrestrial_radiation(lat_deg: float, day_of_year: int) -> float:
     # cos(ω_s) = -tan(φ) * tan(δ)
     # ω_s en radianes
     cos_omega_s = -math.tan(phi) * math.tan(delta)
-    # Clamp para evitar valores fuera de rango por errores numéricos
+    # ESCUDO DE SEGURIDAD 2026: Clamp y validación completa
     cos_omega_s = max(-1.0, min(1.0, cos_omega_s))
-    omega_s = math.acos(cos_omega_s)
+    try:
+        omega_s = math.acos(cos_omega_s)
+    except (ValueError, ArithmeticError):
+        # Caso polar: sol de medianoche o noche polar
+        omega_s = math.pi if cos_omega_s < 0 else 0.0
     
     # Radiación extraterrestre diaria (R_a) según Duffie & Beckman (ecuación 1.10.3)
     # R_a = (24*60/π) * G_sc * d_r * [ω_s * sin(φ) * sin(δ) + cos(φ) * cos(δ) * sin(ω_s)]

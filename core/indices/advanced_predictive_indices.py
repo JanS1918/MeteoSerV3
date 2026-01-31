@@ -513,7 +513,12 @@ def exponente_hurst(
     window_sizes = []
     
     for window_size in range(min_window, n // 2, max(1, (n // 2 - min_window) // 10)):
+        # ESCUDO DE SEGURIDAD 2026: Proteger división
+        if window_size <= 0:
+            continue
         num_windows = n // window_size
+        if num_windows <= 0:
+            continue
         rs_window = []
         
         for w in range(num_windows):
@@ -522,6 +527,9 @@ def exponente_hurst(
             serie = valores[start:end]
             
             # Media
+            # ESCUDO DE SEGURIDAD 2026: Proteger división
+            if len(serie) == 0:
+                continue
             mean = sum(serie) / len(serie)
             
             # Desviación acumulada
@@ -531,7 +539,12 @@ def exponente_hurst(
             R = max(Y) - min(Y) if Y else 0.0
             
             # Desviación estándar (S)
-            S = math.sqrt(sum((x - mean)**2 for x in serie) / len(serie)) if len(serie) > 0 else 1.0
+            # ESCUDO DE SEGURIDAD 2026: Proteger división
+            if len(serie) == 0:
+                S = 1.0
+            else:
+                variance = sum((x - mean)**2 for x in serie) / len(serie)
+                S = math.sqrt(variance) if variance >= 0 else 1.0
             
             # R/S
             if S > 0:
@@ -552,15 +565,24 @@ def exponente_hurst(
     
     # Regresión lineal simple
     n_points = len(log_n)
+    # ESCUDO DE SEGURIDAD 2026: Proteger divisiones
+    if n_points == 0:
+        return {"H": 0.5, "estabilidad_pct": 50.0, "interpretacion": "Datos insuficientes"}
     mean_log_n = sum(log_n) / n_points
     mean_log_rs = sum(log_rs) / n_points
     
     numerator = sum((log_n[i] - mean_log_n) * (log_rs[i] - mean_log_rs) for i in range(n_points))
     denominator = sum((log_n[i] - mean_log_n)**2 for i in range(n_points))
     
-    H = numerator / denominator if denominator > 0 else 0.5
+    # ESCUDO DE SEGURIDAD 2026: Proteger división final
+    if abs(denominator) < 1e-12:
+        H = 0.5  # Browniano puro como fallback
+    else:
+        H = numerator / denominator
     
-    # Limitar H a rango físico [0, 1]
+    # Validación física: H debe estar en [0, 1]
+    if math.isnan(H) or math.isinf(H):
+        H = 0.5
     H = max(0.0, min(1.0, H))
     
     # Estabilidad porcentual
@@ -881,13 +903,28 @@ def modelo_pennycuick_vuelo(
     mu, _ = physics.viscosidad_sutherland()
     
     # VISCOSIDAD CINEMÁTICA (ν = μ/ρ)
-    nu = mu / rho if rho > 0 else 1.5e-5
+    # ESCUDO DE SEGURIDAD 2026: Proteger división
+    if abs(rho) < 1e-6:
+        nu = 1.5e-5  # Fallback aire estándar
+    else:
+        nu = mu / rho
     
     # Área alar aproximada (m²)
     # S ≈ 0.16 × b² (relación empírica para aves rapaces)
     S = 0.16 * (envergadura_m ** 2)
     
     # Aspect Ratio (relación de aspecto)
+    # ESCUDO DE SEGURIDAD 2026: Proteger división
+    if abs(S) < 1e-6:
+        return {
+            "velocidad_optima_ms": 0.0,
+            "potencia_minima_w": 0.0,
+            "reynolds": 0.0,
+            "coeficiente_sustentacion": 0.0,
+            "polar_drag": 0.0,
+            "motor": "Pennycuick_2008",
+            "error": "Área alar inválida"
+        }
     AR = (envergadura_m ** 2) / S
     
     # Peso (N)
@@ -905,7 +942,15 @@ def modelo_pennycuick_vuelo(
     
     # Número de Reynolds (Re = V × c / ν)
     # donde c = cuerda media = S / envergadura
-    c_media = S / envergadura_m
+    # ESCUDO DE SEGURIDAD 2026: Proteger divisiones
+    if abs(envergadura_m) < 1e-6:
+        c_media = 0.1  # Fallback mínimo
+    else:
+        c_media = S / envergadura_m
+    
+    if abs(nu) < 1e-12:
+        nu = 1.5e-5  # Fallback aire estándar
+    
     Re = (V_opt * c_media) / nu
     
     # Coeficiente de arrastre de perfil ajustado por Reynolds

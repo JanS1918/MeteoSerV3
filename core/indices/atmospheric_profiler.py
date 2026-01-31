@@ -69,9 +69,19 @@ def viento_ley_hellman(viento_superficie_ms: float,
     if altura_superficie_m <= 0 or altura_objetivo_m <= 0:
         return viento_superficie_ms
     
-    ratio = altura_objetivo_m / altura_superficie_m
-    viento_altura = viento_superficie_ms * (ratio ** alpha)
-    return viento_altura
+    # ESCUDO DE SEGURIDAD 2026: Validación adicional
+    if viento_superficie_ms < 0:
+        return 0.0
+    
+    try:
+        ratio = altura_objetivo_m / altura_superficie_m
+        viento_altura = viento_superficie_ms * (ratio ** alpha)
+        # Validación física
+        if math.isnan(viento_altura) or math.isinf(viento_altura) or viento_altura < 0:
+            return viento_superficie_ms
+        return max(0.0, viento_altura)
+    except (ValueError, ZeroDivisionError, OverflowError):
+        return viento_superficie_ms
 
 
 def lifting_condensation_level_lawrence(temp_c: float, punto_rocio_c: float) -> float:
@@ -124,15 +134,27 @@ def numero_richardson(delta_temp_k: float,
     g = 9.81  # m/s² (aceleración gravedad)
     T_ref = 288.15  # K (temperatura de referencia)
     
-    if delta_viento_ms == 0 or altura_m == 0:
+    # ESCUDO DE SEGURIDAD 2026: Proteger divisiones
+    if abs(altura_m) < 1e-6:
         return float('inf')  # Atmósfera muy estable
+    if abs(delta_viento_ms) < 1e-6:
+        return float('inf')  # Sin cizalladura, muy estable
     
     # Gradientes
     dT_dz = delta_temp_k / altura_m
     dV_dz = delta_viento_ms / altura_m
     
+    # ESCUDO DE SEGURIDAD 2026: Proteger división final
+    if abs(dV_dz) < 1e-9:
+        return float('inf')
+    
     # Richardson
     Ri = (g / T_ref) * dT_dz / (dV_dz ** 2)
+    
+    # Validación física: Ri debe estar en rango razonable
+    if math.isnan(Ri) or math.isinf(Ri):
+        return float('inf')
+    
     return Ri
 
 
@@ -171,6 +193,15 @@ def indice_scorer(temp_superficie_c: float,
     T_surf_K = temp_superficie_c + 273.15
     T_alt_K = temp_altura_c + 273.15
     
+    # ESCUDO DE SEGURIDAD 2026: Proteger división
+    if abs(altura_m) < 1e-6:
+        return {
+            "scorer_l2": 0.0,
+            "brunt_vaisala_N2": 0.0,
+            "cizalladura_viento_dV_dz": 0.0,
+            "interpretacion": "Altura insuficiente para cálculo"
+        }
+    
     # Frecuencia de Brunt-Väisälä (N²)
     dT_dz = (T_alt_K - T_surf_K) / altura_m
     N2 = (g / T_ref) * dT_dz
@@ -181,11 +212,16 @@ def indice_scorer(temp_superficie_c: float,
     # Velocidad media
     V_medio = (viento_superficie_ms + viento_altura_ms) / 2.0
     
-    if V_medio < 0.1:
-        V_medio = 0.1  # Evitar división por cero
+    # ESCUDO DE SEGURIDAD 2026: Proteger división con umbral más robusto
+    if abs(V_medio) < 0.1:
+        V_medio = 0.1  # Mínimo físico para evitar divisiones extremas
     
     # Índice de Scorer simplificado
     scorer_l2 = N2 / (V_medio ** 2)
+    
+    # Validación física
+    if math.isnan(scorer_l2) or math.isinf(scorer_l2):
+        scorer_l2 = 0.0
     
     # Interpretación
     if scorer_l2 > 0.01:
