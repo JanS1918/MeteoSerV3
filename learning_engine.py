@@ -1,6 +1,7 @@
 # ============================================================
 # MÓDULO 3 — APRENDIZAJE Y PATRONES
 # Archivo: core/learning/learning_engine.py
+# Integrado con: Quantum_Universal_Metrology_v1.3
 # ============================================================
 
 import json
@@ -21,6 +22,12 @@ try:
     from ..sensors.virtual_sensors import VirtualSensorManager
 except Exception:
     VirtualSensorManager = None
+
+# ⚛️ CEREBRO ESTADÍSTICO UNIVERSAL
+try:
+    from core.engines.statistical_brain import StatisticalBrain
+except Exception:
+    StatisticalBrain = None
 
 
 # ------------------------------------------------------------
@@ -132,6 +139,9 @@ class LearningEngine:
         # anomalías detectadas (simple)
         self.anomalies: List[Dict] = []
 
+        # ⚛️ CEREBRO ESTADÍSTICO UNIVERSAL V1.3
+        self.statistical_brain = StatisticalBrain(history_length=history_len) if StatisticalBrain else None
+
         # persistencia
         os.makedirs(self.base_path, exist_ok=True)
         self._models_file = os.path.join(self.base_path, "learning_models.json")
@@ -145,9 +155,28 @@ class LearningEngine:
         """
         Ingesta un diccionario sensor->valor en el motor.
         Actualiza series, calcula correlaciones básicas y detecta anomalías.
+        Integrado con Cerebro Estadístico Universal V1.3.
         """
         ts = timestamp or time.time()
-        for s, v in sensor_values.items():
+        
+        # ⚛️ CEREBRO ESTADÍSTICO: Validación con Hampel, Mahalanobis, etc.
+        validated_values = sensor_values.copy()
+        if self.statistical_brain:
+            brain_results = self.statistical_brain.ingest(sensor_values)
+            validated_values = brain_results.get("filtered_values", sensor_values)
+            
+            # Registrar flags y explicaciones
+            for flag_key, flag_value in brain_results.get("flags", {}).items():
+                if flag_value != "OK":
+                    self.anomalies.append({
+                        "sensor": flag_key,
+                        "type": flag_value,
+                        "explanation": brain_results.get("explanations", {}).get(flag_key, ""),
+                        "ts": ts,
+                        "motor": "Quantum_Universal_Metrology_v1.3"
+                    })
+        
+        for s, v in validated_values.items():
             try:
                 fv = float(v)
             except Exception:
@@ -156,10 +185,10 @@ class LearningEngine:
             self.timestamps[s].append(ts)
 
         # actualizar correlaciones para pares con suficientes datos
-        self._update_correlations(list(sensor_values.keys()))
+        self._update_correlations(list(validated_values.keys()))
 
-        # detectar anomalías simples
-        self._detect_anomalies(sensor_values)
+        # detectar anomalías simples (legacy)
+        self._detect_anomalies(validated_values)
 
     # ------------------------------------------------------------
     # CORRELACIONES Y PATRONES

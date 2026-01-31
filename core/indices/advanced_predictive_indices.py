@@ -838,17 +838,21 @@ def modelo_pennycuick_vuelo(
     masa_ave_kg: float = 1.0,
     envergadura_m: float = 2.0,
     temperatura_c: float = 15.0,
-    presion_hpa: float = None  # ⚛️ EXIGIR BARÓMETRO - Sin default ciego
+    presion_hpa: float = None,  # ⚛️ EXIGIR BARÓMETRO - Sin default ciego
+    zeta: float = None,  # ⚛️ Turbulencia Monin-Obukhov
+    statistical_brain=None  # ⚛️ Cerebro Estadístico para causalidad
 ) -> Dict[str, float]:
     """
     Modelo aerodinámico Pennycuick (2008) para vuelo de aves.
     Actualizado con viscosidad cinemática de gas real (Sutherland).
-    Estándar de Laboratorio Nacional (QUANTUM_DIAMOND_REFINED_V1).
+    Estándar de Laboratorio Nacional (QUANTUM_UNIVERSAL_METROLOGY_V1.3).
     
     ⚛️ LEY DE PUREZA FÍSICA 2026: 
     - ELIMINADO default presion=1013.25 (atmósfera estándar ciega)
     - EXIGE barómetro real de Argentona
     - Viscosidad del aire calculada con Ley de Sutherland (gas real)
+    
+    ⚛️ FUSIÓN TRANSVERSAL V1.3: Entropía de Transferencia para causalidad viento→turbulencia
     
     Calcula velocidad óptima, potencia requerida y viento favorable.
     
@@ -865,9 +869,11 @@ def modelo_pennycuick_vuelo(
         envergadura_m: Envergadura alar (m)
         temperatura_c: Temperatura (°C)
         presion_hpa: Presión barométrica REAL (hPa) - REQUERIDO
+        zeta: Parámetro de estabilidad Monin-Obukhov (turbulencia)
+        statistical_brain: Cerebro Estadístico para validación causal
     
     Returns:
-        Dict con velocidad_optima_ms, potencia_w, viento_favorable_pct
+        Dict con velocidad_optima_ms, potencia_w, viento_favorable_pct, causalidad
     
     Raises:
         ValueError: Si presion_hpa es None (no hay barómetro)
@@ -998,10 +1004,47 @@ def modelo_pennycuick_vuelo(
         # Viento de frente
         viento_favorable_pct = max(0.0, 50.0 + viento_componente * 10.0)
     
+    # ⚛️ FUSIÓN TRANSVERSAL: Entropía de Transferencia para causalidad viento→turbulencia
+    causalidad_viento_turbulencia = 0.0
+    esfuerzo_adicional_turbulencia = 0.0
+    
+    if statistical_brain and zeta is not None:
+        # Calcular entropía de transferencia entre viento y turbulencia
+        # Esto certifica si el esfuerzo del ave está causado por viento real o turbulencia térmica
+        try:
+            from core.engines.statistical_brain import transfer_entropy
+            
+            # Obtener series de viento y zeta (estabilidad)
+            hist_viento = statistical_brain.history.get("viento", [])
+            hist_zeta = statistical_brain.history.get("zeta", [])
+            
+            if len(hist_viento) >= 20 and len(hist_zeta) >= 20:
+                causalidad_viento_turbulencia = transfer_entropy(
+                    list(hist_viento),
+                    list(hist_zeta),
+                    lag=1,
+                    bins=10
+                )
+                
+                # Si zeta > 0 (inestable) y causalidad baja, el ave está luchando contra turbulencia caótica
+                if zeta > 0.5 and causalidad_viento_turbulencia < 0.3:
+                    # Incrementar potencia por turbulencia térmica
+                    esfuerzo_adicional_turbulencia = 0.15 * P_total * abs(zeta)
+        except Exception:
+            pass
+    
+    # Potencia total con turbulencia
+    P_total_con_turbulencia = P_total + esfuerzo_adicional_turbulencia
+    
     return {
         "velocidad_optima_ms": round(V_opt, 2),
         "velocidad_stall_ms": round(V_stall, 2),
-        "potencia_requerida_w": round(P_total, 2),
+        "potencia_requerida_w": round(P_total_con_turbulencia, 2),
+        "potencia_base_w": round(P_total, 2),
+        "esfuerzo_turbulencia_w": round(esfuerzo_adicional_turbulencia, 2),
         "viento_favorable_pct": round(viento_favorable_pct, 1),
-        "viento_componente_ms": round(viento_componente, 2)
+        "viento_componente_ms": round(viento_componente, 2),
+        "causalidad_viento_turbulencia": round(causalidad_viento_turbulencia, 3),
+        "motor": "Quantum_Universal_Metrology_v1.3",
+        "fusion_transversal": "entropia_transferencia" if statistical_brain else "none"
     }

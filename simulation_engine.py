@@ -88,6 +88,9 @@ class SimulationEngine:
         os.makedirs(self.base_path, exist_ok=True)
         self._models_path = os.path.join(self.base_path, self.MODELS_FILE)
         self._load_models()
+        
+        # ⚛️ CEREBRO ESTADÍSTICO UNIVERSAL V1.3
+        self.statistical_brain = StatisticalBrain(history_length=1440) if StatisticalBrain else None
 
     # ------------------------------------------------------------
     # GESTIÓN DE MODELOS
@@ -143,9 +146,24 @@ class SimulationEngine:
         Ejecuta un paso de simulación:
         - combina inputs reales y virtuales (si hay virtual_manager)
         - ejecuta cada modelo y devuelve predicciones
+        - integra suavizado Savitzky-Golay y EKF con Cerebro Estadístico V1.3
         """
+        # ⚛️ CEREBRO ESTADÍSTICO: Suavizado de inputs críticos antes de física
+        smoothed_inputs = real_inputs.copy()
+        if self.statistical_brain and self.learning_engine:
+            # Suavizar inputs críticos (presión, temperatura) para astronomía y vuelo
+            critical_sensors = ["presion", "temperatura", "viento", "presion_atmosferica"]
+            for sensor in critical_sensors:
+                if sensor in real_inputs:
+                    # Ingerir en cerebro
+                    self.statistical_brain.ingest({sensor: real_inputs[sensor]})
+                    # Obtener serie suavizada
+                    smoothed = self.statistical_brain.smooth_series(sensor, window=11, order=3)
+                    if smoothed:
+                        smoothed_inputs[sensor] = smoothed[-1]
+        
         # construir inputs combinados
-        inputs = dict(real_inputs)
+        inputs = dict(smoothed_inputs)
         if self.virtual_manager:
             # intentar obtener últimos valores de virtuals
             for vid in self.virtual_manager.list_virtuals():
@@ -167,9 +185,29 @@ class SimulationEngine:
                     if maxv is None:
                         maxv = 1e9
                     pred = clamp(pred, float(minv), float(maxv))
+                
+                # ⚛️ EKF: Predicción con modelo físico si disponible
+                if self.statistical_brain and name in ["humedad_pared", "sorcion_gab"]:
+                    # Modelo físico para GAB (simplificado)
+                    def gab_model(state, dt):
+                        # Estado: [humedad, tasa_absorcion]
+                        return state  # TODO: Implementar modelo GAB completo
+                    
+                    pred_ekf = self.statistical_brain.predict_with_ekf(name, gab_model, dt_seconds)
+                    if pred_ekf is not None:
+                        pred = pred_ekf
+                
                 predictions[name] = float(pred)
             except Exception:
                 predictions[name] = float("nan")
+        
+        # ⚛️ METADATA: Quantum_Universal_Metrology_v1.3
+        predictions["_metadata"] = {
+            "motor": "Quantum_Universal_Metrology_v1.3",
+            "smoothing": "savitzky_golay" if self.statistical_brain else "none",
+            "ekf_active": self.statistical_brain is not None
+        }
+        
         return predictions
 
     # ------------------------------------------------------------

@@ -44,7 +44,8 @@ class AstronomiaRecursiva:
                                          fecha_utc: datetime,
                                          presion_hpa: float,
                                          temperatura_c: float,
-                                         humedad_fraccion: float = 0.5) -> Dict[str, float]:
+                                         humedad_fraccion: float = 0.5,
+                                         statistical_brain=None) -> Dict[str, float]:
         """
         Calcula la posición solar con NREL SPA y refracción de Ciddor.
         
@@ -53,17 +54,34 @@ class AstronomiaRecursiva:
         - Subfórmula B: NREL SPA (geometría solar)
         - Subfórmula C: Refracción de Ciddor (densidad CIPM-2007)
         
+        ⚛️ FUSIÓN TRANSVERSAL V1.3: Inputs suavizados con Savitzky-Golay
+        
         Args:
             fecha_utc: Fecha y hora UTC
             presion_hpa: Presión barométrica (hPa)
             temperatura_c: Temperatura (°C)
             humedad_fraccion: Fracción de humedad [0-1]
+            statistical_brain: Cerebro Estadístico para suavizado
             
         Returns:
             Dict con azimut, elevacion_aparente, elevacion_verdadera, distancia_AU, etc.
         
-        Motor: Quantum_Diamond_Universal_v1.1_FINAL
+        Motor: Quantum_Universal_Metrology_v1.3 (Fusión Transversal)
         """
+        # ⚛️ FUSIÓN TRANSVERSAL: Suavizar presión y temperatura con Savitzky-Golay
+        presion_smoothed = presion_hpa
+        temperatura_smoothed = temperatura_c
+        
+        if statistical_brain:
+            # Obtener series suavizadas para eliminar micro-temblores
+            presion_series = statistical_brain.smooth_series("presion", window=11, order=3)
+            temp_series = statistical_brain.smooth_series("temperatura", window=11, order=3)
+            
+            if presion_series:
+                presion_smoothed = presion_series[-1]
+            if temp_series:
+                temperatura_smoothed = temp_series[-1]
+        
         # SUBFÓRMULA A: Tiempo Dinámico Terrestre (TDT) con ΔT 2026
         delta_t = self._calcular_delta_t(fecha_utc)
         jd = self._calcular_julian_day(fecha_utc)
@@ -75,8 +93,8 @@ class AstronomiaRecursiva:
         # SUBFÓRMULA C: Refracción de Ciddor (esclava de densidad CIPM-2007)
         refraccion_arcmin = self._refraccion_ciddor(
             elevacion_verdadera,
-            presion_hpa,
-            temperatura_c,
+            presion_smoothed,  # ⚛️ Presión suavizada
+            temperatura_smoothed,  # ⚛️ Temperatura suavizada
             humedad_fraccion
         )
         
@@ -91,7 +109,8 @@ class AstronomiaRecursiva:
             "distancia_tierra_sol_AU": round(distancia_au, 8),
             "delta_t_segundos": round(delta_t, 2),
             "julian_day_ephemeris": round(jde, 6),
-            "motor": "Quantum_Diamond_Universal_v1.1_FINAL",
+            "motor": "Quantum_Universal_Metrology_v1.3",
+            "fusion_transversal": "savitzky_golay_smoothing" if statistical_brain else "none",
             "subfórmulas": {
                 "A": "Delta_T_2026_actualizado",
                 "B": "NREL_SPA_geometria",
