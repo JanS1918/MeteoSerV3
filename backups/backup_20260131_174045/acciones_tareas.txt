@@ -1,0 +1,1232 @@
+Adobe Acrobat Update Task
+
+Id               : 
+Arguments        : 
+Execute          : C:\Program Files (x86)\Common Files\Adobe\ARM\1.0\AdobeARM.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+AvastBrowserProtectS-1-5-21-4145920242-3820320187-358418441-1001
+Id               : 
+Arguments        : --runonce
+Execute          : C:\Program Files\AVAST Software\Browser\Application\AvastBrowserProtect.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+MeteoSer - Arranque
+Id               : 
+Arguments        : 
+Execute          : C:\Users\kioko\Desktop\MeteoSerV3\arrancar_meteoser.bat
+WorkingDirectory : 
+PSComputerName   : 
+
+MeteoSer Backup
+Id               : 
+Arguments        : -NoProfile -WindowStyle Hidden -File "C:\Users\kioko\Desktop\MeteoSerV3\tools\backup_data.ps1"
+Execute          : PowerShell.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+MeteoSer Estado Monitor
+Id               : 
+Arguments        : -NoProfile -ExecutionPolicy Bypass -File "C:\Users\kioko\Desktop\MeteoSerV3\tools\estado_monitor.ps1" -IntervalSeconds 120
+Execute          : powershell.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+MeteoSer Health Monitor
+Id               : 
+Arguments        : -NoProfile -WindowStyle Hidden -File "C:\Users\kioko\Desktop\MeteoSerV3\tools\monitor_health.ps1"
+Execute          : PowerShell.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+MeteoSer Official Watchdog
+Id               : 
+Arguments        : -NoProfile -WindowStyle Hidden -File "C:\Users\kioko\Desktop\MeteoSerV3\tools\official_watchdog.ps1"
+Execute          : PowerShell.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+OneDrive Reporting Task-S-1-5-21-4145920242-3820320187-358418441-1001
+Id               : 
+Arguments        : /reporting
+Execute          : %localappdata%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+OneDrive Standalone Update Task-S-1-5-21-4145920242-3820320187-358418441-1001
+Id               : 
+Arguments        : 
+Execute          : %localappdata%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+OneDrive Startup Task-S-1-5-21-4145920242-3820320187-358418441-1001
+Id               : 
+Arguments        : /startInstances
+Execute          : C:\Users\kioko\AppData\Local\Microsoft\OneDrive\25.243.1211.0001_1\OneDriveLauncher.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+HP Support Assistant Update Notice
+Id               : Action
+Arguments        : /show
+Execute          : C:\Program Files (x86)\HP\HP Support Framework\Resources\BingPopup\BingPopup.exe
+WorkingDirectory : C:\Program Files (x86)\HP\HP Support Framework\
+PSComputerName   : 
+
+WarrantyChecker
+Id               : LaunchWarranty
+Arguments        : 
+Execute          : C:\Program Files (x86)\HP\HP Support Framework\Resources\HPWarrantyCheck\HPWarrantyChecker.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+WarrantyChecker_DeviceScan
+Id               : LaunchWarranty
+Arguments        : /DeviceScanR6
+Execute          : C:\Program Files (x86)\HP\HP Support Framework\Resources\HPWarrantyCheck\HPWarrantyChecker.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+.NET Framework NGEN v4.0.30319
+Id             : 
+ClassId        : {84F0FAE1-C27B-4F6F-807B-28CF6F96287D}
+Data           : /RuntimeWide
+PSComputerName : 
+
+.NET Framework NGEN v4.0.30319 64
+Id             : 
+ClassId        : {429BC048-379E-45E0-80E4-EB1977941B5C}
+Data           : /RuntimeWide
+PSComputerName : 
+
+.NET Framework NGEN v4.0.30319 64 Critical
+Id             : 
+ClassId        : {613FBA38-A3DF-4AB8-9674-5604984A299A}
+Data           : /RuntimeWide
+PSComputerName : 
+
+.NET Framework NGEN v4.0.30319 Critical
+Id             : 
+ClassId        : {DE434264-8FE9-4C0B-A83B-89EBEEBFF78E}
+Data           : /RuntimeWide
+PSComputerName : 
+
+RecoverabilityToastTask
+Id             : 
+ClassId        : {B7F5B442-EBF8-46CD-9F0B-D8E45ED43492}
+Data           : -flow showtoast -checkup recoverability
+PSComputerName : 
+
+AD RMS Rights Policy Template Management (Automated)
+Id             : 
+ClassId        : {CF2CF428-325B-48D3-8CA8-7633E36E5A32}
+Data           : 
+PSComputerName : 
+
+AD RMS Rights Policy Template Management (Manual)
+Id             : 
+ClassId        : {BF5CB148-7C77-4D8A-A53E-D81C70CF743C}
+Data           : 
+PSComputerName : 
+
+PolicyConverter
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\appidpolicyconverter.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+VerifiedPublisherCertStoreCheck
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\appidcertstorecheck.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+MareBackup
+Id               : 
+Arguments        : -m:aeinv.dll -f:UpdateSoftwareInventoryW invsvc
+Execute          : %windir%\system32\compattelrunner.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Id               : 
+Arguments        : -m:appraiser.dll -f:DoScheduledTelemetryRun
+Execute          : %windir%\system32\compattelrunner.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Id               : 
+Arguments        : -m:aemarebackup.dll -f:BackupMareData
+Execute          : %windir%\system32\compattelrunner.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Microsoft Compatibility Appraiser Exp
+Id               : 
+Arguments        : -m:appraiser.dll -f:DoScheduledTelemetryRun express
+Execute          : %windir%\system32\compattelrunner.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+PcaPatchDbTask
+Id               : 
+Arguments        : %windir%\system32\PcaSvc.dll,PcaPatchSdbTask
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+SdbinstMergeDbTask
+Id               : 
+Arguments        : -mm
+Execute          : %windir%\system32\sdbinst.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+StartupAppTask
+Id               : 
+Arguments        : Startupscan.dll,SusRunTask
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+appuriverifierdaily
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\AppHostRegistrationVerifier.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+appuriverifierinstall
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\AppHostRegistrationVerifier.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+CleanupTemporaryState
+Id               : 
+Arguments        : Windows.Storage.ApplicationData.dll,CleanupTemporaryState
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+DsSvcCleanup
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\dstokenclean.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Backup
+Id             : 
+ClassId        : {E0DCC2CC-3354-45F2-8914-519E07809082}
+Data           : 
+PSComputerName : 
+
+BackupNonMaintenance
+Id             : 
+ClassId        : {E0DCC2CC-3354-45F2-8914-519E07809082}
+Data           : 
+PSComputerName : 
+
+Pre-staged app cleanup
+Id               : 
+Arguments        : %windir%\system32\AppxDeploymentClient.dll,AppxPreStageCleanupRunTask
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Proxy
+Id               : 
+Arguments        : /d acproxy.dll,PerformAutochkOperations
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+BitLocker Encrypt All Drives
+Id             : 
+ClassId        : {61BCD1B9-340C-40EC-9D41-D7F1C0632F05}
+Data           : BitLockerEncryptAllDrives
+PSComputerName : 
+
+BitLocker MDM policy Refresh
+Id             : 
+ClassId        : {61BCD1B9-340C-40EC-9D41-D7F1C0632F05}
+Data           : BitLockerPolicy
+PSComputerName : 
+
+UninstallDeviceTask
+Id               : 
+Arguments        : $(Arg0)
+Execute          : BthUdTask.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+BgTaskRegistrationMaintenanceTask
+Id             : 
+ClassId        : {E984D939-0E00-4DD9-AC3A-7ACA04745521}
+Data           : 
+PSComputerName : 
+
+maintenancetasks
+Id               : 
+Arguments        : %windir%\system32\CapabilityAccessManager.dll,CapabilityAccessManagerDoStoreMaintenance
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+UserTask
+Id             : 
+ClassId        : {58FB76B9-AC85-4E55-AC04-427593B1D060}
+Data           : USER
+PSComputerName : 
+
+UserTask-Roam
+Id             : 
+ClassId        : {58FB76B9-AC85-4E55-AC04-427593B1D060}
+Data           : KEYROAMING
+PSComputerName : 
+
+ProactiveScan
+Id             : 
+ClassId        : {CF4270F5-2E43-4468-83B3-A8C45BB33EA1}
+Data           : 
+PSComputerName : 
+
+SyspartRepair
+Id               : 
+Arguments        : %windir% /sysrepair
+Execute          : %windir%\system32\bcdboot.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+CreateObjectTask
+Id             : 
+ClassId        : {E4544ABA-62BF-4C54-AAB2-EC246342626C}
+Data           : 
+PSComputerName : 
+
+Backup
+Id             : 
+ClassId        : {722D0F89-B69C-4700-AE8C-4A44350E4876}
+Data           : $(Arg0)
+PSComputerName : 
+
+Restore
+Id             : 
+ClassId        : {B4BCFA6F-948D-46B8-BF27-E8B1117E23B3}
+Data           : 
+PSComputerName : 
+
+MicTray
+Id               : 
+Arguments        : 
+Execute          : "C:\Windows\System32\MicTray64.exe"
+WorkingDirectory : 
+PSComputerName   : 
+
+UnifiedConsentSyncTask
+Id             : 
+ClassId        : {82AA0895-198A-4C1B-B2D1-C16894218AFB}
+Data           : 
+PSComputerName : 
+
+CmCleanup
+Id             : 
+ClassId        : {F50E9363-6BC8-4DC5-8CAB-7D9F8C1B81B4}
+Data           : 
+PSComputerName : 
+
+Consolidator
+Id               : 
+Arguments        : 
+Execute          : %SystemRoot%\System32\wsqmcons.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+UsbCeip
+Id             : 
+ClassId        : {C27F6B1D-FE0B-45E4-9257-38799FA69BC8}
+Data           : SYSTEM
+PSComputerName : 
+
+Data Integrity Check And Scan
+Id             : 
+ClassId        : {DCFD3EA8-D960-4719-8206-490AE315F94F}
+Data           : 
+PSComputerName : 
+
+Data Integrity Scan
+Id             : 
+ClassId        : {DCFD3EA8-D960-4719-8206-490AE315F94F}
+Data           : -Manual
+PSComputerName : 
+
+Data Integrity Scan for Crash Recovery
+Id             : 
+ClassId        : {DCFD3EA8-D960-4719-8206-490AE315F94F}
+Data           : -CrashRecovery
+PSComputerName : 
+
+ScheduledDefrag
+Id               : 
+Arguments        : -c -h -o -$
+Execute          : %windir%\system32\defrag.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Device
+Id               : 
+Arguments        : SystemCxt
+Execute          : %windir%\system32\devicecensus.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Device User
+Id               : 
+Arguments        : UserCxt
+Execute          : %windir%\system32\devicecensus.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Driver Recovery on Reboot
+Id             : 
+ClassId        : {452F6DDC-7930-4B57-8794-19CD7420241D}
+Data           : 
+PSComputerName : 
+
+RecommendedTroubleshootingScanner
+Id             : 
+ClassId        : {AD08DCC2-4E35-4486-9D49-547CBD30942D}
+Data           : 
+PSComputerName : 
+
+Scheduled
+Id             : 
+ClassId        : {C1F85EF8-BCC2-4606-BB39-70C523715EB3}
+Data           : 
+PSComputerName : 
+
+UnexpectedCodepath
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\UCConfigTask.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+DirectXDatabaseUpdater
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\directxdatabaseupdater.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+DXGIAdapterCache
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\dxgiadaptercache.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+SilentCleanup
+Id               : 
+Arguments        : /autocleanstoragesense /d %systemdrive%
+Execute          : %windir%\system32\cleanmgr.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Microsoft-Windows-DiskDiagnosticDataCollector
+Id               : 
+Arguments        : dfdts.dll,DfdGetDefaultPolicyAndSMART
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Microsoft-Windows-DiskDiagnosticResolver
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\DFDWiz.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Diagnostics
+Id               : 
+Arguments        : -z
+Execute          : %windir%\system32\disksnapshot.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+StorageSense
+Id             : 
+ClassId        : {AB2A519B-03B0-43CE-940A-A73DF850B49A}
+Data           : 
+PSComputerName : 
+
+dusmtask
+Id               : 
+Arguments        : 
+Execute          : %SystemRoot%\System32\dusmtask.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+EDP App Launch Task
+Id             : 
+ClassId        : {61BCD1B9-340C-40EC-9D41-D7F1C0632F05}
+Data           : AppLaunch
+PSComputerName : 
+
+EDP Auth Task
+Id             : 
+ClassId        : {61BCD1B9-340C-40EC-9D41-D7F1C0632F05}
+Data           : ReAuth
+PSComputerName : 
+
+EDP Inaccessible Credentials Task
+Id             : 
+ClassId        : {61BCD1B9-340C-40EC-9D41-D7F1C0632F05}
+Data           : MissingCredentials
+PSComputerName : 
+
+StorageCardEncryption Task
+Id             : 
+ClassId        : {61BCD1B9-340C-40EC-9D41-D7F1C0632F05}
+Data           : SDCardEncryptionPolicy
+PSComputerName : 
+
+ExploitGuard MDM policy Refresh
+Id             : 
+ClassId        : {711001CD-CC1D-4470-9B7E-1EF73849C79E}
+Data           : ExploitGuardPolicy
+PSComputerName : 
+
+DmClient
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\dmclient.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+DmClientOnScenarioDownload
+Id               : 
+Arguments        : utcwnf
+Execute          : %windir%\system32\dmclient.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Property Definition Sync
+Id             : 
+ClassId        : {2AE64751-B728-4D6B-97A0-B2DA2E7D2A3B}
+Data           : 
+PSComputerName : 
+
+File History (maintenance mode)
+Id             : 
+ClassId        : {89917B7C-A1A6-11DF-8BF6-18A90531A85A}
+Data           : 
+PSComputerName : 
+
+BootstrapUsageDataReporting
+Id             : 
+ClassId        : {D759C938-B375-41CB-A2A2-E6D866A767F4}
+Data           : 
+PSComputerName : 
+
+GovernedFeatureUsageProcessing
+Id             : 
+ClassId        : {866F38A9-0302-4926-A36F-E4BAABAAE116}
+Data           : 
+PSComputerName : 
+
+ReconcileConfigs
+Id             : 
+ClassId        : {15F5ECE1-4550-4A92-8E26-984FD1DA54FA}
+Data           : 
+PSComputerName : 
+
+ReconcileFeatures
+Id             : 
+ClassId        : {59EECBFE-C2F5-4419-9B99-13FE05FF2675}
+Data           : 
+PSComputerName : 
+
+UsageDataFlushing
+Id             : 
+ClassId        : {99EFDAD1-0F11-4A6B-A702-4E1C37D1A3EF}
+Data           : 
+PSComputerName : 
+
+UsageDataReceiver
+Id             : 
+ClassId        : {D4C0420F-76BD-4F66-A91F-918A93ABEBEB}
+Data           : 
+PSComputerName : 
+
+UsageDataReporting
+Id             : 
+ClassId        : {BBFCD054-8AAC-45DE-A1EB-7B246C9028AF}
+Data           : 
+PSComputerName : 
+
+RefreshCache
+Id             : 
+ClassId        : {E07647F7-AED2-48D9-9720-939BC24A8A3C}
+Data           : 
+PSComputerName : 
+
+Monitoring
+Id               : 
+Arguments        : /d /c %systemroot%\system32\hpatchmonTask.cmd
+Execute          : %systemroot%\system32\cmd.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+InputSettingsRestoreDataAvailable
+Id             : 
+ClassId        : {378EAB97-EFD6-4ED5-9AD9-E64A6AA1E6FA}
+Data           : InputSettingsRestoreDataAvailable
+PSComputerName : 
+
+LocalUserSyncDataAvailable
+Id             : 
+ClassId        : {8E7C2AFB-72B9-415C-9AC2-5037693309B7}
+Data           : LocalUserSyncDataAvailable
+PSComputerName : 
+
+MouseSyncDataAvailable
+Id             : 
+ClassId        : {378EAB97-EFD6-4ED5-9AD9-E64A6AA1E6FA}
+Data           : MouseSyncDataAvailable
+PSComputerName : 
+
+PenSyncDataAvailable
+Id             : 
+ClassId        : {378EAB97-EFD6-4ED5-9AD9-E64A6AA1E6FA}
+Data           : PenSyncDataAvailable
+PSComputerName : 
+
+RemoteMouseSyncDataAvailable
+Id             : 
+ClassId        : {378EAB97-EFD6-4ED5-9AD9-E64A6AA1E6FA}
+Data           : RemoteMouseSyncDataAvailable
+PSComputerName : 
+
+RemotePenSyncDataAvailable
+Id             : 
+ClassId        : {378EAB97-EFD6-4ED5-9AD9-E64A6AA1E6FA}
+Data           : RemotePenSyncDataAvailable
+PSComputerName : 
+
+RemoteTouchpadSyncDataAvailable
+Id             : 
+ClassId        : {378EAB97-EFD6-4ED5-9AD9-E64A6AA1E6FA}
+Data           : RemoteTouchpadSyncDataAvailable
+PSComputerName : 
+
+syncpensettings
+Id             : 
+ClassId        : {3ECEE215-83F5-4123-A592-74F1FE4C3D59}
+Data           : SYNC_PEN_SETTINGS
+PSComputerName : 
+
+TouchpadSyncDataAvailable
+Id             : 
+ClassId        : {378EAB97-EFD6-4ED5-9AD9-E64A6AA1E6FA}
+Data           : TouchpadSyncDataAvailable
+PSComputerName : 
+
+RestoreDevice
+Id             : 
+ClassId        : {7F019157-05C8-473F-8664-2BA04A090DC8}
+Data           : 
+PSComputerName : 
+
+ScanForUpdates
+Id             : 
+ClassId        : {A558C6A5-B42B-4C98-B610-BF9559143139}
+Data           : 
+PSComputerName : 
+
+ScanForUpdatesAsUser
+Id             : 
+ClassId        : {DDAFAEA2-8842-4E96-BADE-D44A8D676FDB}
+Data           : 
+PSComputerName : 
+
+WakeUpAndContinueUpdates
+Id             : 
+ClassId        : {0DC331EE-8438-49D5-A721-E10B937CE459}
+Data           : 
+PSComputerName : 
+
+WakeUpAndScanForUpdates
+Id             : 
+ClassId        : {D5A04D91-6FE6-4FE4-A98A-FEB4500C5AF7}
+Data           : 
+PSComputerName : 
+
+Synchronize Language Settings
+Id             : 
+ClassId        : {10D62541-90D0-42FE-848C-0DBC1AC42EDA}
+Data           : SyncFromCloud
+PSComputerName : 
+
+La57Cleanup
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\la57setup.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Installation
+Id             : 
+ClassId        : {6F58F65F-EC0E-4ACA-99FE-FC5A1A25E4BE}
+Data           : Install $(Arg0)
+PSComputerName : 
+
+ReconcileLanguageResources
+Id             : 
+ClassId        : {D0582E3B-3126-4CAA-9155-AC37C912A489}
+Data           : 
+PSComputerName : 
+
+WindowsActionDialog
+Id               : 
+Arguments        : 
+Execute          : %windir%\System32\WindowsActionDialog.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+WinSAT
+Id             : 
+ClassId        : {A9A33436-678B-4C9C-A211-7CC38785E79D}
+Data           : 
+PSComputerName : 
+
+DetectHardwareChange
+Id             : 
+ClassId        : {62B2DD2C-F129-42EE-BF59-55D3FD21C215}
+Data           : DetectHardwareChange
+PSComputerName : 
+
+RemediateHardwareChange
+Id             : 
+ClassId        : {62B2DD2C-F129-42EE-BF59-55D3FD21C215}
+Data           : RemediateHardwareChange
+PSComputerName : 
+
+Cellular
+Id               : 
+Arguments        : /turn 7 /source CellStateChangeTask
+Execute          : %windir%\system32\ProvTool.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Logon
+Id               : 
+Arguments        : /turn 5 /source LogonIdleTask
+Execute          : %windir%\system32\ProvTool.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+MdmDiagnosticsCleanup
+Id               : 
+Arguments        : /clean
+Execute          : %windir%\system32\MdmDiagnosticsTool.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Retry
+Id               : 
+Arguments        : /turn 5 /source ProvRetryTask
+Execute          : %windir%\system32\ProvTool.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+RunOnReboot
+Id               : 
+Arguments        : /turn 5 /source ContinueSessionTask
+Execute          : %windir%\system32\ProvTool.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+MapsToastTask
+Id             : 
+ClassId        : {9885AEF2-BD9F-41E0-B15E-B3141395E803}
+Data           : $(Arg0);$(Arg1);$(Arg2);$(Arg3);$(Arg4);$(Arg5);$(Arg6);$(Arg7)
+PSComputerName : 
+
+MapsUpdateTask
+Id             : 
+ClassId        : {B9033E87-33CF-4D77-BC9B-895AFBBA72E4}
+Data           : 
+PSComputerName : 
+
+AutomaticOfflineMemoryDiagnostic
+Id             : 
+ClassId        : {44F6C389-604A-4363-B09A-F38DA08E6079}
+Data           : 
+PSComputerName : 
+
+ProcessMemoryDiagnosticEvents
+Id             : 
+ClassId        : {8168E74A-B39F-46D8-ADCD-7BED477B80A3}
+Data           : Event
+PSComputerName : 
+
+RunFullMemoryDiagnostic
+Id             : 
+ClassId        : {8168E74A-B39F-46D8-ADCD-7BED477B80A3}
+Data           : Time
+PSComputerName : 
+
+LPRemove
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\lpremove.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+SystemSoundsService
+Id             : 
+ClassId        : {2DEA658F-54C1-4227-AF9B-260AB5FC3543}
+Data           : 
+PSComputerName : 
+
+NcsiIdentifyUserProxies
+Id             : 
+ClassId        : {706B965A-8308-4CD4-9900-87C2D79C121B}
+Data           : 
+PSComputerName : 
+
+WiFiTask
+Id               : 
+Arguments        : nla
+Execute          : %SystemRoot%\System32\WiFiTask.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Background Synchronization
+Id             : 
+ClassId        : {FA3F3DD9-4C1A-456B-A8FA-C76EF3ED83B8}
+Data           : 
+PSComputerName : 
+
+Logon Synchronization
+Id             : 
+ClassId        : {FA3F3DD9-4C1A-456B-A8FA-C76EF3ED83B8}
+Data           : Logon
+PSComputerName : 
+
+PCR Prediction Framework Firmware Update Task
+Id               : 
+Arguments        : %windir%\system32\pcrpf.dll,NotifyFirmwareUpdateStaged
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+RequestTrace
+Id             : 
+ClassId        : {9EFEB182-2EE3-4AF9-AFFA-521410D110D1}
+Data           : 
+PSComputerName : 
+
+WhesvcToast
+Id             : 
+ClassId        : {C34546AD-2E37-41D9-8E23-277837B7A234}
+Data           : 
+PSComputerName : 
+
+Device Install Group Policy
+Id             : 
+ClassId        : {60400283-B242-4FA8-8C25-CAF695B88209}
+Data           : 
+PSComputerName : 
+
+Device Install Reboot Required
+Id             : 
+ClassId        : {48794782-6A1F-47B9-BD52-1D5F95D49C1B}
+Data           : 
+PSComputerName : 
+
+Sysprep Generalize Drivers
+Id               : 
+Arguments        : 6
+Execute          : %SystemRoot%\System32\drvinst.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+AnalyzeSystem
+Id             : 
+ClassId        : {927EA2AF-1C54-43D5-825E-0074CE028EEE}
+Data           : 
+PSComputerName : 
+
+EduPrintProv
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\eduprintprov.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+PrinterCleanupTask
+Id             : 
+ClassId        : {C56F065E-DE49-4E42-BE7C-305C45609D25}
+Data           : 
+PSComputerName : 
+
+PrintJobCleanupTask
+Id             : 
+ClassId        : {8ABCE260-32B6-476C-AE13-B34D0C91292D}
+Data           : 
+PSComputerName : 
+
+VerifyWinRE
+Id             : 
+ClassId        : {89D1D0C2-A3CF-490C-ABE3-B86CDE34B047}
+Data           : VerifyWinRE
+PSComputerName : 
+
+Initialization
+Id             : 
+ClassId        : {DCFF735B-64F7-45F3-B39C-6C66BBE2120F}
+Data           : 
+PSComputerName : 
+
+RegIdleBackup
+Id             : 
+ClassId        : {CA767AA8-9157-4604-B64B-40747123D5F2}
+Data           : 
+PSComputerName : 
+
+OOBEFodSetup
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\OOBEFodSetup.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+StartComponentCleanup
+Id             : 
+ClassId        : {752073A1-23F2-4396-85F0-8FDB879ED0ED}
+Data           : 
+PSComputerName : 
+
+PITRTask
+Id             : 
+ClassId        : {093CB270-C282-4C22-B2EA-7D2BF1C30BBF}
+Data           : 
+PSComputerName : 
+
+Account Cleanup
+Id             : 
+ClassId        : {7750564D-D61C-4557-8A9D-7DF56BDCFF96}
+Data           : 
+PSComputerName : 
+
+CreateObjectTask
+Id             : 
+ClassId        : {990A9F8F-301F-45F7-8D0E-68C5952DBA43}
+Data           : 
+PSComputerName : 
+
+FamilySafetyMonitor
+Id               : 
+Arguments        : 
+Execute          : %windir%\System32\wpcmon.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+FamilySafetyRefreshTask
+Id             : 
+ClassId        : {C844C79D-AED8-4DCE-AB25-4D359BED84F8}
+Data           : $(Arg0)
+PSComputerName : 
+
+IndexerAutomaticMaintenance
+Id             : 
+ClassId        : {3FBA60A6-7BF5-4868-A2CA-6623B3DFFEA6}
+Data           : 
+PSComputerName : 
+
+ThemesSyncedImageDownload
+Id             : 
+ClassId        : {79F8E185-4E45-4B74-8182-02AA430661E4}
+Data           : 
+PSComputerName : 
+
+UpdateUserPictureTask
+Id             : 
+ClassId        : {09C5DD34-009D-40FA-BCB9-0165AD0C15D4}
+Data           : 
+PSComputerName : 
+
+UpdateUserPictureTaskContained
+Id             : 
+ClassId        : {09C5DD34-009D-40FA-BCB9-0165AD0C15D4}
+Data           : 
+PSComputerName : 
+
+SvcRestartTaskLogon
+Id             : 
+ClassId        : {B1AEBB5D-EAD9-4476-B375-9C3ED9F32AFC}
+Data           : logon
+PSComputerName : 
+
+SpaceAgentTask
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\SpaceAgent.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+SpaceManagerTask
+Id               : 
+Arguments        : /Work
+Execute          : %windir%\system32\spaceman.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+MaintenanceTasks
+Id               : 
+Arguments        : %windir%\system32\Windows.StateRepositoryClient.dll,StateRepositoryDoMaintenanceTasks
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Storage Tiers Management Initialization
+Id             : 
+ClassId        : {5C9AB547-345D-4175-9AF6-65133463A100}
+Data           : 
+PSComputerName : 
+
+Storage Tiers Optimization
+Id               : 
+Arguments        : -c -h -g -# -m 8 -i 13500
+Execute          : %windir%\system32\defrag.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+EnableLicenseAcquisition
+Id               : 
+Arguments        : -e
+Execute          : %SystemRoot%\system32\ClipRenew.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+LicenseAcquisition
+Id               : 
+Arguments        : 
+Execute          : %SystemRoot%\system32\ClipRenew.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+PowerGridForecastTask
+Id             : 
+ClassId        : {251E5B1F-E370-4E12-B5BD-B7AD2A8EE810}
+Data           : 
+PSComputerName : 
+
+SustainabilityTelemetry
+Id             : 
+ClassId        : {6EE41D75-D091-4FB7-9AD5-018760DD25D4}
+Data           : 
+PSComputerName : 
+
+HybridDriveCachePrepopulate
+Id             : 
+ClassId        : {17C82257-654E-4C47-8E23-DCA24EAA76A0}
+Data           : 
+PSComputerName : 
+
+HybridDriveCacheRebalance
+Id             : 
+ClassId        : {D44377B8-1F2F-4FAA-9C8E-6C4AD2928E47}
+Data           : 
+PSComputerName : 
+
+ResPriStaticDbSync
+Id             : 
+ClassId        : {297EE78C-BA95-4E94-81D3-D6E7F089C7B5}
+Data           : 
+PSComputerName : 
+
+WsSwapAssessmentTask
+Id               : 
+Arguments        : sysmain.dll,PfSvWsSwapAssessmentTask
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+SR
+Id               : 
+Arguments        : ExecuteScheduledSPPCreation
+Execute          : %windir%\system32\srtasks.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Interactive
+Id             : 
+ClassId        : {855FEC53-D2E4-4999-9E87-3414E9CF0FF4}
+Data           : $(Arg0)
+PSComputerName : 
+
+MsCtfMonitor
+Id             : 
+ClassId        : {01575CFE-9A55-4003-A5E1-F38D1EBDCBE1}
+Data           : 
+PSComputerName : 
+
+ForceSynchronizeTime
+Id             : 
+ClassId        : {A31AD6C2-FF4C-43D4-8E90-7101023096F9}
+Data           : TimeSyncTask
+PSComputerName : 
+
+SynchronizeTime
+Id               : 
+Arguments        : start w32time task_started
+Execute          : %windir%\system32\sc.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+SynchronizeTimeZone
+Id               : 
+Arguments        : 
+Execute          : %windir%\system32\tzsync.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+UPnPHostConfig
+Id               : 
+Arguments        : config upnphost start= auto
+Execute          : sc.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Usb-Notifications
+Id             : 
+ClassId        : {E05BE1C8-92A8-4757-B575-ACAECB4E6A40}
+Data           : 
+PSComputerName : 
+
+WiFiTask
+Id               : 
+Arguments        : 
+Execute          : %SystemRoot%\System32\WiFiTask.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+ResolutionHost
+Id             : 
+ClassId        : {900BE39D-6BE8-461A-BC4D-B0FA71F5ECB1}
+Data           : 
+PSComputerName : 
+
+QueueReporting
+Id               : 
+Arguments        : -upload
+Execute          : %windir%\system32\wermgr.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+BfeOnServiceStartTypeChange
+Id               : 
+Arguments        : bfe.dll,BfeOnServiceStartTypeChange
+Execute          : %windir%\system32\rundll32.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+UpdateLibrary
+Id               : 
+Arguments        : 
+Execute          : "%ProgramFiles%\Windows Media Player\wmpnscfg.exe"
+WorkingDirectory : 
+PSComputerName   : 
+
+Calibration Loader
+Id             : 
+ClassId        : {B210D694-C8DF-490D-9576-9E20CDBC20BD}
+Data           : 
+PSComputerName : 
+
+Scheduled Start
+Id               : 
+Arguments        : start wuauserv
+Execute          : %systemroot%\System32\sc.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+CacheTask
+Id             : 
+ClassId        : {0358B920-0AC7-461F-98F4-58E32CD89148}
+Data           : 
+PSComputerName : 
+
+CDSSync
+Id             : 
+ClassId        : {B0D2B535-12E1-439F-86B3-BADA289510F0}
+Data           : $(Arg0)
+PSComputerName : 
+
+MoProfileManagement
+Id             : 
+ClassId        : {085EDA12-CF4A-4944-8222-8ADCADE137CB}
+Data           : 
+PSComputerName : 
+
+Work Folders Logon Synchronization
+Id             : 
+ClassId        : {97D47D56-3777-49FB-8E8F-90D7E30E1A1E}
+Data           : Logon
+PSComputerName : 
+
+Work Folders Maintenance Work
+Id             : 
+ClassId        : {63260BCE-A3FB-4A34-AA51-D4D8E877B62B}
+Data           : 
+PSComputerName : 
+
+Automatic-Device-Join
+Id               : 
+Arguments        : $(Arg0) $(Arg1) $(Arg2)
+Execute          : %SystemRoot%\System32\dsregcmd.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+Device-Sync
+Id             : 
+ClassId        : {C662D912-E4D6-44A3-89A0-20550514951D}
+Data           : DeviceUpdate
+PSComputerName : 
+
+Recovery-Check
+Id               : 
+Arguments        : /checkrecovery
+Execute          : %SystemRoot%\System32\dsregcmd.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+NotificationTask
+Id               : 
+Arguments        : wwan
+Execute          : %SystemRoot%\System32\WiFiTask.exe
+WorkingDirectory : 
+PSComputerName   : 
+
+OobeDiscovery
+Id             : 
+ClassId        : {C93CF9D5-031B-4AAA-AB0B-EF802347B381}
+Data           : 
+PSComputerName : 
+
+XblGameSaveTask
+Id               : 
+Arguments        : standby
+Execute          : %windir%\System32\XblGameSaveTask.exe
+WorkingDirectory : 
+PSComputerName   : 
+

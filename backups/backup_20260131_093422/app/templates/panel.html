@@ -1,0 +1,93 @@
+<!-- panel.html -->
+<!-- Plantilla base para el panel de la nueva interfaz MeteoSer -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeteoSer - Panel Principal</title>
+    <link rel="stylesheet" href="/static/panel.css">
+</head>
+<body>
+    <!-- Panel superior fijo -->
+    <header id="panel-superior">
+        <div class="header-content">
+            <span class="sistema-nombre">MeteoSer</span>
+            <span class="ubicacion" id="ubicacion-info"></span>
+            <span class="estacion" id="estacion-info"></span>
+            <span class="fecha-hora">
+                <span id="fecha-actual"></span>
+                <span id="hora-actual"></span>
+            </span>
+            <div id="alertas-globales"></div>
+        </div>
+    </header>
+
+    <!-- Contenedor principal -->
+    <main id="panel-root">
+        <!-- Cajones izquierdos -->
+        <aside id="cajones-izquierda" class="cajones-laterales">
+            <!-- Dinámicamente generados -->
+        </aside>
+
+        <!-- Panel central: arcos y recomendaciones -->
+        <section id="panel-central">
+            <!-- Arco solar -->
+            <div id="arco-solar" class="arco-container">
+                <svg id="svg-arco-solar" viewBox="0 0 400 150"></svg>
+                <div class="duracion-info">
+                    <span id="duracion-dia"></span>
+                </div>
+            </div>
+
+            <!-- Panel de recomendaciones -->
+            <div id="panel-recomendaciones">
+                <div class="valores-principales">
+                    <span id="temperatura-valor"></span>
+                    <span id="humedad-valor"></span>
+                    <span id="sensacion-valor"></span>
+                </div>
+                <div class="recomendacion-texto" id="recomendacion-texto"></div>
+                <div class="valores-secundarios">
+                    <span id="presion-valor"></span>
+                    <span id="viento-valor"></span>
+                </div>
+            </div>
+
+            <!-- Arco lunar -->
+            <div id="arco-lunar" class="arco-container">
+                <svg id="svg-arco-lunar" viewBox="0 0 400 150"></svg>
+                <div class="duracion-info">
+                    <span id="duracion-noche"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cajones derechos -->
+        <aside id="cajones-derecha" class="cajones-laterales">
+            <!-- Dinámicamente generados -->
+        </aside>
+    </main>
+
+    <!-- Botones inferiores -->
+    <footer id="botones-control">
+        <button id="btn-noticias" class="btn-control">Noticias</button>
+        <button id="btn-asistente" class="btn-control">Asistente Personal</button>
+        <button id="btn-restaurar" class="btn-control">Restaurar</button>
+        <button id="btn-configuracion" class="btn-control">Configuración</button>
+        <button id="btn-feedback" class="btn-control">Feedback</button>
+    </footer>
+
+    <!-- Submenús (ocultos por defecto) -->
+    <div id="submenu-overlay" class="submenu-overlay" style="display: none;">
+        <div id="submenu-contenido" class="submenu-contenido"></div>
+    </div>
+
+    <!-- Animaciones meteorológicas de fondo -->
+    <canvas id="canvas-animaciones" class="animaciones-fondo"></canvas>
+
+    <script src="/static/animaciones_meteo.js"></script>
+    <script src="/static/botones_control.js"></script>
+    <script src="/static/panel.js"></script>
+</body>
+</html>
