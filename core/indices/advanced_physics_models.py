@@ -116,15 +116,24 @@ def et_shuttleworth_wallace(rn: float, temp_c: float, humedad: float, viento_ms:
         r_a = float('inf')  # Resistencia infinita en calma absoluta
     
     # ET0 canopia (Shuttleworth-Wallace)
-    # ESCUDO DE SEGURIDAD: Si r_a es inf (viento=0), ET0 → 0 (flujos requieren transporte)
-    if r_a != float('inf') and (delta + gamma * (1 + r_s / r_a)) > 0:
-        et0_canopy = (delta * rn_mj + gamma * (900 / T_k) * viento_val * vpd) / (delta + gamma * (1 + r_s / r_a))
+    # ESCUDO DE SEGURIDAD 2026: Si r_a es inf (viento=0), ET0 → 0 (flujos requieren transporte)
+    # Proteger división completa
+    if r_a != float('inf'):
+        denom_canopy = delta + gamma * (1 + r_s / r_a)
+        if abs(denom_canopy) > 1e-12 and T_k > 0:
+            et0_canopy = (delta * rn_mj + gamma * (900 / T_k) * viento_val * vpd) / denom_canopy
+        else:
+            et0_canopy = 0.0
     else:
         et0_canopy = 0.0
     
     # ET0 suelo (exposición reducida bajo vegetación)
-    if r_a != float('inf') and (delta + gamma * (1 + 200 / r_a)) > 0:
-        et0_soil = (delta * rn_mj * 0.3 + gamma * (900 / T_k) * viento_val * vpd) / (delta + gamma * (1 + 200 / r_a))
+    if r_a != float('inf'):
+        denom_soil = delta + gamma * (1 + 200 / r_a)
+        if abs(denom_soil) > 1e-12 and T_k > 0:
+            et0_soil = (delta * rn_mj * 0.3 + gamma * (900 / T_k) * viento_val * vpd) / denom_soil
+        else:
+            et0_soil = 0.0
     else:
         et0_soil = 0.0
     
@@ -250,17 +259,37 @@ def monin_obukhov_stability(z0: float, z: float, temp_c: float, temp_surf: float
     z0h = z0_val * math.exp(-kB_inv)  # Rugosidad térmica (siempre menor que mecánica)
     
     # Velocidad de fricción (aproximación inicial con rugosidad mecánica)
-    u_star = k * viento_val / (math.log(z_val / z0_val) + 5.0)
+    # ESCUDO DE SEGURIDAD 2026: Proteger log(0) y divisiones
+    if z_val <= z0_val or z0_val <= 0:
+        u_star = 0.01  # Mínimo físico en calma
+    else:
+        try:
+            denom_ustar = math.log(z_val / z0_val) + 5.0
+            if abs(denom_ustar) < 1e-12:
+                u_star = 0.01
+            else:
+                u_star = k * viento_val / denom_ustar
+        except (ValueError, ZeroDivisionError):
+            u_star = 0.01
     
     # Escala de temperatura (usando rugosidad térmica para flujo de calor)
-    T_star = abs(H) / (rho * cp * u_star) if abs(H) > 0 else 0.001
+    # ESCUDO DE SEGURIDAD 2026: Proteger división
+    if abs(u_star) < 1e-12:
+        T_star = 0.001
+    else:
+        T_star = abs(H) / (rho * cp * u_star) if abs(H) > 0 else 0.001
     
     # Iteración Businger-Dyer para L de Monin-Obukhov
     for _ in range(5):
+        # ESCUDO DE SEGURIDAD 2026: Proteger divisiones
         if abs(T_star * u_star) < 1e-6:
             L = float('inf')
         else:
-            L = (T_k * u_star ** 2) / (k * g * (H / (rho * cp * u_star)))
+            denom_h = H / (rho * cp * u_star)
+            if abs(denom_h) < 1e-12:
+                L = float('inf')
+            else:
+                L = (T_k * u_star ** 2) / (k * g * denom_h)
         
         # Parámetro de estabilidad ζ = z/L
         zeta = z_val / L if L != float('inf') else 0
@@ -268,7 +297,11 @@ def monin_obukhov_stability(z0: float, z: float, temp_c: float, temp_surf: float
         
         # Zeta para momentum (mecánico) y calor (térmico) son diferentes por Zilitinkevich
         zeta_m = z_val / L if L != float('inf') else 0
-        zeta_h = (z_val / L) * (z0_val / z0h) if L != float('inf') else 0  # Corrección térmica
+        # ESCUDO DE SEGURIDAD 2026: Proteger división en zeta_h
+        if z0h > 0 and z0_val > 0:
+            zeta_h = (z_val / L) * (z0_val / z0h) if L != float('inf') else 0  # Corrección térmica
+        else:
+            zeta_h = zeta_m
         zeta_m = max(-9.0, min(9.0, zeta_m))
         zeta_h = max(-9.0, min(9.0, zeta_h))
         
@@ -284,7 +317,15 @@ def monin_obukhov_stability(z0: float, z: float, temp_c: float, temp_surf: float
         
         # Actualizar u_star (usando rugosidad mecánica)
         psi_z0 = 0
-        u_star_new = k * viento_val / (math.log(z_val / z0_val) - psi_m + psi_z0)
+        # ESCUDO DE SEGURIDAD 2026: Proteger log(0) y divisiones
+        try:
+            denom_ustar_new = math.log(z_val / z0_val) - psi_m + psi_z0
+            if abs(denom_ustar_new) < 1e-12:
+                u_star_new = u_star
+            else:
+                u_star_new = k * viento_val / denom_ustar_new
+        except (ValueError, ZeroDivisionError):
+            u_star_new = u_star
         
         if abs(u_star_new - u_star) < 0.001:
             break

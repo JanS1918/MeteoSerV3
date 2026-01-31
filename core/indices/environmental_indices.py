@@ -322,11 +322,21 @@ def viento_logaritmico(viento_ref: float, h_sensor: float, h_objetivo: float, z0
     Returns:
         Velocidad del viento a altura objetivo (m/s)
     """
-    if h_sensor <= z0 or h_objetivo <= z0:
+    # ESCUDO DE SEGURIDAD 2026: Protección completa contra log(0) y divisiones
+    if h_sensor <= z0 or h_objetivo <= z0 or z0 <= 0:
         return viento_ref
+    if viento_ref < 0:
+        return 0.0
     
     # Ley logarítmica: v(z) = v_ref * ln(z/z0) / ln(z_ref/z0)
-    v_objetivo = viento_ref * math.log(h_objetivo / z0) / math.log(h_sensor / z0)
+    try:
+        ln_h_objetivo = math.log(h_objetivo / z0)
+        ln_h_sensor = math.log(h_sensor / z0)
+        if abs(ln_h_sensor) < 1e-12:
+            return viento_ref
+        v_objetivo = viento_ref * ln_h_objetivo / ln_h_sensor
+    except (ValueError, ZeroDivisionError):
+        return viento_ref
     return max(0, v_objetivo)
 
 def calcular_viento_utci_calle(viento_sensor: float, altura_sensor: float, **kwargs) -> float:
@@ -432,9 +442,16 @@ def indice_steadman_apparent_temperature(temp_c: float, humedad: float, viento_m
     # Resistencia térmica de ropa (m²·K/W)
     R_cl = I_cl * 0.155
     
-    # Presión de vapor
-    e_s = 6.105 * math.exp(17.27 * temp_c / (237.7 + temp_c))  # hPa
-    e_a = e_s * (humedad / 100.0)  # Presión vapor actual
+    # Presión de vapor - HYLAND-WEXLER 2026 (Motor: Diamond_Refined_v1)
+    # ⚡ EUTANASIA TÉCNICA: Tetens eliminado, usar saturación moderna
+    try:
+        p_atm_pa = 101325.0  # ISA fallback
+        e_s_pa = saturacion_vapor_hyland_wexler(temp_c, p_atm_pa)
+        e_s = e_s_pa / 100.0  # Pa → hPa
+    except Exception:
+        # Fallback ultra-seguro si falla Hyland-Wexler
+        e_s = 6.105 * math.exp(17.27 * temp_c / (237.7 + temp_c))  # hPa (Tetens solo emergencia)
+    e_a = e_s * (max(0, min(100, humedad)) / 100.0)  # Presión vapor actual
     
     # Coeficiente de transferencia de calor por convección
     # h_c depende del viento según Steadman
@@ -460,12 +477,19 @@ def indice_steadman_apparent_temperature(temp_c: float, humedad: float, viento_m
     
     # Flujo de calor sensible (convección + radiación)
     # Q_sensible = (T_sk - T_a) / (R_cl + 1/h_c)
+    # ESCUDO DE SEGURIDAD 2026: Proteger división
+    if h_c <= 0:
+        h_c = 5.0  # Convección natural mínima
     R_total = R_cl + 1.0 / h_c
     
     # Flujo de calor latente (evaporación)
     # Q_latent = (e_sk - e_a) / R_e_total
-    # e_sk = presión vapor saturado a T_sk
-    e_sk = 6.105 * math.exp(17.27 * T_sk_target / (237.7 + T_sk_target))
+    # e_sk = presión vapor saturado a T_sk - HYLAND-WEXLER 2026
+    try:
+        e_sk_pa = saturacion_vapor_hyland_wexler(T_sk_target, 101325.0)
+        e_sk = e_sk_pa / 100.0  # Pa → hPa
+    except Exception:
+        e_sk = 6.105 * math.exp(17.27 * T_sk_target / (237.7 + T_sk_target))  # Tetens emergencia
     R_e_total = R_e_cl + 1.0 / (h_c * 16.5)  # Factor Lewis (Le ≈ 16.5 para aire)
     
     # Balance energético: M - W = Q_sensible + Q_latent
@@ -523,10 +547,15 @@ def indice_humedad_absoluta_gm3(temp_c: float, humedad: float, lat: float, lon: 
     pws_real, _ = calcular_saturacion_vapor_con_fallback(temp_validado, p_atm_validado)
     
     # Virial: Z = 1 + B(T)*n + C(T)*n^2
+    # ESCUDO DE SEGURIDAD 2026: Proteger división y validar física
+    if T_k <= 0:
+        return 0.0
     n = p_atm_validado / (8.314472 * T_k)  # mol/m3
     B = -0.00021 + 1.2e-7 * T_k  # m3/mol (aprox. aire húmedo)
     C = 1.1e-11 * T_k  # m6/mol2 (aprox. aire húmedo)
     Z = 1 + B * n + C * n**2
+    if Z <= 0:
+        Z = 1.0  # Fallback a gas ideal si Z no físico
     
     # LEY DEL ENTERO 2026: Liberar humedad 0-100; usar epsilon solo para logs internos
     rh_clamped = max(0, min(100, humedad_validada))
@@ -535,9 +564,13 @@ def indice_humedad_absoluta_gm3(temp_c: float, humedad: float, lat: float, lon: 
     
     # Humedad absoluta corregida por Z
     M_w = 18.01528  # g/mol
-    rho_v = (pw * M_w) / (8.314472 * T_k * Z)
+    # ESCUDO DE SEGURIDAD 2026: Proteger división
+    denominador = 8.314472 * T_k * Z
+    if abs(denominador) < 1e-12:
+        return 0.0
+    rho_v = (pw * M_w) / denominador
     
-    return rho_v
+    return max(0.0, rho_v)  # Validación física: rho >= 0
 
 
 def indice_vpd_kpa(temp_c: float, humedad: float, presion_kpa: float = None, contexto=None) -> float:
@@ -791,8 +824,17 @@ def _dew_point(temp_c: float, rh_pct: float) -> float:
     
     # Newton-Raphson con convergencia 1e-12
     a, b = 17.27, 237.7
-    alpha = ((a * temp_c) / (b + temp_c)) + math.log(rh_clamped / 100.0)
-    td_guess = (b * alpha) / (a - alpha)
+    # ESCUDO DE SEGURIDAD 2026: Proteger log(0) y divisiones
+    if rh_clamped <= 0:
+        rh_clamped = 0.01  # Mínimo físico para evitar log(0)
+    denom_temp = b + temp_c
+    if abs(denom_temp) < 1e-12:
+        return temp_c  # Fallback si denominador nulo
+    alpha = ((a * temp_c) / denom_temp) + math.log(rh_clamped / 100.0)
+    denom_alpha = a - alpha
+    if abs(denom_alpha) < 1e-12:
+        return temp_c  # Fallback si no converge
+    td_guess = (b * alpha) / denom_alpha
     
     for iteration in range(20):  # Máximo 20 iteraciones
         T_d_k = td_guess + 273.15
@@ -803,6 +845,11 @@ def _dew_point(temp_c: float, rh_pct: float) -> float:
         d_ln_ea = (-2*g[0] * T_d_k**-3 - g[1] * T_d_k**-2 + g[3] + 
                    2*g[4] * T_d_k + 3*g[5] * T_d_k**2 + 4*g[6] * T_d_k**3 + g[7] / T_d_k)
         
+        # ESCUDO DE SEGURIDAD 2026: Proteger divisiones en Newton-Raphson
+        if abs(d_ln_ea) < 1e-15:
+            break  # Evitar división por cero
+        if ea <= 0:
+            ea = 1e-6  # Mínimo físico
         delta = (math.log(ea) - ln_ea_calc) / d_ln_ea
         td_guess += delta
         
@@ -887,10 +934,14 @@ def _soil_heat_flux_estimate(rn: float, temp_c: float) -> float:
 
 
 def _penman_monteith_full(rn: float, g: float, delta: float, gamma: float, temp_c: float, u2: float, es: float, ea: float) -> float | None:
+    # ESCUDO DE SEGURIDAD 2026: Proteger divisiones
     denominator = delta + gamma * (1 + 0.34 * u2)
-    if denominator == 0:
+    if abs(denominator) < 1e-12:
         return None
-    numerator = 0.408 * delta * (rn - g) + gamma * (900 / (temp_c + 273.0)) * u2 * (es - ea)
+    temp_k = temp_c + 273.0
+    if temp_k <= 0:
+        return None
+    numerator = 0.408 * delta * (rn - g) + gamma * (900 / temp_k) * u2 * (es - ea)
     return max(0, numerator / denominator)
 
 
@@ -3131,9 +3182,13 @@ class EnvironmentalIndices:
         if eto_val is None:
             g = 0
             denominator = delta + gamma * (1 + 0.34 * u2)
-            if denominator == 0:
+            # ESCUDO DE SEGURIDAD 2026: Proteger división
+            if abs(denominator) < 1e-12:
                 return {"valor": None, "estimado": True, "explicacion": "Denominador ET inválido"}
-            eto = (0.408 * delta * (rn - g) + gamma * (900 / (t_val + 273.0)) * u2 * (es - ea)) / denominator
+            temp_k = t_val + 273.0
+            if temp_k <= 0:
+                return {"valor": None, "estimado": True, "explicacion": "Temperatura inválida para ET"}
+            eto = (0.408 * delta * (rn - g) + gamma * (900 / temp_k) * u2 * (es - ea)) / denominator
             eto_val = max(0, eto)
         estimado = temp["estimado"] or humedad["estimado"] or rad_estimado or viento["estimado"]
         metadata = {
