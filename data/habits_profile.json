@@ -1,19 +1,6 @@
 {
   "horario_ventilacion": null,
-  "preferencias_confort": {
-    "temperatura": {
-      "media": 12.39,
-      "p20": 12.277777777777779,
-      "p80": 12.5,
-      "muestras": 200
-    },
-    "humedad": {
-      "media": 79.86,
-      "p20": 80.0,
-      "p80": 80.0,
-      "muestras": 200
-    }
-  },
+  "preferencias_confort": null,
   "horario_actividad": null,
-  "updated_at": "2026-02-02 09:52:25"
+  "updated_at": "2026-02-02 12:58:34"
 }

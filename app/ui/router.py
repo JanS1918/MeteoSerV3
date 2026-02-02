@@ -550,7 +550,12 @@ def obtener_contexto_sistema() -> Dict[str, Any]:
     if not _system_manager or not _system_manager.system:
         return _cache_set("contexto", {
             'sensores': {},
-            'indices': {}
+            'indices': {},
+            'ubicacion': {
+                'latitud': 41.55,
+                'longitud': 2.40,
+                'poblacion': 'Argentona'
+            }
         })
     
     # Obtener estado completo del sistema
@@ -576,9 +581,28 @@ def obtener_contexto_sistema() -> Dict[str, Any]:
     # Extraer índices del estado (si existen)
     indices = estado.get('indices', {})
     
+    # Extraer ubicación del estado
+    ubicacion = estado.get('ubicacion', {})
+    if not ubicacion:
+        # Intentar obtener coordenadas del system manager
+        coords = _system_manager.obtener_coordenadas()
+        if coords:
+            ubicacion = {
+                'latitud': coords.get('lat', coords.get('latitude', 41.55)),
+                'longitud': coords.get('lon', coords.get('longitude', 2.40)),
+                'poblacion': coords.get('poblacion', coords.get('population', 'Argentona'))
+            }
+        else:
+            ubicacion = {
+                'latitud': 41.55,
+                'longitud': 2.40,
+                'poblacion': 'Argentona'
+            }
+    
     return _cache_set("contexto", {
         'sensores': sensores,
-        'indices': indices
+        'indices': indices,
+        'ubicacion': ubicacion
     })
 
 @router.get("/", response_class=HTMLResponse)

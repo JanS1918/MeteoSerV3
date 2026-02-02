@@ -150,6 +150,7 @@ class PanelViewModel:
         """Genera los datos para el panel central (recomendaciones y sensación)."""
         sensores = contexto.get('sensores', {})
         indices = contexto.get('indices', {})
+        ubicacion = contexto.get('ubicacion', {})
         
         # Generar recomendaciones
         recomendaciones = self.recomendaciones_motor.generar_recomendaciones(contexto)
@@ -200,6 +201,7 @@ class PanelViewModel:
             'valores_principales': valores_principales,
             'valores_secundarios': valores_secundarios,
             'estado_tiempo': self._detectar_estado_tiempo(sensores, indices),
+            'ubicacion': ubicacion,
             # Compatibilidad
             'recomendaciones': recomendaciones,
             'temperatura': temperatura,
