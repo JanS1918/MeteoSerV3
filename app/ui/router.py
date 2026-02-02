@@ -45,14 +45,6 @@ def _cache_set(key: str, data):
     _CACHE[key] = {"ts": time.monotonic(), "data": data}
     return data
 
-def _cache_clear(key: str = None):
-    """Limpia el caché (un key específico o todo si key es None)"""
-    if key is None:
-        for k in _CACHE:
-            _CACHE[k] = {"ts": 0.0, "data": None}
-    elif key in _CACHE:
-        _CACHE[key] = {"ts": 0.0, "data": None}
-
 def _normalizar_key(valor: str) -> str:
     return str(valor).strip().lower().replace(" ", "_")
 
@@ -529,57 +521,6 @@ def generar_grupos_desde_sistema(contexto: Dict[str, Any]) -> List[GrupoValores]
             icono='🌫️',
             valores=valores_aire,
             prioridad=50
-        ))
-    
-    # GRUPO 6: SENSORES VIRTUALES 🤖 (placeholder si no hay datos)
-    valores_virtuales = []
-    # Aquí se pueden añadir sensores virtuales cuando estén disponibles
-    if valores_virtuales or True:  # Siempre crear el grupo aunque esté vacío
-        grupos.append(GrupoValores(
-            nombre='Sensores virtuales',
-            icono='🤖',
-            valores=valores_virtuales,
-            prioridad=45
-        ))
-    
-    # GRUPO 7: PREDICCIONES 🔮 (placeholder)
-    valores_predicciones = []
-    if valores_predicciones or True:
-        grupos.append(GrupoValores(
-            nombre='Predicciones',
-            icono='🔮',
-            valores=valores_predicciones,
-            prioridad=40
-        ))
-    
-    # GRUPO 8: ALERTAS Y RIESGOS ⚠️ (placeholder)
-    valores_alertas = []
-    if valores_alertas or True:
-        grupos.append(GrupoValores(
-            nombre='Alertas y riesgos',
-            icono='⚠️',
-            valores=valores_alertas,
-            prioridad=35
-        ))
-    
-    # GRUPO 9: ÍNDICES MISCELÁNEOS 📊 (placeholder)
-    valores_misc = []
-    if valores_misc or True:
-        grupos.append(GrupoValores(
-            nombre='Índices misceláneos',
-            icono='📊',
-            valores=valores_misc,
-            prioridad=30
-        ))
-    
-    # GRUPO 10: CONFIGURACIÓN Y SISTEMA ⚙️ (placeholder)
-    valores_sistema = []
-    if valores_sistema or True:
-        grupos.append(GrupoValores(
-            nombre='Sistema',
-            icono='⚙️',
-            valores=valores_sistema,
-            prioridad=25
         ))
     
     return grupos

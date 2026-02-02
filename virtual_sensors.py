@@ -5,6 +5,7 @@
 
 import math
 import time
+import logging
 from typing import Dict, Any, Callable, List, Optional
 
 # Intentamos importar el registro de sensores si existe.
@@ -208,8 +209,8 @@ class VirtualSensorManager:
                 # registrar capacidad en el registro central
                 try:
                     self.registry.capabilities.add(c)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logging.getLogger(__name__).exception("Error publicando capacidad %s en SensorRegistry: %s", c, e)
 
     # -------------------------
     # UTILIDADES PARA ESPECIFICAR SENSORES VIRTUALES COMUNES
