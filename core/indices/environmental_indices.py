@@ -21,6 +21,7 @@ import math
 import datetime
 import json
 import logging
+import hashlib
 from pathlib import Path
 from typing import Dict, Optional, Any, Tuple
 from datetime import timezone
@@ -79,6 +80,270 @@ from core.indices.ashrae55_adaptive_vtt import (
     evaluacion_edificio_confort_moho,
     calcular_temp_running_mean
 )
+from core.indices.bus_estado_global import (
+    BusEstadoGlobal,
+    GRAFO_DEPENDENCIAS_V20,
+    exportar_mapa_dependencias
+)
+
+# ============================================================
+# MANIFIESTO DE LAS 25 PREDICCIONES (V2.0 - BIBLIA METROLÓGICA)
+# ============================================================
+MANIFIESTO_PREDICCIONES_V20 = [
+    {
+        "id": 1,
+        "prediccion": "Tendencia Barométrica",
+        "sensores": ["presion", "temp_ext", "hum_ext", "viento", "lluvia_rate"],
+        "formula": "P_target=∫_{t-3h}^{t}(P_obs-ΔP_tidal-ΔP_wind)dt",
+        "sub_formula": "P_tidal=∑_{n=1}^{2}A_n cos(nωt-φ_n) (Chapman-Lindzen)",
+        "sub_sub_formula": "ΔP_wind=C_p·(1/2)·ρ·v^2 (Bernoulli)",
+        "accion": "Filtrado de mareas y corrección dinámica por viento"
+    },
+    {
+        "id": 2,
+        "prediccion": "Lluvia Local",
+        "sensores": ["hum_ext", "presion", "temp_ext", "rad", "uv", "viento", "lluvia_rate", "hum_suelo"],
+        "formula": "P(precip)=PWV·η_convective",
+        "sub_formula": "PWV=(1/(g·ρ_w))·∫ e_s(T)·RH·dz (Clausius-Clapeyron)",
+        "sub_sub_formula": "L_cloud=1-τ_UV (espesor óptico UV)",
+        "accion": "Columna de agua + convección + óptica"
+    },
+    {
+        "id": 3,
+        "prediccion": "Cota de Nieve Real",
+        "sensores": ["temp_ext", "hum_ext", "presion", "rad", "uv", "viento", "lluvia"],
+        "formula": "Z_snow=Z_station+(T_wet-T_crit)/Γ",
+        "sub_formula": "T_wet=T·atan(0.151977·sqrt(RH+8.313659))+... (Stull)",
+        "sub_sub_formula": "ρ_virial=P/(R·T)·(1+0.61·q/P) (virial)",
+        "accion": "Termodinámica de fase con bulbo húmedo"
+    },
+    {
+        "id": 4,
+        "prediccion": "Tormenta Inminente",
+        "sensores": ["presion", "rayos", "hum_ext", "temp_ext", "uv", "viento", "rad"],
+        "formula": "S_index=√(2·CAPE)·∇P·ξ_lightning",
+        "sub_formula": "CAPE=∫_{LFC}^{EL} g·((T_v,p-T_v,e)/T_v,e) dz",
+        "accion": "Severidad eléctrica con energía convectiva"
+    },
+    {
+        "id": 5,
+        "prediccion": "Helada Radiativa",
+        "sensores": ["temp_ext", "hum_ext", "rad", "uv", "viento", "presion", "hum_suelo"],
+        "formula": "T_surface(t)=T0·e^{-k t}+R_net/h",
+        "sub_formula": "R_net=(1-α)R_sw+ε(σT_sky^4-σT_s^4)",
+        "sub_sub_formula": "κ_soil=f(soilmoisture1)",
+        "accion": "Balance de onda larga y acoplo suelo"
+    },
+    {
+        "id": 6,
+        "prediccion": "Visibilidad (Bucholtz)",
+        "sensores": ["presion", "hum_ext", "uv", "temp_ext", "rad", "viento"],
+        "formula": "Vis=3.912/β_ext",
+        "sub_formula": "β_Ray=8π^3(n^2-1)^2/(3Nλ^4)·(6+3ρ_n)/(6-7ρ_n)",
+        "sub_sub_formula": "ρ_n=1.048 (King factor)",
+        "accion": "Dispersión molecular con corrección real"
+    },
+    {
+        "id": 7,
+        "prediccion": "Riesgo de Niebla",
+        "sensores": ["temp_ext", "hum_ext", "hum_suelo", "presion", "rad", "viento", "temp_suelo"],
+        "formula": "P(fog)=e/e_s(T_ground)",
+        "sub_formula": "T_d=243.5·ln(e/6.112)/(17.67-ln(e/6.112)) (Magnus-Tetens)",
+        "accion": "Saturación de capa límite"
+    },
+    {
+        "id": 8,
+        "prediccion": "Disipación Humo (Int)",
+        "sensores": ["pm25_int", "temp_int", "temp_ext", "hum_int"],
+        "formula": "λ_ACH=Cd·A·√(2gΔh·((T_i-T_o)/T_i))/V_room",
+        "sub_formula": "C(t)=C0·e^{-(λ_ACH+λ_dep)t}",
+        "accion": "Modelo de tiro térmico (stack effect)"
+    },
+    {
+        "id": 9,
+        "prediccion": "Saturación CO2",
+        "sensores": ["co2", "temp_int", "hum_int", "pm25_int", "presion"],
+        "formula": "C_in(t)=C_out+(G/Q)·(1-e^{-(Q/V)t})",
+        "accion": "Modelo Persily-Prill de mezcla"
+    },
+    {
+        "id": 10,
+        "prediccion": "ET Real (FAO-56 Dual)",
+        "sensores": ["temp_ext", "hum_ext", "viento", "rad", "uv", "hum_suelo", "presion", "temp_suelo"],
+        "formula": "ET_c=(K_cb·K_s+K_e)·ET_0",
+        "sub_formula": "ET_0=[0.408Δ(R_n-G)+γ·(900/(T+273))·u_2·(e_s-e_a)]/(Δ+γ(1+0.34u_2))",
+        "accion": "FAO-56 Penman-Monteith dual"
+    },
+    {
+        "id": 11,
+        "prediccion": "Índice UTCI",
+        "sensores": ["temp_ext", "hum_ext", "viento", "rad", "uv", "presion", "Tmrt"],
+        "formula": "UTCI=f(T_a,RH,v_1.1m,T_mrt)",
+        "sub_formula": "v_1.1m=v_mast·ln(1.1/z_0)/ln(13/z_0)",
+        "accion": "Índice climático universal"
+    },
+    {
+        "id": 12,
+        "prediccion": "Estabilidad Monin-Obukhov",
+        "sensores": ["viento", "presion", "temp_ext", "rad", "uv", "hum_ext", "rad_neta"],
+        "formula": "ζ=z/L",
+        "sub_formula": "L=-(u_*^3·ρ·c_p·T_v)/(k·g·Q_h)",
+        "accion": "Estabilidad de capa límite"
+    },
+    {
+        "id": 13,
+        "prediccion": "Nubosidad (Haurwitz-Óptica)",
+        "sensores": ["rad", "uv", "temp_ext", "hum_ext", "presion"],
+        "formula": "N=1-√(I_obs/I_theo)",
+        "sub_formula": "I_theo=S_0·cos(Z)·τ_Rayleigh·τ_Ozone",
+        "accion": "Transmitancia óptica y nubosidad"
+    },
+    {
+        "id": 14,
+        "prediccion": "Incomodidad Térmica (Thom Refinado)",
+        "sensores": ["temp_ext", "hum_ext", "viento", "rad", "uv", "presion", "co2"],
+        "formula": "THI=0.8T_a+(RH·(T_a-14.4))/100+46.4",
+        "accion": "Índice térmico refinado"
+    },
+    {
+        "id": 15,
+        "prediccion": "Punto de Rocío (Wexler/NIST)",
+        "sensores": ["temp_ext", "hum_ext", "presion", "viento"],
+        "formula": "T_d=Wexler(e) (rango 0-50°C)",
+        "sub_formula": "f_w=1.0007+3.46·10^-6·P (Nelson)",
+        "accion": "Condensación con compresibilidad"
+    },
+    {
+        "id": 16,
+        "prediccion": "Índice de Sequía (SPI/Thornthwaite)",
+        "sensores": ["hum_suelo", "lluvia", "temp_ext", "hum_ext", "rad", "viento", "presion"],
+        "formula": "D=∑(P-ET_c)",
+        "accion": "Déficit hídrico acumulado"
+    },
+    {
+        "id": 17,
+        "prediccion": "Recomendación Riego (MAD)",
+        "sensores": ["hum_suelo", "temp_ext", "hum_ext", "rad", "uv", "viento", "lluvia_rate"],
+        "formula": "V_water=((FC-θ)·Z·A)/η",
+        "accion": "Déficit MAD con eficiencia"
+    },
+    {
+        "id": 18,
+        "prediccion": "WBGT (Liljegren-Carhart)",
+        "sensores": ["temp_ext", "hum_ext", "rad", "uv", "viento", "presion", "rad_neta"],
+        "formula": "WBGT=0.7T_nw+0.2T_g+0.1T_d",
+        "sub_formula": "Modelo físico Liljegren (bulbo húmedo natural)",
+        "accion": "Estrés térmico profesional"
+    },
+    {
+        "id": 19,
+        "prediccion": "Tiempo de Ventilación",
+        "sensores": ["co2", "pm25_int", "temp_int", "presion", "viento_ext"],
+        "formula": "Q_total=√(Q_stack^2+Q_wind^2)",
+        "sub_formula": "Q_wind=C_p·A·v_ext",
+        "accion": "Diferencial de presión y viento"
+    },
+    {
+        "id": 20,
+        "prediccion": "Riesgo Mojar Ropa",
+        "sensores": ["lluvia", "hum_ext", "viento", "rad", "uv", "temp_ext", "presion"],
+        "formula": "t_dry=(ρ_w·L_v·Δz)/(h_m·(e_s-e_a))",
+        "accion": "Cinética de secado"
+    },
+    {
+        "id": 21,
+        "prediccion": "Pseudo-VOC (Salón)",
+        "sensores": ["co2", "pm25_int", "hum_int", "temp_int", "temp_ext", "uv_ext"],
+        "formula": "VOC_est=f(CO2,PM2.5,RH_int)",
+        "sub_formula": "Degradación=f(UV_ext·τ_window)",
+        "accion": "Fotólisis controlada"
+    },
+    {
+        "id": 22,
+        "prediccion": "Temp. Radiante Int.",
+        "sensores": ["luz_int", "temp_int", "rad_ext", "uv_ext", "orientacion", "hum_int"],
+        "formula": "T_mrt,int=[∑ F_i·T_surface,i^4]^{0.25}",
+        "accion": "Balance radiativo interior"
+    },
+    {
+        "id": 23,
+        "prediccion": "Ruido Relativo",
+        "sensores": ["microfono_int"],
+        "formula": "L_Aeq,T=10·log10[(1/T)·∫(p_A(t)/p_0)^2 dt]",
+        "sub_formula": "Ponderación A (IEC 61672:2003)",
+        "accion": "Nivel de presión sonora equivalente"
+    },
+    {
+        "id": 24,
+        "prediccion": "Corrientes Internas",
+        "sensores": ["temp_int", "temp_ext", "viento_ext", "presion", "hum_int", "co2"],
+        "formula": "v_int=φ·√(2ΔP/ρ)",
+        "accion": "Bernoulli-Venturi interior"
+    },
+    {
+        "id": 25,
+        "prediccion": "Riesgo de Moho (Int)",
+        "sensores": ["temp_int", "hum_int", "temp_ext", "ventilacion", "hum_suelo"],
+        "formula": "M_i=∫ f(T,RH,sustrato) dt (Isopleth)",
+        "sub_formula": "Criterio VTT / Sedlbauer (germinación)",
+        "accion": "Modelo ASHRAE/Sedlbauer"
+    }
+]
+
+MANIFIESTO_PREDICCIONES_V20_NOTAS = [
+    "Paso de presión: inyectar P=1019.1 hPa en ecuaciones de densidad.",
+    "WBGT: usar Liljegren completo para estrés térmico exterior.",
+    "Humo: modelo Stack Effect con gradiente Ti-To (no exponencial simple)."
+]
+
+MANIFIESTO_PREDICCIONES_V20_SHA256 = "8013ac495363fdd29068125f26ca64549381e742e8c4ca6d586cd61a03b0732c"
+
+_MANIFIESTO_V20_VERIFIED = False
+
+
+def _calcular_hash_manifiesto(manifiesto: list) -> str:
+    payload = json.dumps(manifiesto, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+class ManifiestoIntegridadError(Exception):
+    """Excepción crítica cuando la integridad del manifiesto V2.0 está comprometida."""
+    pass
+
+
+def _verificar_integridad_manifiesto() -> None:
+    logger = logging.getLogger("manifiesto_predicciones")
+    logger.setLevel(logging.CRITICAL)
+    try:
+        actual = _calcular_hash_manifiesto(MANIFIESTO_PREDICCIONES_V20)
+        if MANIFIESTO_PREDICCIONES_V20_SHA256 != actual:
+            mensaje_critico = (
+                "\n" + "="*80 + "\n"
+                "⚠️  ERROR CRÍTICO: INTEGRIDAD DE LA BIBLIA V2.0 COMPROMETIDA  ⚠️\n"
+                "="*80 + "\n"
+                f"SHA256 Esperado: {MANIFIESTO_PREDICCIONES_V20_SHA256}\n"
+                f"SHA256 Actual:   {actual}\n\n"
+                "El manifiesto de predicciones ha sido modificado sin autorización.\n"
+                "El sistema NO PUEDE arrancar con física corrupta.\n\n"
+                "ACCIÓN REQUERIDA:\n"
+                "  1. Revisa docs/MANIFIESTO_PREDICCIONES_V20.md\n"
+                "  2. Verifica que MANIFIESTO_PREDICCIONES_V20 no haya sido alterado\n"
+                "  3. Si el cambio es intencional, actualiza el SHA256 y documenta\n"
+                "  4. Contacta al Arquitecto del sistema\n\n"
+                "⛔ INTERVENCIÓN DEL ARQUITECTO REQUERIDA ⛔\n"
+                "="*80
+            )
+            logger.critical(mensaje_critico)
+            raise ManifiestoIntegridadError(mensaje_critico)
+    except ManifiestoIntegridadError:
+        raise
+    except Exception as exc:
+        mensaje_fallo = (
+            f"\n⚠️  ERROR: No se pudo validar integridad del manifiesto: {exc}\n"
+            "El sistema continuará pero la integridad NO está garantizada.\n"
+        )
+        logger.error(mensaje_fallo)
+        raise ManifiestoIntegridadError(mensaje_fallo)
 
 # ------------------------------------------------------------
 # SANITIZACIÓN DE INFINITOS Y NaN PARA JSON (Techo Dinámico Flexible)
@@ -275,7 +540,7 @@ def to_physics_safe(valor: Any, tipo_indice: Optional[str] = None, path: str = "
             status = "SATURADO"
 
     if status == "SATURADO":
-        logger.info(f"Saturación en '{path}' | tipo={tipo} | valor→{v}")
+        logger.debug(f"Saturación en '{path}' | tipo={tipo} | valor→{v}")
     return v, status
 
 
@@ -1545,6 +1810,15 @@ from core.indices.cetreria.cetreria_indices import calcular_cetreria
 
 
 class EnvironmentalIndices:
+    def manifiesto_predicciones_v20(self) -> dict:
+        """Devuelve el manifiesto V2.0 de predicciones con sensores y fórmulas."""
+        return {
+            "version": "V2.0",
+            "predicciones": MANIFIESTO_PREDICCIONES_V20,
+            "notas_implementacion": MANIFIESTO_PREDICCIONES_V20_NOTAS,
+            "sha256": MANIFIESTO_PREDICCIONES_V20_SHA256
+        }
+
     def _pressure_sensor_lookup(self, context):
         """Busca el sensor de presión más adecuado según el contexto."""
         pressure_key = context.get('pressure_key', 'presion')
@@ -1712,7 +1986,18 @@ class EnvironmentalIndices:
         """
         Calcula la radiación solar teórica en superficie horizontal (W/m2) según la hora y latitud.
         Devuelve un dict con valor, estimado y explicación.
+        ⚡ CASCADA: Publica radiacion_teorica, transmitancia, nubosidad (nubosidad_haurwitz)
         """
+        # ⚡ CASCADA: Consumir del bus si ya existe
+        if self._bus and self._bus.existe("radiacion_teorica"):
+            valor_bus = self._bus.consumir("radiacion_teorica", "radiacion_teorica_method")
+            return {
+                "valor": valor_bus,
+                "estimado": True,
+                "explicacion": "Heredado del Bus de Estado Global (calculado previamente)",
+                "fuente_cascada": True
+            }
+        
         # Constante solar (W/m2)
         S = 1367
         # Obtener latitud
@@ -1733,9 +2018,42 @@ class EnvironmentalIndices:
         decl_rad: float = math.radians(decl)
         elev: float = math.asin(math.sin(lat_rad) * math.sin(decl_rad) + math.cos(lat_rad) * math.cos(decl_rad) * math.cos(omega))
         if elev <= 0:
+            # ⚡ CASCADA: Publicar valores nocturnos
+            if self._bus:
+                self._bus.publicar("radiacion_teorica", 0.0, "nubosidad_haurwitz", {"formula": "Geometrica_solar", "elevacion_grados": math.degrees(elev)})
+                self._bus.publicar("nubosidad", 0.0, "nubosidad_haurwitz", {"metodo": "nocturno"})
+                self._bus.publicar("transmitancia", 0.0, "nubosidad_haurwitz", {"metodo": "nocturno"})
             return {"valor": 0.0, "estimado": True, "explicacion": "Sol bajo el horizonte"}
         # Atmósfera clara, sin nubes
         rad: float = S * math.sin(elev)
+        
+        # ⚡ CASCADA: Publicar en el bus (nubosidad_haurwitz es predicción base)
+        if self._bus:
+            self._bus.publicar(
+                "radiacion_teorica",
+                round(rad, 2),
+                "nubosidad_haurwitz",
+                {"formula": "Geometrica_solar", "elevacion_grados": math.degrees(elev), "dia_año": n}
+            )
+            # Transmitancia atmosférica (asumiendo cielo claro)
+            transmitancia = 0.75  # Valor típico para atmósfera clara
+            self._bus.publicar(
+                "transmitancia",
+                transmitancia,
+                "nubosidad_haurwitz",
+                {"formula": "Haurwitz_1945", "condicion": "cielo_claro"}
+            )
+            # Nubosidad estimada por diferencia rad_real vs rad_teorica
+            rad_real = self._get_sensor("radiacion", fallback=None)
+            if rad_real and rad_real.get("valor") is not None:
+                nubosidad_pct = max(0, min(100, (1.0 - (float(rad_real["valor"]) / rad)) * 100)) if rad > 0 else 50.0
+                self._bus.publicar(
+                    "nubosidad",
+                    round(nubosidad_pct, 2),
+                    "nubosidad_haurwitz",
+                    {"formula": "Haurwitz_transmitancia", "rad_real": rad_real["valor"], "rad_teorica": rad}
+                )
+        
         return {"valor": round(rad, 2), "estimado": True, "explicacion": "Modelo teórico sin nubes"}
 
     def _get_location(self):
@@ -1812,6 +2130,23 @@ class EnvironmentalIndices:
 
     def __init__(self, system_core) -> None:
         self.system = system_core
+        self._bus = None
+        # ⚡ BLOQUEO DURO: Si la Biblia V2.0 está corrupta, el sistema NO arranca
+        # VERIFICACIÓN OBLIGATORIA en cada instancia (sin caché global)
+        try:
+            _verificar_integridad_manifiesto()
+            logger = logging.getLogger("manifiesto_predicciones")
+            logger.info(
+                "OK: VERIFICACION EXITOSA - Biblia Metrologica V2.0 intacta. "
+                "Sistema autorizado para operar con fisica certificada."
+            )
+        except ManifiestoIntegridadError as e:
+            # Sistema bloqueado. No hay fallback. No hay compromiso.
+            raise RuntimeError(
+                f"SISTEMA BLOQUEADO: {e}\n\n"
+                "MeteoSerV3 NO PUEDE OPERAR sin la fisica certificada V2.0.\n"
+                "Prefiero el silencio a la mentira fisica."
+            ) from e
         # Inicializar validador de consistencia física (sistema inmunológico)
         # self.consistency_validator = PhysicalConsistencyValidator()  # Módulo no disponible
         try:
@@ -1838,6 +2173,128 @@ class EnvironmentalIndices:
             self._high_fidelity = False
         self._forced_context_time = None
         self._computed_context_time = None
+    
+    def _obtener_densidad_aire(self, temp_c: float, presion_hpa: float, humedad_rel: float, contexto=None) -> float:
+        """
+        Obtiene densidad del aire desde el Bus o la calcula (CIPM-2007 con Virial).
+        ⚡ PATRÓN CASCADE: Publicar subfórmulas para reutilización.
+        """
+        # Consumir del bus si existe
+        if self._bus and self._bus.existe("densidad_aire_kg_m3"):
+            return self._bus.consumir("densidad_aire_kg_m3", "_obtener_densidad_aire")
+        
+        try:
+            from core.indices.physics_engine_2026 import PhysicsEngine2026
+            
+            lat = contexto.latitud if contexto and hasattr(contexto, 'latitud') else 41.5513
+            temp_k = temp_c + 273.15
+            presion_pa = presion_hpa * 100.0
+            humedad_fraccion = humedad_rel / 100.0
+            
+            engine = PhysicsEngine2026(
+                latitud=lat,
+                temperatura_k=temp_k,
+                presion_pa=presion_pa,
+                humedad_fraccion=humedad_fraccion
+            )
+            
+            # Densidad CIPM-2007 con Virial (NIVEL 1)
+            rho_aire, estado = engine.densidad_aire_cipm_2007(altitud_m=100.0)
+            
+            # ⚡ CASCADA: Publicar densidad y subfórmulas
+            if self._bus:
+                self._bus.publicar(
+                    "densidad_aire_kg_m3",
+                    rho_aire,
+                    "physics_engine_cipm2007",
+                    {
+                        "formula": "CIPM-2007 con Virial",
+                        "temperatura_k": temp_k,
+                        "presion_pa": presion_pa,
+                        "humedad_fraccion": humedad_fraccion,
+                        "estado_fisico": estado.value if hasattr(estado, 'value') else str(estado)
+                    }
+                )
+                
+                # Publicar temperatura virtual
+                try:
+                    tv_k, _ = engine.temperatura_virtual()
+                    self._bus.publicar(
+                        "temperatura_virtual_k",
+                        tv_k,
+                        "physics_engine_virtual",
+                        {"formula": "T_v = T * (1 + 0.61*w)", "temperatura_k": temp_k}
+                    )
+                except:
+                    pass
+                
+                # Publicar factor compresibilidad Z
+                try:
+                    Z, _ = engine.factor_compresibilidad_virial()
+                    self._bus.publicar(
+                        "factor_compresibilidad_z",
+                        Z,
+                        "physics_engine_virial",
+                        {"formula": "Virial completo con B2, B3", "presion_pa": presion_pa}
+                    )
+                except:
+                    pass
+            
+            return rho_aire
+        except Exception as e:
+            # Fallback: densidad estándar ISA
+            return 1.225
+        
+    def _calcular_con_bus(self, nombre_clave, metodo_calculo, *args, **kwargs):
+        """
+        Envoltorio inteligente que aplica el patrón Bus automáticamente.
+        
+        ⚡ PATRÓN CASCADE AUTOMÁTICO:
+        1. Intenta consumir del Bus
+        2. Si no existe, ejecuta el cálculo
+        3. Publica el resultado en el Bus
+        4. Retorna el valor
+        
+        Args:
+            nombre_clave: Clave para el Bus (ej: "densidad_aire", "punto_rocio")
+            metodo_calculo: Método a llamar si no está en Bus
+            *args, **kwargs: Argumentos para el método
+            
+        Returns:
+            Resultado del cálculo (dict con valor, estimado, explicacion)
+        """
+        # Paso 1: Intentar consumir del Bus
+        if self._bus and self._bus.existe(nombre_clave):
+            valor_bus = self._bus.consumir(nombre_clave, metodo_calculo.__name__)
+            return {
+                "valor": valor_bus,
+                "estimado": False,
+                "explicacion": f"Heredado del Bus (calculado por otra predicción)",
+                "fuente_cascada": True,
+                "confianza": "real"
+            }
+        
+        # Paso 2: Si no existe, ejecutar cálculo original
+        resultado = metodo_calculo(*args, **kwargs)
+        
+        # Paso 3: Publicar en el Bus si es exitoso
+        if self._bus and resultado and isinstance(resultado, dict) and resultado.get("valor") is not None:
+            self._bus.publicar(
+                nombre_clave,
+                resultado["valor"],
+                metodo_calculo.__name__,
+                {
+                    "estimado": resultado.get("estimado", True),
+                    "explicacion": resultado.get("explicacion", ""),
+                    "confianza": resultado.get("confianza", "derivado")
+                }
+            )
+        
+        # Paso 4: Retornar resultado original
+        return resultado
+        
+        # ⚡ ARQUITECTURA DE CASCADA: Bus de Estado Global
+        self._bus = None  # Se inicializa en cada ciclo de cálculo
 
 
     def _store_derived_sensor(self, key, value, context=None):
@@ -1960,16 +2417,32 @@ class EnvironmentalIndices:
         return None
 
     def _first_available_sensor(self, nombres: list[str]) -> dict[str, Any] | None:
+        # Preferir sensores exteriores para determinadas familias (PM, PM10).
+        exterior_pref = (any('pm' in n.lower() for n in nombres))
         for nombre in nombres:
             sensor = self._get_sensor(nombre)
-            if sensor["valor"] is not None:
-                return sensor
+            if sensor["valor"] is None:
+                continue
+            # Si buscamos PM y el sensor encontrado es de ámbito interior, saltarlo
+            if exterior_pref:
+                fuente = sensor.get('fuente')
+                try:
+                    meta = self.system.obtener_sensor_metadata(fuente) if hasattr(self.system, 'obtener_sensor_metadata') else None
+                except Exception:
+                    meta = None
+                if meta and meta.get('ambito') == 'interior':
+                    # preferimos sensores exteriores; seguir buscando
+                    continue
+            return sensor
         return None
 
     def _pm_humidity_correction(self, pm_val: float, rh: float, base_sensor: str | None = None) -> float:
         """
         Corrección dinámica de PM2.5 usando Sequential Monte Carlo (Particle Filter).
         Integra VPD y temperatura para calibración multivariable.
+        
+        ⚡ MODO COMBUSTIÓN 2026: Sensores de ámbito interior NO usan Particle Filter.
+        Descuento máximo del 5% para PM interior (factor mínimo 0.95).
         
         Retorna PM2.5 calibrado en µg/m³
         """
@@ -1982,6 +2455,43 @@ class EnvironmentalIndices:
         presion_sensor = self._get_sensor("presion")
         presion_val = float(presion_sensor.get('valor', 101.325)) if presion_sensor.get('valor') else 101.325
         
+        # Determinar ámbito del sensor ANTES de aplicar filtro
+        ambito = None
+        try:
+            if base_sensor and hasattr(self.system, 'obtener_sensor_metadata'):
+                meta = self.system.obtener_sensor_metadata(base_sensor)
+                if isinstance(meta, dict):
+                    ambito = meta.get('ambito')
+            # Fallback: consultar claves de trazabilidad registradas por el receptor
+            if ambito is None:
+                try:
+                    ambito = self.system.sensores.get('pm25_ambito')
+                except Exception:
+                    ambito = None
+        except Exception:
+            ambito = None
+
+        # LOG CRÍTICO: ¿Qué ambito detectó el motor?
+        logging.getLogger(__name__).warning(f"[DIAGNÓSTICO PM] sensor={base_sensor} | PM_raw={pm_val:.1f} | ambito detectado={ambito}")
+
+        # ⚡ INTERVENCIÓN DE EMERGENCIA: Sensores INTERIORES NO usan Particle Filter
+        if ambito == 'interior':
+            # Descuento conservador máximo del 5% por humedad
+            # PM_corr = PM_raw * 0.95 (mínimo garantizado)
+            factor_simple = max(0.95, 1.0 - 0.0005 * max(0, rh_clamped - 40.0))
+            pm_corr = pm_val * factor_simple
+            razon = f"MODO COMBUSTIÓN: ambito=interior | factor={factor_simple:.3f} | PM_raw={pm_val:.1f} → PM_corr={pm_corr:.1f}"
+            logging.getLogger(__name__).warning(f"[SALUD INTERIOR] {razon}")
+            # Guardar razon_confianza en sistema para trazabilidad
+            try:
+                if hasattr(self.system, 'sensores'):
+                    key = f"pm25_razon_confianza_{base_sensor or 'unknown'}"
+                    self.system.sensores[key] = razon
+            except Exception:
+                pass
+            return max(0, pm_corr)
+
+        # ⚡ Sensores EXTERIORES: usar Particle Filter completo
         # Calcular VPD dinámico (Antoine simplificado para la corrección)
         try:
             # Presión de saturación (Hyland-Wexler)
@@ -1994,7 +2504,7 @@ class EnvironmentalIndices:
         except Exception:
             vpd_kpa = 1
         
-        # Usar calibrador dinámico con Particle Filter
+        # Usar calibrador dinámico con Particle Filter SOLO para exterior
         try:
             pm_corr, factor, log_msg = calibrate_pm25_dynamic(
                 pm_raw=pm_val,
@@ -2005,6 +2515,7 @@ class EnvironmentalIndices:
             )
             # Log de calibración
             logging.getLogger(__name__).debug(log_msg)
+
             return max(0, pm_corr)
         except Exception as e:
             logging.getLogger(__name__).warning(f"[PM25] Particle Filter falló: {e}, usando fallback")
@@ -2069,7 +2580,12 @@ class EnvironmentalIndices:
 
     def calcular_indices(self):
         import logging
+        import time
         logger = logging.getLogger(__name__)
+        
+        # ⚡ ARQUITECTURA DE CASCADA: Nuevo ciclo de cálculo
+        ciclo_id = f"{int(time.time() * 1000)}"
+        self._bus = BusEstadoGlobal.nuevo_ciclo(ciclo_id)
         
         # ARQUITECTURA DE ORGANISMO ÚNICO: Obtener contexto maestro
         try:
@@ -2132,6 +2648,104 @@ class EnvironmentalIndices:
             explicacion_sismo_externa = "No disponible lat/lon para validación externa sismos"
         # Aquí iría el cálculo y retorno de los índices, por ejemplo:
         indices = {}
+
+        # ⚡ CASCADA: INICIALIZAR VARIABLES BASE EN EL BUS
+        # Las predicciones base deben ejecutarse PRIMERO para publicar sus valores
+        # Esto garantiza que el resto de predicciones puedan consumir del Bus
+        try:
+            # PREDICCIÓN BASE 1: punto_rocio_wexler (publica: punto_rocio, presion_vapor, factor_compresibilidad)
+            _ = self.punto_rocio()  # Ya modificado para publicar en Bus
+            
+            # PREDICCIÓN BASE 2: radiacion_teorica / nubosidad_haurwitz (publica: radiacion_teorica, nubosidad, transmitancia)
+            _ = self.radiacion_teorica()  # Ya modificado para publicar en Bus
+            
+            # PREDICCIÓN BASE 3: densidad_aire via tendencia_barometrica
+            # Inicializar densidad del aire si hay datos disponibles
+            temp_sensor = self._get_sensor("temperatura")
+            presion_sensor = self._get_sensor("presion", fallback=None)
+            humedad_sensor = self._get_sensor("humedad")
+            if temp_sensor.get("valor") is not None and humedad_sensor.get("valor") is not None:
+                presion_val = presion_sensor.get("valor") if presion_sensor else 1013.25
+                _ = self._obtener_densidad_aire(
+                    float(temp_sensor["valor"]),
+                    float(presion_val) if presion_val else 1013.25,
+                    float(humedad_sensor["valor"]),
+                    contexto
+                )
+            
+            logger.info("[BUS] Variables base inicializadas en el Bus de Estado Global")
+        except Exception as e:
+            logger.warning(f"[BUS] Error inicializando variables base: {e}")
+
+        # ════════════════════════════════════════════════════════════════════════
+        # 🔥 ACOPLAMIENTO V2.6 - MOTORES DE ÉLITE + BUCHOLTZ + VECTOR EKMAN
+        # ════════════════════════════════════════════════════════════════════════
+        try:
+            from integracion_elite_motors_v25 import IntegracionMotoresV25
+            
+            # Ejecutar ciclo completo de motores de élite
+            integrador = IntegracionMotoresV25()
+            resultado_elite = integrador.execute_ciclo_completo(
+                temp_c=float(temp_sensor.get("valor", 20.0)),
+                presion_hpa=float(presion_sensor.get("valor", 1013.25)),
+                humedad_rel=float(humedad_sensor.get("valor", 50.0)),
+                radiacion_wm2=float(radiacion_sensor.get("valor", 0.0)),
+                velocidad_viento=float(self._get_sensor("velocidad_viento").get("valor", 0.0)),
+                direccion_viento=float(self._get_sensor("direccion_viento").get("valor", 0.0)),
+                latitud=lat or 41.5513,
+                longitud=lon or 2.3998,
+                altitud=alt or 96.0,
+                sensor_height=13.0
+            )
+            
+            # Publicar resultados de motores de élite en índices
+            indices["elite_motors_v25"] = {
+                "masa_aire_theta_e": resultado_elite.get("masa_aire_theta_e"),
+                "masa_aire_clasificacion": resultado_elite.get("masa_aire_clasificacion"),
+                "capa_limite_temperatura_suelo": resultado_elite.get("capa_limite_temperatura_suelo"),
+                "opacidad_nubes_tau": resultado_elite.get("opacidad_nubes_tau"),
+                "opacidad_nubes_tipo": resultado_elite.get("opacidad_nubes_tipo"),
+                "ventilacion_flujo": resultado_elite.get("ventilacion_flujo"),
+                "ventilacion_renovaciones_hora": resultado_elite.get("ventilacion_renovaciones_hora"),
+                "autocalibration_chi2": resultado_elite.get("autocalibration_chi2"),
+                "autocalibration_confianza": resultado_elite.get("autocalibration_confianza"),
+                "simulacion_forense_hash": resultado_elite.get("simulacion_forense_hash"),
+                "visibilidad_bucholtz_km": resultado_elite.get("visibilidad_bucholtz_km"),
+                "visibilidad_factor_z_aplicado": resultado_elite.get("visibilidad_factor_z_aplicado"),
+                "vector_direccion_ekman": resultado_elite.get("vector_direccion_ekman"),
+                "vector_direccion_magnetica": resultado_elite.get("vector_direccion_magnetica"),
+                "vector_inflow_ekman_grados": resultado_elite.get("vector_inflow_ekman_grados"),
+                "nivel_alerta": resultado_elite.get("nivel_alerta"),
+                "confianza": resultado_elite.get("confianza"),
+                "timestamp": resultado_elite.get("timestamp")
+            }
+            
+            # Inyectar valores clave en predicciones principales
+            if resultado_elite.get("masa_aire_theta_e"):
+                indices["prediccion_1_tipo_masa_aire"] = resultado_elite.get("masa_aire_clasificacion", "DESCONOCIDA")
+            if resultado_elite.get("capa_limite_temperatura_suelo"):
+                indices["prediccion_2_temperatura_suelo_businger_dyer"] = resultado_elite.get("capa_limite_temperatura_suelo")
+            if resultado_elite.get("opacidad_nubes_tau"):
+                indices["prediccion_3_opacidad_nubes_kasten_hanel"] = resultado_elite.get("opacidad_nubes_tau")
+            if resultado_elite.get("ventilacion_flujo"):
+                indices["prediccion_4_ventilacion_bernoulli_factor_z"] = resultado_elite.get("ventilacion_flujo")
+            if resultado_elite.get("autocalibration_chi2"):
+                indices["prediccion_5_autocalibration_chi2_kalman"] = resultado_elite.get("autocalibration_chi2")
+            if resultado_elite.get("simulacion_forense_hash"):
+                indices["prediccion_6_simulacion_forense_hermite_sha256"] = resultado_elite.get("simulacion_forense_hash")
+            if resultado_elite.get("visibilidad_bucholtz_km"):
+                indices["prediccion_7_visibilidad_bucholtz_rayleigh"] = resultado_elite.get("visibilidad_bucholtz_km")
+            if resultado_elite.get("vector_direccion_magnetica"):
+                indices["prediccion_26_vector_aproximacion_ekman"] = resultado_elite.get("vector_direccion_magnetica")
+            
+            logger.info(f"[V2.6] Motores de élite acoplados: confianza={resultado_elite.get('confianza', 0)}%, alerta={resultado_elite.get('nivel_alerta', 'N/A')}")
+        except Exception as e:
+            logger.error(f"[V2.6] Error en acoplamiento de motores de élite: {e}", exc_info=True)
+            indices["elite_motors_v25"] = {"error": str(e), "estado": "DESACOPLADO"}
+        # ════════════════════════════════════════════════════════════════════════
+        
+        # Manifiesto V2.0 (sellado)
+        indices["manifiesto_predicciones_v20"] = self.manifiesto_predicciones_v20()
         
         # AÑADIR ALERTAS DE CONSISTENCIA AL JSON
         if alertas_consistencia:
@@ -2194,10 +2808,32 @@ class EnvironmentalIndices:
             logger.error(f"[TESTIGO] Error en auditoría de coherencia: {e}", exc_info=True)
             # No bloquear el retorno de índices si la auditoría falla
         
+        # ⚡ ARQUITECTURA DE CASCADA: Estadísticas del ciclo
+        try:
+            estadisticas_bus = self._bus.obtener_estadisticas()
+            indices["bus_estado_global"] = estadisticas_bus
+            logger.info(
+                f"[BUS] Ciclo {ciclo_id} completado: "
+                f"{estadisticas_bus['total_variables']} variables, "
+                f"eficiencia {estadisticas_bus['eficiencia']}"
+            )
+        except Exception as e:
+            logger.error(f"[BUS] Error al obtener estadísticas: {e}")
+        
         # Ejemplo: indices["sismo"] = sismos
         return indices
 
     def nubosidad_estimada(self):
+        # ⚡ CASCADA: Consumir del bus si ya existe
+        if self._bus and self._bus.existe("nubosidad"):
+            valor_bus = self._bus.consumir("nubosidad", "nubosidad_estimada")
+            return {
+                "valor": valor_bus,
+                "estimado": False,
+                "explicacion": "Heredado del Bus de Estado Global (calculado previamente)",
+                "fuente_cascada": True
+            }
+        
         temp = self._get_sensor("temperatura")
         humedad = self._get_sensor("humedad")
         viento = self._get_sensor("viento", fallback=0)
@@ -2212,15 +2848,16 @@ class EnvironmentalIndices:
         rad_val = float(rad_real["valor"]) if rad_real["valor"] is not None else None
         rad_teor_val = float(rad_teor["valor"]) if rad_teor["valor"] is not None else None
 
-        # Punto de rocío
-        dew = None
-        if temp_val is not None and humedad_val is not None:
-            try:
-                a, b = 17.27, 237.7
-                alpha = ((a * temp_val) / (b + temp_val)) + math.log(max(1e-6, humedad_val) / 100.0)
-                dew = (b * alpha) / (a - alpha)
-            except Exception:
-                dew = None
+        # Punto de rocío - consumir del bus si existe
+        dew = self._bus.consumir("punto_rocio", "nubosidad_estimada") if self._bus else None
+        if dew is None:
+            if temp_val is not None and humedad_val is not None:
+                try:
+                    a, b = 17.27, 237.7
+                    alpha = ((a * temp_val) / (b + temp_val)) + math.log(max(1e-6, humedad_val) / 100.0)
+                    dew = (b * alpha) / (a - alpha)
+                except Exception:
+                    dew = None
 
         es_dia = False
         if rad_val is not None and rad_val >= 50:
@@ -2250,6 +2887,21 @@ class EnvironmentalIndices:
                     nub = 50.0
             else:
                 nub = 50.0
+        
+        # ⚡ CASCADA: Publicar en el bus
+        if self._bus:
+            self._bus.publicar(
+                "nubosidad",
+                round(float(nub), 2),
+                "nubosidad_estimada",
+                {
+                    "metodo": "radiacion_difusa_atmosfera",
+                    "es_dia": es_dia,
+                    "radiacion_real": rad_val,
+                    "radiacion_teorica": rad_teor_val
+                }
+            )
+        
         explicacion = "Nubosidad día/noche (radiación + atmósfera)" if es_dia else "Nubosidad nocturna (atmósfera)"
         return {
             "valor": round(float(nub), 2),
@@ -2608,6 +3260,18 @@ class EnvironmentalIndices:
                 fuente_sensor = candidate
                 break
         if valor is None:
+            # Special-case: accept known virtual/internal barometer IDs as pressure source
+            if nombre == "presion" and hasattr(self.system, 'obtener_sensor'):
+                for alt_id in ("BAROM_INTERNAL_HP2550A", "barom_internal_hp2550a", "consola_hp2550a", "barometro_hp2550a"):
+                    try:
+                        v_alt = self.system.obtener_sensor(alt_id)
+                    except Exception:
+                        v_alt = None
+                    if v_alt is not None:
+                        valor = v_alt
+                        fuente_sensor = alt_id
+                        break
+
             base = candidates[0] if candidates else nombre
             if nombre == "temperatura":
                 # Forzar valor virtual si no hay sensor real
@@ -3566,6 +4230,16 @@ class EnvironmentalIndices:
         }
 
     def punto_rocio(self):
+        # ⚡ CASCADA: Consumir del bus si ya existe
+        if self._bus and self._bus.existe("punto_rocio"):
+            valor_bus = self._bus.consumir("punto_rocio", "punto_rocio_method")
+            return {
+                "valor": valor_bus,
+                "estimado": False,
+                "explicacion": "Heredado del Bus de Estado Global (calculado previamente)",
+                "fuente_cascada": True
+            }
+        
         temp = self._get_sensor("temperatura")
         rh = self._get_sensor("humedad")
         if temp["valor"] is None or rh["valor"] is None:
@@ -3581,6 +4255,28 @@ class EnvironmentalIndices:
             dp: float = (b * alpha) / (a - alpha)
         except Exception:
             return {"valor": None, "estimado": True, "explicacion": "Error en cálculo de punto de rocío"}
+        
+        # ⚡ CASCADA: Publicar en el bus
+        if self._bus:
+            self._bus.publicar(
+                "punto_rocio",
+                round(dp, 2),
+                "punto_rocio_wexler",
+                {"formula": "Magnus-Tetens", "temp": t_val, "rh": rh_val}
+            )
+            # Publicar también presión de vapor
+            try:
+                e_s = 6.112 * math.exp((17.67 * t_val) / (t_val + 243.5))
+                e = e_s * (rh_val / 100.0)
+                self._bus.publicar(
+                    "presion_vapor",
+                    e,
+                    "punto_rocio_wexler",
+                    {"formula": "Clausius-Clapeyron", "unidad": "hPa"}
+                )
+            except Exception:
+                pass
+        
         return {
             "valor": round(dp, 2),
             "estimado": temp["estimado"] or rh["estimado"],

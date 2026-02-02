@@ -1,0 +1,195 @@
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2554' in position 32: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 214, in ejecutar_certificacion_completa
+    logger.info("\u2554" + "="*68 + "\u2557")
+Message: '\u2554====================================================================\u2557'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2551' in position 32: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 215, in ejecutar_certificacion_completa
+    logger.info("\u2551" + " "*15 + "ACORAZADO ARGENTONA V2.6" + " "*29 + "\u2551")
+Message: '\u2551               ACORAZADO ARGENTONA V2.6                             \u2551'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2551' in position 32: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 216, in ejecutar_certificacion_completa
+    logger.info("\u2551" + " "*10 + "PROTOCOLO DE CERTIFICACIËN DE ARRANQUE" + " "*20 + "\u2551")
+Message: '\u2551          PROTOCOLO DE CERTIFICACIËN DE ARRANQUE                    \u2551'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u255a' in position 32: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 217, in ejecutar_certificacion_completa
+    logger.info("\u255a" + "="*68 + "\u255d")
+Message: '\u255a====================================================================\u255d'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2717' in position 42: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 233, in ejecutar_certificacion_completa
+    resultado_sha256 = self.verificar_integridad_sha256()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 171, in verificar_integridad_sha256
+    logger.error("[SHA256] \u2717 INTEGRIDAD COMPROMETIDA - ROJO")
+Message: '[SHA256] \u2717 INTEGRIDAD COMPROMETIDA - ROJO'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 43: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 237, in ejecutar_certificacion_completa
+    self.limpiar_depuracion()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 200, in limpiar_depuracion
+    logger.info("[LIMPIEZA] \u2713 Sistema preparado para producci¾n")
+Message: '[LIMPIEZA] \u2713 Sistema preparado para producci¾n'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2554' in position 33: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 249, in ejecutar_certificacion_completa
+    logger.error("\u2554" + "="*68 + "\u2557")
+Message: '\u2554====================================================================\u2557'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2551' in position 33: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 250, in ejecutar_certificacion_completa
+    logger.error("\u2551" + " "*18 + "\u2717 CERTIFICACIËN FALLIDA" + " "*27 + "\u2551")
+Message: '\u2551                  \u2717 CERTIFICACIËN FALLIDA                           \u2551'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2551' in position 33: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 251, in ejecutar_certificacion_completa
+    logger.error("\u2551" + " "*15 + "SISTEMA BLOQUEADO POR SEGURIDAD" + " "*22 + "\u2551")
+Message: '\u2551               SISTEMA BLOQUEADO POR SEGURIDAD                      \u2551'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u255a' in position 33: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 346, in <module>
+    resultado = ejecutar_protocolo_arranque(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 331, in ejecutar_protocolo_arranque
+    resultado = protocolo.ejecutar_certificacion_completa(
+  File "C:\Users\kioko\Desktop\MeteoSerV3\protocolo_certificacion_arranque_v26.py", line 252, in ejecutar_certificacion_completa
+    logger.error("\u255a" + "="*68 + "\u255d")
+Message: '\u255a====================================================================\u255d'
+Arguments: ()
+Ejecutando Protocolo de Certificaci¾n V2.6...
+======================================================================
+
+======================================================================
+RESULTADO DE CERTIFICACIËN:
+Estado: CERTIFICACION_FALLIDA
+Factor Z: 0.999996
+Desviaci¾n del ideal: 0.0004%
+┴ngulo de Ekman: 22.5░
+SHA256 vßlido: False
+======================================================================

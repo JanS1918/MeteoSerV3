@@ -25,6 +25,12 @@ document.addEventListener('DOMContentLoaded', function() {
     inicializarPanel();
     configurarEventos();
     iniciarActualizaciones();
+    
+    // Inicializar Drag & Drop
+    if (window.inicializarDragDrop) {
+        inicializarDragDrop();
+        console.log('[Panel] Drag & Drop habilitado');
+    }
 });
 
 function inicializarAnimaciones() {
@@ -236,6 +242,21 @@ function renderizarPanelCentral(data) {
 }
 
 function actualizarAnimaciones(estadoTiempo) {
+    // 🚨 SISTEMA DE ALERTA VISUAL PARA TORMENTA INMINENTE
+    const panelRoot = document.getElementById('panel-root');
+    
+    if (estadoTiempo.tormenta) {
+        if (panelRoot && !panelRoot.classList.contains('alerta-tormenta')) {
+            panelRoot.classList.add('alerta-tormenta');
+            console.log('⚠️ ALERTA VISUAL: Tormenta detectada');
+        }
+    } else {
+        if (panelRoot && panelRoot.classList.contains('alerta-tormenta')) {
+            panelRoot.classList.remove('alerta-tormenta');
+            console.log('✅ Alerta de tormenta desactivada');
+        }
+    }
+    
     // Mapear estado meteorológico a tipo de animación
     let estadoAnimacion = 'despejado';
     
@@ -243,8 +264,17 @@ function actualizarAnimaciones(estadoTiempo) {
     const hora = new Date().getHours();
     const esNoche = hora < 6 || hora > 20;
     
-    if (estadoTiempo.precipitacion) {
-        if (estadoTiempo.precipitacion.tipo === 'nieve') {
+    // Prioridad 1: Niebla (si visibilidad < 1km)
+    if (estadoTiempo.niebla) {
+        estadoAnimacion = 'niebla';
+    }
+    // Prioridad 2: Precipitación (granizo, nieve, lluvia)
+    else if (estadoTiempo.precipitacion) {
+        if (estadoTiempo.precipitacion.tipo === 'granizo') {
+            estadoAnimacion = 'granizo';
+        } else if (estadoTiempo.precipitacion.tipo === 'ventisca') {
+            estadoAnimacion = 'ventisca';
+        } else if (estadoTiempo.precipitacion.tipo === 'nieve') {
             estadoAnimacion = 'nieve';
         } else if (estadoTiempo.precipitacion.intensidad === 'alta') {
             estadoAnimacion = 'lluvia_intensa';
@@ -253,7 +283,9 @@ function actualizarAnimaciones(estadoTiempo) {
         } else {
             estadoAnimacion = 'lluvia';
         }
-    } else if (estadoTiempo.nubosidad) {
+    }
+    // Prioridad 3: Nubosidad
+    else if (estadoTiempo.nubosidad) {
         if (estadoTiempo.nubosidad >= 70) {
             estadoAnimacion = 'nublado';
         } else if (estadoTiempo.nubosidad >= 30) {
@@ -261,9 +293,13 @@ function actualizarAnimaciones(estadoTiempo) {
         } else if (esNoche) {
             estadoAnimacion = 'despejado_noche';
         }
-    } else if (estadoTiempo.viento && estadoTiempo.viento >= 30) {
+    }
+    // Prioridad 4: Viento fuerte
+    else if (estadoTiempo.viento && estadoTiempo.viento >= 30) {
         estadoAnimacion = 'viento';
-    } else if (esNoche) {
+    }
+    // Prioridad 5: Despejado (día o noche)
+    else if (esNoche) {
         estadoAnimacion = 'despejado_noche';
     }
     

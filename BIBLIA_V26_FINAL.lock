@@ -1,0 +1,22 @@
+{
+  "version": "2.6",
+  "fecha_sello": "2026-02-01T22:14:07.415818",
+  "hash_maestro": "e1a79bc73173ccc475dd37a223fdb17d853985bba2cf1ba37e73139e8fec0e30",
+  "modulos": {
+    "elite_motors_v25.py": "0f8a283b3e122b474607d8eadfdc52a034a427b1aebd9a481492133f02b0e179",
+    "bucholtz_rayleigh_v25.py": "1424f2524807716fc53b87c67d5bed9d4d5a6ca200f499fabe9f2c918b24454a",
+    "vector_aproximacion_v26.py": "e3b06b115ee7f2a4e73a7f78c49b843f8fc2e6d9a5b0c54edef7a434ee27dd17",
+    "integracion_elite_motors_v25.py": "acc0678552afdac0134384a74a7951b60b88cec7768a0a90eef93f5ead727eb4",
+    "core/correccion_geofisica_v26.py": "e37917f28c5f70e659c007d2ba17511c725f9320d65c81892e4dd8ed9e38dbd7",
+    "protocolo_certificacion_arranque_v26.py": "40abf4fbd292d0e2e66470e85850c58699b0c8c162cee46e15a971f31519ec3b"
+  },
+  "metrologia": {
+    "factor_z": 0.999996,
+    "desviacion_ideal_pct": 0.0004,
+    "angulo_ekman_grados": 22.5,
+    "rugosidad_argentona": 0.15,
+    "declinacion_magnetica_grados": 2.0,
+    "densidad_diferencial_g_m3": 13.96
+  },
+  "estado": "SELLADO_Y_BLOQUEADO"
+}

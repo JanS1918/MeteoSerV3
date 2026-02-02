@@ -2,10 +2,14 @@
 from fastapi import APIRouter, HTTPException, Body
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel
+import traceback
+import logging
 
 from core.fiabilidad_manager import FiabilidadManager
 from core.feedback_manager import FeedbackManager
 from core.auditoria_manager import AuditoriaManager
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/ui", tags=["ui"])
 
@@ -40,6 +44,80 @@ class CerrarAlertaRequest(BaseModel):
 
 class RestaurarRequest(BaseModel):
     numero_movimientos: int
+
+# ============================================================
+# ENDPOINTS UI - PANEL 2026 (CAJONES Y SUBMENÚ)
+# ============================================================
+
+@router.get("/cajones")
+def obtener_cajones_ui() -> Dict[str, Any]:
+    """
+    Compatibilidad UI: cajones para Panel 2026.
+    Endpoint simplificado que siempre devuelve JSON válido.
+    """
+    try:
+        # Importar aquí para evitar circular imports
+        from app.ui.router import obtener_contexto_sistema, obtener_cajones_cacheados
+        
+        contexto = obtener_contexto_sistema()
+        if contexto and (contexto.get('sensores') or contexto.get('indices')):
+            cajones = obtener_cajones_cacheados()
+            cajones = _normalizar_cajones(cajones)
+            return {"cajones": cajones, "total": len(cajones)}
+        else:
+            # Sin datos disponibles - devolver estructura vacía
+            return {"cajones": [], "total": 0}
+            
+    except Exception as e:
+        logger.error(f"[API CAJONES] Error: {str(e)}\n{traceback.format_exc()}")
+        # SIEMPRE devolver JSON válido, NUNCA HTML de error
+        return {"cajones": [], "total": 0}
+
+
+def _normalizar_cajones(cajones: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    normalizados: List[Dict[str, Any]] = []
+    for cajon in cajones or []:
+        valores_tapa = cajon.get("valores_tapa") or []
+        valores_completos = cajon.get("valores_completos") or []
+
+        def _normalizar_valor(valor: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "nombre": valor.get("nombre") or "",
+                "valor": 0.0 if valor.get("valor") is None else valor.get("valor"),
+                "unidad": valor.get("unidad") or "",
+                "icono": valor.get("icono") or ""
+            }
+
+        normalizados.append({
+            "id": cajon.get("id") or "",
+            "nombre": cajon.get("nombre") or "",
+            "icono": cajon.get("icono") or "",
+            "prioridad": cajon.get("prioridad") or 0,
+            "valores_tapa": [_normalizar_valor(v) for v in valores_tapa],
+            "valores_completos": [_normalizar_valor(v) for v in valores_completos],
+            "total_valores": cajon.get("total_valores") or len(valores_completos)
+        })
+    return normalizados
+
+
+@router.get("/submenu/{nombre_valor}")
+def obtener_submenu_ui(nombre_valor: str) -> Dict[str, Any]:
+    """Compatibilidad UI: submenu para Panel 2026."""
+    try:
+        from app.ui.router import obtener_contexto_sistema, generar_grupos_desde_sistema, panel_vm
+        
+        contexto = obtener_contexto_sistema()
+        if not contexto:
+            return {"error": "Contexto no disponible", "nombre": nombre_valor}
+        
+        if not panel_vm.jerarquia:
+            grupos = generar_grupos_desde_sistema(contexto)
+            panel_vm.inicializar_jerarquia(grupos)
+        
+        return panel_vm.obtener_submenu_valor(nombre_valor, contexto)
+    except Exception as e:
+        logger.error(f"[API SUBMENU] Error: {str(e)}\n{traceback.format_exc()}")
+        return {"error": f"Error cargando submenu", "nombre": nombre_valor}
 
 # ============================================================
 # ENDPOINTS DE FIABILIDAD Y ALERTAS

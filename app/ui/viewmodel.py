@@ -28,14 +28,17 @@ class PanelViewModel:
         self._generar_cajones()
     
     def _generar_cajones(self):
-        """Genera la estructura de cajones desde la jerarquía."""
+        """Genera la estructura de cajones desde la jerarquía, garantizando exactamente 5 cajones principales."""
         if not self.jerarquia:
             return
         
         self.cajones = []
-        for grupo in self.jerarquia.grupos[:6]:  # Máximo 6 cajones
-            # Obtener los 2 valores más prioritarios para la tapa
-            valores_tapa = grupo.valores[:2]
+        # EXACTAMENTE 5 CAJONES PRINCIPALES (como especificado)
+        for grupo in self.jerarquia.grupos[:5]:
+            # Determinar cuántos valores mostrar en la portada (tapa del cajón)
+            # Si hay espacio (grupo con <4 valores), mostrar todos; si no, solo los 2 más prioritarios
+            num_valores_tapa = min(len(grupo.valores), 3) if len(grupo.valores) <= 4 else 2
+            valores_tapa = grupo.valores[:num_valores_tapa]
             
             cajon = {
                 'id': f"cajon_{grupo.nombre.lower().replace(' ', '_')}",
@@ -53,19 +56,23 @@ class PanelViewModel:
             }
     
     def _serializar_valor(self, valor: ValorSistema) -> Dict[str, Any]:
-        """Serializa un ValorSistema para la UI, aplicando Resolución de Diamante y Ley del Entero para UV."""
+        """Serializa un ValorSistema para la UI, aplicando Resolución de Diamante y Ley del Entero para UV, y redondeo a 2 decimales para todos los valores."""
         val = valor.valor
         
-        # Resolución de Diamante para UV: 2 decimales si tiene decimales, INT si es 0 o redondo exacto
-        if 'uv' in valor.nombre.lower() or 'ultravioleta' in valor.nombre.lower():
+        # REGLA GLOBAL: Redondear a 2 decimales TODOS los valores numéricos (excepto coordenadas que se gestionan aparte)
+        if val is not None and isinstance(val, (int, float)) and 'coordenada' not in valor.nombre.lower() and 'latitud' not in valor.nombre.lower() and 'longitud' not in valor.nombre.lower():
             try:
-                if val is not None and isinstance(val, (int, float)):
-                    val_float = float(val)
+                val_float = float(val)
+                # Resolución de Diamante para UV: 2 decimales si tiene decimales, INT si es 0 o redondo exacto
+                if 'uv' in valor.nombre.lower() or 'ultravioleta' in valor.nombre.lower():
                     # Ley del Entero: solo INT si es 0 o un valor redondo exacto (7.00 -> 7)
                     if val_float == 0 or (val_float == int(val_float)):
                         val = int(val_float)
                     else:
                         # Resolución de Diamante: 2 decimales redondeados para ver la curva real
+                        val = round(val_float, 2)
+                else:
+                    # Para todos los demás valores: 2 decimales
                         val = round(val_float, 2)
             except Exception:
                 pass
@@ -83,14 +90,18 @@ class PanelViewModel:
         }
     
     def obtener_panel_superior(self, lat: float, lon: float, estacion: str) -> Dict[str, Any]:
-        """Genera los datos para el panel superior fijo."""
+        """Genera los datos para el panel superior fijo, mostrando coordenadas con máxima precisión (sin truncar ni redondear)."""
         fecha_actual = datetime.now()
-        
+        def format_coord(val):
+            try:
+                return float(val)
+            except Exception:
+                return 0.0
         return {
             'nombre_sistema': 'MeteoSer',
             'ubicacion': {
-                'latitud': lat,
-                'longitud': lon,
+                'latitud': format_coord(lat),
+                'longitud': format_coord(lon),
                 'poblacion': 'Argentona'  # Obtener dinámicamente en producción
             },
             'estacion': estacion,
@@ -173,38 +184,105 @@ class PanelViewModel:
             'edificio': utci_edificio,
             'persona': utci_persona
         }
-        
+
+        valores_principales = {
+            'temperatura': temperatura.get('valor') if isinstance(temperatura, dict) else temperatura,
+            'humedad': humedad.get('valor') if isinstance(humedad, dict) else humedad,
+            'sensacion': sensacion.get('persona') if isinstance(sensacion, dict) else sensacion,
+        }
+        valores_secundarios = {
+            'presion': presion.get('valor') if isinstance(presion, dict) else presion,
+            'viento': viento.get('valor') if isinstance(viento, dict) else viento,
+        }
+
         return {
+            'recomendacion': recomendaciones.get('texto') if isinstance(recomendaciones, dict) else recomendaciones,
+            'valores_principales': valores_principales,
+            'valores_secundarios': valores_secundarios,
+            'estado_tiempo': self._detectar_estado_tiempo(sensores, indices),
+            # Compatibilidad
             'recomendaciones': recomendaciones,
             'temperatura': temperatura,
             'humedad': humedad,
             'presion': presion,
             'viento': viento,
             'sensacion': sensacion,
-            'estado_tiempo': self._detectar_estado_tiempo(sensores, indices)
         }
     
     def _detectar_estado_tiempo(self, sensores: Dict, indices: Dict) -> Dict[str, Any]:
-        """Detecta el estado actual del tiempo para las animaciones."""
-        lluvia = sensores.get('lluvia', {}).get('valor', 0)
-        nieve = sensores.get('nieve', {}).get('valor', 0)
-        nubosidad = sensores.get('nubosidad', {}).get('valor', 0)
-        viento = sensores.get('viento', {}).get('valor', 0)
-        temp = sensores.get('temperatura', {}).get('valor', 15)
-        rayos = sensores.get('rayos_detectados', {}).get('valor', False)
+        """Detecta el estado actual del tiempo para las animaciones. Soporta: lluvia, nieve, granizo, niebla, viento, tormenta, ventisca, etc."""
+        # Asegurar valores numéricos: algunos sensores pueden existir pero contener None
+        lluvia = sensores.get('lluvia', {})
+        lluvia = lluvia.get('valor') if isinstance(lluvia, dict) else lluvia
+        if lluvia is None:
+            lluvia = 0
+
+        nieve = sensores.get('nieve', {})
+        nieve = nieve.get('valor') if isinstance(nieve, dict) else nieve
+        if nieve is None:
+            nieve = 0
+        
+        granizo = sensores.get('granizo', {})
+        granizo = granizo.get('valor') if isinstance(granizo, dict) else granizo
+        if granizo is None:
+            granizo = 0
+
+        nubosidad = sensores.get('nubosidad', {})
+        nubosidad = nubosidad.get('valor') if isinstance(nubosidad, dict) else nubosidad
+        if nubosidad is None:
+            nubosidad = 0
+        
+        visibilidad = sensores.get('visibilidad', {})
+        visibilidad = visibilidad.get('valor') if isinstance(visibilidad, dict) else visibilidad
+        if visibilidad is None:
+            visibilidad = 10  # km (valor por defecto: buena visibilidad)
+
+        viento = sensores.get('viento', {})
+        viento = viento.get('valor') if isinstance(viento, dict) else viento
+        if viento is None:
+            viento = 0
+
+        temp = sensores.get('temperatura', {})
+        temp = temp.get('valor') if isinstance(temp, dict) else temp
+        if temp is None:
+            temp = 15
+
+        rayos = sensores.get('rayos_detectados', {})
+        rayos = rayos.get('valor') if isinstance(rayos, dict) else rayos
+        if rayos is None:
+            rayos = False
         
         estado = {
             'precipitacion': None,
             'nubosidad': nubosidad,
             'viento': viento,
-            'tormenta': rayos
+            'tormenta': rayos,
+            'visibilidad': visibilidad,
+            'niebla': visibilidad < 1.0,  # Niebla si visibilidad < 1km
+            'ventisca': False
         }
         
-        if nieve > 0:
+        # Detección de granizo (prioridad alta)
+        if granizo > 0:
             estado['precipitacion'] = {
-                'tipo': 'nieve',
-                'intensidad': 'alta' if nieve > 5 else 'media' if nieve > 2 else 'baja'
+                'tipo': 'granizo',
+                'intensidad': 'alta' if granizo > 20 else 'media' if granizo > 10 else 'baja'
             }
+        # Detección de nieve
+        elif nieve > 0:
+            # Ventisca: nieve + viento fuerte
+            if viento > 40:
+                estado['ventisca'] = True
+                estado['precipitacion'] = {
+                    'tipo': 'ventisca',
+                    'intensidad': 'alta'
+                }
+            else:
+                estado['precipitacion'] = {
+                    'tipo': 'nieve',
+                    'intensidad': 'alta' if nieve > 5 else 'media' if nieve > 2 else 'baja'
+                }
+        # Detección de lluvia
         elif lluvia > 0:
             estado['precipitacion'] = {
                 'tipo': 'lluvia',

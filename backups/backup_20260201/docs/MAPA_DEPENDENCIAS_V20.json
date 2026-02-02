@@ -1,0 +1,250 @@
+{
+  "tendencia_barometrica": {
+    "publica": [
+      "presion_filtrada",
+      "delta_presion_tidal",
+      "delta_presion_wind",
+      "densidad_aire"
+    ],
+    "consume": []
+  },
+  "lluvia_local": {
+    "publica": [
+      "pwv",
+      "eta_convective",
+      "tau_uv"
+    ],
+    "consume": [
+      "densidad_aire",
+      "nubosidad"
+    ]
+  },
+  "cota_nieve": {
+    "publica": [
+      "temp_bulbo_humedo",
+      "isoterma_0c",
+      "densidad_virial"
+    ],
+    "consume": [
+      "densidad_aire",
+      "punto_rocio"
+    ]
+  },
+  "tormenta_inminente": {
+    "publica": [
+      "cape",
+      "gradiente_presion",
+      "indice_severidad"
+    ],
+    "consume": [
+      "nubosidad",
+      "densidad_aire",
+      "punto_rocio"
+    ]
+  },
+  "helada_radiativa": {
+    "publica": [
+      "radiacion_neta",
+      "temp_superficie",
+      "kappa_suelo"
+    ],
+    "consume": []
+  },
+  "visibilidad_bucholtz": {
+    "publica": [
+      "beta_ext",
+      "beta_rayleigh",
+      "indice_refraccion"
+    ],
+    "consume": [
+      "nubosidad",
+      "densidad_aire"
+    ]
+  },
+  "riesgo_niebla": {
+    "publica": [
+      "deficit_saturacion"
+    ],
+    "consume": [
+      "temp_bulbo_humedo",
+      "nubosidad",
+      "punto_rocio",
+      "presion_vapor"
+    ]
+  },
+  "disipacion_humo": {
+    "publica": [
+      "lambda_ach",
+      "tasa_renovacion_aire"
+    ],
+    "consume": [
+      "densidad_aire"
+    ]
+  },
+  "saturacion_co2": {
+    "publica": [
+      "concentracion_co2_equilibrio",
+      "tasa_acumulacion"
+    ],
+    "consume": [
+      "densidad_aire",
+      "tasa_renovacion_aire"
+    ]
+  },
+  "et_real": {
+    "publica": [
+      "et0_penman",
+      "kcb",
+      "ke",
+      "deficit_presion_vapor"
+    ],
+    "consume": [
+      "punto_rocio",
+      "densidad_aire",
+      "radiacion_neta"
+    ]
+  },
+  "utci": {
+    "publica": [
+      "utci",
+      "temp_radiante_media",
+      "velocidad_viento_corregida"
+    ],
+    "consume": [
+      "punto_rocio",
+      "densidad_aire",
+      "radiacion_neta"
+    ]
+  },
+  "monin_obukhov": {
+    "publica": [
+      "zeta",
+      "longitud_obukhov",
+      "u_star",
+      "flujo_calor"
+    ],
+    "consume": [
+      "densidad_aire"
+    ]
+  },
+  "nubosidad_haurwitz": {
+    "publica": [
+      "nubosidad",
+      "transmitancia",
+      "radiacion_teorica"
+    ],
+    "consume": []
+  },
+  "incomodidad_termica": {
+    "publica": [
+      "thi",
+      "indice_calor"
+    ],
+    "consume": [
+      "punto_rocio",
+      "densidad_aire"
+    ]
+  },
+  "punto_rocio_wexler": {
+    "publica": [
+      "punto_rocio",
+      "presion_vapor",
+      "factor_compresibilidad"
+    ],
+    "consume": []
+  },
+  "indice_sequia": {
+    "publica": [
+      "deficit_hidrico",
+      "spi"
+    ],
+    "consume": [
+      "et0_penman",
+      "pwv"
+    ]
+  },
+  "recomendacion_riego": {
+    "publica": [
+      "volumen_agua_necesario",
+      "deficit_mad"
+    ],
+    "consume": [
+      "et0_penman",
+      "deficit_hidrico"
+    ]
+  },
+  "wbgt_liljegren": {
+    "publica": [
+      "wbgt",
+      "temp_globo",
+      "temp_bulbo_natural"
+    ],
+    "consume": [
+      "punto_rocio",
+      "densidad_aire",
+      "radiacion_neta"
+    ]
+  },
+  "tiempo_ventilacion": {
+    "publica": [
+      "caudal_ventilacion_stack",
+      "caudal_ventilacion_wind"
+    ],
+    "consume": [
+      "densidad_aire"
+    ]
+  },
+  "riesgo_mojar_ropa": {
+    "publica": [
+      "tiempo_secado",
+      "coef_transferencia_masa"
+    ],
+    "consume": [
+      "punto_rocio",
+      "deficit_presion_vapor"
+    ]
+  },
+  "pseudo_voc": {
+    "publica": [
+      "voc_estimado",
+      "tasa_degradacion_uv"
+    ],
+    "consume": [
+      "tasa_renovacion_aire"
+    ]
+  },
+  "temp_radiante_int": {
+    "publica": [
+      "tmrt_interior",
+      "factor_forma"
+    ],
+    "consume": [
+      "radiacion_neta"
+    ]
+  },
+  "ruido_relativo": {
+    "publica": [
+      "nivel_sonoro_eq"
+    ],
+    "consume": []
+  },
+  "corrientes_internas": {
+    "publica": [
+      "velocidad_flujo_interior",
+      "diferencial_presion"
+    ],
+    "consume": [
+      "densidad_aire"
+    ]
+  },
+  "riesgo_moho": {
+    "publica": [
+      "indice_moho",
+      "tiempo_germinacion"
+    ],
+    "consume": [
+      "punto_rocio",
+      "tasa_renovacion_aire"
+    ]
+  }
+}

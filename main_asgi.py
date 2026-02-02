@@ -295,6 +295,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.auto.auto_sensor_discovery import AutoSensorDiscovery
 from core.auto.auto_repair_engine import AutoRepairEngine
 from core.auto.auto_expansion_engine import AutoExpansionEngine
+
+# Imports de Omnipotencia V1.5
+try:
+    from core.omnipotence.omnipotence_simple import omnipotence
+    OMNIPOTENCE_ENABLED = True
+except ImportError as e:
+    OMNIPOTENCE_ENABLED = False
+    omnipotence = None
 from core.pas.pas_engine import PASEngine
 from core.engines.habits_engine import HabitLearningEngine
 from meteoser_ia import block_f as voice_engine
@@ -391,8 +399,43 @@ else:
 try:
     manager = SystemManager()
     system = manager.iniciar()
+    # Asegurar que el Cerebro Estadístico esté presente y trate de restaurar estado
+    try:
+        from core.engines.statistical_brain import StatisticalBrain
+        if not hasattr(system, 'statistical_brain') or system.statistical_brain is None:
+            system.statistical_brain = StatisticalBrain(restore_state=True)
+            logger.info("🧠 StatisticalBrain añadido al sistema (restore_state=True)")
+    except Exception:
+        # No bloquear el arranque si falla la creación del cerebro
+        logger.exception("⚠️ No se pudo inicializar StatisticalBrain en el arranque")
     if not isinstance(system.indices, EnvironmentalIndices):
         system.indices = EnvironmentalIndices(system)
+    
+    # --- LIMPIEZA DE BUFFERS DE ERROR: Monin-Obukhov y presión ---
+    import logging
+    # Limpiar flags de error de presión
+    if hasattr(system, 'sensores'):
+        for key in [
+            'presion_status', 'presion_intentos_fallidos', 'presion_ultima_valida',
+            'presion_fuente', 'presion_fuente_raw', 'presion_raw',
+            'presion_ambito', 'presion_fuente_sensor',
+            'MONIN_OBUKHOV_ERROR', 'MONIN_OBUKHOV_FLAG', 'MONIN_OBUKHOV_SOBERANO',
+        ]:
+            if key in system.sensores:
+                system.sensores[key] = None
+    # Limpiar flags de error en metadata si existen
+    if hasattr(system, 'sensores_metadata'):
+        for meta in system.sensores_metadata.values():
+            for k in list(meta.keys()):
+                if 'error' in k.lower() or 'flag' in k.lower():
+                    meta[k] = None
+    # ARQUITECTURA DE LIMPIEZA: Entra en modo de observación (silencio quirúrgico sin tics)
+    try:
+        if hasattr(system, 'statistical_brain') and hasattr(system.statistical_brain, 'enter_observation_mode'):
+            system.statistical_brain.enter_observation_mode()
+    except Exception as e:
+        logging.getLogger(__name__).warning(f'[LIMPIEZA] No se pudo activar modo observación en StatisticalBrain: {e}')
+    logging.getLogger(__name__).warning('[LIMPIEZA] Buffers de error limpiados. Cerebro en modo observación (silencio quirúrgico).')
     
     # Inyectar SystemManager en el router de la nueva UI
     try:
@@ -401,6 +444,16 @@ try:
         logger.warning(f"No se pudo inyectar SystemManager en UI router: {inject_err}")
     
     logger.info("MeteoSer backend inicializado correctamente.")
+    
+    # 🛸 OMNIPOTENCIA V1.5: Inicializar sistema de descubrimiento universal
+    try:
+        from core.discovery import OmnipotenceManager
+        omnipotence_manager = OmnipotenceManager(system)
+        logger.info("🛸 OMNIPOTENCIA V1.5 ACTIVADA - Radar Universal en línea")
+    except Exception as omni_err:
+        logger.warning(f"⚠️ Omnipotencia no disponible: {omni_err}")
+        omnipotence_manager = None
+        
 except Exception as e:
     logger.error(f"Error crítico al iniciar MeteoSer: {e}", exc_info=True)
     # Creamos un system y manager dummy para que la app no se caiga
@@ -411,6 +464,7 @@ except Exception as e:
             return {"estado": "Error crítico en la inicialización. Ver logs."}
     manager = Dummy()
     system = Dummy()
+    omnipotence_manager = None
 
 discovery_engine = None
 auto_repair_engine = None
@@ -467,6 +521,36 @@ def _guardar_asistente() -> None:
         _ruta_asistente().write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     except Exception:
         pass
+
+
+def _registrar_evento_hardware_nuevo() -> list:
+    nuevos = []
+    try:
+        if not hasattr(system, "sensores_metadata"):
+            return nuevos
+        vistos = _asistente_store.get("hardware_nuevo_vistos")
+        if not isinstance(vistos, list):
+            vistos = []
+        for nombre in list(system.sensores_metadata.keys()):
+            if not nombre or nombre.startswith("__") or nombre.endswith("_original"):
+                continue
+            if nombre in vistos:
+                continue
+            evento = {
+                "tipo": "hardware_nuevo",
+                "sensor": nombre,
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "mensaje": f"Hardware nuevo detectado: {nombre}",
+            }
+            _agregar_lista("eventos", evento)
+            vistos.append(nombre)
+            nuevos.append(nombre)
+        _asistente_store["hardware_nuevo_vistos"] = vistos
+        if nuevos:
+            _guardar_asistente()
+    except Exception:
+        pass
+    return nuevos
 
 
 _cargar_asistente()
@@ -742,7 +826,15 @@ def _borrar_lista(clave: str, idx: int):
 
 @app.on_event("startup")
 async def iniciar_autodeteccion():
-    global discovery_engine, auto_repair_engine, pas_engine, habits_engine
+    global discovery_engine, auto_repair_engine, pas_engine, habits_engine, omnipotence_manager
+
+    # 🛸 OMNIPOTENCIA V1.5: Activar radar universal al inicio
+    if omnipotence_manager:
+        try:
+            await omnipotence_manager.start()
+            logger.info("🛸 Radar Universal iniciado - Buscando hardware por USB/BLE/WiFi...")
+        except Exception as omni_err:
+            logger.error(f"Error iniciando Omnipotencia: {omni_err}")
 
     mqtt_host = os.getenv("METEOSER_MQTT_HOST", "127.0.0.1")
     mqtt_tls_enabled = os.getenv("METEOSER_MQTT_TLS", "1") not in ("0", "false", "False")
@@ -761,6 +853,22 @@ async def iniciar_autodeteccion():
     mqtt_client_cert = os.getenv("METEOSER_MQTT_TLS_CLIENT_CERT")
     mqtt_client_key = os.getenv("METEOSER_MQTT_TLS_CLIENT_KEY")
     mqtt_tls_insecure = os.getenv("METEOSER_MQTT_TLS_INSECURE", "0") in ("1", "true", "True")
+    
+    # 🧠 AUTO-GUARDADO DEL CEREBRO ESTADÍSTICO
+    brain_autosaver = None
+    if hasattr(system, 'statistical_brain') and system.statistical_brain is not None:
+        try:
+            from core.engines.brain_persistence import BrainAutosaver
+            brain_autosaver = BrainAutosaver(system.statistical_brain, save_interval=100)
+            logger.info("🧠 Auto-guardado del cerebro activado (cada 100 ciclos)")
+            # Exponer el autosaver en el objeto global `system` para acceso externo
+            try:
+                system.brain_autosaver = brain_autosaver
+            except Exception:
+                # Si no se puede asignar, seguir sin fallo
+                pass
+        except Exception as e:
+            logger.exception(f"⚠️ No se pudo activar auto-guardado del cerebro: {e}")
 
     def _get_discovery_engine():
         global discovery_engine
@@ -788,6 +896,32 @@ async def iniciar_autodeteccion():
     auto_repair_engine = AutoRepairEngine(system, _get_discovery_engine)
     pas_engine = PASEngine()
     habits_engine = HabitLearningEngine(BASE_DIR / "data")
+    
+    # 🛸 INICIALIZAR OMNIPOTENCIA V1.5 - RADAR UNIVERSAL
+    if OMNIPOTENCE_ENABLED and omnipotence:
+        try:
+            omnipotence.system_core = system
+            app.include_router(omnipotence.get_router())
+            logger.info("🛸 OMNIPOTENCIA V1.5 ACTIVADA - Radar Universal de Hardware")
+            logger.info("   ✓ Escáner USB/Serial")
+            logger.info("   ✓ Escáner Bluetooth BLE")
+            logger.info("   ✓ Escáner WiFi/mDNS")
+            logger.info("   ✓ Auto-asimilación de sensores")
+            logger.info("   ✓ Validación cruzada de datos")
+        except Exception as e:
+            logger.warning(f"⚠️ Error inicializando Omnipotencia: {e}")
+    
+    # 🧠 Loop de auto-guardado del cerebro
+    if brain_autosaver is not None:
+        async def _brain_autosave_loop():
+            while True:
+                try:
+                    brain_autosaver.tick()
+                    await asyncio.sleep(10)  # Check cada 10s (tick decide si guardar)
+                except Exception as e:
+                    logger.exception(f"Error en loop de auto-guardado cerebro: {e}")
+                    await asyncio.sleep(60)
+        asyncio.create_task(_brain_autosave_loop())
 
     async def _auto_repair_loop():
         while True:
@@ -833,6 +967,29 @@ async def iniciar_autodeteccion():
     asyncio.create_task(_habitos_loop())
     asyncio.create_task(_alarmas_loop())
 
+
+@app.on_event("shutdown")
+async def guardar_cerebro_al_apagar():
+    """Guarda el estado del cerebro estadístico antes de apagar el servidor."""
+    
+    # 🛸 Detener Omnipotencia
+    if omnipotence_manager:
+        try:
+            await omnipotence_manager.stop()
+            logger.info("🛸 Radar Universal detenido")
+        except Exception as e:
+            logger.error(f"Error deteniendo Omnipotencia: {e}")
+    
+    if hasattr(system, 'statistical_brain') and system.statistical_brain is not None:
+        try:
+            from core.engines.brain_persistence import save_brain_state
+            logger.info("🛑 APAGADO: Guardando estado del cerebro...")
+            save_brain_state(system.statistical_brain)
+            logger.info("✅ Estado del cerebro guardado exitosamente")
+        except Exception as e:
+            logger.exception(f"❌ Error al guardar cerebro durante apagado: {e}")
+
+
 # Endpoint para consultar historial de valores originales
 @app.get("/api/sensores/historial")
 async def obtener_historial_sensor(nombre: str = Query(..., description="Nombre del sensor base, por ejemplo 'tempf'")):
@@ -844,6 +1001,46 @@ async def obtener_historial_sensor(nombre: str = Query(..., description="Nombre 
 @app.get("/health", response_class=JSONResponse)
 def healthcheck():
     return {"status": "ok"}
+
+
+# Admin: forzar guardado del cerebro y consultar estado
+@app.post("/admin/brain/force_save")
+def admin_force_save():
+    try:
+        # Preferir usar el autosaver si existe
+        if hasattr(system, 'brain_autosaver') and system.brain_autosaver is not None:
+            system.brain_autosaver.force_save()
+        else:
+            from core.engines.brain_persistence import save_brain_state
+            if hasattr(system, 'statistical_brain') and system.statistical_brain is not None:
+                save_brain_state(system.statistical_brain)
+            else:
+                return JSONResponse({"ok": False, "msg": "No hay cerebro cargado"}, status_code=500)
+        return {"ok": True, "msg": "Guardado forzado iniciado"}
+    except Exception as e:
+        logger.exception(f"Error forzando guardado del cerebro: {e}")
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+
+@app.get("/admin/brain/status")
+def admin_brain_status():
+    try:
+        status = {"brain_loaded": False}
+        if hasattr(system, 'statistical_brain') and system.statistical_brain is not None:
+            status["brain_loaded"] = True
+            # intentar leer metadata de persistencia
+            try:
+                from core.engines.brain_persistence import METADATA_FILE
+                import json
+                if METADATA_FILE.exists():
+                    with open(METADATA_FILE, 'r', encoding='utf-8') as f:
+                        status["metadata"] = json.load(f)
+            except Exception:
+                status["metadata"] = None
+        return status
+    except Exception as e:
+        logger.exception(f"Error consultando estado del cerebro: {e}")
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
 
 
 @app.get("/asistente/estado")
@@ -1202,17 +1399,14 @@ async def sensor_input(request: Request):
 @app.get("/estado")
 def estado():
     try:
-        return _estado_impl()
+        from core.indices.serializador_estado_atomico import serializar_estado_atomico
+        from core.indices.bus_estado_global import BusEstadoGlobal
+        bus = BusEstadoGlobal.obtener_instancia()
+        estado_panel = serializar_estado_atomico(bus)
+        return estado_panel.dict()
     except Exception as e:
-        logger.error(f"Error en /estado: {e}", exc_info=True)
-        try:
-            from core.indices.environmental_indices import EnvironmentalIndices
-            if not isinstance(system.indices, EnvironmentalIndices):
-                system.indices = EnvironmentalIndices(system)
-            indices = system.indices.obtener_todos()
-        except Exception:
-            indices = {}
-        return {"error": str(e), "sensores": system.sensores.copy(), "indices": indices}
+        logger.error(f"Error en /estado (serializador atómico): {e}", exc_info=True)
+        return {"error": str(e)}
 
 
 def _estado_impl():
@@ -1583,6 +1777,7 @@ def _estado_impl():
     ropa_tendida = MotorRopaTendida().analizar(contexto)
     viento_dormir = MotorVientoDormir().analizar(contexto)
     corrientes_futuras = MotorPrediccionCorrientesFuturas().analizar(contexto)
+    _registrar_evento_hardware_nuevo()
     asistente = _asistente_estado()
     departamentos = _departamentos_ideas(asistente)
     olor_cerrado = MotorOlorCerrado().analizar(contexto)
@@ -2737,6 +2932,31 @@ async def recibir_ecowitt(request: Request):
                 data = {}
     else:
         data = dict(request.query_params)
+    
+    # SINCRONÍA TEMPORAL: Inyectar timestamp preciso del dateutc
+    try:
+        from core.integration.temporal_sync_persistence import apply_temporal_sync, reset_monin_obukhov_on_pressure_change
+        data = apply_temporal_sync(data, system)
+    except Exception as e:
+        logging.getLogger(__name__).exception(f"Error en sincronía temporal: {e}")
+    
+    # HELPER PARA PERSISTENCIA DE EMERGENCIA
+    def actualizar_con_persistencia(sensor_id: str, valor: float, metadata_kwargs: dict = None):
+        """Actualizar sensor y guardar como last_valid_value para emergencias."""
+        try:
+            if valor is not None:
+                system.actualizar_sensor(sensor_id, valor)
+                # Guardar last_valid_value en metadata
+                if not hasattr(system, 'sensores_metadata'):
+                    system.sensores_metadata = {}
+                if sensor_id not in system.sensores_metadata:
+                    system.sensores_metadata[sensor_id] = {}
+                system.sensores_metadata[sensor_id]['last_valid_value'] = float(valor)
+                if metadata_kwargs:
+                    system.registrar_sensor_metadata(sensor_id, **metadata_kwargs)
+        except Exception as e:
+            logging.getLogger(__name__).exception(f"Error en actualizar_con_persistencia({sensor_id}): {e}")
+    
     if not data:
         try:
             ts = datetime.datetime.now().isoformat(sep=" ", timespec="seconds")
@@ -2768,6 +2988,34 @@ async def recibir_ecowitt(request: Request):
         )
     except Exception:
         pass
+
+    # Sensores desconocidos/experimentales (prefijo sensor_)
+    try:
+        for raw_key, raw_val in data.items():
+            if not str(raw_key).lower().startswith("sensor_"):
+                continue
+            if raw_val is None:
+                continue
+            sensor_id = str(raw_key).lower()
+            try:
+                val = float(raw_val)
+            except Exception:
+                val = raw_val
+            unidad = "Bq/m³" if "radon" in sensor_id else None
+            try:
+                system.registrar_sensor_metadata(sensor_id, tipo=sensor_id, unidad=unidad, fuente="ecowitt", origen="externo", fiabilidad=80.0)
+            except Exception:
+                pass
+            try:
+                system.actualizar_sensor(sensor_id, val)
+            except Exception:
+                try:
+                    system.sensores[sensor_id] = val
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
     # Sensores interiores
     tempint = data.get("tempinf")
     humedadint = data.get("humidityin")
@@ -2781,8 +3029,7 @@ async def recibir_ecowitt(request: Request):
     if tempint is not None:
         try:
             tempint_c = (float(tempint) - 32) * 5.0 / 9.0
-            system.actualizar_sensor("temperatura_interior", round(tempint_c, 2))
-            system.registrar_sensor_metadata("temperatura_interior", tipo="temperatura_interior", unidad="C", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+            actualizar_con_persistencia("temperatura_interior", tempint_c, {"tipo": "temperatura_interior", "unidad": "C", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 90.0})
         except Exception:
             system.actualizar_sensor("temperatura_interior", None)
     if humedadint is not None:
@@ -2800,6 +3047,9 @@ async def recibir_ecowitt(request: Request):
             system.actualizar_sensor("presion_relativa_interior", round(float(baromrelint) * 33.8639, 2))
         except Exception:
             system.actualizar_sensor("presion_relativa_interior", None)
+    # NOTE: El mapeo y registro de presión se centraliza en
+    # `core/integration/ecowitt_receiver.py`. No introducir lógica de negocio
+    # de sensores aquí para mantener la puerta de entrada limpia.
     if baromabsint is not None:
         try:
             system.actualizar_sensor("presion_absoluta_interior", round(float(baromabsint) * 33.8639, 2))
@@ -2918,7 +3168,8 @@ async def recibir_ecowitt(request: Request):
                 prev_total = system.sensores.get("rayos_total", system.sensores.get("rayos", 0))
                 prev_num_val = int(prev_num) if prev_num is not None else None
                 prev_total_val = float(prev_total) if prev_total is not None else 0.0
-            except Exception:
+            except Exception as e:
+                logging.getLogger(__name__).exception("Error leyendo valores previos de lightning: %s", e)
                 prev_num_val = None
                 prev_total_val = 0
             offset = system.sensores.get("rayos_offset", 0)
@@ -2935,12 +3186,79 @@ async def recibir_ecowitt(request: Request):
             system.actualizar_sensor("rayos_offset", round(offset))
             system.actualizar_sensor("lightning_num", lightning_num_val)
             system.registrar_sensor_metadata("rayos", tipo="contador_rayos", unidad="", fuente="ecowitt", origen="externo", fiabilidad=85.0)
-    if pm25 is not None:
+    # --- PM2.5: Registro con ámbito interior/exterior ---
+    import logging
+    pm_key_candidates = [k for k in data.keys() if k.lower().startswith('pm25') or k.lower().startswith('pm2.5') or k.lower().startswith('pm_25')]
+    logging.getLogger(__name__).warning(f"[PM LOOP DEBUG] Candidatos PM encontrados: {pm_key_candidates}")
+    for pm_key in pm_key_candidates:
         try:
-            system.actualizar_sensor("pm25", float(pm25))
-            system.registrar_sensor_metadata("pm25", tipo="pm25", unidad="µg/m³", fuente="ecowitt", origen="externo", fiabilidad=85.0)
+            pm_val = float(data.get(pm_key))
         except Exception:
-            system.actualizar_sensor("pm25", pm25)
+            continue
+        # Determinar ámbito: si hay tempinf/humidityin -> interior
+        ambito = 'exterior'
+        if data.get('tempinf') is not None or data.get('humidityin') is not None or data.get('tempin') is not None:
+            ambito = 'interior'
+        sensor_id = pm_key
+        try:
+            # REGISTRAR metadata sin parámetro ambito (registrar_sensor_metadata no lo acepta)
+            system.registrar_sensor_metadata(sensor_id, tipo='pm25', unidad='µg/m³', fuente='ecowitt', origen='externo', fiabilidad=90.0)
+            # Forzar escritura directa del ambito en sensores_metadata
+            if hasattr(system, 'sensores_metadata'):
+                system.sensores_metadata.setdefault(sensor_id, {})
+                system.sensores_metadata[sensor_id]['ambito'] = ambito
+            # LOG CRÍTICO: Confirmar registro de ambito
+            logging.getLogger(__name__).warning(f"[ADUANA ECOWITT] Sensor PM {sensor_id} → ambito={ambito} | tempinf={data.get('tempinf')} | humidityin={data.get('humidityin')}")
+        except Exception as e:
+            logging.getLogger(__name__).error(f"[ADUANA] Error al registrar PM metadata: {e}")
+        # Actualizar sensor específico
+        try:
+            system.actualizar_sensor(sensor_id, pm_val)
+        except Exception as e:
+            logging.getLogger(__name__).exception("Error actualizando sensor %s: %s", sensor_id, e)
+            try:
+                system.sensores[sensor_id] = pm_val
+            except Exception as e2:
+                logging.getLogger(__name__).exception("Fallo asignando sensor %s en system.sensores: %s", sensor_id, e2)
+        # PUBLICAR sensor genérico 'pm25' con herencia de metadata
+        try:
+            if hasattr(system, 'sensores_metadata'):
+                if 'pm25' not in system.sensores_metadata:
+                    system.sensores_metadata['pm25'] = {}
+                system.sensores_metadata['pm25']['ambito'] = ambito
+                system.sensores_metadata['pm25']['fuente'] = sensor_id
+                # LOG NUCLEAR: confirmar herencia de ambito
+                logging.getLogger(__name__).warning(f"[HERENCIA AMBITO] pm25 heredó ambito={ambito} de {sensor_id}")
+        except Exception as herencia_err:
+            logging.getLogger(__name__).error(f"[HERENCIA AMBITO] ERROR: {herencia_err}")
+        # Actualizar sensor genérico 'pm25'
+        try:
+            system.actualizar_sensor('pm25', pm_val)
+        except Exception:
+            try:
+                system.sensores['pm25'] = pm_val
+            except Exception:
+                pass
+        # Trazabilidad global
+        try:
+            system.sensores['pm25_fuente'] = sensor_id
+            system.sensores['pm25_ambito'] = ambito
+        except Exception:
+            pass
+    
+    # ════════════════════════════════════════════════════════════
+    # CAPTURA DE CO2 DESDE ECOWITT (WH45 sensor)
+    # ════════════════════════════════════════════════════════════
+    co2_raw = data.get("co2")
+    if co2_raw is not None:
+        try:
+            co2_val = float(co2_raw)
+            system.actualizar_sensor("co2", co2_val)
+            system.registrar_sensor_metadata("co2", tipo="co2", unidad="ppm", fuente="ecowitt", origen="externo", fiabilidad=85.0)
+            logging.getLogger(__name__).warning(f"[ADUANA ECOWITT] Sensor CO2 capturado: co2={co2_val}ppm")
+        except Exception as e:
+            logging.getLogger(__name__).exception(f"Error al procesar CO2: {e}")
+    
     # WH51 (humedad del suelo) y valor AD crudo si existe
     soil_keys = [
         "soilmoisture1", "soilmoisture2", "soilmoisture3", "soilmoisture4",
@@ -2980,16 +3298,14 @@ async def recibir_ecowitt(request: Request):
     if temperatura is not None:
         try:
             temperatura_c = (float(temperatura) - 32) * 5.0 / 9.0
-            system.actualizar_sensor("temperatura", round(temperatura_c, 2))
-            system.registrar_sensor_metadata("temperatura", tipo="temperatura", unidad="C", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+            actualizar_con_persistencia("temperatura", temperatura_c, {"tipo": "temperatura", "unidad": "C", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 90.0})
         except Exception:
             system.actualizar_sensor("temperatura", None)
     if humedad is not None:
         try:
             humedad_num = float(humedad)
             if 0 <= humedad_num <= 100:
-                system.actualizar_sensor("humedad", round(humedad_num, 2))
-                system.registrar_sensor_metadata("humedad", tipo="humedad", unidad="%", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+                actualizar_con_persistencia("humedad", humedad_num, {"tipo": "humedad", "unidad": "%", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 90.0})
             else:
                 system.actualizar_sensor("humedad", None)
         except Exception:
@@ -2997,8 +3313,7 @@ async def recibir_ecowitt(request: Request):
     if viento is not None:
         try:
             viento_kmh = float(viento) * 1.60934
-            system.actualizar_sensor("viento", round(viento_kmh, 2))
-            system.registrar_sensor_metadata("viento", tipo="viento", unidad="km/h", fuente="ecowitt", origen="externo", fiabilidad=85.0)
+            actualizar_con_persistencia("viento", viento_kmh, {"tipo": "viento", "unidad": "km/h", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 85.0})
         except Exception:
             system.actualizar_sensor("viento", viento)
     if best_rate is not None:
@@ -3020,5 +3335,63 @@ async def recibir_ecowitt(request: Request):
     # Recalcular índices tras cada actualización (solo cálculo, no guardar en system.indices si es un motor)
     if hasattr(system, 'indices') and hasattr(system.indices, 'obtener_todos'):
         _ = system.indices.obtener_todos()  # Solo recalcula, no asigna
+    
+    # 🌪️ VALIDACIÓN CRUZADA CO2/PM2.5 - DETECTOR DE COMBUSTIÓN
+    try:
+        from core.engines.indoor_air_cross_validator import validate_indoor_air_cross
+        
+        # Extraer sensores relevantes
+        co2_ppm = system.sensores.get("co2")
+        pm25_ugm3 = system.sensores.get("pm25") or system.sensores.get("pm25_interior")
+        temp_interior = system.sensores.get("temperatura_interior") or system.sensores.get("tempinf")
+        hum_interior = system.sensores.get("humedad_interior") or system.sensores.get("humidityin")
+        
+        # Solo validar si hay al menos un sensor disponible
+        if co2_ppm is not None or pm25_ugm3 is not None:
+            validation_result = validate_indoor_air_cross(co2_ppm, pm25_ugm3, temp_interior, hum_interior)
+            
+            # Almacenar resultado en system para que otros motores lo consulten
+            system.sensores["indoor_air_quality_status"] = validation_result["estado"].value
+            system.sensores["indoor_air_quality_flag"] = validation_result["flag"]
+            system.sensores["indoor_air_quality_score"] = validation_result["score"]
+            system.sensores["indoor_air_quality_recomendacion"] = validation_result["recomendacion"]
+            
+            # Log si hay combustión confirmada
+            if validation_result["estado"].value == "COMBUSTION_CONFIRMADA":
+                logger.warning(f"🔥 COMBUSTIÓN CONFIRMADA: {validation_result['recomendacion']}")
+    except Exception as e:
+        logging.getLogger(__name__).exception(f"Error en validación cruzada CO2/PM2.5: {e}")
+    
     return {"status": "OK", "received": True}
 
+
+# 🛸 ENDPOINT DE OMNIPOTENCIA V1.5
+@app.get("/admin/omnipotencia/status")
+async def get_omnipotence_status():
+    """Estado del sistema de descubrimiento universal"""
+    if not omnipotence_manager:
+        return {"error": "Omnipotencia no disponible"}
+    return omnipotence_manager.get_status()
+
+
+@app.get("/admin/omnipotencia/dispositivos")
+async def get_detected_devices():
+    """Lista de dispositivos detectados por el radar"""
+    if not omnipotence_manager:
+        return {"error": "Omnipotencia no disponible", "dispositivos": []}
+    
+    devices = omnipotence_manager.scanner.get_devices()
+    return {
+        "total": len(devices),
+        "dispositivos": [
+            {
+                "id": d.id,
+                "nombre": d.name,
+                "tipo": d.type,
+                "direccion": d.address,
+                "detectado": d.detected_at.isoformat(),
+                "metadata": d.metadata
+            }
+            for d in devices
+        ]
+    }

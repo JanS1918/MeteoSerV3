@@ -1,0 +1,1157 @@
+/* panel.css */
+/* Estilos para la nueva interfaz MeteoSer */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Sin scroll global */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #eee;
+}
+
+/* ============================================================ */
+/* PANEL SUPERIOR FIJO */
+/* ============================================================ */
+
+#panel-superior {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #e94560 50%, #c23866 100%);
+    border-bottom: 3px solid #ffd700;
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 20px;
+}
+
+.sistema-nombre {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #e94560;
+}
+
+.ubicacion, .estacion, .fecha-hora {
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#alertas-globales {
+    color: #ff6b6b;
+    font-weight: bold;
+}
+
+/* ============================================================ */
+/* CONTENEDOR PRINCIPAL */
+/* ============================================================ */
+
+#panel-root {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(420px, 40%) minmax(260px, 1fr);
+    grid-template-rows: 1fr;
+    gap: 20px;
+    width: 100%;
+    height: calc(100vh - 120px); /* Descontar header y footer */
+    margin-top: 60px;
+    padding: 20px;
+}
+
+/* ============================================================ */
+/* CAJONES LATERALES */
+/* ============================================================ */
+
+.cajones-laterales {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow: visible;
+    height: auto;
+    justify-content: flex-start;
+    max-height: calc(100vh - 180px);
+}
+
+.cajon {
+    background: linear-gradient(135deg, #16213e 0%, #1a2f4f 100%);
+    border: 3px solid #4a90e2;
+    border-radius: 16px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+    will-change: transform, box-shadow;
+    transform: translateZ(0); /* GPU acceleration */
+    min-height: auto;
+    max-height: 120px;
+}
+
+.cajon:hover {
+    border-color: #ffd700;
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.5);
+    background: linear-gradient(135deg, #1a2f4f 0%, #16213e 100%);
+}
+
+.cajon-tapa {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+}
+
+.cajon-indice {
+    font-size: 0.9em;
+    font-weight: bold;
+    color: #ffd700;
+    min-width: 30px;
+    text-align: right;
+}
+
+.cajon-icono {
+    font-size: 1.3em;
+    min-width: 30px;
+}
+
+.cajon-nombre {
+    font-size: 1em;
+    font-weight: bold;
+    color: #4fc3f7;
+    text-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+    flex: 1;
+}
+
+.cajon-valores-tapa {
+    display: flex;
+    gap: 10px;
+    font-size: 0.95em;
+}
+
+.cajon-contenido {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+}
+
+.cajon.abierto .cajon-contenido {
+    max-height: 500px;
+    margin-top: 15px;
+}
+
+.valor-item {
+    padding: 10px;
+    margin: 5px 0;
+    background: linear-gradient(135deg, #0f3460 0%, #1a4d7a 100%);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 4px solid transparent;
+}
+
+.valor-item:hover {
+    background: linear-gradient(135deg, #1a4d7a 0%, #2a5d8a 100%);
+    transform: translateX(5px);
+    border-left-color: #4fc3f7;
+    box-shadow: 0 2px 10px rgba(79, 195, 247, 0.4);
+}
+
+/* ============================================================ */
+/* PANEL CENTRAL */
+/* ============================================================ */
+
+#canvas-animaciones {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    will-change: auto;
+    /* Optimización de rendimiento para canvas */
+}
+
+#panel-central {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    position: relative; /* Para que el canvas se posicione correctamente */
+}
+
+.arco-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+}
+
+#svg-arco-solar, #svg-arco-lunar {
+    width: 100%;
+    height: auto;
+}
+
+.duracion-info {
+    text-align: center;
+    font-size: 0.9em;
+    margin-top: 5px;
+    color: #aaa;
+}
+
+/* Arco solar */
+#arco-solar .duracion-info {
+    color: #ffd700;
+}
+
+/* Arco lunar */
+#arco-lunar .duracion-info {
+    color: #4a90e2;
+}
+
+#panel-recomendaciones {
+    background: linear-gradient(135deg, #0f3460 0%, #1a2f4f 50%, #16213e 100%);
+    border: 3px solid #4fc3f7;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(79, 195, 247, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+#panel-recomendaciones::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(79, 195, 247, 0.1) 0%, transparent 70%);
+    animation: pulsoSuave 4s ease-in-out infinite;
+}
+
+@keyframes pulsoSuave {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.valores-principales, .valores-secundarios {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px 0;
+    font-size: 1.1em;
+    position: relative;
+    z-index: 1;
+}
+
+.valor-principal, .valor-secundario {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.1) 0%, rgba(255, 107, 107, 0.1) 100%);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.valor-principal:hover, .valor-secundario:hover {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.2) 0%, rgba(255, 107, 107, 0.2) 100%);
+    box-shadow: 0 4px 15px rgba(79, 195, 247, 0.4);
+}
+
+.valor-principal .icono, .valor-secundario .icono {
+    font-size: 2em;
+    animation: rotacionSuave 3s ease-in-out infinite;
+}
+
+@keyframes rotacionSuave {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(5deg); }
+}
+
+.recomendacion-texto {
+    text-align: center;
+    font-size: 1.05em;
+    margin: 15px 0;
+    line-height: 1.5;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+}
+
+/* ============================================================ */
+/* BOTONES CONTROL */
+/* ============================================================ */
+
+#botones-control {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #e94560 50%, #c23866 100%);
+    border-top: 3px solid #ffd700;
+    box-shadow: 0 -4px 15px rgba(233, 69, 96, 0.5);
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    z-index: 1000;
+}
+
+.btn-control {
+    background: linear-gradient(135deg, #4fc3f7 0%, #4a90e2 100%);
+    color: #fff;
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 10px rgba(79, 195, 247, 0.4);
+}
+
+.btn-control:hover {
+    background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
+    color: #1a1a2e;
+    transform: scale(1.1) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+}
+
+.btn-control:active {
+    transform: scale(0.95);
+}
+
+/* ============================================================ */
+/* SUBMENÚS */
+/* ============================================================ */
+
+.submenu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 80px;
+}
+
+.submenu-contenido {
+    background: linear-gradient(135deg, #16213e 0%, #1a2f4f 100%);
+    border: 3px solid #4fc3f7;
+    border-radius: 0;
+    padding: 30px;
+    max-width: 720px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.campo-editable {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px 0 20px;
+}
+
+.campo-editable input {
+    background: #0f3460;
+    border: 2px solid #4fc3f7;
+    color: #fff;
+    padding: 8px 10px;
+    font-size: 1em;
+}
+
+.cajon-overlay-valores {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+/* ============================================================ */
+/* DRAG & DROP */
+/* ============================================================ */
+
+.dragging {
+    opacity: 0.5;
+    cursor: move;
+    transform: rotate(3deg);
+}
+
+.drag-over {
+    border-color: #ffd700 !important;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(79, 195, 247, 0.2) 100%) !important;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6) !important;
+}
+
+.cajon[draggable="true"] {
+    cursor: move;
+}
+
+.valor-item[draggable="true"] {
+    cursor: move;
+}
+
+.valor-item[draggable="true"]:hover {
+    cursor: grab;
+}
+
+.valor-item[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+@keyframes pulsoConfirmacion {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+    100% { transform: scale(1); }
+}
+
+/* ============================================================ */
+/* ANIMACIONES ADICIONALES */
+/* ============================================================ */
+
+@keyframes brilloArcoiris {
+    0% { filter: hue-rotate(0deg) brightness(1); }
+    50% { filter: hue-rotate(180deg) brightness(1.2); }
+    100% { filter: hue-rotate(360deg) brightness(1); }
+}
+
+.cajon.destacado {
+    animation: brilloArcoiris 3s ease-in-out infinite;
+}
+
+@keyframes rebote {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.icono-animado {
+    display: inline-block;
+    animation: rebote 2s ease-in-out infinite;
+}
+
+/* ============================================================ */
+/* 🚨 SISTEMA DE ALERTA DE TORMENTA INMINENTE */
+/* ============================================================ */
+
+@keyframes alertaTormenta {
+    0%, 100% { 
+        box-shadow: 0 0 40px rgba(255, 0, 0, 0.9), 
+                    inset 0 0 30px rgba(255, 0, 0, 0.3),
+                    0 0 80px rgba(255, 0, 0, 0.5);
+        border-color: #ff0000;
+        filter: brightness(1);
+    }
+    50% { 
+        box-shadow: 0 0 80px rgba(255, 0, 0, 1), 
+                    inset 0 0 50px rgba(255, 0, 0, 0.6),
+                    0 0 120px rgba(255, 0, 0, 0.8);
+        border-color: #ff3333;
+        filter: brightness(1.2);
+    }
+}
+
+@keyframes pulsoRojo {
+    0%, 100% { 
+        opacity: 0.8; 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 1; 
+        transform: scale(1.05);
+    }
+}
+
+@keyframes sacudida {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+#panel-root.alerta-tormenta {
+    animation: sacudida 0.5s ease-in-out;
+}
+
+#panel-root.alerta-tormenta::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 6px solid #ff0000;
+    pointer-events: none;
+    z-index: 9999;
+    animation: alertaTormenta 1s ease-in-out infinite;
+    border-radius: 0;
+}
+
+#panel-root.alerta-tormenta::after {
+    content: '⚠️ TORMENTA INMINENTE ⚠️';
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background: linear-gradient(135deg, #ff0000, #cc0000);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    z-index: 10000;
+    box-shadow: 0 4px 20px rgba(255, 0, 0, 0.8);
+    animation: pulsoRojo 1s ease-in-out infinite;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================ */
+/* ANIMACIONES METEOROLÓGICAS */
+/* ============================================================ */
+
+.animaciones-fondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* ============================================================ */
+/* ESCALADO GLOBAL */
+/* ============================================================ */
+
+@media (max-width: 1200px) {
+    #panel-root {
+        transform: scale(0.85);
+        transform-origin: top left;
+    }
+}
+
+@media (max-width: 900px) {
+    #panel-root {
+        transform: scale(0.7);
+        transform-origin: top left;
+    }
+}
+
+@media (max-width: 600px) {
+    #panel-root {
+        transform: scale(0.5);
+        transform-origin: top left;
+    }
+}
+
+/* ============================================================ */
+/* MODALES DE BOTONES DE CONTROL */
+/* ============================================================ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-contenido {
+    background: #1a1a2e;
+    border: 2px solid #e94560;
+    border-radius: 10px;
+    max-width: 800px;
+    max-height: 80vh;
+    width: 90%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+    padding: 15px 20px;
+    border-bottom: 2px solid #e94560;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #e94560;
+    font-size: 1.5em;
+}
+
+.btn-cerrar {
+    background: transparent;
+    border: none;
+    color: #eee;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.btn-cerrar:hover {
+    color: #e94560;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 80px);
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #aaa;
+}
+
+.sin-datos, .error {
+    text-align: center;
+    padding: 20px;
+    color: #aaa;
+}
+
+.error {
+    color: #ff6b6b;
+}
+
+/* Noticias */
+.noticias-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.noticia-item {
+    display: flex;
+    align-items: start;
+    gap: 10px;
+    padding: 15px;
+    background: #0f3460;
+    border-left: 4px solid #e94560;
+    border-radius: 5px;
+}
+
+.noticia-icono {
+    font-size: 1.5em;
+}
+
+.noticia-contenido {
+    flex: 1;
+}
+
+.noticia-texto {
+    margin: 0 0 5px 0;
+    color: #eee;
+}
+
+.noticia-fecha {
+    font-size: 0.85em;
+    color: #aaa;
+}
+
+/* Asistente Personal */
+.asistente-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.asistente-menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.asistente-btn {
+    padding: 15px;
+    background: #0f3460;
+    color: #eee;
+    border: 2px solid #e94560;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+.asistente-btn:hover {
+    background: #e94560;
+    transform: translateY(-2px);
+}
+
+.asistente-respuesta {
+    min-height: 200px;
+    padding: 20px;
+    background: #0f3460;
+    border-radius: 5px;
+}
+
+.placeholder {
+    text-align: center;
+    color: #aaa;
+    padding: 40px;
+}
+
+/* Restaurar */
+.restaurar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.movimientos-lista {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.movimiento-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #0f3460;
+    border-radius: 5px;
+}
+
+.movimiento-item label {
+    flex: 1;
+    cursor: pointer;
+}
+
+.movimiento-item .fecha {
+    display: block;
+    font-size: 0.85em;
+    color: #aaa;
+    margin-top: 5px;
+}
+
+.btn-restaurar {
+    padding: 12px 20px;
+    background: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.3s;
+}
+
+.btn-restaurar:hover {
+    background: #ff5a75;
+}
+
+/* Configuración */
+.configuracion-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.config-seccion {
+    padding: 15px;
+    background: #0f3460;
+    border-radius: 5px;
+}
+
+.config-seccion h3 {
+    margin-top: 0;
+    color: #e94560;
+}
+
+.config-seccion label {
+    display: block;
+    margin: 10px 0;
+    color: #eee;
+}
+
+.config-seccion input,
+.config-seccion select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    background: #1a1a2e;
+    border: 1px solid #444;
+    color: #eee;
+    border-radius: 3px;
+}
+
+.config-seccion button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.config-seccion button:hover {
+    background: #ff5a75;
+}
+
+/* Feedback */
+.feedback-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.feedback-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #eee;
+}
+
+.feedback-form input,
+.feedback-form select,
+.feedback-form textarea {
+    padding: 10px;
+    background: #0f3460;
+    border: 1px solid #444;
+    color: #eee;
+    border-radius: 3px;
+}
+
+.btn-enviar {
+    padding: 12px 20px;
+    background: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.3s;
+}
+
+.btn-enviar:hover {
+    background: #ff5a75;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HORIZONTE ASTRONÓMICO HUD - PANEL 2026
+   Cronógrafo Suizo: Titanio + Cristal + Kasten-Young (1989)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.horizonte-hud {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    margin: 20px auto 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 0;
+    background: transparent;
+    /* Contenedor estanco - no afecta cajones superiores */
+}
+
+.arco-hud {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 320px;
+    /* Arcos más grandes según requisitos UI */
+}
+
+.svg-hud {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 320 / 90;
+    overflow: visible;
+    /* SVG puro - sin bordes, sin fondos */
+}
+
+.arco-lunar-hud .svg-hud {
+    transform: scaleY(-1);
+}
+
+.brujula-viento {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0 20px;
+}
+
+.brujula-circulo {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border: 3px solid #4fc3f7;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(79, 195, 247, 0.4);
+    background: rgba(15, 52, 96, 0.4);
+}
+
+.brujula-flecha {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 18px solid #ffd700;
+    top: 8px;
+    transform-origin: 50% 60px;
+}
+
+.brujula-valor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #fff;
+}
+
+.brujula-unidad {
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.svg-hud path {
+    fill: none;
+    stroke-width: 0.8;
+    /* Ultra-fino: 0.8px estilo HUD aviación */
+    stroke-linecap: round;
+    /* Sin decoraciones adicionales */
+}
+
+.svg-hud circle,
+.svg-hud ellipse {
+    stroke-width: 0.8;
+    /* Consistencia cronógrafo */
+}
+
+.metricas-hud {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+    letter-spacing: 0.5px;
+    /* Ley del Entero Visual: Solo INT, sin .0 */
+}
+
+.metricas-hud .metrica-principal {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    /* Horas luz restantes - destaca */
+}
+
+.metricas-hud .metrica-secundaria {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.6);
+    /* Amanecer/Anochecer/Fase lunar */
+}
+
+/* Colores cian/ámbar - sutiles, sin gradientes */
+.arco-hud.solar .svg-hud path {
+    stroke: #00d4ff;
+    /* Cian puro */
+}
+
+.arco-hud.solar .svg-hud circle {
+    fill: #00d4ff;
+    stroke: #00d4ff;
+}
+
+.arco-hud.lunar .svg-hud path {
+    stroke: #ffb347;
+    /* Ámbar suave */
+}
+
+.arco-hud.lunar .svg-hud ellipse {
+    fill: #ffb347;
+    stroke: #ffb347;
+}
+
+.arco-hud.lunar .svg-hud circle {
+    fill: none;
+    stroke: #ffb347;
+}
+
+/* ============================================================ */
+/* 👁️ OJO DE METEOSER - LOGO PRINCIPAL */
+/* ============================================================ */
+
+.ojo-meteoser {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 10px 0 6px;
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+}
+
+/* Párpado superior (arco solar) */
+.ojo-superior {
+    width: 260px;
+    margin-bottom: -12px;
+    z-index: 2;
+    position: relative;
+}
+
+.ojo-superior .svg-hud {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 200 / 100;
+    overflow: visible;
+}
+
+/* IRIS del ojo - Brújula en el centro */
+.ojo-iris {
+    z-index: 3;
+    position: relative;
+    margin: 0;
+}
+
+.ojo-iris .brujula-circulo {
+    width: 110px;
+    height: 110px;
+    border: 3px solid #ffd700;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+                inset 0 0 20px rgba(79, 195, 247, 0.3);
+    background: radial-gradient(circle at 30% 30%, rgba(79, 195, 247, 0.4), rgba(15, 52, 96, 0.6));
+}
+
+.ojo-iris .brujula-flecha {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 18px solid #ffd700;
+    top: 8px;
+    filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.8));
+}
+
+.ojo-iris .brujula-valor {
+    font-size: 1.05em;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+/* Párpado inferior (arco lunar espejo) */
+.ojo-inferior {
+    width: 260px;
+    margin-top: -12px;
+    z-index: 1;
+    position: relative;
+}
+
+.ojo-inferior .svg-hud {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 200 / 100;
+    overflow: visible;
+    transform: scaleY(-1);
+    transform-origin: center;
+    transform-box: fill-box;
+}
+
+/* Métricas debajo del ojo */
+.horizonte-hud-metricas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.metricas-hud {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+    border: 2px solid rgba(79, 195, 247, 0.3);
+    border-radius: 8px;
+    max-width: 500px;
+}
+
+.metrica-label {
+    font-size: 0.95em;
+    font-weight: bold;
+    color: #fff;
+}
+
+.metrica-valor {
+    font-size: 1.05em;
+    color: #4fc3f7;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(79, 195, 247, 0.5);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.metrica-valor:hover {
+    color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+    transform: scale(1.05);
+}
+

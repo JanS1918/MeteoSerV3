@@ -1,0 +1,167 @@
+<!-- panel.html -->
+<!-- Plantilla base para el panel de la nueva interfaz MeteoSer -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeteoSer - Panel Principal</title>
+    <link rel="stylesheet" href="/static/panel.css">
+    <link rel="stylesheet" href="/static/optimizaciones.css">
+    <script src="/static/animaciones_meteo.js" defer></script>
+    <script src="/static/drag_drop.js" defer></script>
+</head>
+<body>
+    <!-- Panel superior fijo -->
+    <header id="panel-superior">
+        <div class="header-content">
+            <span class="sistema-nombre">MeteoSer</span>
+            <span class="ubicacion" id="ubicacion-info"></span>
+            <span class="estacion" id="estacion-info"></span>
+            <span class="fecha-hora">
+                <span id="fecha-actual"></span>
+                <span id="hora-actual"></span>
+            </span>
+            <div id="alertas-globales"></div>
+        </div>
+    </header>
+
+    <!-- Contenedor principal -->
+    <main id="panel-root">
+        <!-- Cajones izquierdos -->
+        <aside id="cajones-izquierda" class="cajones-laterales">
+            <!-- Dinámicamente generados -->
+        </aside>
+
+        <!-- ⚡ PANEL CENTRAL 2026: VALORES DESTACADOS + HORIZONTE HUD INFERIOR -->
+        <section id="panel-central">
+            <!-- Canvas de animaciones meteorológicas (fondo) -->
+            <canvas id="canvas-animaciones" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;"></canvas>
+            
+            <!-- Panel de Control de 2026 - Recomendaciones y Valores Principales -->
+            <div id="panel-recomendaciones" class="panel-control-2026">
+                <!-- Valores principales con iconografía moderna -->
+                <div class="valores-principales">
+                    <div class="valor-principal">
+                        <span class="icono">🌡️</span>
+                        <span class="valor" id="temperatura-valor"></span>
+                        <span class="unidad">°C</span>
+                    </div>
+                    <div class="valor-principal">
+                        <span class="icono">💧</span>
+                        <span class="valor" id="humedad-valor"></span>
+                        <span class="unidad">%</span>
+                    </div>
+                    <div class="valor-principal">
+                        <span class="icono">🤚</span>
+                        <span class="valor" id="sensacion-valor"></span>
+                        <span class="unidad">°C</span>
+                    </div>
+                </div>
+
+                <!-- Recomendación inteligente en tarjeta destacada -->
+                <div class="recomendacion-tarjeta">
+                    <div class="recomendacion-texto" id="recomendacion-texto">Cargando recomendación...</div>
+                </div>
+
+                <!-- Valores secundarios - barra superior -->
+                <div class="valores-secundarios">
+                    <div class="valor-secundario">
+                        <span class="icono">🎚️</span>
+                        <span class="valor" id="presion-valor"></span>
+                        <span class="unidad">hPa</span>
+                    </div>
+                    <div class="valor-secundario">
+                        <span class="icono">💨</span>
+                        <span class="valor" id="viento-valor"></span>
+                        <span class="unidad">km/h</span>
+                    </div>
+                    <div class="valor-secundario">
+                        <span class="icono">☀️</span>
+                        <span class="etiqueta">Elevación</span>
+                        <span class="valor" id="elevacion-solar-valor"></span>
+                        <span class="unidad">°</span>
+                    </div>
+                    <div class="valor-secundario">
+                        <span class="icono">🌞</span>
+                        <span class="etiqueta">UV</span>
+                        <span class="valor" id="uv-indice-valor"></span>
+                        <span class="tag-motor" id="uv-motor-tag">Spectral_Diamond_v3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brújula de viento (centro) - DENTRO DEL OJO -->
+            <!-- Arco Solar y Brújula formando el OJO superior -->
+            <div class="ojo-meteoser">
+                <!-- Párpado blanco superior (arco solar) -->
+                <div class="arco-hud arco-solar-hud ojo-superior">
+                    <svg id="svg-arco-solar-hud" viewBox="0 0 200 100" class="svg-hud"></svg>
+                </div>
+                
+                <!-- IRIS DEL OJO: Brújula de viento en el centro -->
+                <div class="brujula-viento ojo-iris">
+                    <div class="brujula-circulo">
+                        <div id="brujula-flecha" class="brujula-flecha"></div>
+                        <div class="brujula-valor">
+                            <span id="brujula-viento-valor"></span>
+                            <span class="brujula-unidad">km/h</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Párpado rojo inferior (arco lunar espejo) -->
+                <div class="arco-hud arco-lunar-hud ojo-inferior">
+                    <svg id="svg-arco-lunar-hud" viewBox="0 0 200 100" class="svg-hud"></svg>
+                </div>
+            </div>
+
+            <!-- ⚡ MÉTRICAS ASTRONÓMICAS HUD - DEBAJO DEL OJO -->
+            <div id="horizonte-hud-container" class="horizonte-hud-metricas">
+                <!-- Métricas Solares -->
+                <div class="metricas-hud metricas-solares">
+                    <span class="metrica-label">☀️</span>
+                    <span class="metrica-valor" id="horas-luz-restantes"></span>
+                    <span class="metrica-label">Amanecer:</span>
+                    <span class="metrica-valor" id="hora-amanecer"></span>
+                    <span class="metrica-label">Anochecer:</span>
+                    <span class="metrica-valor" id="hora-anochecer"></span>
+                </div>
+
+                <!-- Métricas Lunares -->
+                <div class="metricas-hud metricas-lunares">
+                    <span class="metrica-label">🌙</span>
+                    <span class="metrica-valor" id="fase-lunar"></span>
+                    <span class="metrica-label">Salida:</span>
+                    <span class="metrica-valor" id="hora-salida-luna"></span>
+                    <span class="metrica-label">Puesta:</span>
+                    <span class="metrica-valor" id="hora-puesta-luna"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cajones derechos -->
+        <aside id="cajones-derecha" class="cajones-laterales">
+            <!-- Dinámicamente generados -->
+        </aside>
+    </main>
+
+    <!-- Botones inferiores -->
+    <footer id="botones-control">
+        <button id="btn-noticias" class="btn-control">Noticias</button>
+        <button id="btn-asistente" class="btn-control">Asistente Personal</button>
+        <button id="btn-restaurar" class="btn-control">Restaurar</button>
+        <button id="btn-configuracion" class="btn-control">Configuración</button>
+        <button id="btn-feedback" class="btn-control">Feedback</button>
+    </footer>
+
+    <!-- Submenús (ocultos por defecto) -->
+    <div id="submenu-overlay" class="submenu-overlay" style="display: none;">
+        <div id="submenu-contenido" class="submenu-contenido"></div>
+    </div>
+
+    <!-- Scripts del Panel de Control 2026 -->
+    <script src="/static/botones_control.js"></script>
+    <script src="/static/panel_2026.js"></script>
+</body>
+</html>

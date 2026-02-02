@@ -13,7 +13,7 @@ class AnimadorMeteorologico {
             console.error(`Canvas #${canvasId} no encontrado`);
             return;
         }
-        this.ctx = this.canvas.getContext('2d');
+        this.ctx = this.canvas.getContext('2d', { alpha: true, desynchronized: true }); // Optimizaci\u00f3n GPU
         this.estado = estadoInicial;
         this.animacionActiva = false;
         this.particulas = [];
@@ -21,7 +21,13 @@ class AnimadorMeteorologico {
         
         // Ajustar canvas al contenedor
         this.redimensionar();
-        window.addEventListener('resize', () => this.redimensionar());
+        
+        // Debounce para redimensionamiento (optimizaci\u00f3n)
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => this.redimensionar(), 150);
+        });
     }
     
     redimensionar() {
@@ -50,9 +56,15 @@ class AnimadorMeteorologico {
             case 'nieve':
                 this.crearNieve(100);
                 break;
+            case 'granizo':
+                this.crearGranizo(80);
+                break;
             case 'tormenta':
                 this.crearLluvia(200);
                 this.crearRelampagos();
+                break;
+            case 'niebla':
+                this.crearNiebla(40);
                 break;
             case 'nublado':
                 this.crearNubes(5);
@@ -68,6 +80,10 @@ class AnimadorMeteorologico {
                 break;
             case 'viento':
                 this.crearViento(80);
+                break;
+            case 'ventisca':
+                this.crearNieve(200);
+                this.crearViento(100);
                 break;
             default:
                 break;
@@ -146,6 +162,38 @@ class AnimadorMeteorologico {
         }
     }
     
+    crearGranizo(cantidad) {
+        for (let i = 0; i < cantidad; i++) {
+            this.particulas.push({
+                tipo: 'granizo',
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height - this.canvas.height,
+                velocidadY: 8 + Math.random() * 6,
+                velocidadX: -2 + Math.random() * 4,
+                radio: 3 + Math.random() * 5,
+                opacidad: 0.7 + Math.random() * 0.3,
+                rotacion: Math.random() * Math.PI * 2,
+                velocidadRotacion: (Math.random() - 0.5) * 0.1
+            });
+        }
+    }
+    
+    crearNiebla(cantidad) {
+        for (let i = 0; i < cantidad; i++) {
+            this.particulas.push({
+                tipo: 'niebla',
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height,
+                velocidadX: 0.1 + Math.random() * 0.3,
+                velocidadY: 0.05 + Math.random() * 0.1,
+                radio: 40 + Math.random() * 80,
+                opacidad: 0.05 + Math.random() * 0.1,
+                pulso: Math.random() * Math.PI * 2,
+                velocidadPulso: 0.01 + Math.random() * 0.02
+            });
+        }
+    }
+    
     crearRelampagos() {
         // Los relámpagos se generan aleatoriamente durante la animación
         this.ultimoRelampago = Date.now();
@@ -189,9 +237,17 @@ class AnimadorMeteorologico {
                     this.actualizarNieve(p);
                     this.renderizarNieve(p);
                     break;
+                case 'granizo':
+                    this.actualizarGranizo(p);
+                    this.renderizarGranizo(p);
+                    break;
                 case 'nube':
                     this.actualizarNube(p);
                     this.renderizarNube(p);
+                    break;
+                case 'niebla':
+                    this.actualizarNiebla(p);
+                    this.renderizarNiebla(p);
                     break;
                 case 'estrella':
                     this.actualizarEstrella(p);
@@ -315,8 +371,59 @@ class AnimadorMeteorologico {
         this.ctx.moveTo(p.x, p.y);
         this.ctx.lineTo(p.x + p.largo, p.y + p.velocidadY * 5);
         this.ctx.stroke();
+    }    
+    actualizarGranizo(p) {
+        p.y += p.velocidadY;
+        p.x += p.velocidadX;
+        p.rotacion += p.velocidadRotacion;
+        if (p.y > this.canvas.height) {
+            p.y = -p.radio;
+            p.x = Math.random() * this.canvas.width;
+        }
     }
     
+    renderizarGranizo(p) {
+        this.ctx.save();
+        this.ctx.translate(p.x, p.y);
+        this.ctx.rotate(p.rotacion);
+        // Granizo con efecto de hielo (blanco brillante con borde)
+        this.ctx.fillStyle = `rgba(255, 255, 255, ${p.opacidad})`;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, p.radio, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.strokeStyle = `rgba(200, 220, 255, ${p.opacidad * 0.8})`;
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+        this.ctx.restore();
+    }
+    
+    actualizarNiebla(p) {
+        p.x += p.velocidadX;
+        p.y += p.velocidadY;
+        p.pulso += p.velocidadPulso;
+        p.opacidad = 0.05 + Math.abs(Math.sin(p.pulso)) * 0.08;
+        
+        // Ciclo continuo horizontal
+        if (p.x > this.canvas.width + p.radio) {
+            p.x = -p.radio;
+        }
+        // Ciclo continuo vertical
+        if (p.y > this.canvas.height + p.radio) {
+            p.y = -p.radio;
+        }
+    }
+    
+    renderizarNiebla(p) {
+        const gradient = this.ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radio);
+        gradient.addColorStop(0, `rgba(220, 220, 230, ${p.opacidad})`);
+        gradient.addColorStop(0.5, `rgba(200, 200, 210, ${p.opacidad * 0.5})`);
+        gradient.addColorStop(1, 'rgba(200, 200, 210, 0)');
+        
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, p.radio, 0, Math.PI * 2);
+        this.ctx.fill();
+    }    
     renderizarRelampago() {
         const x = Math.random() * this.canvas.width;
         const segmentos = 5 + Math.floor(Math.random() * 5);

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeteoSer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="row mb-3">
+            <div class="col-12">
+                <div id="info-top" class="card card-block" style="background:#f3f4f6;border-radius:12px;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                    <div>
+                        <span id="fecha-hora" style="font-size:1.1em;font-weight:bold;"></span>
+                    </div>
+                    <div>
+                        <span id="ubicacion" style="font-size:1.1em;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h1 class="main-title">MeteoSer</h1>
+        <main>
+            <div class="console-grid" style="height:100vh;min-height:0;">
+                <div class="panel solar">
+                    <div class="panel-title">Arco Solar (Estimación Astronómica)</div>
+                    <canvas id="graficoArcoSolar" width="340" height="110" style="max-width:100%;display:block;margin:auto;"></canvas>
+                    <div id="alerta-arco-solar" style="color:#e11d48;font-weight:bold;margin-top:4px;font-size:0.95em;"></div>
+                </div>
+                <div class="panel temp-hum">
+                    <div class="panel-title">Temperatura y Humedad</div>
+                    <canvas id="graficoTempHum" height="120" style="max-width:100%;display:block;margin:auto;"></canvas>
+                </div>
+                <div class="panel sensors">
+                    <div class="panel-title">Sensores y Estado Actual</div>
+                    <div id="sensores"></div>
+                    <div id="niebla"></div>
+                </div>
+                <div class="panel recommendations">
+                    <div class="panel-title">Recomendaciones</div>
+                    <div id="recomendacion"></div>
+                </div>
+                <div class="panel indices wide">
+                    <div class="panel-title">Índices y Previsiones</div>
+                    <div id="indices"></div>
+                    <div id="alertas"></div>
+                </div>
+                <div class="panel organizer wide">
+                    <div class="panel-title"><i class="fa-solid fa-calendar-check"></i> Recordatorios, Tareas y Eventos</div>
+                    <div id="organizer-list"></div>
+                </div>
+            </div>
+        </main>
+        <div id="organizer-section" class="my-4">
+            <h2 class="section-title"><i class="fa-solid fa-calendar-check"></i> Recordatorios, Tareas y Eventos</h2>
+            <div id="organizer-list"></div>
+        </div>
+    </div>
+
+    <div class="assistant-fixed-bar">
+        <button id="btn-asistente-noticias" class="console-btn">Noticias</button>
+        <button id="btn-asistente-tareas" class="console-btn">Tareas</button>
+        <button id="btn-asistente-eventos" class="console-btn">Eventos</button>
+        <button id="btn-asistente-alarma" class="console-btn">Alarma</button>
+        <button id="btn-asistente-calendario" class="console-btn">Calendario</button>
+        <button id="btn-asistente-compra" class="console-btn">Compra</button>
+        <button id="btn-asistente-impresion" class="console-btn">Impresión</button>
+        <button id="btn-asistente-recomendaciones" class="console-btn">Recomendaciones</button>
+    </div>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
+                    <div class="panel-title">Índices y Previsiones</div>
