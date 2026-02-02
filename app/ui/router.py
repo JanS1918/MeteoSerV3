@@ -45,6 +45,14 @@ def _cache_set(key: str, data):
     _CACHE[key] = {"ts": time.monotonic(), "data": data}
     return data
 
+def _cache_clear(key: str = None):
+    """Limpia el caché (un key específico o todo si key es None)"""
+    if key is None:
+        for k in _CACHE:
+            _CACHE[k] = {"ts": 0.0, "data": None}
+    elif key in _CACHE:
+        _CACHE[key] = {"ts": 0.0, "data": None}
+
 def _normalizar_key(valor: str) -> str:
     return str(valor).strip().lower().replace(" ", "_")
 
