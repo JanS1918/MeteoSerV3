@@ -135,9 +135,8 @@ class SimulationEngine:
                     m = SimplePredictiveModel(n, md.get("weights", {}), md.get("bias", 0.0), md.get("trend_alpha", 0.1), md.get("noise_std", 0.0))
                     m.last_trend = md.get("last_trend", 0.0)
                     self.models[n] = m
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).exception("Error cargando modelos de simulación desde %s: %s", self._models_path, e)
+        except Exception:
+            pass
 
     # ------------------------------------------------------------
     # EJECUCIÓN DE PASO DE SIMULACIÓN
@@ -199,9 +198,7 @@ class SimulationEngine:
                         pred = pred_ekf
                 
                 predictions[name] = float(pred)
-            except Exception as e:
-                import logging
-                logging.getLogger(__name__).exception("Error al generar predicción para %s: %s", name, e)
+            except Exception:
                 predictions[name] = float("nan")
         
         # ⚛️ METADATA: Quantum_Universal_Metrology_v1.3
@@ -251,9 +248,8 @@ class SimulationEngine:
             try:
                 target_callback(payload)
                 return
-            except Exception as e:
-                import logging
-                logging.getLogger(__name__).exception("Error en callback de export_predictions: %s", e)
+            except Exception:
+                pass
         # fallback: guardar en archivo de log
         log_file = os.path.join(self.base_path, "simulation_predictions.log")
         try:

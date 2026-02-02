@@ -3,4 +3,4 @@
 archive/logs/
 archive/tests/
 archive/disabled_bats/
-archive/demo/
+archive/demo/logs/physics_extremos.log
