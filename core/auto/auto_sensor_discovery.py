@@ -4,6 +4,7 @@ import os
 import ssl
 import threading
 import time
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 from core.logger import get_logger
@@ -62,46 +63,6 @@ class AutoSensorDiscovery:
         self.log = get_logger("AutoSensorDiscovery")
         self._stop_event = threading.Event()
         self._threads = []
-        self._zeroconf = None
-        self._mqtt_client = None
-        self._mqtt_host = mqtt_host
-        self._mqtt_port = mqtt_port
-        self._enable_mqtt = enable_mqtt
-        self._enable_mdns = enable_mdns
-        self._enable_serial = enable_serial
-        self._enable_ble = enable_ble
-        self._mqtt_username = mqtt_username
-        self._mqtt_password = mqtt_password
-        self._mqtt_use_tls = mqtt_use_tls
-        self._mqtt_ca_cert = mqtt_ca_cert
-        self._mqtt_client_cert = mqtt_client_cert
-        self._mqtt_client_key = mqtt_client_key
-        self._mqtt_tls_insecure = mqtt_tls_insecure
-
-    async def start(self) -> None:
-        if self._enable_mdns:
-            self._start_mdns()
-        if self._enable_mqtt:
-            self._start_mqtt()
-        if self._enable_serial:
-            self._start_serial()
-        if self._enable_ble and BleakScanner is not None:
-            asyncio.create_task(self._ble_loop())
-
-    def stop(self) -> None:
-        self._stop_event.set()
-        if self._mqtt_client is not None:
-            try:
-                self._mqtt_client.loop_stop()
-                self._mqtt_client.disconnect()
-            except Exception:
-                pass
-        if self._zeroconf is not None:
-            try:
-                self._zeroconf.close()
-            except Exception:
-                pass
-
     # ------------------------------------------------------------------
     # HELPERS
     # ------------------------------------------------------------------
@@ -112,45 +73,8 @@ class AutoSensorDiscovery:
             return None
 
     def _canonical_name(self, nombre: str) -> Optional[str]:
-        if not nombre:
-            return None
-        n = nombre.lower()
-        n = n.replace("-", "_")
-        if "icasa" in n and "co2" in n:
-            return "co2"
-        if "meter" in n and "co2" in n:
-            return "co2"
-        if "nddir" in n or "ndir" in n:
-            return "co2"
-        if "co2" in n:
-            return "co2"
-        if "carbon" in n and "dioxide" in n:
-            return "co2"
-        if "temp" in n or "temperatura" in n:
-            return "temperatura"
-        if "hum" in n or "humidity" in n:
-            return "humedad"
-        if "pres" in n or "pressure" in n or "baro" in n:
-            return "presion"
-        if "pm25" in n or "pm2" in n:
-            return "pm25"
-        if "wind" in n or "viento" in n:
-            return "viento"
-        if "rain" in n or "lluv" in n:
-            return "lluvia"
-        if "uv" in n:
-            return "uv"
-        if "light" in n or "luz" in n:
-            return "luz"
-        if "noise" in n or "ruido" in n:
-            return "ruido"
-        if "voc" in n:
-            return "voc"
-        if "pm10" in n:
-            return "pm10"
-        if "pm1" in n:
-            return "pm1"
-        return None
+        from core.bus.parametros_canonicos import resolver_parametro_entrada
+        return resolver_parametro_entrada(nombre)
 
     def _normalize_value(self, canonical: Optional[str], value: Any, unit: Optional[str]):
         try:
@@ -218,7 +142,7 @@ class AutoSensorDiscovery:
                 else:
                     self.system.actualizar_sensor(map_to, norm_val)
             except Exception:
-                pass
+                logging.exception("Silent except at 220 - revisar contexto")
 
     # ------------------------------------------------------------------
     # MQTT
@@ -244,7 +168,7 @@ class AutoSensorDiscovery:
                 self._ingest_payload(data, fuente="mqtt", origen="externo")
                 return
             except Exception:
-                pass
+                logging.exception("Silent except at 246 - revisar contexto")
             # fallback: key=value
             if "=" in payload:
                 parts = payload.split("=")
@@ -351,11 +275,16 @@ class AutoSensorDiscovery:
                 self.outer = outer
 
             def remove_service(self, zeroconf, service_type, name):
-                pass
+                servicio = name.replace(".", "_")
+                meta = self.outer.system.sensores_metadata.get(servicio, {})
+                meta["estado"] = "offline"
+                meta["last_seen"] = datetime.utcnow().isoformat()
+                self.outer.system.sensores_metadata[servicio] = meta
+                self.outer.log.info(f"mDNS servicio eliminado: {servicio}")
 
             def update_service(self, zeroconf, service_type, name):
                 # Método requerido por zeroconf >=0.62.0
-                pass
+                self.add_service(zeroconf, service_type, name)
 
             def add_service(self, zeroconf, service_type, name):
                 try:
@@ -436,7 +365,7 @@ class AutoSensorDiscovery:
                             self._ingest_payload(data, fuente="serial", origen="usb")
                             continue
                         except Exception:
-                            pass
+                            logging.exception("Silent except at 438 - revisar contexto")
                         if "=" in line:
                             key, value = line.split("=", 1)
                             self._apply_reading(key.strip(), value.strip(), key.strip(), None, "serial", "usb", 75.0)
@@ -472,7 +401,7 @@ class AutoSensorDiscovery:
                             continue
                     await self._ble_read_env(device.address, name)
             except Exception:
-                pass
+                logging.exception("Silent except at 474 - revisar contexto")
             await asyncio.sleep(30)
 
     async def _ble_read_env(self, address: str, name: str) -> None:

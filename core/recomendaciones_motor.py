@@ -20,7 +20,7 @@ class RecomendacionesMotor:
         """
         sensores = contexto.get('sensores', {})
         indices = contexto.get('indices', {})
-        arco = contexto.get('arco_solar', {})
+        arco = contexto.get('elevacion_solar', {})
         es_de_dia = arco.get('es_de_dia', True)
         
         recomendaciones = []

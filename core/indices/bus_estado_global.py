@@ -1,4 +1,4 @@
-# ⚡ BUS DE ESTADO GLOBAL - ARQUITECTURA DE CASCADA INTEGRAL
+# [FAST] BUS DE ESTADO GLOBAL - ARQUITECTURA DE CASCADA INTEGRAL
 # ════════════════════════════════════════════════════════════════════════════
 # Este módulo implementa el Bus de Estado Global (Singleton por Ciclo)
 # para garantizar CERO REDUNDANCIA en los cálculos físicos.
@@ -245,7 +245,7 @@ GRAFO_DEPENDENCIAS_V20 = {
         "consume": ["densidad_aire"]
     },
     "nubosidad_haurwitz": {
-        "publica": ["nubosidad", "transmitancia", "radiacion_teorica"],
+        "publica": ["nubosidad", "nubosidad", "nubosidad"],
         "consume": []
     },
     "incomodidad_termica": {
@@ -264,7 +264,7 @@ GRAFO_DEPENDENCIAS_V20 = {
         "publica": ["volumen_agua_necesario", "deficit_mad"],
         "consume": ["et0_penman", "deficit_hidrico"]
     },
-    "wbgt_liljegren": {
+    "wbgt_stull": {
         "publica": ["wbgt", "temp_globo", "temp_bulbo_natural"],
         "consume": ["punto_rocio", "densidad_aire", "radiacion_neta"]
     },

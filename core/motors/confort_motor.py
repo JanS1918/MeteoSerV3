@@ -1,5 +1,11 @@
 from typing import Dict, Any
 
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
+
 class MotorConfort:
     def calcular_indice(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         # Lógica real: calcular confort usando índices

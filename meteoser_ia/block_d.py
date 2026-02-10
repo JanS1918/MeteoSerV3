@@ -1,4 +1,21 @@
 from __future__ import annotations
+import sys
+import os
+
+# --- Resolver imports relativos si se ejecuta como script ---
+if __name__ == "__main__":
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.abspath(os.path.join(script_dir, '..'))
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    try:
+        import block_a
+        import block_b
+        import block_c
+    except ImportError:
+        pass
 
 import logging
 import threading
@@ -7,9 +24,14 @@ import traceback
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
-from . import block_a
-from . import block_b
-from . import block_c
+try:
+    from . import block_a
+    from . import block_b
+    from . import block_c
+except ImportError:
+    import block_a
+    import block_b
+    import block_c
 
 logger = logging.getLogger("meteoser_ia.block_d")
 if not logger.handlers:
@@ -114,12 +136,24 @@ HEALTH_CHECKS: Dict[str, Callable[[], HealthStatus]] = {
 
 def _attempt_restart_module(module_name: str) -> bool:
     logger.info(f"Intento de reinicio lógico del módulo: {module_name}")
-    if EXTERNAL_INTEGRATION_MODE == block_a.ExternalIntegrationMode.MOCK:
-        time.sleep(0.2)
-        logger.info(f"Reinicio lógico simulado completado para {module_name}")
-        return True
+    try:
+        if module_name == "block_a":
+            block_a.discover_all_sensors()
+            return True
+        if module_name == "block_b":
+            block_b.register_default_rules()
+            block_b.PRESENCE_MODEL.update_from_sensors()
+            return True
+        if module_name == "block_c":
+            block_c.ALGO_REPO._load_from_disk()
+            return True
+        if module_name == "cluster":
+            return True
+    except Exception as e:
+        logger.warning(f"Reinicio lógico falló para {module_name}: {e}")
+        return False
 
-    logger.warning(f"Reinicio LIVE no implementado para {module_name}. Requiere capa de integración.")
+    logger.warning(f"Reinicio no soportado para {module_name}")
     return False
 
 def _mark_for_rollback(module_name: str, reason: str) -> None:
@@ -195,6 +229,31 @@ def get_system_health_report() -> Dict[str, Any]:
     return {"statuses": statuses, "incidents": incidents, "timestamp": time.time()}
 
 def smoke_test() -> None:
+    """
+    Test rápido de salud para Bloque D:
+    - Ejecuta todos los health checks y reporta resultados.
+    - Simula un incidente y verifica autocuración.
+    - No modifica estado real ni borra funcionalidad.
+    """
+    print("[smoke_test] Ejecutando health checks...")
+    for name, check in HEALTH_CHECKS.items():
+        status = check()
+        print(f"  - {name}: {'OK' if status.healthy else 'FAIL'} | Detalles: {status.details}")
+    print("[smoke_test] Simulando incidente crítico en block_a...")
+    inc = INCIDENT_LOG.create(module="block_a", severity="critical", description="Test incidente crítico")
+    autocure_incident("block_a", inc)
+    print("[smoke_test] Incidente autocurado:", inc.resolved, inc.resolution_notes)
+    print("[smoke_test] Finalizado.")
 
 if __name__ == "__main__":
+    # Permitir ejecución directa como script o como módulo
+    if __package__ is None:
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+        try:
+            import block_a
+            import block_b
+            import block_c
+        except ImportError:
+            from meteoser_ia import block_a, block_b, block_c
     smoke_test()

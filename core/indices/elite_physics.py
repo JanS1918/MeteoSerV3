@@ -9,9 +9,16 @@ Hyland-Wexler. Esta capa representa la "ley" de sustitución en el código.
 from typing import Optional
 import math
 from core.indices.environmental_indices import (
+    saturacion_vapor_iapws_elite,
     saturacion_vapor_virial_greenspan,
     saturacion_vapor_hyland_wexler,
 )
+
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
 
 
 def saturacion_vapor_elite(temp_c: float, presion_pa: Optional[float] = None) -> float:
@@ -26,17 +33,17 @@ def saturacion_vapor_elite(temp_c: float, presion_pa: Optional[float] = None) ->
     """
     try:
         if presion_pa is not None:
-            return float(saturacion_vapor_virial_greenspan(temp_c, presion_pa))
+            try:
+                return float(saturacion_vapor_iapws_elite(temp_c, presion_pa))
+            except Exception:
+                return float(saturacion_vapor_virial_greenspan(temp_c, presion_pa))
         else:
-            return float(saturacion_vapor_hyland_wexler(temp_c, None))
+            try:
+                return float(saturacion_vapor_iapws_elite(temp_c, 101325.0))
+            except Exception:
+                return float(saturacion_vapor_hyland_wexler(temp_c, None))
     except Exception:
-        # Fallback estricto a Hyland-Wexler
-        try:
-            return float(saturacion_vapor_hyland_wexler(temp_c, presion_pa))
-        except Exception:
-            # Último recurso: aproximación Magnus en Pa (evitar su uso permanente)
-            es_kpa = 0.6108 * math.exp((17.27 * temp_c) / (temp_c + 237.3))
-            return float(es_kpa * 1000.0)
+        return float(saturacion_vapor_hyland_wexler(temp_c, presion_pa))
 
 
 def format_diamond(value: Optional[float], muro: bool = False) -> Optional[float]:
@@ -53,5 +60,5 @@ def format_diamond(value: Optional[float], muro: bool = False) -> Optional[float
     except Exception:
         return value
     if muro:
-        return int(round(v))
-    return round(v, 2)
+        return v
+    return v

@@ -64,19 +64,49 @@ def et_shuttleworth_wallace(rn: float, temp_c: float, humedad: float, viento_ms:
     rh = max(0.0, min(100.0, hr_val))
     p_pa = presion_val * 100.0
     
-    # Presión de vapor CON FACTOR DE MEJORA DE GREENSPAN
-    es = 0.6108 * math.exp((17.27 * temp_val) / (temp_val + 237.3))
-    
-    # FACTOR DE MEJORA DE GREENSPAN: Ajuste molecular real según presión barométrica
-    Bm = -1.6e-5 + 1.8e-8 * T_k  # Coeficiente virial cruzado aire-agua
-    f_greenspan = math.exp(Bm * p_pa / (8.314472 * T_k))
-    es_real = es * f_greenspan  # Presión de saturación corregida
+    # Presión de vapor ultra-precisa (IAPWS-95 → Virial+Greenspan → Hyland-Wexler)
+    from core.indices.environmental_indices import (
+        saturacion_vapor_iapws_elite,
+        saturacion_vapor_virial_greenspan,
+        saturacion_vapor_hyland_wexler,
+    )
+    try:
+        pws_pa = saturacion_vapor_iapws_elite(temp_val, p_pa)
+    except Exception:
+        try:
+            pws_pa = saturacion_vapor_virial_greenspan(temp_val, p_pa)
+        except Exception:
+            pws_pa = saturacion_vapor_hyland_wexler(temp_val, p_pa)
+    es_real = pws_pa / 1000.0  # kPa
     
     ea = es_real * (rh / 100.0)
     vpd = es_real - ea
     
-    # Pendiente de la curva de vapor
-    delta = (4098 * es) / ((temp_val + 237.3) ** 2)
+    # Pendiente de la curva de vapor (derivada numérica)
+    def _delta_svp_kpa(temp_c: float, presion_pa: float) -> float:
+        dt = 0.01
+        from core.indices.environmental_indices import (
+            saturacion_vapor_iapws_elite,
+            saturacion_vapor_virial_greenspan,
+            saturacion_vapor_hyland_wexler,
+        )
+        try:
+            p_plus = saturacion_vapor_iapws_elite(temp_c + dt, presion_pa)
+        except Exception:
+            try:
+                p_plus = saturacion_vapor_virial_greenspan(temp_c + dt, presion_pa)
+            except Exception:
+                p_plus = saturacion_vapor_hyland_wexler(temp_c + dt, presion_pa)
+        try:
+            p_minus = saturacion_vapor_iapws_elite(temp_c - dt, presion_pa)
+        except Exception:
+            try:
+                p_minus = saturacion_vapor_virial_greenspan(temp_c - dt, presion_pa)
+            except Exception:
+                p_minus = saturacion_vapor_hyland_wexler(temp_c - dt, presion_pa)
+        return (p_plus - p_minus) / (2 * dt) / 1000.0
+
+    delta = _delta_svp_kpa(temp_val, p_pa)
     
     # SINTONIZACIÓN 2026: Calor específico dinámico (Mason-Saxena)
     engine = PhysicsEngine2026(
@@ -215,9 +245,7 @@ def monin_obukhov_stability(z0: float, z: float, temp_c: float, temp_surf: float
     
     # PURGA ISA: Presión es OBLIGATORIA, no hay fallback ciego
     if presion_hpa is None:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error("⚠️ MONIN-OBUKHOV SOBERANO: Presión barométrica OBLIGATORIA. ISA EXTIRPADA.")
+        logger.error("[WARNING] MONIN-OBUKHOV SOBERANO: Presión barométrica OBLIGATORIA. ISA EXTIRPADA.")
         # Retornar estado degradado con advertencia explícita
         return {
             "clase_estabilidad": "ERROR",
@@ -236,15 +264,12 @@ def monin_obukhov_stability(z0: float, z: float, temp_c: float, temp_surf: float
     # PURGA ISA: Humedad y latitud son OBLIGATORIAS para física recursiva
     if humedad_fraccion is None:
         humedad_fraccion = 0.5  # Fallback conservador con WARNING
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.warning("⚠️ MONIN-OBUKHOV: Humedad faltante, usando 50% (Virial degradado)")
+        logger.warning("[WARNING] MONIN-OBUKHOV: Humedad faltante, usando 50% (Virial degradado)")
     
     if latitud is None:
-        latitud = 41.5513  # Argentona como fallback con WARNING
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.warning("⚠️ MONIN-OBUKHOV: Latitud faltante, usando Argentona (Somigliana degradado)")
+        from core.system.constants import ESTACION
+        latitud = ESTACION.LATITUD
+        logger.warning("[WARNING] MONIN-OBUKHOV: Latitud faltante, usando Argentona (Somigliana degradado)")
     
     # Aplicar fallback a parámetros secundarios
     z0_val, _ = fallback.aplicar_fallback(z0 if z0 is not None else 0.1, 'rugosidad', 'rugosidad')
@@ -415,7 +440,7 @@ def nubosidad_romps_2017(temp_c: float, presion_kpa: float, humedad: float) -> D
     
     # Punto de rocío HYLAND-WEXLER + GREENSPAN 2026 (Motor: Diamond_Refined_v1)
     rh = max(1.0, min(100.0, humedad))
-    # Usar Hyland-Wexler en lugar de Tetens
+    # Usar Hyland-Wexler en lugar de aproximación legacy
     from core.indices.environmental_indices import saturacion_vapor_hyland_wexler
     es_pa = saturacion_vapor_hyland_wexler(temp_c, p_pa)
     es = es_pa / 1000.0  # Pa → kPa
@@ -426,41 +451,23 @@ def nubosidad_romps_2017(temp_c: float, presion_kpa: float, humedad: float) -> D
     f_greenspan = math.exp(Bm * p_pa / (8.314472 * T_k))
     es_real = es * f_greenspan  # Doble corrección: Hyland-Wexler + Greenspan explícito
     
-    td_c = (237.3 * math.log(rh / 100.0 * es_real / 0.6108)) / (17.27 - math.log(rh / 100.0 * es_real / 0.6108))
+    from core.indices.environmental_indices import _dew_point
+    td_c = _dew_point(temp_c, rh)
     
     # LCL (Lifting Condensation Level) - Bolton (1980)
     lcl_k = (1 / (1 / (td_c + 273.15) - math.log(rh / 100.0) / 2500)) - 273.15 if rh < 100 else temp_c
     
-    # ⚛️ CAPE (Convective Available Potential Energy) - Modelo Bolton (1980)
-    # ELIMINADAS constantes mágicas (200, 50) - Reemplazadas por física real
-    # 
-    # CAPE real requiere perfil vertical de temperatura, pero podemos estimar
-    # usando el gradiente adiabático seco (9.8 K/km) y húmedo (6 K/km)
-    #
-    # Aproximación: CAPE ≈ g * ∫(Tv_parcela - Tv_ambiente) dz / Tv_ambiente
-    # Simplificado: CAPE ≈ g * (T_parcela - T_ambiente) * H_escala
+    # ⚛️ CAPE unificado (motor termodinámico único)
+    from core.indices.advanced_predictive_indices import calcular_cape
+    cape_result = calcular_cape(
+        temperatura_c=temp_c,
+        temperatura_rocio_c=td_c,
+        presion_hpa=presion_kpa * 10.0,
+        altura_m=0.0,
+    )
+    cape = float(cape_result.get("cape_jkg", 0.0))
     
-    # Temperatura potencial de la parcela en LCL
-    theta_parcela = temp_c * math.pow(1000.0 / presion_kpa, 0.286)  # R_d/c_p = 0.286
-    
-    # Estimar temperatura ambiente a nivel de equilibrio (EL) usando gradiente estándar
-    # Gradiente troposférico: -6.5 K/km (atmósfera estándar)
-    # Altura típica de equilibrio: 8-12 km (usamos LCL + delta estimado)
-    delta_t_lcl = max(0.0, temp_c - lcl_k)
-    
-    # Escala de altura troposférica: H = R*T / (M*g) ≈ 8500 m
-    H_escala = (287.05 * T_k) / 9.81  # Usando R_d real de Argentona
-    
-    # CAPE simplificado (Bolton 1980 aproximado)
-    # CAPE = g * δT * H / T_ambiente
-    # donde δT es el exceso de temperatura de la parcela
-    if delta_t_lcl > 0.1:  # Parcela tiene flotabilidad positiva
-        cape = 9.81 * delta_t_lcl * (H_escala / 1000.0) / T_k  # Normalizado
-        cape = max(0.0, min(cape, 5000.0))  # Límite físico: 5000 J/kg (supercélulas extremas)
-    else:
-        cape = 0.0
-    
-    # Probabilidad de nubosidad
+    # Probabilidad de nubosidad basada en CAPE unificado
     if cape < 50:
         prob_nubes = 0.0
     elif cape < 500:

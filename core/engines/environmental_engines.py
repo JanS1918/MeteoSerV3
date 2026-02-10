@@ -1,3 +1,4 @@
+import logging
 """
 Motores ambientales principales de MeteoSer.
 
@@ -334,7 +335,7 @@ class MotorVentilacion(MotorBase):
                     base += 5.0
             tiempo_ventilacion_min = round(base, 1)
         except Exception:
-            pass
+            logging.exception("Silent except at 336 - revisar contexto")
 
         # Predicción de secado tras ventilar
         prediccion_secado = None
@@ -348,7 +349,7 @@ class MotorVentilacion(MotorBase):
                 else:
                     prediccion_secado = "lento"
         except Exception:
-            pass
+            logging.exception("Silent except at 350 - revisar contexto")
 
         resultado = {
             "ventilar_ahora": ventilacion_ideal,
@@ -404,7 +405,7 @@ class MotorPrediccionLocal(MotorBase):
                 else:
                     evolucion_termica = "estable"
             except Exception:
-                pass
+                logging.exception("Silent except at 406 - revisar contexto")
 
         evolucion_humedad = None
         if tendencia_h is not None:
@@ -417,7 +418,7 @@ class MotorPrediccionLocal(MotorBase):
                 else:
                     evolucion_humedad = "estable"
             except Exception:
-                pass
+                logging.exception("Silent except at 419 - revisar contexto")
 
         riesgo_mojar_ropa = None
         try:
@@ -432,7 +433,7 @@ class MotorPrediccionLocal(MotorBase):
             else:
                 riesgo_mojar_ropa = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 434 - revisar contexto")
 
         noche_incomoda = None
         try:
@@ -449,7 +450,7 @@ class MotorPrediccionLocal(MotorBase):
                 else:
                     noche_incomoda = "probablemente_ok"
         except Exception:
-            pass
+            logging.exception("Silent except at 451 - revisar contexto")
 
         ambiente_invita_dormir = None
         if confort_nocturno is not None:
@@ -462,7 +463,7 @@ class MotorPrediccionLocal(MotorBase):
                 else:
                     ambiente_invita_dormir = "bajo"
             except Exception:
-                pass
+                logging.exception("Silent except at 464 - revisar contexto")
 
         resultado = {
             "prediccion_noche_incomoda": noche_incomoda,
@@ -497,8 +498,38 @@ class PerfilAtmosfericoPersona:
         self.historial.append(contexto)
 
     def ajustar_preferencias(self) -> None:
-        # TODO: implementar aprendizaje real
-        pass
+        """Aprendizaje real: Analiza historial y ajusta preferencias automáticamente"""
+        if not self.historial or len(self.historial) < 3:
+            return  # Necesitar al menos 3 registros para aprender
+        
+        try:
+            # Extraer datos del historial
+            temps = [h.get("temperatura", 20) for h in self.historial]
+            humedades = [h.get("humedad", 50) for h in self.historial]
+            comodidades = [h.get("comodidad_score", 50) for h in self.historial]
+            
+            # Calcular correlación: temperatura vs comodidad
+            import statistics
+            if len(set(comodidades)) > 1:  # Si hay variación en comodidad
+                temp_media = statistics.mean(temps)
+                humedad_media = statistics.mean(humedades)
+                comodidad_media = statistics.mean(comodidades)
+                
+                # Encontrar temperatura óptima (la que más comodidad generó)
+                mejor_idx = comodidades.index(max(comodidades))
+                temp_optima = temps[mejor_idx]
+                humedad_optima = humedades[mejor_idx]
+                
+                # Ajustar preferencias basado en histórico
+                self.prefs_temp_ideal = temp_optima
+                self.prefs_humedad_ideal = humedad_optima
+                
+                self._log_debug(
+                    f"Aprendizaje: Temperatura óptima = {temp_optima}°C, "
+                    f"Humedad óptima = {humedad_optima}%"
+                )
+        except Exception as e:
+            self._log_error(f"Error en ajuste de preferencias: {e}")
 
 
 class GestorHuellasAtmosfericas(MotorBase):
@@ -559,7 +590,7 @@ class MotorUsoDispositivos(MotorBase):
                 else:
                     luz_artificial = "baja"
             except Exception:
-                pass
+                logging.exception("Silent except at 561 - revisar contexto")
 
         actividad_sonora = None
         if ruido is not None:
@@ -572,7 +603,7 @@ class MotorUsoDispositivos(MotorBase):
                 else:
                     actividad_sonora = "baja"
             except Exception:
-                pass
+                logging.exception("Silent except at 574 - revisar contexto")
 
         resultado = {
             "luz_artificial": luz_artificial,
@@ -607,7 +638,7 @@ class MotorNocturno(MotorBase):
                 h = float(hora)
                 es_noche = h >= 20 or h < 7
             except Exception:
-                pass
+                logging.exception("Silent except at 609 - revisar contexto")
 
         enfriamiento_radiativo = None
         if radiacion is not None and temperatura is not None:
@@ -621,7 +652,7 @@ class MotorNocturno(MotorBase):
                 else:
                     enfriamiento_radiativo = "bajo"
             except Exception:
-                pass
+                logging.exception("Silent except at 623 - revisar contexto")
 
         niebla_nocturna = None
         if humedad is not None and viento is not None:
@@ -635,7 +666,7 @@ class MotorNocturno(MotorBase):
                 else:
                     niebla_nocturna = "baja"
             except Exception:
-                pass
+                logging.exception("Silent except at 637 - revisar contexto")
 
         resultado = {
             "es_noche": es_noche,
@@ -681,21 +712,21 @@ class MotorIntrusion(MotorBase):
                 alerta = "posible_intrusion"
                 detalles.append("Ruido alto en horario nocturno")
         except Exception:
-            pass
+            logging.exception("Silent except at 683 - revisar contexto")
 
         try:
             if co2 is not None and float(co2) > 1400 and es_noche:
                 alerta = alerta or "posible_intrusion"
                 detalles.append("CO2 alto en horario nocturno")
         except Exception:
-            pass
+            logging.exception("Silent except at 690 - revisar contexto")
 
         try:
             if luz is not None and float(luz) > 75 and es_noche:
                 alerta = alerta or "posible_intrusion"
                 detalles.append("Luz alta en horario nocturno")
         except Exception:
-            pass
+            logging.exception("Silent except at 697 - revisar contexto")
 
         resultado = {
             "alerta": alerta,
@@ -738,7 +769,7 @@ class MotorMateriales(MotorBase):
                     riesgos["instrumentos"] = "medio"
                     riesgos["madera_muebles"] = "medio"
         except Exception:
-            pass
+            logging.exception("Silent except at 740 - revisar contexto")
 
         try:
             if temp is not None:
@@ -748,7 +779,7 @@ class MotorMateriales(MotorBase):
                 elif t >= 30:
                     riesgos["electronica"] = "medio"
         except Exception:
-            pass
+            logging.exception("Silent except at 750 - revisar contexto")
 
         resultado = {
             "riesgos": riesgos,
@@ -787,37 +818,37 @@ class MotorAvisosPracticos(MotorBase):
             if riesgo_lluvia is not None and float(riesgo_lluvia) > 60:
                 avisos.append("Lleva paraguas: riesgo de lluvia alto.")
         except Exception:
-            pass
+            logging.exception("Silent except at 789 - revisar contexto")
 
         try:
             if alerta_tormenta is not None and float(alerta_tormenta) > 60:
                 avisos.append("Posible tormenta: evita tender ropa.")
         except Exception:
-            pass
+            logging.exception("Silent except at 795 - revisar contexto")
 
         try:
             if radiacion is not None and float(radiacion) > 500 and (riesgo_lluvia is None or float(riesgo_lluvia) < 40):
                 avisos.append("Buen momento para tender ropa.")
         except Exception:
-            pass
+            logging.exception("Silent except at 801 - revisar contexto")
 
         try:
             if viento is not None and float(viento) > 30:
                 avisos.append("Viento fuerte: asegura objetos exteriores.")
         except Exception:
-            pass
+            logging.exception("Silent except at 807 - revisar contexto")
 
         try:
             if hr_ext is not None and float(hr_ext) > 80:
                 avisos.append("Humedad exterior alta: secado lento.")
         except Exception:
-            pass
+            logging.exception("Silent except at 813 - revisar contexto")
 
         try:
             if ventilar_ideal is not None and float(ventilar_ideal) > 60:
                 avisos.append("Ventilar ahora es recomendable.")
         except Exception:
-            pass
+            logging.exception("Silent except at 819 - revisar contexto")
 
         resultado = {"avisos": avisos}
         self._log_debug(f"[MotorAvisosPracticos] Resultado: {resultado}")
@@ -851,7 +882,7 @@ class MotorSaludAire(MotorBase):
                 else:
                     detalles.append("CO2 alto")
         except Exception:
-            pass
+            logging.exception("Silent except at 853 - revisar contexto")
 
         try:
             if pm25 is not None:
@@ -863,7 +894,7 @@ class MotorSaludAire(MotorBase):
                 else:
                     detalles.append("PM2.5 alto")
         except Exception:
-            pass
+            logging.exception("Silent except at 865 - revisar contexto")
 
         if any("alto" in d for d in detalles):
             calidad = "mala"
@@ -906,14 +937,14 @@ class MotorVentanasPuertas(MotorBase):
                 if delta_t > 6 and viento is not None and float(viento) > 15:
                     corrientes = "probables"
         except Exception:
-            pass
+            logging.exception("Silent except at 908 - revisar contexto")
 
         try:
             if co2 is not None and float(co2) < 700 and (hr_int is not None and hr_ext is not None):
                 if abs(float(hr_int) - float(hr_ext)) < 5:
                     apertura_probable = "ventilacion_activa"
         except Exception:
-            pass
+            logging.exception("Silent except at 915 - revisar contexto")
 
         resultado = {
             "apertura_probable": apertura_probable,
@@ -947,13 +978,13 @@ class MotorRiesgoHumedad(MotorBase):
             if hr_int is not None and t_int is not None:
                 riesgo_moho = indice_riesgo_moho(float(hr_int), float(tiempo_hr_alta), float(t_int))
         except Exception:
-            pass
+            logging.exception("Silent except at 949 - revisar contexto")
 
         try:
             if t_int is not None and hr_int is not None and t_ext is not None:
                 riesgo_cond = indice_riesgo_condensacion_ventanas(float(t_int), float(hr_int), float(t_ext))
         except Exception:
-            pass
+            logging.exception("Silent except at 955 - revisar contexto")
 
         resultado = {
             "riesgo_moho": riesgo_moho,
@@ -989,7 +1020,7 @@ class MotorTemperaturaOperativa(MotorBase):
                 ajuste_viento = -min(1.5, v / 20.0)  # -0..-1.5°C
                 ot = round(t + ajuste_rad + ajuste_viento, 2)
         except Exception:
-            pass
+            logging.exception("Silent except at 991 - revisar contexto")
 
         resultado = {"ot_real": ot}
         self._log_debug(f"[MotorTemperaturaOperativa] Resultado: {resultado}")
@@ -1023,7 +1054,7 @@ class MotorRitmoCircadianoPersona(MotorBase):
                 irin=float(irin) if irin is not None else 50.0,
             )
         except Exception:
-            pass
+            logging.exception("Silent except at 1025 - revisar contexto")
 
         # Norma de Oro: usar mejor índice de confort nocturno disponible
         indices = evaluar_indices_ambientales(contexto)
@@ -1040,7 +1071,7 @@ class MotorRitmoCircadianoPersona(MotorBase):
                 else:
                     estado = "favorece_vigilia"
             except Exception:
-                pass
+                logging.exception("Silent except at 1042 - revisar contexto")
 
         resultado = {"irca_humano": score, "estado": estado}
         self._log_debug(f"[MotorRitmoCircadianoPersona] Resultado: {resultado}")
@@ -1083,7 +1114,7 @@ class MotorHabitabilidad(MotorBase):
                 else:
                     estado = "inestable"
         except Exception:
-            pass
+            logging.exception("Silent except at 1085 - revisar contexto")
 
         resultado = {
             "confort_general": confort,
@@ -1120,7 +1151,7 @@ class MotorConfortNocturno(MotorBase):
                 else:
                     estado = "malo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1122 - revisar contexto")
 
         resultado = {"confort_nocturno": confort_nocturno, "estado": estado}
         self._log_debug(f"[MotorConfortNocturno] Resultado: {resultado}")
@@ -1176,7 +1207,7 @@ class MotorVientoRachas(MotorBase):
                 else:
                     riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1178 - revisar contexto")
 
         resultado = {"riesgo_viento": riesgo, "viento": viento, "racha_viento": rachas}
         self._log_debug(f"[MotorVientoRachas] Resultado: {resultado}")
@@ -1211,7 +1242,7 @@ class MotorVisibilidadLocal(MotorBase):
             else:
                 visibilidad = "buena"
         except Exception:
-            pass
+            logging.exception("Silent except at 1213 - revisar contexto")
 
         resultado = {"visibilidad": visibilidad}
         self._log_debug(f"[MotorVisibilidadLocal] Resultado: {resultado}")
@@ -1244,7 +1275,7 @@ class MotorLuzNatural(MotorBase):
                 else:
                     necesidad = "no_necesaria"
         except Exception:
-            pass
+            logging.exception("Silent except at 1246 - revisar contexto")
 
         resultado = {"necesidad_luz": necesidad}
         self._log_debug(f"[MotorLuzNatural] Resultado: {resultado}")
@@ -1277,7 +1308,7 @@ class MotorConfortTermico(MotorBase):
             else:
                 estado = "neutral"
         except Exception:
-            pass
+            logging.exception("Silent except at 1279 - revisar contexto")
 
         resultado = {"bochorno_real": bochorno, "frio_incomodo": frio, "estado": estado}
         self._log_debug(f"[MotorConfortTermico] Resultado: {resultado}")
@@ -1310,7 +1341,7 @@ class MotorAirePegajosoSeco(MotorBase):
             else:
                 estado = "normal"
         except Exception:
-            pass
+            logging.exception("Silent except at 1312 - revisar contexto")
 
         resultado = {"aire_seco": aire_seco, "aire_pegajoso": aire_pegajoso, "estado": estado}
         self._log_debug(f"[MotorAirePegajosoSeco] Resultado: {resultado}")
@@ -1342,7 +1373,7 @@ class MotorAireCargado(MotorBase):
                 else:
                     estado = "ok"
         except Exception:
-            pass
+            logging.exception("Silent except at 1344 - revisar contexto")
 
         resultado = {"co2": co2, "estado": estado}
         self._log_debug(f"[MotorAireCargado] Resultado: {resultado}")
@@ -1374,7 +1405,7 @@ class MotorAireEnrarecido(MotorBase):
                 else:
                     estado = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1376 - revisar contexto")
 
         resultado = {"aire_enrarecido": aire_enrarecido, "estado": estado}
         self._log_debug(f"[MotorAireEnrarecido] Resultado: {resultado}")
@@ -1400,7 +1431,7 @@ class MotorDeshidratacionAmbiental(MotorBase):
             if hr is not None:
                 riesgo = indice_deshidratacion_ambiental(float(hr), float(tiempo_hr_baja))
         except Exception:
-            pass
+            logging.exception("Silent except at 1402 - revisar contexto")
 
         resultado = {"deshidratacion_ambiental": riesgo}
         self._log_debug(f"[MotorDeshidratacionAmbiental] Resultado: {resultado}")
@@ -1432,7 +1463,7 @@ class MotorAireEstancado(MotorBase):
                 else:
                     estado = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1434 - revisar contexto")
 
         resultado = {"aire_estancado": estado}
         self._log_debug(f"[MotorAireEstancado] Resultado: {resultado}")
@@ -1466,7 +1497,7 @@ class MotorRenovacionAire(MotorBase):
                 float(actividad) if actividad is not None else 50.0,
             )
         except Exception:
-            pass
+            logging.exception("Silent except at 1468 - revisar contexto")
 
         resultado = {"renovacion_aire": valor}
         self._log_debug(f"[MotorRenovacionAire] Resultado: {resultado}")
@@ -1496,7 +1527,7 @@ class MotorRiesgoOxidacion(MotorBase):
                 else:
                     riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1498 - revisar contexto")
         resultado = {"riesgo_oxidacion": riesgo}
         self._log_debug(f"[MotorRiesgoOxidacion] Resultado: {resultado}")
         return resultado
@@ -1525,7 +1556,7 @@ class MotorRiesgoLibrosPapel(MotorBase):
                 else:
                     riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1527 - revisar contexto")
         resultado = {"riesgo_libros_papel": riesgo}
         self._log_debug(f"[MotorRiesgoLibrosPapel] Resultado: {resultado}")
         return resultado
@@ -1555,7 +1586,7 @@ class MotorRiesgoElectronica(MotorBase):
             if riesgo is None:
                 riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1557 - revisar contexto")
         resultado = {"riesgo_electronica": riesgo}
         self._log_debug(f"[MotorRiesgoElectronica] Resultado: {resultado}")
         return resultado
@@ -1585,7 +1616,7 @@ class MotorRiesgoPlasticos(MotorBase):
             else:
                 riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1587 - revisar contexto")
         resultado = {"riesgo_plasticos": riesgo}
         self._log_debug(f"[MotorRiesgoPlasticos] Resultado: {resultado}")
         return resultado
@@ -1614,7 +1645,7 @@ class MotorRiesgoRopaGuardada(MotorBase):
                 else:
                     riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1616 - revisar contexto")
         resultado = {"riesgo_ropa_guardada": riesgo}
         self._log_debug(f"[MotorRiesgoRopaGuardada] Resultado: {resultado}")
         return resultado
@@ -1645,7 +1676,7 @@ class MotorRiesgoColchones(MotorBase):
                 else:
                     riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1647 - revisar contexto")
         resultado = {"riesgo_colchones": riesgo}
         self._log_debug(f"[MotorRiesgoColchones] Resultado: {resultado}")
         return resultado
@@ -1675,7 +1706,7 @@ class MotorRiesgoAlimentos(MotorBase):
             else:
                 riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1677 - revisar contexto")
         resultado = {"riesgo_alimentos": riesgo}
         self._log_debug(f"[MotorRiesgoAlimentos] Resultado: {resultado}")
         return resultado
@@ -1706,7 +1737,7 @@ class MotorRiesgoInstrumentos(MotorBase):
                 else:
                     riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1708 - revisar contexto")
         resultado = {"riesgo_instrumentos": riesgo}
         self._log_debug(f"[MotorRiesgoInstrumentos] Resultado: {resultado}")
         return resultado
@@ -1737,7 +1768,7 @@ class MotorRiesgoMadera(MotorBase):
                 else:
                     riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1739 - revisar contexto")
         resultado = {"riesgo_madera": riesgo}
         self._log_debug(f"[MotorRiesgoMadera] Resultado: {resultado}")
         return resultado
@@ -1771,7 +1802,7 @@ class MotorActividadHumana(MotorBase):
             else:
                 nivel = "baja"
         except Exception:
-            pass
+            logging.exception("Silent except at 1773 - revisar contexto")
 
         resultado = {"actividad": nivel}
         self._log_debug(f"[MotorActividadHumana] Resultado: {resultado}")
@@ -1801,7 +1832,7 @@ class MotorPresencia(MotorBase):
             else:
                 presencia = "baja"
         except Exception:
-            pass
+            logging.exception("Silent except at 1803 - revisar contexto")
 
         resultado = {"presencia": presencia}
         self._log_debug(f"[MotorPresencia] Resultado: {resultado}")
@@ -1835,7 +1866,7 @@ class MotorCorrientesInternas(MotorBase):
                 else:
                     corrientes = "bajas"
         except Exception:
-            pass
+            logging.exception("Silent except at 1837 - revisar contexto")
 
         resultado = {"corrientes": corrientes}
         self._log_debug(f"[MotorCorrientesInternas] Resultado: {resultado}")
@@ -1877,7 +1908,7 @@ class MotorPrediccionCorrientesFuturas(MotorBase):
             else:
                 etiqueta = "baja"
         except Exception:
-            pass
+            logging.exception("Silent except at 1879 - revisar contexto")
 
         resultado = {
             "riesgo_corrientes_futuras": riesgo,
@@ -1910,12 +1941,11 @@ class MotorEstabilidadTermicaFutura(MotorBase):
             valor = indice_estabilidad_termica_futura(
                 estabilidad_termica=float(ot) if ot is not None else 22.0,
                 ireav=float(ireav) if ireav is not None else 50.0,
-                delta_t=delta_t,
-                viento=float(viento) if viento is not None else 0.0,
-                historial_termico=50.0,
+                delta_t_in_out=delta_t,
+                viento_ext=float(viento) if viento is not None else 0.0,
             )
         except Exception:
-            pass
+            logging.exception("Silent except at 1917 - revisar contexto")
 
         resultado = {"estabilidad_termica_futura": valor}
         self._log_debug(f"[MotorEstabilidadTermicaFutura] Resultado: {resultado}")
@@ -1946,7 +1976,7 @@ class MotorGolpesPuerta(MotorBase):
             else:
                 riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1948 - revisar contexto")
 
         if corrientes and corrientes in ("probables", "posibles"):
             riesgo = "medio" if riesgo == "bajo" else riesgo
@@ -1981,7 +2011,7 @@ class MotorRiesgoPlantas(MotorBase):
             else:
                 riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 1983 - revisar contexto")
 
         resultado = {"riesgo_plantas": riesgo}
         self._log_debug(f"[MotorRiesgoPlantas] Resultado: {resultado}")
@@ -2014,7 +2044,7 @@ class MotorRopaTendida(MotorBase):
             else:
                 riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 2016 - revisar contexto")
 
         resultado = {"riesgo_ropa_tendida": riesgo}
         self._log_debug(f"[MotorRopaTendida] Resultado: {resultado}")
@@ -2043,7 +2073,7 @@ class MotorVientoDormir(MotorBase):
             else:
                 riesgo = "bajo"
         except Exception:
-            pass
+            logging.exception("Silent except at 2045 - revisar contexto")
         resultado = {"viento_dormir": riesgo}
         self._log_debug(f"[MotorVientoDormir] Resultado: {resultado}")
         return resultado
@@ -2068,7 +2098,7 @@ class MotorOlorCerrado(MotorBase):
             if hr is not None:
                 riesgo = indice_riesgo_olor_cerrado(float(hr), float(tiempo_sin_ventilar))
         except Exception:
-            pass
+            logging.exception("Silent except at 2070 - revisar contexto")
 
         resultado = {"riesgo_olor_cerrado": riesgo}
         self._log_debug(f"[MotorOlorCerrado] Resultado: {resultado}")
@@ -2127,7 +2157,7 @@ class MotorSecadoRopa(MotorBase):
             else:
                 estado = "malo"
         except Exception:
-            pass
+            logging.exception("Silent except at 2129 - revisar contexto")
 
         resultado = {"secado_ropa": estado}
         self._log_debug(f"[MotorSecadoRopa] Resultado: {resultado}")
@@ -2159,7 +2189,7 @@ class MotorPersianas(MotorBase):
             else:
                 recomendacion = "mantener"
         except Exception:
-            pass
+            logging.exception("Silent except at 2161 - revisar contexto")
 
         resultado = {"persianas": recomendacion}
         self._log_debug(f"[MotorPersianas] Resultado: {resultado}")

@@ -84,23 +84,25 @@ class EvaluadorDeEstimaciones:
     - disponibilidad de inputs
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, min_samples: int = 5, target_samples: int = 50, max_rel_var: float = 0.5):
+        self.min_samples = max(1, int(min_samples))
+        self.target_samples = max(self.min_samples, int(target_samples))
+        self.max_rel_var = float(max_rel_var)
 
     def score_consistency(self, history: List[float]) -> float:
         """
         Puntuación basada en varianza relativa y número de muestras.
         Devuelve 0..1 (1 = muy consistente).
         """
-        if not history or len(history) < 5:
+        if not history or len(history) < self.min_samples:
             return 0.0
         mean = sum(history) / len(history)
         var = sum((x - mean) ** 2 for x in history) / len(history)
         rel_var = var / (abs(mean) + 1e-6)
         # Mapear rel_var a 0..1 inversamente
-        score = max(0.0, 1.0 - min(rel_var / 0.5, 1.0))
+        score = max(0.0, 1.0 - min(rel_var / max(self.max_rel_var, 1e-6), 1.0))
         # penalizar si pocas muestras
-        score *= min(1.0, len(history) / 50.0)
+        score *= min(1.0, len(history) / self.target_samples)
         return score
 
     def score_availability(self, inputs_present: int, inputs_required: int) -> float:
@@ -245,29 +247,76 @@ class VirtualSensorManager:
         return s / total_w
 
 
+
 # ------------------------------------------------------------
-# EJEMPLO DE ESPECIFICACIONES PREDEFINIDAS (PUEDES BORRARLAS)
+# UTILIDADES PARA TENDENCIA Y ANOMALÍA
+# ------------------------------------------------------------
+def tendencia_simple(history: list, window: int = 5) -> float:
+    """
+    Calcula la tendencia lineal simple (diferencia entre último y primero en ventana).
+    Devuelve la pendiente (valor positivo: sube, negativo: baja).
+    """
+    if not history or len(history) < 2:
+        return 0.0
+    w = min(window, len(history))
+    return history[-1] - history[-w]
+
+def detectar_anomalia_iqr(history: list, factor: float = 1.5) -> bool:
+    """
+    Detecta si el último valor es un outlier usando IQR.
+    """
+    if not history or len(history) < 5:
+        return False
+    sorted_hist = sorted(history)
+    q1 = sorted_hist[len(history)//4]
+    q3 = sorted_hist[3*len(history)//4]
+    iqr = q3 - q1
+    lower = q1 - factor * iqr
+    upper = q3 + factor * iqr
+    return not (lower <= history[-1] <= upper)
+
+# ------------------------------------------------------------
+# ESPECIFICACIONES DE SENSORES VIRTUALES ÚTILES Y TRAZABLES
 # ------------------------------------------------------------
 def default_specs():
     """
-    Especificaciones de ejemplo para sensores virtuales útiles.
-    No se ejecutan automáticamente; sirven como plantilla.
+    Especificaciones para sensores virtuales de tendencia y anomalía para todas las variables útiles.
+    Añade automáticamente sensores para cada variable relevante.
     """
-    specs = {
-        "confort_termico": {
-            "inputs": ["temp_int", "hum_int", "wbgt_real"],
-            "fn": lambda inputs, **params: VirtualSensorManager.fn_weighted_avg(
-                inputs, weights={"temp_int": 0.6, "hum_int": 0.2, "wbgt_real": 0.2}
-            ),
+    variables_utiles = [
+        "temperatura", "humedad", "presion", "viento", "lluvia", "radiacion", "humedad_suelo",
+        "wbgt", "stress_index", "co2", "pm25", "pm10", "uv", "altitud"
+    ]
+    specs = {}
+    for var in variables_utiles:
+        # Sensor de tendencia
+        specs[f"tendencia_{var}"] = {
+            "inputs": [var],
+            "fn": lambda inputs, history=None, **params: tendencia_simple(history or [], window=5),
             "params": {},
-            "capabilities": ["confort"]
-        },
-        "co2_normalizado": {
-            "inputs": ["co2_int", "temp_int"],
-            "fn": lambda inputs, **params: VirtualSensorManager.fn_ratio(inputs, numerator="co2_int", denominator="temp_int", scale=1.0),
-            "params": {},
-            "capabilities": ["co2_index"]
+            "capabilities": [f"tendencia_{var}"]
         }
+        # Sensor de anomalía
+        specs[f"anomalia_{var}"] = {
+            "inputs": [var],
+            "fn": lambda inputs, history=None, **params: detectar_anomalia_iqr(history or []),
+            "params": {},
+            "capabilities": [f"anomalia_{var}"]
+        }
+    # Ejemplos previos
+    specs["confort_termico"] = {
+        "inputs": ["temp_int", "hum_int", "wbgt_real"],
+        "fn": lambda inputs, **params: VirtualSensorManager.fn_weighted_avg(
+            inputs, weights={"temp_int": 0.6, "hum_int": 0.2, "wbgt_real": 0.2}
+        ),
+        "params": {},
+        "capabilities": ["confort"]
+    }
+    specs["co2_normalizado"] = {
+        "inputs": ["co2_int", "temp_int"],
+        "fn": lambda inputs, **params: VirtualSensorManager.fn_ratio(inputs, numerator="co2_int", denominator="temp_int", scale=1.0),
+        "params": {},
+        "capabilities": ["co2_index"]
     }
     return specs
 

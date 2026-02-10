@@ -207,7 +207,7 @@ def validate_indoor_air_cross(
             # COMBUSTIÓN CONFIRMADA (tabaco, incienso, cocina)
             result["estado"] = IndoorAirQuality.COMBUSTION_CONFIRMADA
             result["flag"] = "EVENTO_COMBUSTION_CONFIRMADO"
-            result["recomendacion"] = "⚠️ COMBUSTIÓN DETECTADA: Ventilar urgente, activar extractor"
+            result["recomendacion"] = "[WARNING] COMBUSTIÓN DETECTADA: Ventilar urgente, activar extractor"
             result["score"] = min(100, int(co2_ppm / 20 + pm25_ugm3))
             logger.warning(f"🔥 COMBUSTIÓN CONFIRMADA: CO2={co2_ppm}ppm, PM2.5={pm25_ugm3}µg/m³")
             
@@ -223,16 +223,16 @@ def validate_indoor_air_cross(
             # PARTÍCULAS SIN COMBUSTIÓN (contaminación externa, polen)
             result["estado"] = IndoorAirQuality.CONTAMINADO
             result["flag"] = "PARTICULAS_EXTERNAS"
-            result["recomendacion"] = "🌫️ Partículas externas: Cerrar ventanas, activar purificador"
+            result["recomendacion"] = "[PARTICULAS] Partículas externas: Cerrar ventanas, activar purificador"
             result["score"] = int(pm25_ugm3)
-            logger.info(f"🌫️ PARTÍCULAS EXTERNAS: CO2={co2_ppm}ppm, PM2.5={pm25_ugm3}µg/m³")
+            logger.info(f"[PARTICULAS] PARTÍCULAS EXTERNAS: CO2={co2_ppm}ppm, PM2.5={pm25_ugm3}µg/m³")
             
         else:
             # AMBOS BAJOS = EXCELENTE
             if co2_ppm < THRESHOLDS["co2"]["bueno"] and pm25_ugm3 < THRESHOLDS["pm25"]["bueno"]:
                 result["estado"] = IndoorAirQuality.EXCELENTE
                 result["flag"] = "AIRE_EXCELENTE"
-                result["recomendacion"] = "✅ Calidad del aire óptima"
+                result["recomendacion"] = "[OK] Calidad del aire óptima"
                 result["score"] = 0
             else:
                 result["estado"] = IndoorAirQuality.ACEPTABLE

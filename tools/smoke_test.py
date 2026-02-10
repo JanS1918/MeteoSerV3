@@ -5,7 +5,7 @@ def smoke_test():
         from core.system.system_core import SystemCore
         from core.ui.main_ui import MainUI
     except Exception as e:
-        print("❌ Error importando módulos:", e)
+        print("[ERROR] Error importando módulos:", e)
         return
 
     try:

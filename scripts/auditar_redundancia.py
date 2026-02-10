@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-🔍 AUDITOR DE REDUNDANCIA - Bus de Estado Global V2.0
+[BUSCAR] AUDITOR DE REDUNDANCIA - Bus de Estado Global V2.0
 Verifica que el sistema cumple con el mandato de CERO REDUNDANCIA.
 """
 
@@ -16,7 +16,7 @@ from core.indices.bus_estado_global import GRAFO_DEPENDENCIAS_V20, BusEstadoGlob
 def analizar_grafo_dependencias():
     """Analiza el grafo estático de dependencias."""
     print("=" * 80)
-    print("📊 ANÁLISIS ESTÁTICO DEL GRAFO DE DEPENDENCIAS")
+    print("[STATS] ANÁLISIS ESTÁTICO DEL GRAFO DE DEPENDENCIAS")
     print("=" * 80)
     print()
     
@@ -32,17 +32,17 @@ def analizar_grafo_dependencias():
     multiples_productores = {var: prods for var, prods in productores.items() if len(prods) > 1}
     
     if multiples_productores:
-        print("❌ VIOLACIÓN CRÍTICA: Variables con múltiples productores")
+        print("[ERROR] VIOLACIÓN CRÍTICA: Variables con múltiples productores")
         print("   (Cada variable debe tener UN SOLO productor)")
         print()
         for var, prods in multiples_productores.items():
-            print(f"   ⚠️  `{var}`: {len(prods)} productores")
+            print(f"   [WARNING]  `{var}`: {len(prods)} productores")
             for prod in prods:
                 print(f"      - {prod}")
         print()
         return False
     else:
-        print("✅ INTEGRIDAD: Cada variable tiene UN SOLO productor")
+        print("[OK] INTEGRIDAD: Cada variable tiene UN SOLO productor")
         print()
     
     # Análisis de reutilización
@@ -63,7 +63,7 @@ def analizar_grafo_dependencias():
     # Predicciones base (fuentes de verdad)
     predicciones_base = [pred_id for pred_id, info in GRAFO_DEPENDENCIAS_V20.items() 
                          if not info["consume"]]
-    print(f"🎯 PREDICCIONES BASE (Fuentes de Verdad): {len(predicciones_base)}")
+    print(f"[TARGET] PREDICCIONES BASE (Fuentes de Verdad): {len(predicciones_base)}")
     for pred in predicciones_base:
         vars_publicadas = ", ".join([f"`{v}`" for v in GRAFO_DEPENDENCIAS_V20[pred]["publica"]])
         print(f"   - {pred}: {vars_publicadas}")
@@ -81,7 +81,7 @@ def verificar_cobertura_codigo():
     env_indices_path = os.path.join(os.path.dirname(__file__), '..', 'core', 'indices', 'environmental_indices.py')
     
     if not os.path.exists(env_indices_path):
-        print(f"❌ No se encuentra: {env_indices_path}")
+        print(f"[ERROR] No se encuentra: {env_indices_path}")
         return False
     
     with open(env_indices_path, 'r', encoding='utf-8') as f:
@@ -102,11 +102,11 @@ def verificar_cobertura_codigo():
     print()
     
     if len(publicadores) == 0:
-        print("⚠️  ADVERTENCIA: No se detectaron publicaciones al Bus")
+        print("[WARNING]  ADVERTENCIA: No se detectaron publicaciones al Bus")
         print("   El sistema aún no está integrado completamente")
         return False
     
-    print("✅ Sistema parcialmente integrado con el Bus")
+    print("[OK] Sistema parcialmente integrado con el Bus")
     print()
     
     return True
@@ -165,10 +165,10 @@ def main():
     
     print("=" * 80)
     if exito:
-        print("✅ AUDITORÍA COMPLETADA: Sistema estructuralmente correcto")
+        print("[OK] AUDITORÍA COMPLETADA: Sistema estructuralmente correcto")
         print("   Continuar con conversión masiva de predicciones")
     else:
-        print("⚠️  AUDITORÍA INCOMPLETA: Revisar violaciones detectadas")
+        print("[WARNING]  AUDITORÍA INCOMPLETA: Revisar violaciones detectadas")
     print("=" * 80)
     print()
 

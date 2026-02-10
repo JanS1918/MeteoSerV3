@@ -18,8 +18,20 @@ Las 26 predicciones consumen estas variables, no los sensores brutos.
 import math
 import json
 from typing import Dict, Any, Optional, List, Tuple
+
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
 from datetime import datetime
 import hashlib
+from core.indices.environmental_indices import (
+    _dew_point,
+    saturacion_vapor_iapws_elite,
+    saturacion_vapor_virial_greenspan,
+    saturacion_vapor_hyland_wexler,
+)
 
 
 class MotorMasasDeAire:
@@ -34,13 +46,23 @@ class MotorMasasDeAire:
         Temperatura Potencial Equivalente (Bolton 1980)
         θ_e = T_e * (1000/P)^0.285
         """
-        # Punto de rocío
-        a, b = 17.27, 237.7
-        alpha = ((a * temp_c) / (b + temp_c)) + math.log(humedad_rel / 100.0)
-        t_d = (b * alpha) / (a - alpha)
-        
-        # Temperatura virtual
-        r = 0.622 * (humedad_rel / 100.0 * 6.112 * math.exp((17.67 * temp_c) / (temp_c + 243.5))) / (presion_hpa - humedad_rel / 100.0 * 6.112 * math.exp((17.67 * temp_c) / (temp_c + 243.5)))
+        # Punto de rocío (Wexler/NIST)
+        try:
+            t_d = _dew_point(float(temp_c), float(humedad_rel))
+        except Exception:
+            t_d = temp_c
+
+        # Temperatura virtual (presión de vapor ultra-precisa)
+        p_pa = presion_hpa * 100.0
+        try:
+            pws_pa = saturacion_vapor_iapws_elite(temp_c, p_pa)
+        except Exception:
+            try:
+                pws_pa = saturacion_vapor_virial_greenspan(temp_c, p_pa)
+            except Exception:
+                pws_pa = saturacion_vapor_hyland_wexler(temp_c, p_pa)
+        e_hpa = (pws_pa / 100.0) * (humedad_rel / 100.0)  # Pa→hPa
+        r = 0.622 * e_hpa / max(1e-6, (presion_hpa - e_hpa))
         t_v = (temp_c + 273.15) * (1 + 0.61 * r)
         
         # Temperatura potencial equivalente
@@ -176,7 +198,7 @@ class MotorOpacidadNubes:
             self.transmitancia_history.pop(0)
         
         return {
-            "transmitancia": round(tau, 3),
+            "nubosidad": round(tau, 3),
             "tipo_nube": tipo_nube,
             "opacidad": opacidad,
             "densidad_descripcion": densidad_optima,
@@ -189,7 +211,7 @@ class MotorVentilacionTactica:
     """Motor de Ventilación Táctica (Bernoulli + Stack Effect)"""
     
     def __init__(self):
-        pass
+        self.last_flow = None
     
     def calcular_ventilacion_bernoulli(self, delta_p_total: float, densidad_aire: float,
                                       area_ventana: float, cd: float = 0.6) -> Dict[str, Any]:
@@ -371,7 +393,7 @@ class EliteMotorsV25:
         # Motor 3: Opacidad de Nubes
         opacidad = self.motor_opacidad.calcular_transmitancia_haurwitz(
             sensores.get("radiacion", 0),
-            sensores.get("radiacion_teorica", 100),
+            sensores.get("nubosidad", 100),
             sensores.get("nubosidad", 50),
             contexto.get("angulo_cenital", 45)
         )

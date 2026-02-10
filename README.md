@@ -1,6 +1,32 @@
 # MeteoSerV3
 
-Proyecto MeteoSer: servidor ligero para ingestión y procesamiento de datos de sensores meteorológicos.
+## ⚠️ MANIFESTO FUNDAMENTAL - LEE ESTO PRIMERO
+
+**"TODO LO QUE PROMETES DEBE ESTAR EN CÓDIGO Y FUNCIONAR DESDE EL PRIMER DÍA"**
+
+✅ **Requisitos Absolutos**:
+- Todo componente documentado existe en código ejecutable
+- Cero promesas sin implementar
+- Auditoría continua (ejecuta `python SCRIPTS_PATRULLA/AUDITORIA_EXHAUSTIVA_V3.py` semanalmente)
+- Métrica de verdad: 100% conceptos documentados = 100% en código
+
+**Estado Actual**: ✅ **100% implementación verificada** (10 FEB 2026 - v8 Dominios completada)
+
+🔗 Más detalles: [MANIFESTO_CODIGO_FUNCIONAL.txt](MANIFESTO_CODIGO_FUNCIONAL.txt)
+
+### ✨ v8 DOMINIOS (Febrero 2026)
+Sistema actualizado con **8 dominios meteorológicos** independientes (4 originales + 4 nuevos):
+- **Originales**: Cetrería, Lluvia, Deporte, Confort
+- **Nuevos**: Riego, Astronomía, Salud, Hidrología
+- **Sistema de Recomendaciones**: Convierte 8 índices en 8 recomendaciones SÍ/NO inteligentes
+- **Validación**: 10/10 tests integrales PASS
+- Documentación: [ENTREGA_FINAL_RESUMEN.md](ENTREGA_FINAL_RESUMEN.md)
+
+---
+
+## Proyecto MeteoSer
+
+Servidor ligero para ingestión y procesamiento de datos de sensores meteorológicos.
 
 Resumen rápido
 - Entrypoint ASGI: `main_asgi:app` (uvicorn).

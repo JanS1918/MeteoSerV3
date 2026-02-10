@@ -1,3 +1,4 @@
+import logging
 """
 api_vector_aproximacion_v26.py
 =================================
@@ -21,7 +22,7 @@ from typing import Optional, Dict, Any
 # Router de FastAPI
 router = APIRouter(prefix="/api", tags=["Vector Aproximación"])
 
-# Estado global del vector (simulado, conectar con bus real)
+# Estado global del vector (fallback si no hay datos del Bus)
 estado_vector_actual = {
     "vector_aproximacion": {
         "direccion_grados": 0,
@@ -39,7 +40,7 @@ estado_vector_actual = {
             "distancia_km_estimada": 0
         },
         "analisis_optico": {
-            "transmitancia": 1.0,
+            "nubosidad": 1.0,
             "tipo_evento": "--",
             "precision": "--"
         },
@@ -51,6 +52,28 @@ estado_vector_actual = {
     },
     "timestamp": datetime.now().isoformat()
 }
+
+
+def _get_estado_vector_actual() -> Dict[str, Any]:
+    try:
+        from main_asgi import system
+    except Exception:
+        system = None
+    bus = getattr(system, "bus", None) if system else None
+    vector = None
+    if bus is not None:
+        if hasattr(bus, "obtener_valor"):
+            vector = bus.obtener_valor("vector_aproximacion")
+        elif hasattr(bus, "capa_core"):
+            vector = bus.capa_core.obtener_valor("vector_aproximacion")
+        elif hasattr(bus, "consumir"):
+            vector = bus.consumir("vector_aproximacion", "api_vector")
+    if isinstance(vector, dict) and vector:
+        vector_state = dict(vector)
+    else:
+        vector_state = dict(estado_vector_actual)
+    vector_state["timestamp"] = datetime.now().isoformat()
+    return vector_state
 
 # Manager de conexiones WebSocket
 class ConnectionManager:
@@ -69,7 +92,7 @@ class ConnectionManager:
             try:
                 await connection.send_json(message)
             except Exception:
-                pass
+                logging.exception("Silent except at 71 - revisar contexto")
 
 manager = ConnectionManager()
 
@@ -94,29 +117,36 @@ async def obtener_vector_aproximacion():
             "timestamp": str
         }
     """
-    return JSONResponse(content=estado_vector_actual)
+    return JSONResponse(content=_get_estado_vector_actual())
 
 
 @router.get("/vector-aproximacion/alerta")
 async def obtener_alerta_nivel():
     """Obtiene solo el nivel de alerta actual"""
+    estado = _get_estado_vector_actual()
     return {
-        "nivel": estado_vector_actual.get("nivel_alerta", "VERDE"),
-        "timestamp": datetime.now().isoformat()
+        "nivel": estado.get("nivel_alerta", "VERDE"),
+        "timestamp": estado.get("timestamp", datetime.now().isoformat())
     }
 
 
 @router.get("/vector-aproximacion/prediccion")
 async def obtener_prediccion_eta():
     """Obtiene predicción de ETA para la inclemencia"""
-    vector = estado_vector_actual["vector_aproximacion"]
+    estado = _get_estado_vector_actual()
+    vector = estado.get("vector_aproximacion", {})
+    eta = vector.get("eta_horas", 0)
+    try:
+        eta_txt = f"{float(eta):.1f}h"
+    except Exception:
+        eta_txt = str(eta)
     return {
         "prediccion": f"Lluvia desde {vector.get('direccion_cardinal', 'desconocida')} "
                      f"a {vector.get('velocidad_aproximacion_kmh', 0):.0f} km/h, "
-                     f"ETA: {vector.get('eta_horas', 0):.1f}h",
+                     f"ETA: {eta_txt}",
         "distancia_km": vector.get("distancia_km", 0),
-        "eta_horas": vector.get("eta_horas", 0),
-        "confianza": estado_vector_actual.get("confianza_prediccion", "MEDIA")
+        "eta_horas": eta,
+        "confianza": estado.get("confianza_prediccion", "MEDIA")
     }
 
 

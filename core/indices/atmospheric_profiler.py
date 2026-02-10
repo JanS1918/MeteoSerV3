@@ -18,6 +18,12 @@ import math
 from typing import Dict, Optional, Tuple
 from datetime import datetime
 
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
+
 
 def temperatura_adiabática_seca(temp_superficie_c: float, altura_m: float = 100.0) -> float:
     """
@@ -131,7 +137,8 @@ def numero_richardson(delta_temp_k: float,
     
     Referencia: Stull (2017), Cap. 5
     """
-    g = 9.81  # m/s² (aceleración gravedad)
+    from core.system.constants import GRAVEDAD
+    g = GRAVEDAD.DINAMICA  # m/s² - UNIFICADO: 9.80272394
     T_ref = 288.15  # K (temperatura de referencia)
     
     # ESCUDO DE SEGURIDAD 2026: Proteger divisiones
@@ -186,7 +193,8 @@ def indice_scorer(temp_superficie_c: float,
     
     Referencia: Nappo, C.J. (2012). "An Introduction to Atmospheric Gravity Waves"
     """
-    g = 9.81  # m/s²
+    from core.system.constants import GRAVEDAD
+    g = GRAVEDAD.DINAMICA  # m/s² - UNIFICADO: 9.80272394
     T_ref = 288.15  # K
     
     # Convertir a Kelvin

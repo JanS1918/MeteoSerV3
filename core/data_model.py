@@ -9,7 +9,22 @@ class Fiabilidad(enum.Enum):
     FALLA = 'falla'
 
 class ValorSistema:
-    def __init__(self, nombre: str, tipo: str, valor: float, unidad: str, fiabilidad: Fiabilidad, icono: str, prioridad: int, sensores: Optional[List[str]] = None, dependencias: Optional[List[str]] = None, alerta: Optional[str] = None):
+    def __init__(
+        self,
+        nombre: str,
+        tipo: str,
+        valor: float,
+        unidad: str,
+        fiabilidad: Fiabilidad,
+        icono: str,
+        prioridad: int,
+        sensores: Optional[List[str]] = None,
+        dependencias: Optional[List[str]] = None,
+        alerta: Optional[str] = None,
+        cambios: int = 0,
+        estabilizado: bool = True,
+        loop_detectado: bool = False,
+    ):
         self.nombre = nombre
         self.tipo = tipo
         self.valor = valor
@@ -20,6 +35,9 @@ class ValorSistema:
         self.sensores = sensores or []
         self.dependencias = dependencias or []
         self.alerta = alerta
+        self.cambios = cambios
+        self.estabilizado = estabilizado
+        self.loop_detectado = loop_detectado
 
 class GrupoValores:
     def __init__(self, nombre: str, icono: str, valores: List[ValorSistema], prioridad: int):

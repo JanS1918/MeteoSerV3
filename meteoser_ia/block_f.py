@@ -1,15 +1,11 @@
-
 from __future__ import annotations
+
+import logging
 import requests
 import os
 import tempfile
 from pathlib import Path
-# Configuración de clave OpenRouter (puede venir de autocure_engine o variable de entorno)
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
-OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-
 import json
-import logging
 import threading
 import time
 import uuid
@@ -22,6 +18,30 @@ from . import block_a
 from . import block_b
 from . import block_c
 from . import block_e
+
+try:
+    import sys
+    from pathlib import Path
+    # Añadir el directorio raíz al path para importar core
+    _root = Path(__file__).resolve().parent.parent
+    if str(_root) not in sys.path:
+        sys.path.insert(0, str(_root))
+    from core.config.secrets_vault import get_vault
+    _HAS_VAULT = True
+except ImportError:
+    _HAS_VAULT = False
+
+# Configuración de clave OpenRouter - usar vault cifrado
+if _HAS_VAULT:
+    try:
+        _vault = get_vault()
+        OPENROUTER_API_KEY = _vault.get_openrouter_key() or ""
+    except:
+        OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+else:
+    OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+
+OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 logger = logging.getLogger("meteoser_ia.block_f")
 if not logger.handlers:
@@ -49,7 +69,7 @@ def _get_tts_engine() -> pyttsx3.Engine:
             engine.setProperty("rate", 175)
             engine.setProperty("volume", 1.0)
         except Exception:
-            pass
+            logging.exception("Silent except at 51 - revisar contexto")
         try:
             voices = engine.getProperty("voices") or []
             selected = None
@@ -61,7 +81,7 @@ def _get_tts_engine() -> pyttsx3.Engine:
             if selected:
                 engine.setProperty("voice", selected)
         except Exception:
-            pass
+            logging.exception("Silent except at 63 - revisar contexto")
         _TTS_ENGINE = engine
     return _TTS_ENGINE
 
@@ -241,7 +261,7 @@ def synthesize_text_to_speech(text: str) -> Optional[bytes]:
         try:
             os.remove(out_path)
         except Exception:
-            pass
+            logging.exception("Silent except at 243 - revisar contexto")
         if data:
             return data
     except Exception as e:
@@ -249,11 +269,18 @@ def synthesize_text_to_speech(text: str) -> Optional[bytes]:
     return None
 
 def transcribe_speech_to_text(audio_bytes: bytes) -> str:
-    logger.info("STT request (simulado).")
-    if EXTERNAL_INTEGRATION_MODE == block_a.ExternalIntegrationMode.MOCK:
-        return "simulación de transcripción"
-    logger.warning("STT LIVE no implementado. Mantener en modo mock hasta autorizar.")
-    return ""
+    if not audio_bytes:
+        return ""
+    try:
+        import io
+        import speech_recognition as sr
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(io.BytesIO(audio_bytes)) as source:
+            audio = recognizer.record(source)
+        return recognizer.recognize_google(audio, language="es-ES")
+    except Exception as e:
+        logger.error(f"Error STT: {e}")
+        return ""
 
 def start_session(user_id: Optional[str] = None) -> str:
     ctx = SESSION_STORE.create_session(user_id=user_id)

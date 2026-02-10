@@ -1,3 +1,4 @@
+import logging
 # ============================================================
 # MÓDULO 3 — APRENDIZAJE Y PATRONES
 # Archivo: core/learning/learning_engine.py
@@ -318,7 +319,7 @@ class LearningEngine:
                     for target, md in data.get("models", {}).items():
                         self.models[target] = OnlineLinearModel.from_dict(md)
             except Exception:
-                pass
+                logging.exception("Silent except at 320 - revisar contexto")
 
     def save_models(self):
         data = {"models": {t: m.to_dict() for t, m in self.models.items()}}

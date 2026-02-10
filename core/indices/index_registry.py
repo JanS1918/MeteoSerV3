@@ -21,6 +21,6 @@ class IndexRegistry:
         else:
             x = (valor - minimo) / (maximo - minimo)
             x = max(0, min(1, x))
-            esc = round(x * 100, 1)
+            esc = x * 100
         self.set(nombre, valor, esc)
         return esc

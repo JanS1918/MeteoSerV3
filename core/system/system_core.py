@@ -1,3 +1,4 @@
+import logging
 # ============================================================
 # MÓDULO D — SYSTEM CORE (NÚCLEO OPERATIVO)
 # ============================================================
@@ -7,6 +8,17 @@ EXTERNAL_INTEGRATION_MODE = "live"  # Solo datos reales
 import json
 import time
 from pathlib import Path
+from typing import Dict, Any
+
+from core.learning.learning_feedback import LearningFeedback
+from core.monitoring.vanguard_ojeador import VanguardOjeador
+from core.validation.sensor_anomaly_detector import SensorAnomalyDetector
+from core.monitoring.formula_change_tracker import FormulaChangeTracker
+from core.monitoring.formula_duel_engine import FormulaDuelEngine
+try:
+    from core.virtual.virtual_sensors import VirtualSensorManager
+except Exception:
+    VirtualSensorManager = None
 
 
 class SystemCore:
@@ -68,9 +80,21 @@ class SystemCore:
         self.sensores_derivados_metadata = {}
         self.historial_sensores = {}
         self.indices = {}
+        self.data: Dict[str, Any] = {}
+        self.last_data_update_time = time.time()  # NEW: Track last sensor update timestamp
+        self.sensores_alertas: Dict[str, Any] = {}
+        self.indices_alertas: Dict[str, Any] = {}
+        self.sensores_simulados: Dict[str, Any] = {}
+        self.learning_feedback = LearningFeedback()
+        self.sensor_monitor = SensorAnomalyDetector()
+        self.ojeador = VanguardOjeador()
+        self.formula_change_tracker = FormulaChangeTracker()
+        self.formula_duel_engine = FormulaDuelEngine()
         self.recommendation_engine = None
         self.auto_improvement_engine = None
         self.auto_improvement_system = None
+        self.virtual_manager = None
+        self.virtual_sensors = {}
         self.bloque_a = None
         self.bloque_b = None
         self.bloque_c = None
@@ -81,6 +105,51 @@ class SystemCore:
         self.bloque_h = None
         self._cargar_sensores_persistidos()
         self._cargar_formulas_persistidas()
+        self._inicializar_sensores_virtuales()
+
+    def _inicializar_sensores_virtuales(self):
+        """
+        Registra sensores virtuales de tendencia y anomalía para todas las variables útiles,
+        además de cualquier otro sensor virtual automático definido.
+        """
+        if VirtualSensorManager is None:
+            return
+        try:
+            from virtual_sensors import default_specs
+            self.virtual_manager = VirtualSensorManager()
+            specs = default_specs()
+            if isinstance(specs, dict):
+                for vid, spec in specs.items():
+                    if isinstance(spec, dict):
+                        self.virtual_manager.register_virtual(vid, spec)
+            # Si hay otros sensores virtuales automáticos definidos en soluciones_auditoría_v49, añadirlos también
+            try:
+                from core.indices.soluciones_auditoría_v49 import crear_sensores_virtuales_automaticos
+                specs_extra = crear_sensores_virtuales_automaticos()
+                if isinstance(specs_extra, dict):
+                    for vid, spec in specs_extra.items():
+                        if isinstance(spec, dict):
+                            self.virtual_manager.register_virtual(vid, spec)
+            except Exception:
+                pass  # No es obligatorio
+            self.virtual_sensors = self.virtual_manager.virtuals
+        except Exception:
+            logging.exception("Silent except at 96 - revisar contexto")
+
+    def actualizar_sensores_virtuales(self):
+        """Actualiza valores de sensores virtuales con datos actuales."""
+        if not self.virtual_manager:
+            return {}
+        inputs = {}
+        if isinstance(self.data, dict):
+            inputs.update(self.data)
+        if isinstance(self.sensores, dict):
+            for k, v in self.sensores.items():
+                if v is not None and k not in inputs:
+                    inputs[k] = v
+        results = self.virtual_manager.compute_all(inputs)
+        self.virtual_sensors = self.virtual_manager.virtuals
+        return results
 
     def registrar_sensor_metadata(self, nombre, tipo=None, unidad=None, fuente=None, fiabilidad=100.0, origen=None):
         if nombre not in self.sensores_metadata:
@@ -121,7 +190,7 @@ class SystemCore:
             if isinstance(data, dict):
                 self.formulas.update(data)
         except Exception:
-            pass
+            logging.exception("Silent except at 124 - revisar contexto")
 
     def _cargar_sensores_persistidos(self):
         ruta = self._ruta_sensores_persistidos()
@@ -136,7 +205,7 @@ class SystemCore:
             if isinstance(timestamps, dict):
                 self.sensores_timestamp.update(timestamps)
         except Exception:
-            pass
+            logging.exception("Silent except at 139 - revisar contexto")
 
     # --------------------------------------------------------
     # REGISTRO DE SENSORES
@@ -150,11 +219,15 @@ class SystemCore:
         if nombre_canon in ["pressure", "presion_relativa", "presion_absoluta", "presion_atm", "presion_barometrica", "pres", "hpa", "mbar"]:
             nombre_canon = "presion"
         
+        # NEW: Update timestamp whenever a sensor changes
+        self.last_data_update_time = time.time()
+        
         # Guardar todos los valores, incluyendo los originales para trazabilidad
         if nombre_canon in self.sensores:
             self.sensores[nombre_canon] = valor
         else:
             self.sensores[nombre_canon] = valor
+        self.data[nombre_canon] = valor
         if nombre_canon not in self.sensores_metadata and not nombre_canon.endswith("_original"):
             self.registrar_sensor_metadata(nombre_canon, tipo=nombre_canon, fuente="autodetectado", origen="interno")
         # Si es un valor original, también lo guarda en un historial
@@ -189,7 +262,7 @@ class SystemCore:
                 if hasattr(self.indices, "obtener_todos"):
                     self.indices.obtener_todos()
             except Exception as e:
-                pass
+                logging.exception("Silent except at 195 - revisar contexto")
         
         # Persistir último valor real
         try:
@@ -201,7 +274,7 @@ class SystemCore:
             }
             ruta.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         except Exception:
-            pass
+            logging.exception("Silent except at 207 - revisar contexto")
 
     def obtener_sensor(self, nombre):
         valor = self.sensores.get(nombre)
@@ -213,6 +286,8 @@ class SystemCore:
 
     def actualizar_sensor_derivado(self, nombre, valor, metadata=None):
         self.sensores_derivados[nombre] = valor
+        self.last_data_update_time = time.time()  # NEW: Update timestamp for derived sensors too
+        self.data[nombre] = valor
         if metadata:
             self.sensores_derivados_metadata[nombre] = metadata
 
@@ -228,6 +303,7 @@ class SystemCore:
     def actualizar_indice(self, nombre, valor):
         # Permitir crear el índice si no existe
         self.indices[nombre] = valor
+        self.last_data_update_time = time.time()  # NEW: Update timestamp for indices too
 
     def obtener_indice(self, nombre):
         return self.indices.get(nombre)
@@ -249,6 +325,60 @@ class SystemCore:
             return {"estado": "Sin motor de recomendaciones.", "motivos": {}}
         return self.recommendation_engine.generar()
 
+    def evaluar_anomalias_y_simular(self):
+        """Evalúa anomalías y simula valores si aplica."""
+        try:
+            resultados = self.sensor_monitor.process_snapshot(self)
+        except Exception:
+            logging.exception("Silent except at 247 - revisar contexto")
+            return
+
+        self.sensores_alertas = resultados
+        self.sensores_simulados = {}
+
+        for sensor, info in resultados.items():
+            if info.get("simulado"):
+                sim_val = info.get("valor_simulado")
+                if sim_val is not None:
+                    self.sensores[sensor] = sim_val
+                    self.data[sensor] = sim_val
+                    self.sensores_simulados[sensor] = sim_val
+            meta = self.sensores_metadata.setdefault(sensor, {})
+            meta["simulado"] = bool(info.get("simulado"))
+            meta["simulado_error"] = info.get("error_estimado")
+            meta["simulado_motivo"] = info.get("motivo")
+            meta["simulado_timestamp"] = info.get("timestamp")
+
+        # Índices afectados por sensores en alerta
+        self.indices_alertas = {}
+        try:
+            from core.indices.index_catalog import INDEX_CATALOG
+            for idx, meta in INDEX_CATALOG.items():
+                sensores = meta.get("sensores", []) if isinstance(meta, dict) else []
+                for sensor in sensores:
+                    if sensor in self.sensores_alertas:
+                        alerta = self.sensores_alertas[sensor]
+                        self.indices_alertas[idx] = {
+                            "sensor": sensor,
+                            "motivo": alerta.get("motivo"),
+                            "simulado": alerta.get("simulado"),
+                            "error_estimado": alerta.get("error_estimado"),
+                            "timestamp": alerta.get("timestamp"),
+                        }
+                        break
+        except Exception:
+            logging.exception("Silent except at 286 - revisar contexto")
+
+    def registrar_feedback_prediccion(self, datos: dict):
+        """Feedback manual desde UI."""
+        try:
+            nombre = datos.get("nombre_indice") or datos.get("signal")
+            pred = float(datos.get("valor_predicho"))
+            real = bool(datos.get("es_correcto")) if "es_correcto" in datos else bool(datos.get("valor_real"))
+            self.learning_feedback.registrar_feedback_manual(nombre, pred, real)
+        except Exception:
+            logging.exception("Silent except at 305 - revisar contexto")
+
     # --------------------------------------------------------
     # FÓRMULAS PERSONALIZADAS
     # --------------------------------------------------------
@@ -264,7 +394,7 @@ class SystemCore:
             ruta = self._ruta_formulas_persistidas()
             ruta.write_text(json.dumps(self.formulas, ensure_ascii=False, indent=2), encoding="utf-8")
         except Exception:
-            pass
+            logging.exception("Silent except at 272 - revisar contexto")
         return {"status": "OK", "nombre": nombre}
 
     def obtener_formulas(self):
@@ -281,11 +411,23 @@ class SystemCore:
             if isinstance(self.indices, EnvironmentalIndices):
                 indices = self.indices.obtener_todos()
         except Exception:
-            pass
+            logging.exception("Silent except at 289 - revisar contexto")
+        try:
+            self.formula_duel_engine.run_if_due(self)
+        except Exception:
+            logging.exception("Silent except at 297 - revisar contexto")
         return {
             "sensores": self.sensores,
+            "sensores_metadata": self.sensores_metadata,
+            "sensores_derivados_metadata": self.sensores_derivados_metadata,
             "indices": indices,
-            "recomendacion": self.obtener_recomendacion()
+            "recomendacion": self.obtener_recomendacion(),
+            "alertas_sensores": self.sensores_alertas,
+            "alertas_indices": self.indices_alertas,
+            "vanguard_resumen": self.ojeador.resumen(),
+            "vanguard_alertas": self.ojeador.get_top_alerts(0, 5),
+            "learning_feedback": self.learning_feedback.resumen(),
+            "cambios_formulas": self.formula_change_tracker.resumen_ui(),
         }
 
     def activar_bloques_funcionales(self):

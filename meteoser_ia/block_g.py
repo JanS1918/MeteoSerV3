@@ -130,9 +130,20 @@ def _gather_critical_state() -> Dict[str, Any]:
 def replicate_state_to_nodes() -> None:
     snapshot = CLUSTER_REGISTRY.snapshot()
     state = _gather_critical_state()
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[1] / "data" / "cluster_state"
+    base_dir.mkdir(parents=True, exist_ok=True)
     for n in snapshot.nodes.values():
-        logger.debug(f"Cluster: replicando estado a {n.node_id} (simulado).")
-    logger.info("Cluster: replicación de estado completada (simulada).")
+        target = None
+        if isinstance(n.metadata, dict):
+            target = n.metadata.get("state_file")
+        path = Path(target) if target else base_dir / f"{n.node_id}.json"
+        try:
+            path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+            logger.debug(f"Cluster: estado replicado en {path}")
+        except Exception as e:
+            logger.warning(f"Cluster: fallo replicando estado a {n.node_id}: {e}")
+    logger.info("Cluster: replicación de estado completada.")
 
 def perform_failover(failed_node_id: str) -> None:
     logger.warning(f"Cluster: iniciando failover por fallo en {failed_node_id}")
@@ -197,7 +208,7 @@ def trigger_manual_failover(node_id: str) -> None:
     perform_failover(node_id)
 
 def smoke_test() -> None:
-    logger.info("SMOKE TEST Bloque G: clustering y HA (modo mock).")
+    logger.info("SMOKE TEST Bloque G: clustering y HA.")
 
     agents = [start_local_agent(metadata={"role": f"worker_{i}"}) for i in range(3)]
     time.sleep(1)
@@ -211,11 +222,11 @@ def smoke_test() -> None:
     if leader:
         leader_node = CLUSTER_REGISTRY.get_node(leader)
         if leader_node:
-            print(f"Simulando caída del líder {leader}")
+            print(f"Forzando caída del líder {leader}")
             leader_node.last_heartbeat = time.time() - (HEARTBEAT_TIMEOUT + 1)
             time.sleep(HEARTBEAT_INTERVAL * 2)
             _prune_dead_nodes()
-            print("Nodos del clúster (tras caída simulada):")
+            print("Nodos del clúster (tras caída forzada):")
             print(json.dumps(list_cluster_nodes(), indent=2, ensure_ascii=False))
 
     for a in agents:

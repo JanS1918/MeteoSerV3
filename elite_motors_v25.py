@@ -25,13 +25,30 @@ class MotorMasasDeAire:
     
     def calcular_theta_equivalente(self, temperatura_c, presion_hpa, humedad_relativa):
         """
-        Calcula temperatura potencial equivalente
+        Calcula temperatura potencial equivalente (Bolton 1980, aproximada).
         
-        θₑ = (T + 273.15) × (1000/P)^0.2854
+        θₑ = θ · exp((L_v · r) / (c_p · T))
         """
         T_k = temperatura_c + 273.15
-        theta_e = T_k * (1000 / presion_hpa) ** 0.2854
-        return theta_e
+        p_hpa = presion_hpa
+        rh = humedad_relativa / 100.0 if humedad_relativa > 1.0 else humedad_relativa
+        rh = max(0.0, min(1.0, rh))
+
+        from core.indices.environmental_indices import saturacion_vapor_hyland_wexler
+        e_sat_pa = saturacion_vapor_hyland_wexler(temperatura_c, p_hpa * 100.0)
+        e_pa = e_sat_pa * rh
+        r = 0.0
+        if p_hpa > 0 and e_pa > 0:
+            r = 0.622 * (e_pa / (p_hpa * 100.0 - e_pa))
+
+        c_p = 1004.0
+        L_v = 2.5e6
+        theta_k = T_k * (1000.0 / p_hpa) ** 0.2854
+        theta_e_k = theta_k * math.exp((L_v * r) / (c_p * T_k))
+        theta_c = theta_k - 273.15
+        theta_e_c = theta_e_k - 273.15
+        theta_e_c = max(theta_c - 5.0, min(theta_c + 10.0, theta_e_c))
+        return theta_e_c
     
     def identificar_origen_masa(self, temperatura_c, humedad_relativa, presion_hpa):
         """Identifica origen de masa de aire"""
@@ -54,7 +71,7 @@ class MotorMasasDeAire:
         origen = self.identificar_origen_masa(temperatura_c, humedad_relativa, presion_hpa)
         
         return {
-            "theta_equivalente_c": theta_e - 273.15,
+            "theta_equivalente_c": theta_e,
             "tipo_masa_aire": origen,
             "temperatura_c": temperatura_c,
             "humedad_relativa": humedad_relativa

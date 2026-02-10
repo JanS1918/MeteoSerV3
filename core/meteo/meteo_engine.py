@@ -1,3 +1,4 @@
+import logging
 from core.meteo.meteo_model import MeteoSnapshot, SensorRaw, SensorNormalized, DerivedMetric, normalize_sensor, compute_derived
 import time
 
@@ -59,7 +60,7 @@ def get_full_meteo_snapshot(system) -> dict:
                     depends_on=["presion"],
                 )
         except Exception:
-            pass
+            logging.exception("Silent except at 61 - revisar contexto")
     snapshot.derived = derived
     # Actualizar sensores derivados en sistema
     for nombre, metrica in snapshot.derived.items():
@@ -81,7 +82,7 @@ def get_full_meteo_snapshot(system) -> dict:
                 if real is not None:
                     system.auto_improvement_engine.registrar_error("uv_derivado", float(real), float(metrica.value))
         except Exception:
-            pass
+            logging.exception("Silent except at 83 - revisar contexto")
     # Serializar a dict
     return {
         "ts": snapshot.ts,

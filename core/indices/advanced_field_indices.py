@@ -1,3 +1,4 @@
+import logging
 """
 ÍNDICES DE CAMPO AVANZADOS - BIOFÍSICA Y AGRONOMÍA PROFESIONAL 2026
 
@@ -75,12 +76,12 @@ def confort_ave_porter_gates(temperatura_c: float,
         while frame:
             if "contexto" in frame.f_locals:
                 contexto = frame.f_locals["contexto"]
-                if hasattr(contexto, "presion_barometrica"):
+                if hasattr(contexto, "presion_barometrica") and contexto.presion_barometrica is not None:
                     P_local = float(contexto.presion_barometrica)
                 break
             frame = frame.f_back
     except Exception:
-        pass
+        logging.exception("Silent except at 82 - revisar contexto")
     k_rayleigh = 0.008735
     longitud_onda_nm = 550.0
     masa_optica = 1.0 / max(0.01, math.sin(math.radians(elevacion_solar_deg)))
@@ -103,15 +104,23 @@ def confort_ave_porter_gates(temperatura_c: float,
     Q_radiacion = epsilon_plumaje * sigma * area_proyectada_m2 * (T_piel_estimada_K**4 - T_aire_K**4)
     
     # 4. PÉRDIDA POR EVAPORACIÓN
-    # Presión de vapor saturado (Magnus)
-    # Presión de vapor CON FACTOR DE GREENSPAN
+    # Presión de vapor saturado (IAPWS-95 → Virial+Greenspan → Hyland-Wexler)
     T_k = temperatura_c + 273.15
     p_pa = 101325.0  # Presión estándar (idealmente del contexto)
-    
-    es_aire_base = 0.6108 * math.exp((17.27 * temperatura_c) / (temperatura_c + 237.3))
-    Bm = -1.6e-5 + 1.8e-8 * T_k
-    f_greenspan = math.exp(Bm * p_pa / (8.314472 * T_k))
-    es_aire = es_aire_base * f_greenspan
+
+    from core.indices.environmental_indices import (
+        saturacion_vapor_iapws_elite,
+        saturacion_vapor_virial_greenspan,
+        saturacion_vapor_hyland_wexler,
+    )
+    try:
+        pws_pa = saturacion_vapor_iapws_elite(temperatura_c, p_pa)
+    except Exception:
+        try:
+            pws_pa = saturacion_vapor_virial_greenspan(temperatura_c, p_pa)
+        except Exception:
+            pws_pa = saturacion_vapor_hyland_wexler(temperatura_c, p_pa)
+    es_aire = pws_pa / 1000.0
     ea_aire = es_aire * (humedad_relativa / 100.0)
     vpd_kpa = es_aire - ea_aire
     
@@ -208,6 +217,20 @@ def modelo_bucket_barro(lluvia_24h_mm: float,
     
     Referencia: Allen et al. (1998), FAO-56
     """
+
+    # Consumir datos de suelo desde el bus
+    from core.bus.bus_capas_informacion import obtener_bus
+    bus = obtener_bus()
+    if humedad_suelo_actual is None:
+        humedad_suelo_actual = bus.obtener_valor("contexto.suelo.humedad")
+    if capacidad_campo_mm == 200.0:
+        cc_bus = bus.obtener_valor("contexto.suelo.capacidad_campo_mm")
+        if cc_bus is not None:
+            capacidad_campo_mm = cc_bus
+    if punto_marchitez_mm == 50.0:
+        pm_bus = bus.obtener_valor("contexto.suelo.punto_marchitez_mm")
+        if pm_bus is not None:
+            punto_marchitez_mm = pm_bus
     # Agua disponible inicial (si hay sensor de humedad)
     if humedad_suelo_actual is not None:
         # Convertir % a mm usando capacidad de campo
@@ -309,20 +332,21 @@ def visibilidad_kneizys(pm25_ugm3: float,
     
     # Extinción molecular (Rayleigh-Miller corregida por presión local)
     # β_rayleigh = k * P_local/P_std * (λ_std/λ)^4
-    P_std = 1013.25  # hPa
-    P_local = 1013.25
+    from core.system.constants import PRESION
+    P_std = 1013.25  # hPa - ISA REFERENCIA (mantener para fórmula teórica)
+    P_local = PRESION.ARGENTONA_MEDIA  # hPa - Argentona fallback
     try:
         import inspect
         frame = inspect.currentframe()
         while frame:
             if "contexto" in frame.f_locals:
                 contexto = frame.f_locals["contexto"]
-                if hasattr(contexto, "presion_barometrica"):
+                if hasattr(contexto, "presion_barometrica") and contexto.presion_barometrica is not None:
                     P_local = float(contexto.presion_barometrica)
                 break
             frame = frame.f_back
     except Exception:
-        pass
+        logging.exception("Silent except at 332 - revisar contexto")
     k_rayleigh = 1.0e-5
     beta_rayleigh = k_rayleigh * (P_local / P_std) * (550.0 / longitud_onda_nm) ** 4
     

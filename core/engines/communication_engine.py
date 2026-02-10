@@ -1,3 +1,4 @@
+import logging
 """
 Módulo de comunicación oral y respuestas multimodales de MeteoSer.
 
@@ -66,14 +67,14 @@ class CommunicationEngine:
             try:
                 self._log.info(msg)
             except Exception:
-                pass
+                logging.exception("Silent except at 68 - revisar contexto")
 
     def _log_debug(self, msg: str) -> None:
         if self._log:
             try:
                 self._log.debug(msg)
             except Exception:
-                pass
+                logging.exception("Silent except at 75 - revisar contexto")
 
     def _emitir_voz(self, texto: str) -> None:
         """

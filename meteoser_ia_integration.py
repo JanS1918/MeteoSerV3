@@ -27,7 +27,7 @@ def initialize_integration(mock_mode: bool = True) -> None:
         try:
             setattr(mod, "EXTERNAL_INTEGRATION_MODE", mode)
         except Exception:
-            pass
+            logging.exception("Silent except at 29 - revisar contexto")
     logger.info(f"Integración inicializada en modo: {mode.value}")
 
 def integration_status() -> Dict[str, Any]:
@@ -156,7 +156,7 @@ def attach_to_core_startup() -> None:
             try:
                 block_a.discover_all_sensors()
             except Exception:
-                pass
+                logging.exception("Silent except at 158 - revisar contexto")
             return start_fn(*args, **kwargs)
         setattr(core, "start", wrapped_start)
         logger.info("Hook de arranque adjuntado a meteoser.start()")

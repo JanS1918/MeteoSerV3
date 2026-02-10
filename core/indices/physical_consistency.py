@@ -27,6 +27,18 @@ from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime
 import logging
+from core.indices.environmental_indices import (
+    saturacion_vapor_iapws_elite,
+    saturacion_vapor_virial_greenspan,
+    saturacion_vapor_hyland_wexler,
+    _dew_point,
+)
+
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +115,7 @@ class PhysicalConsistencyValidator:
                                          punto_rocio_c: float) -> Optional[float]:
         """
         Deduce humedad relativa desde temperatura y punto de rocío.
-        Fórmula de Magnus-Tetens inversa.
+        Basado en razón de presiones de vapor (NIST).
         """
         if temperatura_c is None or punto_rocio_c is None:
             return None
@@ -112,18 +124,23 @@ class PhysicalConsistencyValidator:
             # Físicamente imposible
             return None
         
-        a, b = 17.27, 237.7
-        
-        # Presión de vapor actual (desde Td)
-        alpha_d = (a * punto_rocio_c) / (b + punto_rocio_c)
-        ea = math.exp(alpha_d)
-        
-        # Presión de vapor saturado (desde T)
-        alpha_t = (a * temperatura_c) / (b + temperatura_c)
-        es = math.exp(alpha_t)
-        
-        # Humedad relativa
-        hr = (ea / es) * 100.0
+        presion_pa = 101325.0
+        try:
+            es_t_pa = saturacion_vapor_iapws_elite(temperatura_c, presion_pa)
+        except Exception:
+            try:
+                es_t_pa = saturacion_vapor_virial_greenspan(temperatura_c, presion_pa)
+            except Exception:
+                es_t_pa = saturacion_vapor_hyland_wexler(temperatura_c, presion_pa)
+        try:
+            ea_pa = saturacion_vapor_iapws_elite(punto_rocio_c, presion_pa)
+        except Exception:
+            try:
+                ea_pa = saturacion_vapor_virial_greenspan(punto_rocio_c, presion_pa)
+            except Exception:
+                ea_pa = saturacion_vapor_hyland_wexler(punto_rocio_c, presion_pa)
+
+        hr = (ea_pa / es_t_pa) * 100.0
         return round(min(100.0, max(0.0, hr)), 1)
     
     def deducir_viento_desde_variabilidad(self, viento_actual: Optional[float],
@@ -259,10 +276,23 @@ class PhysicalConsistencyValidator:
         # Validación física: Td <= T
         if punto_rocio > temp_c + 0.1:  # Tolerancia 0.1°C por errores de redondeo
             # Calcular HR correcta desde Td
-            a, b = 17.27, 237.7
-            alpha_td = ((a * punto_rocio) / (b + punto_rocio))
-            alpha_t = ((a * temp_c) / (b + temp_c))
-            hr_correcta = 100.0 * math.exp(alpha_td - alpha_t)
+            presion_pa = 101325.0
+            try:
+                es_t_pa = saturacion_vapor_iapws_elite(temp_c, presion_pa)
+            except Exception:
+                try:
+                    es_t_pa = saturacion_vapor_virial_greenspan(temp_c, presion_pa)
+                except Exception:
+                    es_t_pa = saturacion_vapor_hyland_wexler(temp_c, presion_pa)
+            try:
+                ea_pa = saturacion_vapor_iapws_elite(punto_rocio, presion_pa)
+            except Exception:
+                try:
+                    ea_pa = saturacion_vapor_virial_greenspan(punto_rocio, presion_pa)
+                except Exception:
+                    ea_pa = saturacion_vapor_hyland_wexler(punto_rocio, presion_pa)
+
+            hr_correcta = 100.0 * (ea_pa / es_t_pa)
             hr_correcta = max(0.0, min(100.0, hr_correcta))
             
             self._add_alert(
@@ -277,8 +307,7 @@ class PhysicalConsistencyValidator:
             return hr_correcta, False
         
         # Validación de coherencia: recalcular Td desde T+HR y comparar
-        alpha = ((a * temp_c) / (b + temp_c)) + math.log(max(0.01, humedad) / 100.0)
-        td_calculado = (b * alpha) / (a - alpha)
+        td_calculado = _dew_point(temp_c, max(0.01, humedad))
         
         delta_td = abs(td_calculado - punto_rocio)
         if delta_td > 2.0:  # Diferencia > 2°C es sospechosa

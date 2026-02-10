@@ -10,6 +10,12 @@ La radiación NO es constante; se ajusta por la dispersión molecular real del a
 import math
 from typing import Dict, Optional
 
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
+
 
 def utci_polynomial(ta: float, tmrt: float, va: float, vp: float,
                    turbulencia_info: Optional[Dict] = None,
@@ -37,7 +43,7 @@ def utci_polynomial(ta: float, tmrt: float, va: float, vp: float,
         Keys: 'z0h', 'u_star', 'L_monin_obukhov', 'psi_h'
     rayleigh_info : dict, optional
         Info de Rayleigh-Miller con transmitancia atmosférica real
-        Keys: 'transmitancia', 'rho_factor'
+        Keys: 'nubosidad', 'rho_factor'
     
     Returns:
     --------
@@ -124,8 +130,8 @@ def utci_polynomial(ta: float, tmrt: float, va: float, vp: float,
     # Tmrt incluye radiación solar dispersada por atmósfera.
     # MEJORA 2026: Ajustar por transmitancia real (presión barométrica local)
     
-    if rayleigh_info and 'transmitancia' in rayleigh_info:
-        T_rayleigh = rayleigh_info['transmitancia']
+    if rayleigh_info and 'nubosidad' in rayleigh_info:
+        T_rayleigh = rayleigh_info['nubosidad']
         rho_factor = rayleigh_info.get('rho_factor', 1.0)
         
         # La radiación directa está modulada por transmitancia
@@ -232,7 +238,7 @@ if __name__ == "__main__":
         'L_monin_obukhov': -50.0  # Longitud de Obukhov (inestable)
     }
     rayleigh = {
-        'transmitancia': 0.85,  # Transmitancia Rayleigh-Miller (Argentona)
+        'nubosidad': 0.85,  # Transmitancia Rayleigh-Miller (Argentona)
         'rho_factor': 0.992  # Factor de densidad atmosférica
     }
     utci_dynamic = utci_polynomial(ta, tmrt, va, vp, turbulencia, rayleigh)

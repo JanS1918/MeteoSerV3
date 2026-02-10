@@ -74,39 +74,8 @@ class BLEScanner:
     
     async def scan_ble_devices(self, timeout: int = 5) -> List[BLEDevice]:
         """Escanea dispositivos BLE disponibles"""
-        if not self.scanner:
-            if not await self._init_ble_scanner():
-                return []
-        
-        devices = []
-        try:
-            from bleak import BleakScanner
-            scanner = BleakScanner()
-            await scanner.start()
-            await asyncio.sleep(timeout)
-            await scanner.stop()
-            
-            for device, advertisement_data in scanner.discovered_devices_and_advertisement_data.items():
-                ble_device = BLEDevice(
-                    address=device.address,
-                    name=device.name,
-                    rssi=advertisement_data.rssi,
-                    manufacturer_data=dict(advertisement_data.manufacturer_data) if advertisement_data.manufacturer_data else None,
-                    service_uuids=list(advertisement_data.service_uuids) if advertisement_data.service_uuids else None
-                )
-                
-                # Identificar tipo de sensor
-                sensor_type = await self.identify_sensor_type(ble_device)
-                if sensor_type:
-                    ble_device.name = sensor_type
-                
-                devices.append(ble_device)
-                logger.info(f"Detectado BLE: {ble_device.to_dict()}")
-        
-        except Exception as e:
-            logger.error(f"Error escaneando BLE: {e}")
-        
-        return devices
+        # BLE DESHABILITADO permanentemente
+        return []
     
     async def identify_sensor_type(self, device: BLEDevice) -> Optional[str]:
         """Identifica el tipo de sensor BLE"""

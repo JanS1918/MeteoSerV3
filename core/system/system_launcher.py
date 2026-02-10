@@ -2,6 +2,8 @@
 # MÓDULO E — SYSTEM LAUNCHER (ORQUESTADOR DE ARRANQUE)
 # ============================================================
 
+import logging
+
 from core.system.system_core import SystemCore
 from core.indices.environmental_indices import EnvironmentalIndices
 from core.recommendations.unified_recommendation_engine import UnifiedRecommendationEngine
@@ -36,6 +38,10 @@ class SystemLauncher:
 
         # 1. Núcleo
         self.system = SystemCore()
+        try:
+            self.system.ojeador.run_if_due()
+        except Exception:
+            logging.exception("Ojeador: fallo en arranque")
 
         # 2. Índices
         self.indices = EnvironmentalIndices(self.system)

@@ -1,5 +1,6 @@
 import math
 from core.meteo.meteo_model import SensorRaw, SensorNormalized, DerivedMetric, MeteoSnapshot
+from core.indices.environmental_indices import _dew_point
 
 def f_to_c(temp_f: float) -> float:
     return (temp_f - 32.0) * 5.0 / 9.0
@@ -45,11 +46,12 @@ def compute_derived(snapshot: MeteoSnapshot) -> dict:
     radiacion = snapshot.sensors.get("radiacion")
     ts = snapshot.ts
     if temp and rh:
-        # Magnus-Tetens
-        a, b = 17.27, 237.7
-        alpha = ((a * temp.value) / (b + temp.value)) + math.log(rh.value / 100.0)
-        dp = (b * alpha) / (a - alpha)
-        derived["punto_rocio"] = DerivedMetric(name="punto_rocio", value=dp, unit="C", ts=ts)
+        try:
+            dp = _dew_point(float(temp.value), float(rh.value))
+        except Exception:
+            dp = None
+        if dp is not None:
+            derived["punto_rocio"] = DerivedMetric(name="punto_rocio", value=dp, unit="C", ts=ts)
     if temp and rh and viento:
         # Sensación térmica simple
         st = temp.value - (viento.value * 0.7)

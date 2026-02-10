@@ -425,29 +425,89 @@ def transfer_entropy(
     n = min(len(source), len(target))
     if n < lag + 10:
         return 0.0
-    
-    # Discretizar series
-    source_disc = np.digitize(source[:n], np.linspace(min(source), max(source), bins))
-    target_disc = np.digitize(target[:n], np.linspace(min(target), max(target), bins))
-    
-    # Construir distribuciones de probabilidad
-    te = 0.0
-    
-    for i in range(lag, n - 1):
-        # P(target[i+1] | target[i], source[i-lag])
-        # vs P(target[i+1] | target[i])
-        # TE = suma de P * log(P1/P2)
-        
-        # Implementación simplificada
-        # TODO: Implementar cálculo completo de Kullback-Leibler
-        pass
-    
-    # Por ahora, retornamos correlación cruzada como proxy
-    try:
-        corr = np.corrcoef(source[lag:n], target[:n-lag])[0, 1]
-        return abs(corr)
-    except Exception:
+
+    # Ajuste dinámico de bins para evitar sobre-discretización
+    bins_eff = min(bins, max(3, int(math.sqrt(n))))
+
+    def _digitize(series: List[float]) -> Optional[np.ndarray]:
+        edges = np.quantile(series, np.linspace(0.0, 1.0, bins_eff + 1))
+        edges = np.unique(edges)
+        if len(edges) <= 2:
+            return None
+        return np.digitize(series, edges[1:-1], right=False)
+
+    source_disc = _digitize(source[:n])
+    target_disc = _digitize(target[:n])
+    if source_disc is None or target_disc is None:
         return 0.0
+
+    def _compute_te(src_disc: np.ndarray, tgt_disc: np.ndarray) -> float:
+        from collections import Counter
+        count_xyz = Counter()
+        count_yx = Counter()
+        count_yy = Counter()
+        count_y = Counter()
+
+        for i in range(lag, n - 1):
+            y_next = int(tgt_disc[i + 1])
+            y_prev = int(tgt_disc[i])
+            x_prev = int(src_disc[i - lag])
+            count_xyz[(y_next, y_prev, x_prev)] += 1
+            count_yx[(y_prev, x_prev)] += 1
+            count_yy[(y_next, y_prev)] += 1
+            count_y[y_prev] += 1
+
+        total = sum(count_xyz.values())
+        if total <= 0:
+            return 0.0
+
+        alpha = 1e-6  # suavizado de Laplace
+        te_val = 0.0
+        for (y_next, y_prev, x_prev), c_xyz in count_xyz.items():
+            p_xyz = c_xyz / total
+            p_cond_1 = (c_xyz + alpha) / (count_yx[(y_prev, x_prev)] + alpha * bins_eff)
+            p_cond_2 = (count_yy[(y_next, y_prev)] + alpha) / (count_y[y_prev] + alpha * bins_eff)
+            ratio = p_cond_1 / max(p_cond_2, 1e-12)
+            te_val += p_xyz * math.log(max(ratio, 1e-12))
+
+        return max(0.0, float(te_val))
+
+    te_raw = _compute_te(source_disc, target_disc)
+
+    def _mutual_info(a: np.ndarray, b: np.ndarray) -> float:
+        from collections import Counter
+        count_ab = Counter()
+        count_a = Counter()
+        count_b = Counter()
+        for i in range(len(a)):
+            count_ab[(int(a[i]), int(b[i]))] += 1
+            count_a[int(a[i])] += 1
+            count_b[int(b[i])] += 1
+        total = len(a)
+        if total == 0:
+            return 0.0
+        mi = 0.0
+        for (ai, bi), cab in count_ab.items():
+            p_ab = cab / total
+            p_a = count_a[ai] / total
+            p_b = count_b[bi] / total
+            mi += p_ab * math.log(max(p_ab / max(p_a * p_b, 1e-12), 1e-12))
+        return max(0.0, float(mi))
+
+    te_proxy = _mutual_info(source_disc[:-lag], target_disc[lag:])
+
+    # Corrección de sesgo por aleatoriedad (shuffling determinista)
+    if n >= 30:
+        rng = np.random.default_rng(0)
+        biases = []
+        for _ in range(3):
+            shuffled = rng.permutation(source_disc)
+            biases.append(_compute_te(shuffled, target_disc))
+        bias = float(np.mean(biases)) if biases else 0.0
+        te_adj = max(0.0, te_raw - 0.5 * bias)
+        return max(te_adj, te_proxy)
+
+    return max(te_raw, te_proxy)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -588,14 +648,14 @@ class StatisticalBrain:
                     restore_brain_state(self, saved_state)
                     logger.info("✨ CEREBRO DESPIERTO CON MEMORIA COMPLETA")
             except Exception as e:
-                logger.exception(f"⚠️ No se pudo restaurar estado previo: {e}")
+                logger.exception(f"[WARNING] No se pudo restaurar estado previo: {e}")
                 logger.info("🆕 Iniciando cerebro desde cero")
 
     def enter_observation_mode(self):
         """Entra en modo de observación quirúrgica: silencio total de flags tras limpieza."""
         self.observation_mode = True
         self.observation_cycles = 0
-        logger.info("🧹 CEREBRO EN MODO OBSERVACIÓN: Silencio quirúrgico hasta acumular confianza")
+        logger.info("[CLEANUP] CEREBRO EN MODO OBSERVACIÓN: Silencio quirúrgico hasta acumular confianza")
         
     def ingest(
         self,

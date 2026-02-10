@@ -12,6 +12,19 @@ const cacheState = {
     lastSignals: []
 };
 
+const alertState = {
+    sensors: {},
+    indices: {},
+    resumen: {}
+};
+
+const vanguardState = {
+    items: [],
+    offset: 0,
+    total: 0,
+    baseAlerts: []
+};
+
 const storageKeys = {
     hidden: 'meteoser_hidden_items',
     show: 'meteoser_show_items',
@@ -86,6 +99,50 @@ function normalizeNumeric(value) {
     if (Number.isNaN(n)) return null;
     if (n <= 1 && n >= 0) return n * 100;
     return n;
+}
+
+function setAlertState(data) {
+    alertState.sensors = data?.alertas_sensores || {};
+    alertState.indices = data?.alertas_indices || {};
+    alertState.resumen = data?.vanguard_resumen || {};
+    alertState.cambios = data?.cambios_formulas || {};
+}
+
+function normalizeKeyName(value) {
+    return String(value || '').trim().toLowerCase().replace(/\s+/g, '_');
+}
+
+function getCambioForKey(kind, key, label) {
+    const cambios = alertState.cambios || {};
+    if (!cambios) return null;
+    if (key && cambios[key]) return cambios[key];
+    const normKey = key ? normalizeKeyName(key) : '';
+    if (normKey && cambios[normKey]) return cambios[normKey];
+    const normLabel = label ? normalizeKeyName(label) : '';
+    if (normLabel && cambios[normLabel]) return cambios[normLabel];
+    return null;
+}
+
+function getAlertForKey(kind, key) {
+    if (!key) return null;
+    if (kind === 'sensor') return alertState.sensors?.[key] || null;
+    if (kind === 'indice') return alertState.indices?.[key] || null;
+    return alertState.sensors?.[key] || alertState.indices?.[key] || null;
+}
+
+function buildAlertBadge(alertInfo) {
+    if (!alertInfo) return '';
+    const text = alertInfo?.motivo || 'anomalía';
+    return `<span class="item-alert" title="${text}">⚠️</span>`;
+}
+
+function buildCambioBadge(cambioInfo) {
+    if (!cambioInfo) return '';
+    const cambios = Number(cambioInfo?.cambios || 0);
+    const estabilizado = Boolean(cambioInfo?.estabilizado ?? true);
+    if (!cambios || estabilizado) return '';
+    const text = cambios === 1 ? 'cambio' : `${cambios} cambios`;
+    return `<span class="item-cambio" title="Cambio de fórmula">${text}</span>`;
 }
 
 function classifyValue(key, value, unit = '') {
@@ -538,16 +595,20 @@ function pickIcon(label) {
     return key ? iconMap[key] : '•';
 }
 
-function buildItemHtml({ label, value, unit = '', key = '', warn = false }) {
+function buildItemHtml({ label, value, unit = '', key = '', warn = false, kind = '' }) {
     const icon = pickIcon(label || key);
     const valueClass = classifyValue(key || label, value, unit);
     const displayValue = formatValueForKey(key, value, unit);
     const classes = ['data-item'];
+    const alertInfo = getAlertForKey(kind, key);
+    const cambioInfo = getCambioForKey(kind, key, label);
     if (warn) classes.push('item--warning');
-    if (isAnomaly(key || label, value)) classes.push('item--alert');
+    if (isAnomaly(key || label, value) || alertInfo) classes.push('item--alert');
+    const alertBadge = buildAlertBadge(alertInfo);
+    const cambioBadge = buildCambioBadge(cambioInfo);
     return `
         <div class="${classes.join(' ')}" data-key="${key}">
-            <span class="item-label"><span class="item-icon">${icon}</span>${label}</span>
+            <span class="item-label"><span class="item-icon">${icon}</span>${label}${cambioBadge}${alertBadge}</span>
             <strong class="item-value ${valueClass}">${displayValue}</strong>
         </div>
     `;
@@ -570,7 +631,7 @@ function renderList(items) {
             const value = item && typeof item === 'object' && 'value' in item ? item.value : '';
             const key = item && typeof item === 'object' && 'key' in item ? item.key : label;
             const kind = item && typeof item === 'object' && 'kind' in item ? item.kind : undefined;
-            const html = buildItemHtml({ label, value, key });
+            const html = buildItemHtml({ label, value, key, kind });
             if (!kind) return html;
             return html.replace('data-key', `data-${kind}-key`);
         })
@@ -905,7 +966,82 @@ function updateAlertas(data) {
     const intrusion = data?.intrusion?.alertas || [];
     alerts.push(...intrusion.map(String));
     const formatted = alerts.map((alert, idx) => ({ label: `Alerta ${idx + 1}`, value: alert }));
-    setHTML('alertas', renderList(formatted));
+    vanguardState.baseAlerts = formatted.slice();
+
+    const vanguard = data?.vanguard_alertas;
+    if (vanguard && Array.isArray(vanguard.items)) {
+        vanguardState.items = vanguard.items;
+        vanguardState.total = vanguard.total || vanguard.items.length;
+        vanguardState.offset = vanguard.offset || 0;
+    }
+
+    const vanguardItems = vanguardState.items.map((item, idx) => ({
+        label: `Vanguard ${idx + 1}`,
+        value: item.titulo || item.formula || 'Mejora detectada',
+        key: `vanguard_${idx}`,
+        kind: 'vanguard'
+    }));
+
+    const items = [...formatted, ...vanguardItems];
+    if (vanguardState.items.length < vanguardState.total) {
+        items.push({
+            label: 'Más mejoras',
+            value: `+${vanguardState.total - vanguardState.items.length}`,
+            key: 'more',
+            kind: 'vanguard'
+        });
+    }
+
+    setHTML('alertas', renderList(items));
+}
+
+function updateGlobalAlerts(data) {
+    const totalSensors = Object.keys(alertState.sensors || {}).length;
+    const totalIndices = Object.keys(alertState.indices || {}).length;
+    const total = totalSensors + totalIndices;
+    setText('active-alerts', total);
+    const global = document.getElementById('alerta-global');
+    if (global) {
+        global.textContent = total > 0 ? `⚠️ ${total}` : '';
+        global.style.display = total > 0 ? 'inline-flex' : 'none';
+    }
+}
+
+async function loadMoreVanguard() {
+    const nextOffset = vanguardState.items.length;
+    const resp = await fetchJSON(`/vanguard/alertas?offset=${nextOffset}&limit=5`);
+    if (resp?.items?.length) {
+        vanguardState.items = vanguardState.items.concat(resp.items);
+        vanguardState.total = resp.total || vanguardState.items.length;
+        vanguardState.offset = resp.offset || nextOffset;
+        updateAlertas(lastEstado || {});
+    }
+}
+
+function showVanguardDetail(index) {
+    const item = vanguardState.items[index];
+    if (!item) return;
+    const overlay = document.getElementById('overlay-vanguard');
+    const content = document.getElementById('overlay-vanguard-content');
+    if (!overlay || !content) return;
+    const beneficios = (item.beneficios || []).map(b => `<li>${b}</li>`).join('') || '<li>Sin datos</li>';
+    const riesgos = (item.riesgos || []).map(r => `<li>${r}</li>`).join('') || '<li>Sin datos</li>';
+    content.innerHTML = `
+        <h3>${item.titulo || item.formula}</h3>
+        <p><strong>Módulo:</strong> ${item.modulo || 'n/d'}</p>
+        <p><strong>Referencia:</strong> ${item.referencia || 'n/d'}</p>
+        <p><strong>Mejora estimada:</strong> ${item.mejora_estimadapct || 0}%</p>
+        <p>${item.resumen || ''}</p>
+        <div class="overlay-section">
+            <strong>Bondades</strong>
+            <ul>${beneficios}</ul>
+        </div>
+        <div class="overlay-section">
+            <strong>Riesgos</strong>
+            <ul>${riesgos}</ul>
+        </div>
+    `;
+    overlay.classList.add('is-active');
 }
 
 function updateRiesgos(data) {
@@ -977,6 +1113,7 @@ async function loadEstado() {
     try {
         const data = await fetchJSON(STATE_URL);
         lastEstado = data;
+        setAlertState(data);
         updateLocation(data.indices);
         updateHero(data);
         updateSolar(data.indices);
@@ -984,6 +1121,7 @@ async function loadEstado() {
         updateIndices(data);
         updateRecomendacion(data);
         updateAlertas(data);
+        updateGlobalAlerts(data);
         updateRiesgos(data);
         updateOrganizer(data);
         updateSensorHealth(data);
@@ -1103,6 +1241,19 @@ function openSubmenu(kind, key) {
         value = info?.valor ?? raw;
         unit = indicesCatalogo?.[key]?.unidad || '';
         descripcion = info?.explicacion || indicesCatalogo?.[key]?.descripcion || 'Índice calculado.';
+    }
+    const alertInfo = getAlertForKey(kind, key);
+    const cambioInfo = getCambioForKey(kind, key, getDisplayLabel(key));
+    if (alertInfo) {
+        const motivo = alertInfo?.motivo || 'anomalía';
+        const err = alertInfo?.error_estimado !== undefined ? ` ±${alertInfo.error_estimado}` : '';
+        const sim = alertInfo?.simulado ? ' (valor simulado)' : '';
+        descripcion = `${descripcion}\n\n⚠️ Alerta: ${motivo}${err}${sim}`;
+    }
+    if (cambioInfo && !cambioInfo.estabilizado && cambioInfo.cambios) {
+        const cambiosTxt = cambioInfo.cambios === 1 ? '1 cambio' : `${cambioInfo.cambios} cambios`;
+        const loopTxt = cambioInfo.loop_detectado ? ' · bucle detectado' : '';
+        descripcion = `${descripcion}\n\n🔁 Cambios de fórmula: ${cambiosTxt} · en revisión${loopTxt}`;
     }
     setText('submenu-item-title', getDisplayLabel(key));
     setText('submenu-item-key', key);
@@ -1244,6 +1395,19 @@ function initSubmenuControls() {
 
 function initItemSubmenu() {
     document.addEventListener('click', event => {
+        const vanguardItem = event.target.closest('[data-vanguard-key]');
+        if (vanguardItem) {
+            const key = vanguardItem.getAttribute('data-vanguard-key');
+            if (key === 'more') {
+                loadMoreVanguard();
+                return;
+            }
+            const match = key.match(/vanguard_(\d+)/);
+            if (match) {
+                showVanguardDetail(Number(match[1]));
+                return;
+            }
+        }
         const sensorItem = event.target.closest('[data-sensor-key]');
         if (sensorItem) {
             const key = sensorItem.getAttribute('data-sensor-key');

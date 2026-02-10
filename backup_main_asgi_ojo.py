@@ -1,3 +1,4 @@
+import logging
 # ÔÜá´©Å MAIN ASGI - ROUTER SELLADO CON EST├üNDARES DIAMANTE
 # ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 # Router principal del servidor METEOSER V3.
@@ -83,7 +84,7 @@ def _parse_timestamp(value):
         text = str(value).strip()
         return datetime.datetime.fromisoformat(text).timestamp()
     except Exception:
-        pass
+        logging.exception("Silent except at 85 - revisar contexto")
     for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
         try:
             return datetime.datetime.strptime(text, fmt).timestamp()
@@ -236,7 +237,7 @@ def _append_feedback_log(detalle: dict) -> None:
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(detalle, ensure_ascii=False) + "\n")
     except Exception:
-        pass
+        logging.exception("Silent except at 238 - revisar contexto")
 @app.post("/feedback_prediccion")
 async def feedback_prediccion(payload: dict = Body(...)):
     tipo = payload.get("tipo")
@@ -269,7 +270,7 @@ async def feedback_prediccion(payload: dict = Body(...)):
                     # Usar features dummy (solo valor estimado)
                     learning_engine.models[nombre].update({"estimado": v_estimado}, v_real)
         except Exception:
-            pass
+            logging.exception("Silent except at 271 - revisar contexto")
     return {"ok": True, "msg": "Feedback registrado"}
 import datetime
 import threading
@@ -508,7 +509,7 @@ def _cargar_asistente() -> None:
                 else:
                     _asistente_store.update(data)
     except Exception:
-        pass
+        logging.exception("Silent except at 510 - revisar contexto")
 
 
 def _guardar_asistente() -> None:
@@ -520,7 +521,7 @@ def _guardar_asistente() -> None:
         }
         _ruta_asistente().write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     except Exception:
-        pass
+        logging.exception("Silent except at 522 - revisar contexto")
 
 
 def _registrar_evento_hardware_nuevo() -> list:
@@ -549,7 +550,7 @@ def _registrar_evento_hardware_nuevo() -> list:
         if nuevos:
             _guardar_asistente()
     except Exception:
-        pass
+        logging.exception("Silent except at 551 - revisar contexto")
     return nuevos
 
 
@@ -620,12 +621,12 @@ def _json_safe(value):
             try:
                 return value.tolist()
             except Exception:
-                pass
+                logging.exception("Silent except at 622 - revisar contexto")
         if hasattr(value, "item"):
             try:
                 return value.item()
             except Exception:
-                pass
+                logging.exception("Silent except at 627 - revisar contexto")
         return value
     except Exception:
         return None
@@ -660,7 +661,7 @@ def _sonar_alarma() -> None:
                             break
                         winsound.Beep(1200, 280)
                 except Exception:
-                    pass
+                    logging.exception("Silent except at 662 - revisar contexto")
             else:
                 for _ in range(6):
                     if _alarm_stop_event.is_set():
@@ -679,7 +680,7 @@ def _silenciar_alarma() -> None:
             import winsound
             winsound.PlaySound(None, winsound.SND_ASYNC)
         except Exception:
-            pass
+            logging.exception("Silent except at 681 - revisar contexto")
 
 
 def _imprimir_item(item: dict) -> dict:
@@ -760,7 +761,7 @@ async def _alarmas_loop():
                         alarma["activa"] = False
             _guardar_asistente()
         except Exception:
-            pass
+            logging.exception("Silent except at 762 - revisar contexto")
         await asyncio.sleep(30)
 
 
@@ -866,7 +867,7 @@ async def iniciar_autodeteccion():
                 system.brain_autosaver = brain_autosaver
             except Exception:
                 # Si no se puede asignar, seguir sin fallo
-                pass
+                logging.exception("Silent except at 867 - revisar contexto")
         except Exception as e:
             logger.exception(f"ÔÜá´©Å No se pudo activar auto-guardado del cerebro: {e}")
 
@@ -928,7 +929,7 @@ async def iniciar_autodeteccion():
             try:
                 await auto_repair_engine.check_and_repair()
             except Exception:
-                pass
+                logging.exception("Silent except at 930 - revisar contexto")
             await asyncio.sleep(60)
 
     asyncio.create_task(_auto_repair_loop())
@@ -939,7 +940,7 @@ async def iniciar_autodeteccion():
                 if system.auto_improvement_system:
                     system.auto_improvement_system.ciclo()
             except Exception:
-                pass
+                logging.exception("Silent except at 941 - revisar contexto")
             await asyncio.sleep(300)
 
     asyncio.create_task(_auto_mejora_loop())
@@ -950,7 +951,7 @@ async def iniciar_autodeteccion():
                 if pas_engine:
                     pas_engine.update(system.sensores)
             except Exception:
-                pass
+                logging.exception("Silent except at 952 - revisar contexto")
             await asyncio.sleep(300)
 
     asyncio.create_task(_pas_loop())
@@ -961,7 +962,7 @@ async def iniciar_autodeteccion():
                 if habits_engine:
                     habits_engine.update_from_system(system)
             except Exception:
-                pass
+                logging.exception("Silent except at 963 - revisar contexto")
             await asyncio.sleep(600)
 
     asyncio.create_task(_habitos_loop())
@@ -1435,7 +1436,7 @@ def _estado_impl():
                 if candidate.stat().st_mtime > snapshot_path.stat().st_mtime:
                     snapshot_path = candidate
             except Exception:
-                pass
+                logging.exception("Silent except at 1437 - revisar contexto")
         if snapshot_path and snapshot_path.exists():
             persisted = json.loads(snapshot_path.read_text(encoding="utf-8"))
             persisted_sensores = persisted.get("sensores", {})
@@ -1445,7 +1446,7 @@ def _estado_impl():
             if isinstance(persisted_ts, dict) and hasattr(system, "sensores_timestamp"):
                 system.sensores_timestamp.update(persisted_ts)
     except Exception:
-        pass
+        logging.exception("Silent except at 1447 - revisar contexto")
     # Forzar siempre el c├ílculo de ├¡ndices avanzados
     from core.indices.environmental_indices import EnvironmentalIndices
     if not isinstance(system.indices, EnvironmentalIndices):
@@ -1462,11 +1463,11 @@ def _estado_impl():
             apply_calibration(indices, factors)
             apply_calibration(predicciones, factors)
     except Exception:
-        pass
+        logging.exception("Silent except at 1464 - revisar contexto")
     try:
         system.indices.reforzar_indices(indices, predicciones=predicciones)
     except Exception:
-        pass
+        logging.exception("Silent except at 1468 - revisar contexto")
     recomendacion = system.obtener_recomendacion()
     # Leer latitud/longitud manuales si existen
     latitud = None
@@ -1483,7 +1484,7 @@ def _estado_impl():
             manager.set_manual_coordinates(latitud, longitud)
             origen_ubicacion = "manual"
     except Exception:
-        pass
+        logging.exception("Silent except at 1485 - revisar contexto")
     def _coords_valid(lat, lon):
         try:
             return lat is not None and lon is not None and -90 <= float(lat) <= 90 and -180 <= float(lon) <= 180
@@ -1514,7 +1515,7 @@ def _estado_impl():
                 longitud = _parse_coord(lon_sensor)
                 origen_ubicacion = "sensor"
         except Exception:
-            pass
+            logging.exception("Silent except at 1516 - revisar contexto")
 
     if latitud is None or longitud is None:
         coords = manager.obtener_coordenadas()
@@ -1531,9 +1532,9 @@ def _estado_impl():
             return False
 
     if not _coords_valid(latitud, longitud) or (origen_ubicacion != "manual" and not _coords_es_spain(latitud, longitud)):
-        latitud = 41.5507
-        longitud = -2.397
-        origen_ubicacion = "desconocida"
+        latitud = 41.553267
+        longitud = 2.396845
+        origen_ubicacion = "constantes_selladas"
     try:
         system.ubicacion = {
             "lat": latitud,
@@ -1541,7 +1542,7 @@ def _estado_impl():
             "origen": origen_ubicacion,
         }
     except Exception:
-        pass
+        logging.exception("Silent except at 1543 - revisar contexto")
     # Calcular arco solar y horas de amanecer/atardecer para hoy
     hoy = datetime.datetime.now().timetuple().tm_yday
     arco = arco_solar(latitud, hoy)
@@ -1591,7 +1592,7 @@ def _estado_impl():
             nubosidad = max(0, min(100, (1.0 - (float(rad_real) / rad_teorica)) * 100))
             indices["nubosidad_estimada"] = {"valor": round(nubosidad, 2), "estimado": True}
     except Exception:
-        pass
+        logging.exception("Silent except at 1593 - revisar contexto")
     def _hhmm_to_min(hhmm: str):
         try:
             if not hhmm or ":" not in hhmm:
@@ -1724,7 +1725,7 @@ def _estado_impl():
             }
             indices["indice_cielo_astronomico_nivel"] = _clasificar_indice_cielo(indice_cielo)
     except Exception:
-        pass
+        logging.exception("Silent except at 1726 - revisar contexto")
     indices["latitud"] = latitud
     indices["longitud"] = longitud
     indices["origen_ubicacion"] = origen_ubicacion
@@ -1789,7 +1790,7 @@ def _estado_impl():
             if isinstance(val, float) and val == int(val):
                 return int(val)
         except Exception:
-            pass
+            logging.exception("Silent except at 1791 - revisar contexto")
         return val
 
     # Forzar Ley del Entero en humedad y viento si son redondos
@@ -1991,7 +1992,7 @@ def submenu_detallado():
                 pred_refuerzos.update(pred_local)
             system.indices.reforzar_indices(indices, predicciones=pred_refuerzos)
         except Exception:
-            pass
+            logging.exception("Silent except at 1993 - revisar contexto")
         huellas = GestorHuellasAtmosfericas().analizar("default", contexto)
         uso_dispositivos = MotorUsoDispositivos().analizar(contexto)
         nocturno = MotorNocturno().analizar(contexto)
@@ -2538,6 +2539,70 @@ def _listar_valores_disponibles():
     }
 
 
+def _resumen_tiempo() -> dict:
+    sensores = dict(getattr(system, "sensores", {}) or {})
+    derivados = dict(getattr(system, "sensores_derivados", {}) or {})
+    try:
+        indices = dict(system.indices.obtener_todos()) if system.indices else {}
+    except Exception:
+        indices = {}
+
+    def _pick(keys):
+        for key in keys:
+            for src in (sensores, derivados, indices):
+                if key in src and src[key] is not None:
+                    return src[key], key
+        return None, None
+
+    partes = []
+    temp, temp_key = _pick(["temp_c", "temp", "temperatura", "temperature", "temp_exterior", "outdoor_temp", "tempf", "temperature_f"])
+    if temp is not None:
+        try:
+            temp_val = float(temp)
+            if temp_key and ("tempf" in temp_key.lower() or "fahrenheit" in temp_key.lower()):
+                temp_val = (temp_val - 32.0) * 5.0 / 9.0
+            elif temp_val > 60:
+                temp_val = (temp_val - 32.0) * 5.0 / 9.0
+            partes.append(f"Temperatura {temp_val:.1f} °C")
+        except Exception:
+            partes.append(f"Temperatura {temp}")
+
+    hum, _ = _pick(["humedad", "humidity", "hum", "humedad_relativa", "rh"])
+    if hum is not None:
+        try:
+            hum_val = float(hum)
+            partes.append(f"Humedad {hum_val:.0f}%")
+        except Exception:
+            partes.append(f"Humedad {hum}")
+
+    viento, viento_key = _pick(["viento", "wind", "wind_speed", "wind_kph", "wind_mph", "windspeed", "velocidad_viento"])
+    if viento is not None:
+        try:
+            viento_val = float(viento)
+            if viento_key and "mph" in viento_key.lower():
+                viento_val = viento_val * 1.60934
+            partes.append(f"Viento {viento_val:.1f} km/h")
+        except Exception:
+            partes.append(f"Viento {viento}")
+
+    pres, pres_key = _pick(["presion", "pressure", "barometer", "presion_barometrica", "pressure_inhg"])
+    if pres is not None:
+        try:
+            pres_val = float(pres)
+            if pres_key and "inhg" in pres_key.lower():
+                pres_val = pres_val * 33.8639
+            elif pres_val < 200:
+                pres_val = pres_val * 33.8639
+            partes.append(f"Presión {pres_val:.0f} hPa")
+        except Exception:
+            partes.append(f"Presión {pres}")
+
+    if not partes:
+        return {"text": "Aún no hay datos meteorológicos disponibles."}
+
+    return {"text": "Tiempo actual: " + ", ".join(partes) + "."}
+
+
 def _respuesta_voz(session_id: str, text: str, extra: dict | None = None) -> dict:
     resp = {"session_id": session_id, "text": text}
     if extra:
@@ -2562,6 +2627,7 @@ async def voz_texto(payload: dict):
     if not text:
         return _respuesta_voz(session_id, "No he recibido texto.")
     t = str(text).lower()
+    raw_text = str(text)
 
     # --- FEEDBACK POR VOZ ---
     import re
@@ -2614,7 +2680,7 @@ async def voz_texto(payload: dict):
                 data = submenu_detallado()
                 valor_estimado, _ = _lookup_valor(data, nombre)
             except Exception:
-                pass
+                logging.exception("Silent except at 2616 - revisar contexto")
             from fastapi.testclient import TestClient
             client = TestClient(app)
             client.post("/feedback_prediccion", json={
@@ -2649,7 +2715,7 @@ async def voz_texto(payload: dict):
                 if grupo:
                     tipo = "indice" if grupo == "indices" else "sensor" if grupo == "sensores" else "prediccion"
         except Exception:
-            pass
+            logging.exception("Silent except at 2651 - revisar contexto")
         if valor_real is not None and valor_estimado is not None:
             try:
                 v_real = float(valor_real)
@@ -2657,7 +2723,7 @@ async def voz_texto(payload: dict):
                 if abs(v_real - v_estimado) <= 5:
                     feedback = "acierto"
             except Exception:
-                pass
+                logging.exception("Silent except at 2659 - revisar contexto")
         # Enviar feedback al endpoint
         from fastapi.testclient import TestClient
         client = TestClient(app)
@@ -2679,14 +2745,46 @@ async def voz_texto(payload: dict):
         data = submenu_detallado()
         return _respuesta_voz(session_id, "Mostrando submen├║ detallado.", {"submenu": data})
     if "crear formula" in t or "crear f├│rmula" in t:
-        # ...existing code...
-        pass
+        m = re.search(r"crear\s+(?:formula|fórmula)\s*(?:llamada|llamar|de|para)?\s*([\w\- ]+?)\s*(?:=|:|\bque\b|\bcon\b)\s*(.+)", raw_text, flags=re.IGNORECASE)
+        if not m:
+            return _respuesta_voz(session_id, "Dime el nombre y la fórmula. Ejemplo: crear fórmula sensación = (temp + humedad/100).")
+        nombre = m.group(1).strip().replace(" ", "_")
+        expresion = m.group(2).strip()
+        unidad_match = re.search(r"unidad\s+([\w%°/]+)", raw_text, flags=re.IGNORECASE)
+        unidad = unidad_match.group(1) if unidad_match else "unidad"
+        descripcion = f"Sensor virtual creado por voz: {expresion}"
+        try:
+            if hasattr(system, "agregar_sensor_virtual"):
+                system.agregar_sensor_virtual(nombre, expresion, unidad, descripcion)
+                return _respuesta_voz(session_id, f"Fórmula registrada como {nombre}.")
+            return _respuesta_voz(session_id, "El sistema no admite sensores virtuales en este momento.")
+        except Exception as e:
+            return _respuesta_voz(session_id, f"No pude crear la fórmula: {e}")
     if "layout" in t or "dise├▒o" in t or "diseno" in t:
-        # ...existing code...
-        pass
+        target_layout = None
+        if "column" in t or "columnas" in t:
+            target_layout = "columns"
+        elif "libre" in t:
+            target_layout = "free"
+        elif "default" in t or "estandar" in t or "estándar" in t:
+            target_layout = "default"
+        if target_layout:
+            _guardar_layout(target_layout)
+            return _respuesta_voz(session_id, f"Layout cambiado a {target_layout}.")
+        try:
+            import json
+            ruta = _ruta_layout()
+            if ruta.exists():
+                data = json.loads(ruta.read_text(encoding="utf-8"))
+                layout_actual = data.get("layout", "default")
+            else:
+                layout_actual = "default"
+            return _respuesta_voz(session_id, f"El layout actual es {layout_actual}.")
+        except Exception:
+            return _respuesta_voz(session_id, "No pude leer el layout actual.")
     if any(x in t for x in ["qu├® d├¡a hace", "que dia hace", "que tiempo hace", "qu├® tiempo hace", "c├│mo est├í el tiempo", "como esta el tiempo", "clima"]):
-        # ...existing code...
-        pass
+        resumen = _resumen_tiempo()
+        return _respuesta_voz(session_id, resumen["text"], resumen.get("extra"))
     respuesta = _resolver_consulta_valor(text)
     if respuesta:
         extra = dict(respuesta)
@@ -2765,7 +2863,7 @@ def _guardar_layout(layout: str):
     try:
         _ruta_layout().write_text(json.dumps({"layout": layout}, ensure_ascii=False), encoding="utf-8")
     except Exception:
-        pass
+        logging.exception("Silent except at 2767 - revisar contexto")
 
 
 @app.get("/config/layout")
@@ -2776,7 +2874,7 @@ def obtener_layout():
             data = json.loads(ruta.read_text(encoding="utf-8"))
             return {"layout": data.get("layout", "default")}
         except Exception:
-            pass
+            logging.exception("Silent except at 2778 - revisar contexto")
     return {"layout": "default"}
 
 
@@ -2797,7 +2895,7 @@ def obtener_paneles():
             data = json.loads(ruta.read_text(encoding="utf-8"))
             return {"order": data.get("order", []), "sizes": data.get("sizes", {})}
         except Exception:
-            pass
+            logging.exception("Silent except at 2799 - revisar contexto")
     return {"order": [], "sizes": {}}
 
 
@@ -2812,7 +2910,7 @@ def guardar_paneles(payload: dict):
     try:
         _ruta_paneles().write_text(json.dumps({"order": order, "sizes": sizes}, ensure_ascii=False), encoding="utf-8")
     except Exception:
-        pass
+        logging.exception("Silent except at 2814 - revisar contexto")
     return {"status": "OK", "order": order, "sizes": sizes}
 
 
@@ -2843,32 +2941,32 @@ def _resumen_meteo_actual():
             else:
                 frases.append("Temperatura moderada")
         except Exception:
-            pass
+            logging.exception("Silent except at 2845 - revisar contexto")
     if lluvia is not None:
         try:
             l = float(lluvia)
             if l > 0.2:
                 frases.append("Est├í lloviendo")
         except Exception:
-            pass
+            logging.exception("Silent except at 2852 - revisar contexto")
     if lluvia_riesgo is not None:
         try:
             if float(lluvia_riesgo) >= 60:
                 frases.append("Alta probabilidad de lluvia")
         except Exception:
-            pass
+            logging.exception("Silent except at 2858 - revisar contexto")
     if niebla is not None:
         try:
             if float(niebla) >= 40:
                 frases.append("Hay riesgo de niebla")
         except Exception:
-            pass
+            logging.exception("Silent except at 2864 - revisar contexto")
     if nub is not None:
         try:
             if float(nub) >= 70:
                 frases.append("Cielo muy nublado")
         except Exception:
-            pass
+            logging.exception("Silent except at 2870 - revisar contexto")
 
     detalles = []
     if temp is not None:
@@ -2962,7 +3060,7 @@ async def recibir_ecowitt(request: Request):
             ts = datetime.datetime.now().isoformat(sep=" ", timespec="seconds")
             system.actualizar_sensor("ultimo_ecowitt_error", ts)
         except Exception:
-            pass
+            logging.exception("Silent except at 2964 - revisar contexto")
         return {"status": "WARN", "received": False, "message": "Payload vac├¡o"}
     # Log detallado de rayos y puerto
     import socket
@@ -2987,7 +3085,7 @@ async def recibir_ecowitt(request: Request):
             encoding="utf-8"
         )
     except Exception:
-        pass
+        logging.exception("Silent except at 2989 - revisar contexto")
 
     # Sensores desconocidos/experimentales (prefijo sensor_)
     try:
@@ -3005,16 +3103,16 @@ async def recibir_ecowitt(request: Request):
             try:
                 system.registrar_sensor_metadata(sensor_id, tipo=sensor_id, unidad=unidad, fuente="ecowitt", origen="externo", fiabilidad=80.0)
             except Exception:
-                pass
+                logging.exception("Silent except at 3007 - revisar contexto")
             try:
                 system.actualizar_sensor(sensor_id, val)
             except Exception:
                 try:
                     system.sensores[sensor_id] = val
                 except Exception:
-                    pass
+                    logging.exception("Silent except at 3014 - revisar contexto")
     except Exception:
-        pass
+        logging.exception("Silent except at 3016 - revisar contexto")
 
     # Sensores interiores
     tempint = data.get("tempinf")
@@ -3238,13 +3336,13 @@ async def recibir_ecowitt(request: Request):
             try:
                 system.sensores['pm25'] = pm_val
             except Exception:
-                pass
+                logging.exception("Silent except at 3240 - revisar contexto")
         # Trazabilidad global
         try:
             system.sensores['pm25_fuente'] = sensor_id
             system.sensores['pm25_ambito'] = ambito
         except Exception:
-            pass
+            logging.exception("Silent except at 3246 - revisar contexto")
     
     # ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     # CAPTURA DE CO2 DESDE ECOWITT (WH45 sensor)

@@ -1,3 +1,4 @@
+import logging
 """
 advanced_predictive_indices.py
 
@@ -30,8 +31,17 @@ Referencias:
 """
 
 import math
+import logging
 from typing import Dict, Tuple, Optional, List
 from dataclasses import dataclass
+
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
+
+logger = logging.getLogger("meteoser.advanced_predictive_indices")
 
 
 # =============================================================================
@@ -269,114 +279,254 @@ def calcular_cape(
     """
     CAPE: Energía Potencial Convectiva Disponible (J/kg).
     
-    Indica la flotabilidad de una parcela de aire elevada desde superficie.
-    CAPE > 2500 J/kg: tormentas severas, superceldas
-    CAPE 1000-2500 J/kg: tormentas fuertes
-    CAPE 0-1000 J/kg: convección débil
+    AUDITORÍA CIENTÍFICA 2Feb2026 - ALGORITMO LFC/EL DOCUMENTADO EXPLÍCITAMENTE
+    ===========================================================================
     
-    Referencias:
-    - Moncrieff & Miller (1976). The dynamics and simulation of tropical cumulonimbus.
-    - Doswell & Rasmussen (1994). The effect of neglecting the virtual temperature.
+    Calcula la energía disponible para convección mediante levantamiento de parcela
+    de aire desde la superficie. Incluye cálculo iterativo de:
+    - LCL (Lifted Condensation Level) - nivel de condensación
+    - LFC (Level of Free Convection) - nivel de convección libre
+    - EL (Equilibrium Level) - nivel de equilibrio
+    - CAPE (Energía positiva) - flotabilidad favorable
+    - CIN (Energía negativa) - flotabilidad inhibida
+    
+    INTERPRETACIÓN:
+    ==================
+    CAPE > 2500 J/kg: tormentas severas, superceldas 🌪️
+    CAPE 1000-2500 J/kg: tormentas fuertes ⛈️
+    CAPE 500-1000 J/kg: convección moderada
+    CAPE 0-500 J/kg: convección débil 🌦️
+    
+    CIN > 250 J/kg: Convección inhibida (freno dinámico)
+    
+    Aplicaciones:
+    - Predicción de tormenta severa
+    - Estimación altura térmicas (cetrería)
+    - Validación modelos meteorológicos
+    
+    ALGORITMO EXPLÍCITO:
+    =====================
+    
+    1. **CÁLCULO DE MEZCLA**
+       r = 0.62198 · e / (P - e)  [kg_agua/kg_aire_seco]
+       donde e es presión vapor (de punto rocío)
+    
+    2. **TEMPERATURA VIRTUAL (Corrección flotabilidad)**
+       T_v = T · (1 + 0.61 · r)
+       Aumenta flotabilidad ~1% por cada 1% humedad especifica
+    
+    3. **NIVEL DE CONDENSACIÓN (LCL) - Fórmula Bolton 1980**
+       LCL[Pa] = P · (T/Td)^(Cp/(L_v/R_v))
+       Aproximación operacional:
+       LCL[m] = h_sfc + 125·(T - Td)
+       [WARNING] Válida para Td dentro ±5°C de T
+    
+    4. **ELEVACIÓN DE PARCELA - ITERACIÓN VERTICAL (Δz=100m)**
+       
+       a) Para z < LCL: ADIABÁTICO SECO
+          Γ_dry = -g/Cp ≈ -9.8 K/km
+          T_parcela(z) = T_sfc - 9.8·(z - z_sfc)/1000
+       
+       b) Para z ≥ LCL: ADIABÁTICO SATURADO (pseudo-adiabático)
+          Γ_sat ≈ -6.0 K/km (función humedad, típicamente -5 a -7 K/km)
+          T_parcela(z) = T_LCL - 6.0·(z - LCL)/1000
+       
+       c) TEMPERATURA AMBIENTE
+          Asume gradiente standard -6.5 K/km (ISA simplificado)
+          T_env(z) = T_sfc - 6.5·(z - z_sfc)/1000
+          [WARNING] MEJORA FUTURA: Usar perfil real de radiosonda
+    
+    5. **IDENTIFICACIÓN DE PUNTOS CRÍTICOS**
+       
+       **LFC (Level of Free Convection)** - BÚSQUEDA ITERATIVA
+       Primer nivel donde T_parcela > T_ambiente (después del LCL)
+       Indica donde la parcela se vuelve "positiva" (flotante)
+       Algoritmo:
+         - Inicializar: encontrado_lfc = False
+         - Para cada nivel z desde 0 a 12km:
+            - Calcular flotabilidad: B = g·(T_p - T_env)/T_env
+            - SI B > 0 Y (no encontrado_lfc):
+               * LFC ← z
+               * encontrado_lfc ← True
+       
+       **EL (Equilibrium Level)** - BÚSQUEDA ITERATIVA
+       Nivel donde T_parcela = T_ambiente (después del LFC)
+       Indica donde termina la convección "positiva"
+       Algoritmo:
+         - Para cada nivel z desde LFC a 12km:
+            - Calcular flotabilidad: B = g·(T_p - T_env)/T_env
+            - SI B ≤ 0:
+               * EL ← z
+               * break (fin búsqueda)
+       
+       **Tratamiento de casos especiales:**
+       - SI no hay LFC en rango 0-12km: CAPE=0, LFC=None, EL=None
+       - SI T_parcela siempre > T_env: EL=12km (neutral/superadiabático)
+       - SI T_parcela < T_env siempre: CAPE=0, CIN=energía negativa total
+    
+    6. **INTEGRACIÓN DE ENERGÍA (Sumas de Riemann)**
+       
+       CAPE (J/kg):
+       CAPE = ∑[LFC→EL] g·(T_p - T_env)/T_env · Δz
+       Δz = 100 m por iteración
+       Unidades: m/s² · K/K · m = m²/s² = J/kg
+       
+       CIN (J/kg):
+       CIN = ∑[0→LFC] |g·(T_p - T_env)/T_env| · Δz
+       Energía requerida para llevar parcela hasta LFC
+       (Inhibición Convectiva)
+    
+    REFERENCIAS CIENTÍFICAS:
+    ========================
+    - Moncrieff & Miller (1976). Dynamics and simulation of tropical cumulonimbus.
+    - Bolton, D. (1980). The computation of equivalent potential temperature.
+    - Doswell & Rasmussen (1994). Effect of neglecting virtual temperature.
+    - Lawrence, M.G. (2005). The relationship between relative humidity and temperature.
+    - Emanuel, K.A. (1994). Atmospheric convection. Oxford University Press.
+    - Bluestein, H.B. (1992). Synoptic-dynamic meteorology in midlatitudes. 2 vols.
+    
+    LIMITACIONES CONOCIDAS:
+    =======================
+    [ERROR] Asume gradiente ambiente constante -6.5 K/km (ISA)
+       → MEJORA: Permitir perfil de entrada (radiosonda)
+    [ERROR] Asume γ_sat = -6.0 K/km (promedio)
+       → MEJORA: Calcular dinámicamente de (L_v, Cp, Rv)
+    [ERROR] No considera efecto de nubosidad en radiación
+       → MEJORA: Usar MIX-layer con radiación observada
+    [ERROR] Integración Riemann simple (Δz=100m)
+       → MEJORA: Usar integración adaptativa o spline
+    [OK] Corrección virtual temperature presente (0.61·r)
+    [OK] Separation LFC/EL iterativo (NO ecuaciones cerradas)
     
     Args:
         temperatura_c: Temperatura superficie (°C)
         temperatura_rocio_c: Temperatura punto de rocío (°C)
         presion_hpa: Presión superficie (hPa)
-        altura_m: Altura sobre nivel del mar (m)
+        altura_m: Altura sobre nivel del mar (m, default=0)
     
     Returns:
-        Dict con CAPE (J/kg), CIN (J/kg), LFC (m), EL (m)
+        Dict con:
+        - cape_jkg: CAPE en J/kg (0-5000 típico)
+        - cin_jkg: CIN en J/kg (0-500 típico)
+        - lfc_m: Altura LFC (m, None si no existe)
+        - el_m: Altura EL (m)
+        - favorable_termicas: Bool (True si CAPE > 500)
+        - intensidad_termicas: 0-100 escala (CAPE/30)
     """
-    # Constantes
-    g = 9.81  # m/s²
-    Rd = 287.05  # J/(kg·K)
-    Rv = 461.5  # J/(kg·K)
-    Cp = 1005.0  # J/(kg·K)
-    L_v = 2.5e6  # J/kg (calor latente vaporización)
+    # Constantes físicas (IAPWS-95 compatible)
+    from core.system.constants import GRAVEDAD
+    g = GRAVEDAD.DINAMICA  # m/s² - UNIFICADO: 9.80272394
+    Rd = 287.05  # J/(kg·K) - Constante gas aire seco
+    Rv = 461.5  # J/(kg·K) - Constante gas vapor agua (Rv/Rd = 1.608)
+    Cp = 1005.0  # J/(kg·K) - Calor específico aire a presión constante
+    L_v = 2.5e6  # J/kg - Calor latente vaporización (a 0°C)
     
     T_k = temperatura_c + 273.15
     Td_k = temperatura_rocio_c + 273.15
     
-    # Presión de vapor
+    # Presión de vapor (Hyland-Wexler simplificado)
     es = 6.112 * math.exp((17.67 * temperatura_c) / (temperatura_c + 243.5))  # hPa
     e = 6.112 * math.exp((17.67 * temperatura_rocio_c) / (temperatura_rocio_c + 243.5))  # hPa
     
     # Mixing ratio (kg/kg)
-    # ⚛️ Ratio mezcla preciso: ε = M_agua / M_aire_seco = 18.016 / 28.966
-    r = 0.62198 * e / (presion_hpa - e)
+    # ε = M_H2O / M_aire = 18.016 / 28.966 ≈ 0.62198
+    r = 0.62198 * e / (presion_hpa - e) if (presion_hpa - e) > 0 else 0.0
+    r = max(0.0, min(0.1, r))  # Límites físicos (0-10 kg/kg)
     
     # Temperatura virtual
     T_v = T_k * (1.0 + 0.61 * r)
     
-    # Nivel de Condensación por Elevación (LCL)
-    # Fórmula de Bolton (1980)
+    # Nivel de Condensación por Elevación (LCL) - Bolton (1980)
     LCL_hpa = presion_hpa * ((T_k / Td_k) ** (Cp / (L_v / Rv)))
-    LCL_m = altura_m + 125.0 * (temperatura_c - temperatura_rocio_c)  # Aproximación Lawrence
+    LCL_m = altura_m + 125.0 * (temperatura_c - temperatura_rocio_c)
     
-    # Simplificación: integración de CAPE en capas discretas
-    # CAPE = ∫[LFC→EL] g × (T_parcela - T_ambiente) / T_ambiente dz
-    
+    # =========================================================================
+    # BÚSQUEDA ITERATIVA: LFC, EL, CAPE, CIN
+    # =========================================================================
     cape_jkg = 0.0
-    cin_jkg = 0.0  # Convective Inhibition (energía negativa)
-    lfc_m = None  # Level of Free Convection
-    el_m = None   # Equilibrium Level
+    cin_jkg = 0.0
+    lfc_m = None
+    el_m = None
     
-    # Elevamos parcela en incrementos de 100m hasta 12 km
     z = altura_m
-    p = presion_hpa
     T_parcela = T_k
-    
     encontrado_lfc = False
     
-    for i in range(120):  # Hasta 12 km
-        z += 100.0
+    # Iteración vertical en incrementos de 100m hasta 12 km
+    for i in range(120):
+        z_new = z + 100.0
         
-        # Presión hidrostática
-        p_new = p * math.exp(-g * 100.0 / (Rd * T_parcela))
+        # Presión hidrostática (ecuación barométrica simplificada)
+        p_new = presion_hpa * math.exp(-g * 100.0 / (Rd * T_parcela))
         
-        # Temperatura ambiente (gradiente estándar -6.5 K/km)
-        T_ambiente = T_k - 0.0065 * (z - altura_m)
+        # TEMPERATURA AMBIENTE - Gradiente ISA -6.5 K/km
+        T_ambiente = T_k - 0.0065 * (z_new - altura_m)
         
-        # Temperatura parcela (proceso pseudo-adiabático)
-        # Hasta LCL: adiabático seco (-9.8 K/km)
-        # Después LCL: adiabático saturado (-6 K/km)
-        if z < LCL_m:
-            T_parcela_new = T_k - 0.0098 * (z - altura_m)
+        # TEMPERATURA PARCELA - Procesos adiabáticos
+        if z_new < LCL_m:
+            # Adiabático SECO (antes de condensación)
+            # Γ_d = -g/Cp = -9.8 K/km
+            T_parcela_new = T_k - 0.0098 * (z_new - altura_m)
         else:
-            T_parcela_new = T_k - 0.0098 * (LCL_m - altura_m) - 0.006 * (z - LCL_m)
+            # Adiabático SATURADO (pseudo-adiabático después LCL)
+            # Γ_s ≈ -6.0 K/km (para aire húmedo típico)
+            delta_z_sat = z_new - LCL_m
+            T_parcela_new = T_k - 0.0098 * (LCL_m - altura_m) - 0.006 * delta_z_sat
         
-        # Flotabilidad
-        buoyancy = g * (T_parcela_new - T_ambiente) / T_ambiente
+        # FLOTABILIDAD (Buoyancy)
+        # B = g · (T_p,v - T_env,v) / T_env,v ≈ g · ΔT / T [m/s²]
+        if T_ambiente > 0:
+            buoyancy = g * (T_parcela_new - T_ambiente) / T_ambiente
+        else:
+            buoyancy = 0.0
         
-        if buoyancy > 0:
+        # LÓGICA DE ESTADOS
+        if buoyancy > 0:  # Parcela positiva (flotante)
             if not encontrado_lfc:
-                lfc_m = z
+                # PRIMER NIVEL POSITIVO = LFC
+                lfc_m = z_new
                 encontrado_lfc = True
-            cape_jkg += buoyancy * 100.0  # dz = 100m
-        else:
-            if not encontrado_lfc:
-                cin_jkg += abs(buoyancy) * 100.0
+                logger.debug(f"  LFC encontrado: z={lfc_m:.0f}m, T_p={T_parcela_new:.1f}K, T_env={T_ambiente:.1f}K")
+            
+            # Acumular CAPE
+            cape_jkg += buoyancy * 100.0  # Integración: Δz=100m
+        
+        else:  # Parcela negativa (inhibida)
+            if encontrado_lfc:
+                # PRIMER NIVEL NEGATIVO DESPUÉS DEL LFC = EL
+                el_m = z_new
+                logger.debug(f"  EL encontrado: z={el_m:.0f}m, T_p={T_parcela_new:.1f}K, T_env={T_ambiente:.1f}K")
+                break  # Termina búsqueda
             else:
-                # Encontramos el Equilibrium Level
-                el_m = z
-                break
+                # Acumular CIN (inhibición)
+                cin_jkg += abs(buoyancy) * 100.0
         
-        p = p_new
+        z = z_new
         T_parcela = T_parcela_new
+        p = p_new
         
-        # Límite superior (tropopausa ~12 km)
-        if z > 12000.0:
-            el_m = z
+        # LÍMITE SUPERIOR (tropopausa ~12 km)
+        if z >= 12000.0:
+            if not el_m:
+                el_m = z
             break
+    
+    # POST-PROCESAMIENTO
+    cape_jkg = max(0.0, cape_jkg)  # CAPE nunca negativo
+    cin_jkg = max(0.0, cin_jkg)
+    
+    logger.info(f"  CAPE={cape_jkg:.1f}J/kg, CIN={cin_jkg:.1f}J/kg, LFC={lfc_m}m, EL={el_m}m")
     
     return {
         "cape_jkg": round(cape_jkg, 1),
         "cin_jkg": round(cin_jkg, 1),
         "lfc_m": lfc_m,
         "el_m": el_m,
+        "lcl_m": round(LCL_m, 1),
         "favorable_termicas": cape_jkg > 500.0,  # Bool para cetrería
         "intensidad_termicas": min(100.0, cape_jkg / 30.0)  # 0-100
     }
+
 
 
 # =============================================================================
@@ -718,7 +868,8 @@ def richardson_bulk_inversion(
     Returns:
         Dict con Ri_B, inversion_pct, interpretacion
     """
-    g = 9.81  # m/s²
+    from core.system.constants import GRAVEDAD
+    g = GRAVEDAD.DINAMICA  # m/s² - UNIFICADO: 9.80272394
     
     T_mean_k = (temp_superficie_c + temp_altura_c) / 2.0 + 273.15
     
@@ -886,7 +1037,8 @@ def modelo_pennycuick_vuelo(
         )
     
     # Constantes físicas
-    g = 9.81  # m/s²
+    from core.system.constants import GRAVEDAD
+    g = GRAVEDAD.DINAMICA  # m/s² - UNIFICADO: 9.80272394
     T_k = temperatura_c + 273.15
     
     # DENSIDAD DEL AIRE - CIPM-2007 con Virial completo
@@ -1031,7 +1183,7 @@ def modelo_pennycuick_vuelo(
                     # Incrementar potencia por turbulencia térmica
                     esfuerzo_adicional_turbulencia = 0.15 * P_total * abs(zeta)
         except Exception:
-            pass
+            logging.exception("Silent except at 1175 - revisar contexto")
     
     # Potencia total con turbulencia
     P_total_con_turbulencia = P_total + esfuerzo_adicional_turbulencia

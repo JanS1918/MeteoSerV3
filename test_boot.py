@@ -2,7 +2,8 @@
 # Test mínimo para verificar que MeteoSer arranca sin errores.
 
 def test_boot():
-    pass  # Vaciar test_boot.py para eliminar scripts de test antiguos si no son necesarios.
+    import main_asgi
+    assert hasattr(main_asgi, "app")
 
 # Ejecutar directamente si se llama como script
 if __name__ == "__main__":

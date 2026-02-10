@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MeteoSer - Panel Principal</title>
+    <link rel="icon" href="/favicon.ico">
     <link rel="stylesheet" href="/static/panel.css">
     <link rel="stylesheet" href="/static/optimizaciones.css">
     <script src="/static/animaciones_meteo.js" defer></script>
@@ -45,16 +46,19 @@
                     <div class="valor-principal">
                         <span class="icono">🌡️</span>
                         <span class="valor" id="temperatura-valor"></span>
+                        <span class="valor-cambio" id="temperatura-cambio"></span>
                         <span class="unidad">°C</span>
                     </div>
                     <div class="valor-principal">
                         <span class="icono">💧</span>
                         <span class="valor" id="humedad-valor"></span>
+                        <span class="valor-cambio" id="humedad-cambio"></span>
                         <span class="unidad">%</span>
                     </div>
                     <div class="valor-principal">
                         <span class="icono">🤚</span>
                         <span class="valor" id="sensacion-valor"></span>
+                        <span class="valor-cambio" id="sensacion-cambio"></span>
                         <span class="unidad">°C</span>
                     </div>
                 </div>
@@ -69,23 +73,27 @@
                     <div class="valor-secundario">
                         <span class="icono">🎚️</span>
                         <span class="valor" id="presion-valor"></span>
+                        <span class="valor-cambio" id="presion-cambio"></span>
                         <span class="unidad">hPa</span>
                     </div>
                     <div class="valor-secundario">
                         <span class="icono">💨</span>
                         <span class="valor" id="viento-valor"></span>
+                        <span class="valor-cambio" id="viento-cambio"></span>
                         <span class="unidad">km/h</span>
                     </div>
                     <div class="valor-secundario">
                         <span class="icono">☀️</span>
                         <span class="etiqueta">Elevación</span>
                         <span class="valor" id="elevacion-solar-valor"></span>
+                        <span class="valor-cambio" id="elevacion-cambio"></span>
                         <span class="unidad">°</span>
                     </div>
                     <div class="valor-secundario">
                         <span class="icono">🌞</span>
                         <span class="etiqueta">UV</span>
                         <span class="valor" id="uv-indice-valor"></span>
+                        <span class="valor-cambio" id="uv-cambio"></span>
                         <span class="tag-motor" id="uv-motor-tag">Spectral_Diamond_v3</span>
                     </div>
                 </div>

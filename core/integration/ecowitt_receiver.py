@@ -1,3 +1,5 @@
+import logging
+import math
 from fastapi import FastAPI, Request
 ## Eliminado import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -23,40 +25,151 @@ def api_motor_recomendaciones():
     return {"recomendacion": system.obtener_recomendacion(), "detalle": "Recomendación real"}
 
 
-@app.api_route("/api/motor/calendario", methods=["GET", "POST"])
-def api_motor_calendario():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor("Calendario no implementado. Endpoint pendiente de lógica real.")
+@app.api_route("/api/motor/calendario", methods=["GET", "POST", "DELETE"])
+def api_motor_calendario(request: Request = None, payload: dict = None):
+    """Gestión de calendario: agregar, listar, eliminar eventos"""
+    try:
+        from core.motors.calendario_motor import MotorCalendario
+        if not hasattr(api_motor_calendario, '_motor'):
+            api_motor_calendario._motor = MotorCalendario()
+            api_motor_calendario._store = {"calendario": []}
+        
+        if request and hasattr(request, 'method'):
+            if request.method == "POST":
+                data = payload or {}
+                if isinstance(api_motor_calendario._store["calendario"], list):
+                    api_motor_calendario._store["calendario"].append(data)
+            elif request.method == "DELETE":
+                idx = int((payload or {}).get("index", -1))
+                if idx >= 0 and idx < len(api_motor_calendario._store["calendario"]):
+                    api_motor_calendario._store["calendario"].pop(idx)
+        
+        return api_motor_calendario._motor.gestionar({
+            "calendario": api_motor_calendario._store.get("calendario", [])
+        })
+    except Exception as e:
+        return {"error": str(e), "detalle": "Error en calendario"}
 
-@app.api_route("/api/motor/tareas", methods=["GET", "POST"])
-def api_motor_tareas():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor("Tareas no implementadas. Endpoint pendiente de lógica real.")
+@app.api_route("/api/motor/tareas", methods=["GET", "POST", "DELETE"])
+def api_motor_tareas(request: Request = None, payload: dict = None):
+    """Gestión de tareas: crear, completar, eliminar"""
+    try:
+        from core.motors.tareas_motor import MotorTareas
+        if not hasattr(api_motor_tareas, '_motor'):
+            api_motor_tareas._motor = MotorTareas()
+            api_motor_tareas._store = {"tareas": []}
+        
+        if request and hasattr(request, 'method'):
+            if request.method == "POST":
+                data = payload or {}
+                if isinstance(api_motor_tareas._store["tareas"], list):
+                    api_motor_tareas._store["tareas"].append(data)
+            elif request.method == "DELETE":
+                idx = int((payload or {}).get("index", -1))
+                if idx >= 0 and idx < len(api_motor_tareas._store["tareas"]):
+                    api_motor_tareas._store["tareas"].pop(idx)
+        
+        return api_motor_tareas._motor.gestionar({
+            "tareas": api_motor_tareas._store.get("tareas", [])
+        })
+    except Exception as e:
+        return {"error": str(e), "detalle": "Error en tareas"}
 
-@app.api_route("/api/motor/lista_compra", methods=["GET", "POST"])
-def api_motor_lista_compra():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor("Lista de la compra no implementada. Endpoint pendiente de lógica real.")
+@app.api_route("/api/motor/lista_compra", methods=["GET", "POST", "DELETE"])
+def api_motor_lista_compra(request: Request = None, payload: dict = None):
+    """Gestión de lista de compra"""
+    try:
+        from core.motors.lista_compra_motor import MotorListaCompra
+        if not hasattr(api_motor_lista_compra, '_motor'):
+            api_motor_lista_compra._motor = MotorListaCompra()
+            api_motor_lista_compra._store = {"lista_compra": []}
+        
+        if request and hasattr(request, 'method'):
+            if request.method == "POST":
+                data = payload or {}
+                if isinstance(api_motor_lista_compra._store["lista_compra"], list):
+                    api_motor_lista_compra._store["lista_compra"].append(data)
+            elif request.method == "DELETE":
+                idx = int((payload or {}).get("index", -1))
+                if idx >= 0 and idx < len(api_motor_lista_compra._store["lista_compra"]):
+                    api_motor_lista_compra._store["lista_compra"].pop(idx)
+        
+        return api_motor_lista_compra._motor.gestionar({
+            "lista_compra": api_motor_lista_compra._store.get("lista_compra", [])
+        })
+    except Exception as e:
+        return {"error": str(e), "detalle": "Error en lista de compra"}
 
 @app.api_route("/api/motor/eventos", methods=["GET", "POST"])
-def api_motor_eventos():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor("Eventos y TV no implementados. Endpoint pendiente de lógica real.")
+def api_motor_eventos(payload: dict = None):
+    """Consulta y gestión de eventos"""
+    try:
+        from core.motors.eventos_motor import MotorEventos
+        if not hasattr(api_motor_eventos, '_motor'):
+            api_motor_eventos._motor = MotorEventos()
+            api_motor_eventos._store = {"eventos": []}
+        
+        datos = payload or {"eventos": api_motor_eventos._store.get("eventos", [])}
+        return api_motor_eventos._motor.consultar(datos)
+    except Exception as e:
+        return {"error": str(e), "detalle": "Error en eventos"}
 
-@app.api_route("/api/motor/alarmas", methods=["GET", "POST"])
-def api_motor_alarmas():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor("Alarmas no implementadas. Endpoint pendiente de lógica real.")
+@app.api_route("/api/motor/alarmas", methods=["GET", "POST", "DELETE"])
+def api_motor_alarmas(request: Request = None, payload: dict = None):
+    """Gestión de alarmas y despertadores"""
+    try:
+        from core.motors.alarmas_motor import MotorAlarmas
+        if not hasattr(api_motor_alarmas, '_motor'):
+            api_motor_alarmas._motor = MotorAlarmas()
+            api_motor_alarmas._store = {"alarmas": []}
+        
+        if request and hasattr(request, 'method'):
+            if request.method == "POST":
+                data = payload or {}
+                if isinstance(api_motor_alarmas._store["alarmas"], list):
+                    api_motor_alarmas._store["alarmas"].append(data)
+            elif request.method == "DELETE":
+                idx = int((payload or {}).get("index", -1))
+                if idx >= 0 and idx < len(api_motor_alarmas._store["alarmas"]):
+                    api_motor_alarmas._store["alarmas"].pop(idx)
+        
+        return api_motor_alarmas._motor.gestionar({
+            "alarmas": api_motor_alarmas._store.get("alarmas", [])
+        })
+    except Exception as e:
+        return {"error": str(e), "detalle": "Error en alarmas"}
 
 @app.api_route("/api/motor/comunicacion", methods=["GET", "POST"])
-def api_motor_comunicacion():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor("Comunicación oral no implementada. Endpoint pendiente de lógica real.")
+def api_motor_comunicacion(payload: dict = None):
+    """Motor de comunicación oral y visual"""
+    try:
+        from core.motors.comunicacion_motor import MotorComunicacion
+        if not hasattr(api_motor_comunicacion, '_motor'):
+            api_motor_comunicacion._motor = MotorComunicacion()
+        
+        datos = payload or {}
+        texto = datos.get("texto", "")
+        
+        # Responder con voz + pantalla
+        if texto:
+            return api_motor_comunicacion._motor.responder(texto, datos)
+        
+        return {"detalle": "Comunicación lista", "status": "activa"}
+    except Exception as e:
+        return {"error": str(e), "detalle": "Error en comunicación"}
 
 @app.api_route("/api/motor/huellas", methods=["GET", "POST"])
-def api_motor_huellas():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return respuesta_motor("Gestor de huellas atmosféricas no implementado. Endpoint pendiente de lógica real.")
+def api_motor_huellas(payload: dict = None):
+    """Gestor de huellas atmosféricas"""
+    try:
+        from core.motors.huellas_motor import GestorHuellasAtmosfericas
+        if not hasattr(api_motor_huellas, '_motor'):
+            api_motor_huellas._motor = GestorHuellasAtmosfericas()
+        
+        datos = payload or {}
+        return api_motor_huellas._motor.analizar(datos)
+    except Exception as e:
+        return {"error": str(e), "detalle": "Error en análisis de huellas"}
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -87,41 +200,16 @@ indices_engine = EnvironmentalIndices(system)
 system.indices = indices_engine
 
 
-# --- Motores avanzados y lógica de ideas.py ---
-class MotorAmbiental:
-    def analizar(self):
-        # Lógica real a implementar
-        return {"estado": "no implementado"}
-
-class MotorConfort:
-    def calcular_indice(self):
-        # Lógica real a implementar
-        return {"confort": None, "detalle": "No implementado"}
-
-class MotorEdificio:
-    def diagnostico(self):
-        # Lógica real: salud del edificio, humedad estructural, moho, etc.
-        return {"salud": 95, "detalle": "Edificio en buen estado"}
-
-class MotorMeteorologico:
-    def calcular_indices(self):
-        # Lógica real a implementar
-        return {"indices": {}, "detalle": "No implementado"}
-
-class MotorVentilacion:
-    def generar_aviso(self):
-        # Lógica real: avisos de ventilación, persianas, etc.
-        return {"ventilar": True, "detalle": "Ventilación recomendada"}
-
-class MotorPrediccionLocal:
-    def predecir(self):
-        # Lógica real: predicción local avanzada
-        return {"prediccion": "Sin cambios relevantes"}
-
-class GestorHuellasAtmosfericas:
-    def obtener_estado(self):
-        # Lógica real a implementar
-        return {"huellas": [], "detalle": "No implementado"}
+# --- Importar motores reales de environmental_engines ---
+from core.engines.environmental_engines import (
+    MotorAmbiental,
+    MotorConfort,
+    MotorEdificio,
+    MotorMeteorologico,
+    MotorVentilacion,
+    MotorPrediccionLocal,
+    GestorHuellasAtmosfericas
+)
 
 motor_ambiental = MotorAmbiental()
 motor_confort = MotorConfort()
@@ -138,9 +226,9 @@ def listar_sensores():
         try:
             f = float(sensores["temperatura"])
             c = (f - 32) * 5.0 / 9.0
-            sensores["temperatura"] = round(c, 2)
+            sensores["temperatura"] = c
         except Exception:
-            pass
+            logging.exception("Silent except at 142 - revisar contexto")
     return {"sensores": sensores}
 
 # --- Endpoints de integración total de ideas.py ---
@@ -174,8 +262,39 @@ def huellas():
 
 @app.get("/submenu_detallado")
 def submenu_detallado():
-    # Lógica real a implementar o eliminar endpoint si no es funcional
-    return {"submenu": "No implementado. Endpoint pendiente de lógica real."}
+    """Retorna un submenú detallado con todos los índices y estados del sistema"""
+    try:
+        indices = indices_engine.obtener_todos() or {}
+        
+        # Construir submenu con datos reales
+        submenu = {
+            "meteorologia": motor_meteo.calcular_indices(),
+            "confort": motor_confort.calcular_indice(),
+            "ambiental": motor_ambiental.analizar(),
+            "edificio": motor_edificio.diagnostico(),
+            "ventilacion": motor_ventilacion.generar_aviso(),
+            "prediccion": motor_pred_local.predecir(),
+            "huellas": gestor_huellas.obtener_estado(),
+            "indices_disponibles": {
+                "total_indices": len(indices),
+                "categorias": {}
+            }
+        }
+        
+        # Agrupar índices por categoría si es posible
+        if isinstance(indices, dict):
+            categorias_vistas = set()
+            for key, value in list(indices.items())[:20]:  # Limitar a 20 para brevedad
+                categoria = key.split('_')[0] if '_' in key else 'general'
+                if categoria not in categorias_vistas:
+                    if categoria not in submenu["indices_disponibles"]["categorias"]:
+                        submenu["indices_disponibles"]["categorias"][categoria] = 0
+                    submenu["indices_disponibles"]["categorias"][categoria] += 1
+                    categorias_vistas.add(categoria)
+        
+        return submenu
+    except Exception as e:
+        return {"error": str(e), "detalle": "Error en submenu_detallado"}
 
 @app.get("/recomendacion_unificada")
 def recomendacion_unificada():
@@ -185,22 +304,23 @@ def recomendacion_unificada():
 # MAPEO HP2550A → MeteoSer
 # ------------------------------------------------------------
 def actualizar_sensores_ecowitt(data: dict):
-        logging.getLogger(__name__).warning(f"[RECEPTOR ENTRY] Entrando a actualizar_sensores_ecowitt con {len(data)} keys")
-        # Normalizar claves recibidas
-        present_keys = set(k.lower() for k in (data.keys() or []))
-        # HEARTBEAT / PURGA: si un sensor no envía datos durante este umbral (segundos) lo marcamos desconectado
-        HEARTBEAT_TIMEOUT = int(os.environ.get('METEOSER_HEARTBEAT_TIMEOUT_S', 180))
-        import time
-        now_ts = time.time()
-        # --- AUTORIZACIÓN DE IDENTIDAD: PASSKEY DIAMANTE ---
-        PASSKEY_DIAMANTE = "979DFF1BC20666D72CD2FC0290AE1832"
-        passkey = data.get("PASSKEY") or data.get("passkey")
-        if passkey == PASSKEY_DIAMANTE:
-            system.sensores["fuente_confianza"] = "HP2550A_DIAMANTE"
-            print(f"[ADUANA] PASSKEY Diamante autorizada: {passkey}")
-        else:
-            system.sensores["fuente_confianza"] = "desconocida"
-            print(f"[ADUANA] PASSKEY no reconocida: {passkey}")
+    logging.getLogger(__name__).warning(f"[RECEPTOR ENTRY] Entrando a actualizar_sensores_ecowitt con {len(data)} keys")
+    # Normalizar claves recibidas
+    present_keys = set(k.lower() for k in (data.keys() or []))
+    # HEARTBEAT / PURGA: si un sensor no envía datos durante este umbral (segundos) lo marcamos desconectado
+    HEARTBEAT_TIMEOUT = int(os.environ.get('METEOSER_HEARTBEAT_TIMEOUT_S', 180))
+    import time
+    now_ts = time.time()
+    # --- AUTORIZACIÓN DE IDENTIDAD: PASSKEY DIAMANTE ---
+    PASSKEY_DIAMANTE = "979DFF1BC20666D72CD2FC0290AE1832"
+    passkey = data.get("PASSKEY") or data.get("passkey")
+    if passkey == PASSKEY_DIAMANTE:
+        system.sensores["fuente_confianza"] = "HP2550A_DIAMANTE"
+        print(f"[ADUANA] PASSKEY Diamante autorizada: {passkey}")
+    else:
+        system.sensores["fuente_confianza"] = "desconocida"
+        print(f"[ADUANA] PASSKEY no reconocida: {passkey}")
+        
     temperatura = data.get("tempf")
     humedad = data.get("humidity")
     viento = data.get("windspeedmph")
@@ -209,6 +329,22 @@ def actualizar_sensores_ecowitt(data: dict):
     lightning = data.get("lightning")
     lightning_num = data.get("lightning_num")
     lightning_time = data.get("lightning_time")
+
+    # Dirección del viento
+    direccion_viento = data.get("winddir") or data.get("wind_direction") or data.get("winddir_deg")
+    direccion_cardinal = None
+    if direccion_viento is not None:
+        try:
+            dir_deg = float(direccion_viento) % 360
+            # Cardinales principales
+            puntos = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+            idx = int(((dir_deg + 22.5) % 360) // 45)
+            direccion_cardinal = puntos[idx]
+            system.actualizar_sensor("direccion_viento", dir_deg)
+            system.actualizar_sensor("direccion_viento_cardinal", direccion_cardinal)
+        except Exception:
+            system.actualizar_sensor("direccion_viento", direccion_viento)
+            system.actualizar_sensor("direccion_viento_cardinal", None)
 
     # --- Sellado de Presión Universal V1.4 (Desnudez de claves + puente directo) ---
     presion_hpa = None
@@ -258,6 +394,7 @@ def actualizar_sensores_ecowitt(data: dict):
         presion_raw = data.get(key)
         fuente_presion = key
         presion_hpa = _convert_presion(presion_raw, unidad)
+        print(f"[PRESION DEBUG] {key}={presion_raw} → {presion_hpa} hPa")
         if presion_hpa is not None:
             break
 
@@ -293,29 +430,36 @@ def actualizar_sensores_ecowitt(data: dict):
                     system.sensores["presion_ambito"] = "exterior"
                     system.sensores["presion_fuente_sensor"] = sensor_id
                 except Exception:
-                    pass
+                    logging.exception("Silent except at 297 - revisar contexto")
             except Exception:
-                pass
+                logging.exception("Silent except at 299 - revisar contexto")
 
-            # Pasar por el Cerebro Estadístico (Hampel / Mahalanobis) ANTES de actualizar el reactor
+            # Pasar por el Cerebro Estadístico (Hampel / Mahalanobis) SOLO SI TIENE HISTORIAL
             final_val = None
             try:
                 if 'learning_engine' in globals() and getattr(learning_engine, 'statistical_brain', None):
                     brain = learning_engine.statistical_brain
-                    brain_results = brain.ingest({sensor_id: round(valor_hpa, 2)})
-                    filtered = brain_results.get('filtered_values', {}) if isinstance(brain_results, dict) else {}
-                    if sensor_id in filtered:
-                        final_val = float(filtered[sensor_id])
+                    # PERMITIR PRIMEROS VALORES: Hampel necesita mínimo 3 valores históricos
+                    presion_count = len(brain.data_buffer.get(sensor_id, []))
+                    if presion_count >= 3:
+                        brain_results = brain.ingest({sensor_id: valor_hpa})
+                        filtered = brain_results.get('filtered_values', {}) if isinstance(brain_results, dict) else {}
+                        if sensor_id in filtered:
+                            final_val = float(filtered[sensor_id])
+                        else:
+                            # Hampel ha marcado la lectura como outlier
+                            print(f"[ADUANA] Presión RECHAZADA por Hampel: {valor_hpa:.2f} hPa (ID: {sensor_id})")
+                            system.sensores["presion_status"] = "HAMPEL_RECHAZADA"
                     else:
-                        # Hampel ha marcado la lectura como outlier
-                        print(f"[ADUANA] Presión RECHAZADA por Hampel: {valor_hpa:.2f} hPa (ID: {sensor_id})")
-                        system.sensores["presion_status"] = "HAMPEL_RECHAZADA"
+                        # Primer valor o sin suficiente historial: aceptar directamente
+                        final_val = valor_hpa
+                        print(f"[INGESTA] Presión ACEPTADA (historial insuficiente): {final_val:.2f} hPa")
                 else:
-                    # No hay cerebro estadístico: proceder con la entrada pero con nota
-                    final_val = round(valor_hpa, 2)
+                    # No hay cerebro estadístico: proceder con la entrada
+                    final_val = valor_hpa
             except Exception as e:
                 print(f"[ADUANA] Error al validar presión con Cerebro Estadístico: {e}")
-                final_val = round(valor_hpa, 2)
+                final_val = valor_hpa
 
             # Si el valor pasó la validación, actualizar sensor y presion principal
             if final_val is not None:
@@ -336,6 +480,28 @@ def actualizar_sensores_ecowitt(data: dict):
                     reset_monin_obukhov_on_pressure_change("OK", system)
                 except Exception as e:
                     print(f"[RESET MONIN] Error: {e}")
+                
+                # ═════════════════════════════════════════════════════════════════════
+                # PUBLICACIÓN AL BUS: AMBOS VALORES (RELATIVA Y ABSOLUTA) COMO INTERIOR Y EXTERIOR
+                # ═════════════════════════════════════════════════════════════════════
+                try:
+                    # PRESIÓN RELATIVA (baromrelin)
+                    baromrelin = data.get("baromrelin")
+                    if baromrelin is not None:
+                        presion_relativa_hpa = float(baromrelin) * 33.8638866667  # inHg → hPa
+                        system.actualizar_sensor("presion", presion_relativa_hpa)
+                        system.actualizar_sensor("presion", presion_relativa_hpa)
+                        print(f"[INGESTA] Presión HP2550A RELATIVA (nivel mar): {presion_relativa_hpa:.2f} hPa → INTERIOR y EXTERIOR")
+                    
+                    # PRESIÓN ABSOLUTA (baromabsin)
+                    baromabsin = data.get("baromabsin")
+                    if baromabsin is not None:
+                        presion_absoluta_hpa = float(baromabsin) * 33.8638866667  # inHg → hPa
+                        system.actualizar_sensor("presion_absoluta_interior", presion_absoluta_hpa)
+                        system.actualizar_sensor("presion_absoluta_interior", presion_absoluta_hpa)
+                        print(f"[INGESTA] Presión HP2550A ABSOLUTA (nivel sensor): {presion_absoluta_hpa:.2f} hPa → INTERIOR y EXTERIOR")
+                except Exception as e:
+                    print(f"[ERROR] Error actualizando sensores de presión: {e}")
             else:
                 # No actualizar presion en reactor; incrementar intentos fallidos
                 intentos_fallidos += 1
@@ -346,18 +512,21 @@ def actualizar_sensores_ecowitt(data: dict):
         intentos_fallidos += 1
         system.sensores["presion_intentos_fallidos"] = intentos_fallidos
         if intentos_fallidos >= 3:
-            presion_fallback = system.sensores.get("presion_ultima_valida")
-            if presion_fallback is None:
-                presion_fallback = system.sensores.get("presion")
+            # Usar ISA dinámico en lugar de 1013.25 hardcodeado
+            from core.atmosphere.isa_calculator import presion_isa_fallback
             try:
-                presion_fallback = float(presion_fallback)
-            except Exception:
-                presion_fallback = 1013.25
+                altitud = system.sensores.get("altitud", 96.0)
+            except:
+                altitud = 96.0
+            
+            presion_ultima = system.sensores.get("presion_ultima_valida")
+            presion_fallback, razon = presion_isa_fallback(altitud, presion_ultima)
+            
             system.actualizar_sensor("presion", presion_fallback)
             system.sensores["presion_status"] = "ALERTA_SENSOR_BAROMETRO_OFFLINE"
             print(
-                "[ALERTA] Barómetro offline: usando persistencia de presión "
-                f"{presion_fallback:.2f} hPa"
+                "[ALERTA] Barómetro offline: usando fallback ISA dinámico "
+                f"{presion_fallback:.2f} hPa (razón: {razon})"
             )
 
     lluvia_acum_in = data.get("rainin") or data.get("dailyrainin") or data.get("eventrainin") or data.get("hourlyrainin")
@@ -388,24 +557,109 @@ def actualizar_sensores_ecowitt(data: dict):
             best_rate = rate_val
             best_rate_unit = unit
 
+    # Sensores interiores (temp/hum) con fallback WH31
+    tempint = data.get("tempinf")
+    humint = data.get("humidityin")
+    tempint_key = "tempinf"
+    humint_key = "humidityin"
+    tempint_fuente = "ecowitt"
+    humint_fuente = "ecowitt"
+    if tempint is None:
+        for k in ["temp1f", "temp1", "temp1c", "temp_1"]:
+            if data.get(k) is not None:
+                tempint = data.get(k)
+                tempint_key = k
+                tempint_fuente = "ecowitt_wh31"
+                break
+    if humint is None:
+        for k in ["humidity1", "hum1", "hum_1"]:
+            if data.get(k) is not None:
+                humint = data.get(k)
+                humint_key = k
+                humint_fuente = "ecowitt_wh31"
+                break
+    if tempint is not None:
+        try:
+            tempint_val = float(tempint)
+            if tempint_key and tempint_key.endswith("c"):
+                tempint_c = tempint_val
+            else:
+                tempint_c = (tempint_val - 32) * 5.0 / 9.0
+            system.actualizar_sensor("temperatura_interior", tempint_c)
+            system.registrar_sensor_metadata(
+                "temperatura_interior",
+                tipo="temperatura_interior",
+                unidad="C",
+                fuente=tempint_fuente,
+                origen="externo",
+                fiabilidad=90.0,
+            )
+        except Exception:
+            system.actualizar_sensor("temperatura_interior", None)
+    if humint is not None:
+        try:
+            humint_val = float(humint)
+            if 0 <= humint_val <= 100:
+                system.actualizar_sensor("humedad_interior", humint_val)
+                system.registrar_sensor_metadata(
+                    "humedad_interior",
+                    tipo="humedad_interior",
+                    unidad="%",
+                    fuente=humint_fuente,
+                    origen="externo",
+                    fiabilidad=90.0,
+                )
+            else:
+                system.actualizar_sensor("humedad_interior", None)
+        except Exception:
+            system.actualizar_sensor("humedad_interior", None)
+
     if temperatura is not None:
         try:
             temperatura_c = (float(temperatura) - 32) * 5.0 / 9.0
-            system.actualizar_sensor("temperatura", round(temperatura_c, 2))
+            system.actualizar_sensor("temperatura", temperatura_c)
         except Exception:
             system.actualizar_sensor("temperatura", temperatura)
     if humedad is not None:
         try:
             humedad_val = float(humedad)
-            system.actualizar_sensor("humedad", round(humedad_val, 2))
+            system.actualizar_sensor("humedad", humedad_val)
         except Exception:
             system.actualizar_sensor("humedad", humedad)
     if viento is not None:
         try:
-            viento_kmh = float(viento) * 1.60934
-            system.actualizar_sensor("viento", round(viento_kmh, 2))
+            viento_ms = float(viento) * 0.44704  # mph → m/s
+            system.actualizar_sensor("velocidad_viento", viento_ms)
+            system.actualizar_sensor("viento", viento_ms)
         except Exception:
             system.actualizar_sensor("viento", viento)
+    # Rachas de viento (gust)
+    viento_racha_raw = None
+    viento_racha_key = None
+    for k in [
+        "windgustmph", "wind_gust", "windgust", "gust",
+        "windmax", "wind_max", "gust_speed",
+        "windgustkmh", "windgustkph", "windgustmps"
+    ]:
+        if data.get(k) is not None:
+            viento_racha_raw = data.get(k)
+            viento_racha_key = k
+            break
+    if viento_racha_raw is not None:
+        try:
+            viento_racha_val = float(viento_racha_raw)
+            if viento_racha_key and ("mph" in viento_racha_key):
+                viento_racha_ms = viento_racha_val * 0.44704
+            elif viento_racha_key and ("mps" in viento_racha_key):
+                viento_racha_ms = viento_racha_val
+            else:
+                viento_racha_ms = viento_racha_val
+            system.actualizar_sensor("viento_racha", viento_racha_ms)
+            system.actualizar_sensor("velocidad_rachas", viento_racha_ms)
+            system.actualizar_sensor("wind_gust", viento_racha_ms)
+            system.actualizar_sensor("racha", viento_racha_ms)
+        except Exception:
+            system.actualizar_sensor("viento_racha", viento_racha_raw)
     if radiacion is not None:
         try:
             radiacion_val = float(radiacion)
@@ -449,10 +703,10 @@ def actualizar_sensores_ecowitt(data: dict):
                 try:
                     system.sensores[sensor_id] = pm_val
                 except Exception:
-                    pass
+                    logging.exception("Silent except at 487 - revisar contexto")
             
             # PUBLICAR sensor genérico 'pm25' SIEMPRE, pero HEREDAR metadata del sensor específico
-            # ⚡ PRIORIDAD ABSOLUTA: Escribir metadata ANTES de actualizar el sensor
+            # [FAST] PRIORIDAD ABSOLUTA: Escribir metadata ANTES de actualizar el sensor
             try:
                 if hasattr(system, 'sensores_metadata'):
                     if 'pm25' not in system.sensores_metadata:
@@ -471,13 +725,13 @@ def actualizar_sensores_ecowitt(data: dict):
                 try:
                     system.sensores['pm25'] = pm_val
                 except Exception:
-                    pass
+                    logging.exception("Silent except at 509 - revisar contexto")
             # Registrar fuente y ambito para trazabilidad
             try:
                 system.sensores['pm25_fuente'] = sensor_id
                 system.sensores['pm25_ambito'] = ambito
             except Exception:
-                pass
+                logging.exception("Silent except at 515 - revisar contexto")
             # Calcular y almacenar PM corregido inmediatamente (para trazabilidad)
             try:
                 indices_engine = getattr(system, 'indices', None)
@@ -494,7 +748,7 @@ def actualizar_sensores_ecowitt(data: dict):
                         try:
                             system.sensores[key_corr] = corrected
                         except Exception:
-                            pass
+                            logging.exception("Silent except at 532 - revisar contexto")
                         razon_key = f"pm25_razon_confianza_{sensor_id}"
                         try:
                             # si indices_engine dejó una razon previa, manténla
@@ -502,9 +756,11 @@ def actualizar_sensores_ecowitt(data: dict):
                             if razon:
                                 system.sensores[razon_key] = razon
                         except Exception:
-                            pass
+                            logging.exception("Silent except at 540 - revisar contexto")
+                    except Exception:
+                        logging.exception("Silent except at 542 - revisar contexto")
             except Exception:
-                pass
+                logging.exception("Silent except at 544 - revisar contexto")
     except Exception as ex_pm_loop:
         logging.getLogger(__name__).error(f"[PM LOOP EXCEPTION] ERROR CRÍTICO en bloque PM: {ex_pm_loop}", exc_info=True)
 
@@ -524,16 +780,16 @@ def actualizar_sensores_ecowitt(data: dict):
             try:
                 system.registrar_sensor_metadata(sensor_id, tipo=sensor_id, unidad=unidad, fuente="ecowitt", origen="externo", fiabilidad=80.0)
             except Exception:
-                pass
+                logging.exception("Silent except at 564 - revisar contexto")
             try:
                 system.actualizar_sensor(sensor_id, val)
             except Exception:
                 try:
                     system.sensores[sensor_id] = val
                 except Exception:
-                    pass
+                    logging.exception("Silent except at 571 - revisar contexto")
     except Exception:
-        pass
+        logging.exception("Silent except at 573 - revisar contexto")
 
     # ------------------
     # Limpieza por ausencia explícita de claves (NO heredar valor anterior)
@@ -548,7 +804,7 @@ def actualizar_sensores_ecowitt(data: dict):
                 system.sensores_metadata.setdefault('co2', {})
                 system.sensores_metadata['co2']['status'] = 'disconnected'
             except Exception:
-                pass
+                logging.exception("Silent except at 588 - revisar contexto")
         pm_candidates_lower = {k.lower() for k in pm_key_candidates}
         if not pm_candidates_lower:
             try:
@@ -556,9 +812,9 @@ def actualizar_sensores_ecowitt(data: dict):
                 system.sensores_metadata.setdefault('pm25', {})
                 system.sensores_metadata['pm25']['status'] = 'disconnected'
             except Exception:
-                pass
+                logging.exception("Silent except at 596 - revisar contexto")
     except Exception:
-        pass
+        logging.exception("Silent except at 598 - revisar contexto")
 
     # Purga por heartbeat: sensores con timestamp muy antiguos → desconectados (S/D)
     try:
@@ -575,19 +831,19 @@ def actualizar_sensores_ecowitt(data: dict):
                 except Exception:
                     continue
     except Exception:
-        pass
+        logging.exception("Silent except at 615 - revisar contexto")
     if best_rate is not None:
         try:
             lluvia_rate_mm = best_rate * 25.4 if best_rate_unit == "in" else best_rate
-            system.actualizar_sensor("lluvia", round(lluvia_rate_mm, 2))
-            system.actualizar_sensor("lluvia_rate", round(lluvia_rate_mm, 2))
+            system.actualizar_sensor("lluvia", lluvia_rate_mm)
+            system.actualizar_sensor("lluvia_rate", lluvia_rate_mm)
         except Exception:
             system.actualizar_sensor("lluvia", best_rate)
     elif lluvia_acum_in is not None:
         try:
             lluvia_acum_mm = float(lluvia_acum_in) * 25.4
-            system.actualizar_sensor("lluvia", round(lluvia_acum_mm, 2))
-            system.actualizar_sensor("lluvia_acumulada", round(lluvia_acum_mm, 2))
+            system.actualizar_sensor("lluvia", lluvia_acum_mm)
+            system.actualizar_sensor("lluvia_acumulada", lluvia_acum_mm)
         except Exception:
             system.actualizar_sensor("lluvia", lluvia_acum_in)
 
@@ -620,9 +876,9 @@ def actualizar_sensores_ecowitt(data: dict):
             if prev_num_val is not None and lightning_num_val < prev_num_val:
                 offset = prev_total_val
             total = offset + lightning_num_val
-            system.actualizar_sensor("rayos_total", round(total))
-            system.actualizar_sensor("rayos", round(total))
-            system.actualizar_sensor("rayos_offset", round(offset))
+            system.actualizar_sensor("rayos_total", float(total))
+            system.actualizar_sensor("rayos", float(total))
+            system.actualizar_sensor("rayos_offset", float(offset))
             system.actualizar_sensor("lightning_num", lightning_num_val)
         else:
             system.actualizar_sensor("lightning_num", lightning_num)
@@ -630,10 +886,20 @@ def actualizar_sensores_ecowitt(data: dict):
         system.actualizar_sensor("lightning_time", lightning_time)
         system.actualizar_sensor("ultimo_rayo", lightning_time)
 
+    # Evaluar anomalías y aprendizaje (V34.1)
+    try:
+        if hasattr(system, "evaluar_anomalias_y_simular"):
+            system.evaluar_anomalias_y_simular()
+        if hasattr(system, "learning_feedback"):
+            system.learning_feedback.evaluar_desde_sensores(system.sensores)
+    except Exception:
+        logging.exception("Silent except at 786 - revisar contexto")
+
 # ------------------------------------------------------------
 # ENDPOINT PRINCIPAL PARA HP2550A
 # ------------------------------------------------------------
 @app.api_route("/ecowitt", methods=["POST", "GET"])
+@app.api_route("/MeteoSer", methods=["POST", "GET"])  # Alias público solicitado por usuario
 async def recibir_ecowitt(request: Request):
     data = {}
     if request.method == "POST":
@@ -662,6 +928,11 @@ async def recibir_ecowitt(request: Request):
     except Exception:
         print("[DEBUG] Claves recibidas en /ecowitt: <no_disponible>")
     print("ECOWITT DATA:", data)
+    # Protección: rechazar datos de fuentes externas (webs)
+    fuente = data.get("fuente", "HP2550A")
+    if fuente and "web" in str(fuente).lower():
+        logging.warning("[PROTECCION] Datos externos (web) rechazados: %s", fuente)
+        return {"status": "ERROR", "reason": "Datos de web externa no permitidos", "received": False}
     actualizar_sensores_ecowitt(data)
     return {"status": "OK", "received": True}
 
@@ -673,44 +944,57 @@ def estado():
     estado = manager.obtener_estado()
     try:
         indices = estado.get("indices", {})
-        lat = indices.get("latitud", 41.5507)
-        lon = indices.get("longitud", -2.397)
-        from datetime import datetime
-        from tools.arco_solar import arco_solar
-        from tools.amanecer_atardecer import calcular_amanecer_atardecer
+        lat = indices.get("latitud")
+        lon = indices.get("longitud")
+        if lat is None or lon is None:
+            from core.system.constants import ESTACION
+            lat = ESTACION.LATITUD
+            lon = ESTACION.LONGITUD
+        from datetime import datetime, timezone
+        from core.arcos_solares import calcular_posicion_sol, calcular_eventos_solares, radiacion_teorica
         hoy = datetime.now().timetuple().tm_yday
-        if "arco_solar" not in indices:
+        if "elevacion_solar" not in indices:
             estimado = ("latitud" not in indices) or ("longitud" not in indices)
-            arco_val = round(arco_solar(lat, hoy), 2)
-            indices["arco_solar"] = {"valor": arco_val, "estimado": estimado}
-            indices["duracion_dia_h"] = {"valor": round(arco_val / 15.0, 2), "estimado": estimado}
+            datos_sol = calcular_posicion_sol(lat, lon, datetime.now(timezone.utc))
+            elevacion = datos_sol.get("elevacion_solar_deg")
+            arco_val = None
+            if elevacion is not None:
+                arco_val = max(0.0, math.sin(math.radians(elevacion)))
+            duracion_dia_h = (datos_sol.get("duracion_dia") or 0.0) / 60.0
+            indices["elevacion_solar"] = {"valor": arco_val, "estimado": estimado}
+            indices["duracion_dia_h"] = {"valor": duracion_dia_h, "estimado": estimado}
+            if hasattr(system, "actualizar_indice"):
+                system.actualizar_indice("elevacion_solar", arco_val)
+                system.actualizar_indice("duracion_dia_h", duracion_dia_h)
         try:
-            import math
             hora_decimal = datetime.now().hour + datetime.now().minute / 60.0 + datetime.now().second / 3600.0
-            lat_rad = math.radians(lat)
-            delta = 0.409 * math.sin(2 * math.pi * (hoy - 81) / 368)
-            omega = math.radians((hora_decimal - 12.0) * 15.0)
-            sin_alt = math.sin(lat_rad) * math.sin(delta) + math.cos(lat_rad) * math.cos(delta) * math.cos(omega)
-            if sin_alt > 0:
-                gsc = 1361.0
-                dr = 1.0 + 0.033 * math.cos(2 * math.pi * hoy / 365.0)
-                rad_teorica = gsc * dr * sin_alt
-                indices["radiacion_teorica"] = {"valor": round(rad_teorica, 1), "estimado": True}
-                rad_real = system.sensores.get("radiacion")
-                if rad_real is not None:
-                    nubosidad = max(0.0, min(100.0, (1.0 - (float(rad_real) / rad_teorica)) * 100.0))
-                    indices["nubosidad_estimada"] = {"valor": round(nubosidad, 2), "estimado": True}
+            datos_sol = calcular_posicion_sol(lat, lon, datetime.now(timezone.utc))
+            rad_teorica = radiacion_teorica(
+                lat_deg=lat,
+                dia_del_ano=hoy,
+                hora_decimal=hora_decimal,
+                elevacion_solar_deg=datos_sol.get("elevacion_solar_deg"),
+            )
+            indices["nubosidad"] = {"valor": rad_teorica, "estimado": True}
+            if hasattr(system, "actualizar_indice"):
+                system.actualizar_indice("nubosidad", rad_teorica)
+            rad_real = system.sensores.get("radiacion")
+            if rad_real is not None and rad_teorica > 0:
+                nubosidad = max(0.0, min(100.0, (1.0 - (float(rad_real) / rad_teorica)) * 100.0))
+                indices["nubosidad_estimada"] = {"valor": nubosidad, "estimado": True}
+                if hasattr(system, "actualizar_indice"):
+                    system.actualizar_indice("nubosidad_estimada", nubosidad)
         except Exception:
-            pass
+            logging.exception("Silent except at 741 - revisar contexto")
         if "amanecer" not in indices or "atardecer" not in indices:
-            horas_sol = calcular_amanecer_atardecer(lat, lon, hoy, 1)
-            indices["amanecer"] = horas_sol.get("amanecer", "--:--")
-            indices["atardecer"] = horas_sol.get("atardecer", "--:--")
+            amanecer_dt, atardecer_dt, _ = calcular_eventos_solares(lat, lon, datetime.now(), altura_sol_deg=-0.833, zona_horaria=1)
+            indices["amanecer"] = amanecer_dt.strftime('%H:%M') if amanecer_dt else "--:--"
+            indices["atardecer"] = atardecer_dt.strftime('%H:%M') if atardecer_dt else "--:--"
         indices["latitud"] = lat
         indices["longitud"] = lon
         estado["indices"] = indices
     except Exception:
-        pass
+        logging.exception("Silent except at 750 - revisar contexto")
     return estado
 
 @app.get("/prediccion")

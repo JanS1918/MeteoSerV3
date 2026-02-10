@@ -139,12 +139,12 @@ def save_brain_state(brain) -> bool:
         with open(METADATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
         
-        logger.info(f"💾 ESTADO DEL CEREBRO GUARDADO: {len(state['history'])} sensores, "
+        logger.info(f"[GUARDAR] ESTADO DEL CEREBRO GUARDADO: {len(state['history'])} sensores, "
                    f"{metadata['total_observations']} observaciones")
         return True
         
     except Exception as e:
-        logger.exception(f"❌ ERROR al guardar estado del cerebro: {e}")
+        logger.exception(f"[ERROR] ERROR al guardar estado del cerebro: {e}")
         return False
 
 
@@ -176,7 +176,7 @@ def load_brain_state() -> Optional[Dict[str, Any]]:
         return state
         
     except Exception as e:
-        logger.exception(f"❌ ERROR al cargar estado del cerebro: {e}")
+        logger.exception(f"[ERROR] ERROR al cargar estado del cerebro: {e}")
         return None
 
 
@@ -242,7 +242,7 @@ def restore_brain_state(brain, state: Dict[str, Any]) -> bool:
         brain.metrics.metadata["restored_at"] = datetime.now(timezone.utc).isoformat()
         brain.metrics.metadata["original_timestamp"] = state["timestamp"]
         
-        logger.info("✅ CEREBRO RESTAURADO CON ÉXITO")
+        logger.info("[OK] CEREBRO RESTAURADO CON ÉXITO")
         logger.info(f"   ├─ Memoria histórica: {len(brain.history)} sensores")
         logger.info(f"   ├─ CUSUM: {len(brain.cusum_states)} estados")
         logger.info(f"   ├─ Kalman: {len(brain.kalman_states)} filtros")
@@ -251,7 +251,7 @@ def restore_brain_state(brain, state: Dict[str, Any]) -> bool:
         return True
         
     except Exception as e:
-        logger.exception(f"❌ ERROR al restaurar estado del cerebro: {e}")
+        logger.exception(f"[ERROR] ERROR al restaurar estado del cerebro: {e}")
         return False
 
 

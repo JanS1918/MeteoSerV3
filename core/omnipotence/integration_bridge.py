@@ -11,17 +11,13 @@ from pydantic import BaseModel
 
 try:
     from core.discovery.universal_orchestrator import UniversalOrchestrator, DetectedHardware, DetectionSource
+    _IMPORT_ERROR: Optional[Exception] = None
 except ImportError as e:
-    # Si hay problema con imports, crear mocks
-    logger = logging.getLogger(__name__)
-    logger.warning(f"Error importando discovery: {e}")
-    
-    class UniversalOrchestrator:
-        pass
-    class DetectedHardware:
-        pass
-    class DetectionSource:
-        pass
+    _IMPORT_ERROR = e
+    UniversalOrchestrator = None
+    DetectedHardware = None
+    DetectionSource = None
+    logging.getLogger(__name__).error(f"Error importando discovery: {e}")
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +42,9 @@ class OmnipotenceIntegration:
     
     def __init__(self):
         try:
-            self.orchestrator = UniversalOrchestrator() if hasattr(UniversalOrchestrator, '__init__') else None
-        except:
+            self.orchestrator = UniversalOrchestrator() if UniversalOrchestrator else None
+        except Exception as e:
+            logger.error(f"Error inicializando UniversalOrchestrator: {e}")
             self.orchestrator = None
         
         self.router = APIRouter(prefix="/admin/omnipotence", tags=["Omnipotence"])
@@ -62,6 +59,8 @@ class OmnipotenceIntegration:
         async def start_universal_radar():
             """Inicia el Radar Universal de Hardware"""
             try:
+                if self.orchestrator is None:
+                    raise HTTPException(status_code=503, detail=f"Discovery no disponible: {_IMPORT_ERROR}")
                 asyncio.create_task(self.orchestrator.start_universal_scan())
                 return {
                     "status": "success",
@@ -76,6 +75,8 @@ class OmnipotenceIntegration:
         async def stop_universal_radar():
             """Detiene el Radar Universal"""
             try:
+                if self.orchestrator is None:
+                    raise HTTPException(status_code=503, detail=f"Discovery no disponible: {_IMPORT_ERROR}")
                 await self.orchestrator.stop_universal_scan()
                 return {
                     "status": "success",
@@ -88,6 +89,8 @@ class OmnipotenceIntegration:
         async def get_detected_hardware():
             """Obtiene todo hardware detectado"""
             try:
+                if self.orchestrator is None:
+                    raise HTTPException(status_code=503, detail=f"Discovery no disponible: {_IMPORT_ERROR}")
                 devices = await self.orchestrator.get_all_detected()
                 return {
                     "status": "success",
@@ -101,6 +104,8 @@ class OmnipotenceIntegration:
         async def get_pending_hardware():
             """Obtiene hardware esperando asimilación"""
             try:
+                if self.orchestrator is None:
+                    raise HTTPException(status_code=503, detail=f"Discovery no disponible: {_IMPORT_ERROR}")
                 devices = await self.orchestrator.get_pending_hardware()
                 return {
                     "status": "success",
@@ -114,6 +119,8 @@ class OmnipotenceIntegration:
         async def assimilate_hardware(request: AssimilationRequest):
             """Asimila un hardware detectado al sistema"""
             try:
+                if self.orchestrator is None:
+                    raise HTTPException(status_code=503, detail=f"Discovery no disponible: {_IMPORT_ERROR}")
                 sensor_id = request.sensor_id
                 
                 # Obtener información del hardware
@@ -139,7 +146,7 @@ class OmnipotenceIntegration:
                 
                 return {
                     "status": "success",
-                    "message": f"✅ Hardware {sensor_id} asimilado al sistema",
+                    "message": f"[OK] Hardware {sensor_id} asimilado al sistema",
                     "hardware": hardware.to_dict()
                 }
             except Exception as e:
@@ -150,6 +157,8 @@ class OmnipotenceIntegration:
         async def get_driver_status():
             """Obtiene estado de drivers instalados"""
             try:
+                if self.orchestrator is None:
+                    raise HTTPException(status_code=503, detail=f"Discovery no disponible: {_IMPORT_ERROR}")
                 drivers = self.orchestrator.driver_installer.get_installed_drivers()
                 return {
                     "status": "success",
@@ -162,6 +171,8 @@ class OmnipotenceIntegration:
         async def get_radar_status():
             """Obtiene estado del Radar Universal"""
             try:
+                if self.orchestrator is None:
+                    raise HTTPException(status_code=503, detail=f"Discovery no disponible: {_IMPORT_ERROR}")
                 all_detected = await self.orchestrator.get_all_detected()
                 pending = await self.orchestrator.get_pending_hardware()
                 
@@ -183,7 +194,8 @@ class OmnipotenceIntegration:
     def set_system_core(self, core):
         """Establece referencia al SystemCore"""
         self.system_core = core
-        self.orchestrator.usb_scanner = self.orchestrator.usb_scanner  # Asegurar acceso
+        if self.orchestrator is not None:
+            self.orchestrator.usb_scanner = self.orchestrator.usb_scanner  # Asegurar acceso
     
     def set_sensor_assimilator(self, assimilator):
         """Establece referencia al SensorAssimilator"""
@@ -203,6 +215,8 @@ class OmnipotenceIntegration:
     
     async def register_callbacks(self):
         """Registra callbacks con el orquestador"""
+        if self.orchestrator is None:
+            raise RuntimeError(f"Discovery no disponible: {_IMPORT_ERROR}")
         await self.orchestrator.register_callback('new_hardware', self.on_new_hardware_callback)
         await self.orchestrator.register_callback('ready_for_assimilation', self.on_ready_for_assimilation_callback)
 

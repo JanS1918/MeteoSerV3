@@ -144,7 +144,7 @@ INDEX_CATALOG = {
         "sensores": ["uv", "radiacion"],
         "tipo": "derivado"
     },
-    "radiacion_teorica": {
+    "nubosidad": {
         "categoria": "meteorologia",
         "descripcion": "Radiación solar teórica astronómica",
         "sensores": ["latitud", "longitud"],
@@ -153,13 +153,13 @@ INDEX_CATALOG = {
     "nubosidad_estimada": {
         "categoria": "meteorologia",
         "descripcion": "Nubosidad estimada día/noche por radiación y atmósfera",
-        "sensores": ["radiacion", "radiacion_teorica", "temperatura", "humedad", "viento"],
+        "sensores": ["radiacion", "nubosidad", "temperatura", "humedad", "viento"],
         "tipo": "derivado"
     },
     "transparencia_atmosferica": {
         "categoria": "astronomia",
         "descripcion": "Transparencia atmosférica (sequedad + nubosidad + radiación)",
-        "sensores": ["temperatura", "humedad", "nubosidad_estimada", "radiacion", "radiacion_teorica"],
+        "sensores": ["temperatura", "humedad", "nubosidad_estimada", "radiacion", "nubosidad"],
         "tipo": "derivado"
     },
     "riesgo_empaniamiento_optica": {
@@ -431,5 +431,353 @@ INDEX_CATALOG = {
         "descripcion": "Niebla de advección por HR alta y viento",
         "sensores": ["humedad", "viento"],
         "tipo": "derivado"
+    },
+    # ========================================================================
+    # NUEVOS DOMINIOS v8 (Febrero 2026)
+    # ========================================================================
+    
+    # RIEGO - Índices agrícolas
+    "balance_hidrico_neto": {
+        "categoria": "riego",
+        "descripcion": "Balance hídrico neto (Lluvia - ET0 - Escorrentía - Infiltración)",
+        "sensores": ["lluvia", "temperatura", "radiacion", "humedad", "viento"],
+        "tipo": "derivado",
+        "unidad": "mm",
+        "rango": [-50, 100],
+        "fuente": "FAO-56 (Allen et al., 1998)",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "et0_fao56": {
+        "categoria": "riego",
+        "descripcion": "Evapotranspiración de referencia FAO-56 (Penman-Monteith)",
+        "sensores": ["temperatura", "radiacion", "humedad", "viento"],
+        "tipo": "derivado",
+        "unidad": "mm/día",
+        "rango": [0, 10],
+        "fuente": "FAO-56 Penman-Monteith (Allen et al., 1998)",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "estres_cultivo": {
+        "categoria": "riego",
+        "descripcion": "Factor de estrés hídrico del cultivo (0-1, parametrizable por cultivo)",
+        "sensores": ["humedad_suelo", "evapotranspiracion", "temperatura"],
+        "tipo": "derivado",
+        "unidad": "ratio",
+        "rango": [0, 1],
+        "fuente": "FAO-56",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "disponibilidad_agua_cultivable": {
+        "categoria": "riego",
+        "descripcion": "Días hasta sequedad del suelo (proyección 7 días)",
+        "sensores": ["humedad_suelo", "evapotranspiracion", "temperatura"],
+        "tipo": "derivado",
+        "unidad": "días",
+        "rango": [0, 30],
+        "fuente": "FAO-56",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "eficiencia_infiltracion": {
+        "categoria": "riego",
+        "descripcion": "Ratio infiltración/escorrentía (Green-Ampt), 0-100%",
+        "sensores": ["lluvia", "humedad_suelo", "temperatura"],
+        "tipo": "derivado",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "Green-Ampt (1911)",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "indice_riego_sintetico": {
+        "categoria": "riego",
+        "descripcion": "Índice sintético riego v2.0 (0-100, >60=riego recomendado)",
+        "sensores": ["lluvia", "temperatura", "radiacion", "humedad", "humedad_suelo"],
+        "tipo": "sintético",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "FAO-56 (Allen et al., 1998)",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    
+    # ASTRONOMÍA (v2.0) - Observación astronómica
+    "horas_luz_diarias": {
+        "categoria": "astronomia",
+        "descripcion": "Duración del día solar (horas luz) - NREL SPA",
+        "sensores": ["latitud", "longitud", "dia", "mes", "anio"],
+        "tipo": "derivado",
+        "unidad": "horas",
+        "rango": [0, 24],
+        "fuente": "NREL SPA (Reda & Andreas, 2003)",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "observacion_nocturna": {
+        "categoria": "astronomia",
+        "descripcion": "Calidad cielo nocturno (0-100) - función elevación solar, bruma, humedad",
+        "sensores": ["elevacion_solar", "radiacion", "visibilidad_km", "humedad"],
+        "tipo": "derivado",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "Astronómica WMO/OMS",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "amplitud_termica_diaria": {
+        "categoria": "astronomia",
+        "descripcion": "Variación de temperatura esperada (ΔT dia-noche)",
+        "sensores": ["radiacion", "nubosidad_estimada", "altitud"],
+        "tipo": "derivado",
+        "unidad": "°C",
+        "rango": [0, 30],
+        "fuente": "NREL SPA",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "clearness_index_kt": {
+        "categoria": "astronomia",
+        "descripcion": "Índice de claridad atmosférica (Angström), 0=nublado, 1=despejado",
+        "sensores": ["radiacion", "latitud", "dia"],
+        "tipo": "derivado",
+        "unidad": "ratio",
+        "rango": [0, 1],
+        "fuente": "NREL SPA",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "visibilidad_noche": {
+        "categoria": "astronomia",
+        "descripcion": "Magnitud estelar visible (2-6 escala), función bruma y humedad",
+        "sensores": ["visibilidad_km", "humedad"],
+        "tipo": "derivado",
+        "unidad": "mag",
+        "rango": [2, 6],
+        "fuente": "Astronómica estándar",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "fase_lunar_factor": {
+        "categoria": "astronomia",
+        "descripcion": "Factor de iluminación lunar (0-1)",
+        "sensores": [],
+        "tipo": "derivado",
+        "unidad": "ratio",
+        "rango": [0, 1],
+        "fuente": "Efemérides astronómicas",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "indice_astronomia_sintetico": {
+        "categoria": "astronomia",
+        "descripcion": "Índice sintético astronomía v2.0 (0-100, >70=excelente para observar)",
+        "sensores": ["elevacion_solar", "radiacion", "visibilidad_km", "humedad"],
+        "tipo": "sintético",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "NREL SPA (Reda & Andreas, 2003)",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    
+    # SALUD - Salud pública y riesgos ambientales
+    "uvi_personal": {
+        "categoria": "salud",
+        "descripcion": "Exposición UV personalizada OMS/WMO (0-16+, penalizado hora solar)",
+        "sensores": ["uv", "radiacion", "hora", "dia", "mes"],
+        "tipo": "derivado",
+        "unidad": "UVI",
+        "rango": [0, 16],
+        "fuente": "OMS/WMO UV Index (Vanicek et al., 2000)",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "calor_extremo": {
+        "categoria": "salud",
+        "descripcion": "Probabilidad golpe de calor (0-100), función T, HR, radiación",
+        "sensores": ["temperatura", "humedad", "radiacion"],
+        "tipo": "derivado",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "NOAA/NWS Heat Index",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "frio_extremo": {
+        "categoria": "salud",
+        "descripcion": "Probabilidad hipotermia/congelación (0-100), wind chill",
+        "sensores": ["temperatura", "viento"],
+        "tipo": "derivado",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "NOAA Wind Chill Index",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "helada_riesgo": {
+        "categoria": "salud",
+        "descripcion": "Riesgo helada cultivos/infraestructura (Yates-McLean)",
+        "sensores": ["punto_rocio", "temperatura", "viento"],
+        "tipo": "derivado",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "Yates-McLean Frost Model",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "aire_interior": {
+        "categoria": "salud",
+        "descripcion": "Calidad aire interior estimada (0-100), proxy CO2 por HR",
+        "sensores": ["humedad", "punto_rocio"],
+        "tipo": "derivado",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "ASHRAE 62.1/160",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "aire_exterior": {
+        "categoria": "salud",
+        "descripcion": "Calidad aire exterior (0-100), proxy contaminación por visibilidad",
+        "sensores": ["visibilidad_km"],
+        "tipo": "derivado",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "EPA AQI/WMO guidelines",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "indice_salud_sintetico": {
+        "categoria": "salud",
+        "descripcion": "Índice sintético salud v2.0 (0-100, >70=día saludable)",
+        "sensores": ["temperatura", "humedad", "radiacion", "uv", "viento", "visibilidad_km"],
+        "tipo": "sintético",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "OMS/WMO Guidelines",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    
+    # HIDROLOGÍA - Ciclos hídricos y recursos acuáticos
+    "infiltracion_mm_h": {
+        "categoria": "hidrologia",
+        "descripcion": "Tasa infiltración Green-Ampt (mm/h), función lluvia y suelo",
+        "sensores": ["lluvia", "humedad_suelo", "temperatura"],
+        "tipo": "derivado",
+        "unidad": "mm/h",
+        "rango": [0, 100],
+        "fuente": "Green-Ampt (1911)",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "escorrentia_superficial": {
+        "categoria": "hidrologia",
+        "descripcion": "Flujo agua en superficie (0-100), función lluvia e infiltración",
+        "sensores": ["lluvia", "infiltracion_mm_h"],
+        "tipo": "derivado",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "Hidrología SCS/WMO",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "spi_indice": {
+        "categoria": "hidrologia",
+        "descripcion": "Índice Precipitación Estandarizado WMO (-2 a +2)",
+        "sensores": ["lluvia", "lluvia_24h"],
+        "tipo": "derivado",
+        "unidad": "std",
+        "rango": [-3, 3],
+        "fuente": "WMO SPI (McKee et al., 1993)",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "humedad_suelo_tendencia": {
+        "categoria": "hidrologia",
+        "descripcion": "Tendencia humedad suelo 0-100, proyección 7 días",
+        "sensores": ["humedad_suelo", "lluvia", "evapotranspiracion"],
+        "tipo": "derivado",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "FAO-56",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    "indice_hidrologia_sintetico": {
+        "categoria": "hidrologia",
+        "descripcion": "Índice sintético hidrología v2.0 (0-100, >60=riesgo inundación, <40=sequia)",
+        "sensores": ["lluvia", "humedad_suelo", "escorrentia_superficial"],
+        "tipo": "sintético",
+        "unidad": "%",
+        "rango": [0, 100],
+        "fuente": "WMO SPI + FAO-56",
+        "version": "2.0",
+        "fecha_ultima_actualizacion": "2026-02-10"
+    },
+    
+    # RECOMENDACIONES - Capa de síntesis y recomendaciones inteligentes
+    "rec_cetreria_respuesta": {
+        "categoria": "recomendaciones",
+        "descripcion": "Recomendación cetrería (SÍ/NO)",
+        "sensores": ["indice_cetreria_sintetico"],
+        "tipo": "sintético"
+    },
+    "rec_cetreria_indice": {
+        "categoria": "recomendaciones",
+        "descripcion": "Índice cetrería para recomendación (0-100)",
+        "sensores": ["indice_cetreria_sintetico"],
+        "tipo": "sintético"
+    },
+    "rec_cetreria_confianza": {
+        "categoria": "recomendaciones",
+        "descripcion": "Confianza recomendación cetrería (0-100%)",
+        "sensores": ["sensores_disponibles"],
+        "tipo": "sintético"
+    },
+    "rec_lluvia_respuesta": {
+        "categoria": "recomendaciones",
+        "descripcion": "Recomendación lluvia (SÍ/NO)",
+        "sensores": ["indice_lluvia_sintetico"],
+        "tipo": "sintético"
+    },
+    "rec_deporte_respuesta": {
+        "categoria": "recomendaciones",
+        "descripcion": "Recomendación deporte (SÍ/NO)",
+        "sensores": ["indice_deporte_sintetico"],
+        "tipo": "sintético"
+    },
+    "rec_confort_respuesta": {
+        "categoria": "recomendaciones",
+        "descripcion": "Recomendación confort (SÍ/NO)",
+        "sensores": ["indice_confort_sintetico"],
+        "tipo": "sintético"
+    },
+    "rec_riego_respuesta": {
+        "categoria": "recomendaciones",
+        "descripcion": "Recomendación riego (SÍ/NO)",
+        "sensores": ["indice_riego_sintetico"],
+        "tipo": "sintético"
+    },
+    "rec_astronomia_respuesta": {
+        "categoria": "recomendaciones",
+        "descripcion": "Recomendación astronomía (SÍ/NO)",
+        "sensores": ["indice_astronomia_sintetico"],
+        "tipo": "sintético"
+    },
+    "rec_salud_respuesta": {
+        "categoria": "recomendaciones",
+        "descripcion": "Recomendación salud (SÍ/NO)",
+        "sensores": ["indice_salud_sintetico"],
+        "tipo": "sintético"
+    },
+    "rec_hidrologia_respuesta": {
+        "categoria": "recomendaciones",
+        "descripcion": "Recomendación hidrología (SÍ/NO)",
+        "sensores": ["indice_hidrologia_sintetico"],
+        "tipo": "sintético"
     }
 }

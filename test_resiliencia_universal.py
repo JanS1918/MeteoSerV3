@@ -26,7 +26,7 @@ from core.indices.advanced_physics_models import (
 )
 
 
-def test_fallback_con_datos_completos():
+def _run_fallback_con_datos_completos():
     """Test 1: Todos los datos disponibles - debe usar física de élite."""
     print("\n" + "="*80)
     print("TEST 1: Datos completos (esperamos status='REAL')")
@@ -78,7 +78,13 @@ def test_fallback_con_datos_completos():
     return resultado
 
 
-def test_fallback_con_datos_faltantes():
+def test_fallback_con_datos_completos():
+    resultado = _run_fallback_con_datos_completos()
+    assert isinstance(resultado, dict)
+    assert "vpd_kpa" in resultado
+
+
+def _run_fallback_con_datos_faltantes():
     """Test 2: Datos faltantes - debe aplicar fallback ISA."""
     print("\n" + "="*80)
     print("TEST 2: Datos faltantes (esperamos status='ESTIMADO')")
@@ -118,7 +124,13 @@ def test_fallback_con_datos_faltantes():
     return resultado
 
 
-def test_cascada_degradacion():
+def test_fallback_con_datos_faltantes():
+    resultado = _run_fallback_con_datos_faltantes()
+    assert isinstance(resultado, dict)
+    assert "vpd_kpa" in resultado
+
+
+def _run_cascada_degradacion():
     """Test 3: Cascada de degradación - de élite a básico."""
     print("\n" + "="*80)
     print("TEST 3: Cascada de degradación (élite→intermedio→básico)")
@@ -145,7 +157,13 @@ def test_cascada_degradacion():
     return resultado
 
 
-def test_estado_fisico_basal():
+def test_cascada_degradacion():
+    resultado = _run_cascada_degradacion()
+    assert isinstance(resultado, dict)
+    assert "presion_saturacion_pa" in resultado
+
+
+def _run_estado_fisico_basal():
     """Test 4: Verificar que Estado Físico Basal tiene todos los valores ISA."""
     print("\n" + "="*80)
     print("TEST 4: Estado Físico Basal (Constantes ISA)")
@@ -159,7 +177,13 @@ def test_estado_fisico_basal():
     return basal_dict
 
 
-def test_resiliencia_extrema():
+def test_estado_fisico_basal():
+    basal_dict = _run_estado_fisico_basal()
+    assert isinstance(basal_dict, dict)
+    assert len(basal_dict) > 0
+
+
+def _run_resiliencia_extrema():
     """Test 5: Resiliencia extrema - todos los datos son None."""
     print("\n" + "="*80)
     print("TEST 5: Resiliencia extrema (TODOS los datos None)")
@@ -204,6 +228,12 @@ def test_resiliencia_extrema():
         return {"error": str(e), "supervivencia": "✗ SISTEMA FALLÓ"}
 
 
+def test_resiliencia_extrema():
+    resultado = _run_resiliencia_extrema()
+    assert isinstance(resultado, dict)
+    assert "supervivencia" in resultado
+
+
 def main():
     """Ejecutar todos los tests de resiliencia."""
     print("\n" + "#"*80)
@@ -214,17 +244,17 @@ def main():
     resultados = {}
     
     try:
-        resultados["test_1_datos_completos"] = test_fallback_con_datos_completos()
-        resultados["test_2_datos_faltantes"] = test_fallback_con_datos_faltantes()
-        resultados["test_3_cascada_degradacion"] = test_cascada_degradacion()
-        resultados["test_4_estado_basal"] = test_estado_fisico_basal()
-        resultados["test_5_resiliencia_extrema"] = test_resiliencia_extrema()
+        resultados["test_1_datos_completos"] = _run_fallback_con_datos_completos()
+        resultados["test_2_datos_faltantes"] = _run_fallback_con_datos_faltantes()
+        resultados["test_3_cascada_degradacion"] = _run_cascada_degradacion()
+        resultados["test_4_estado_basal"] = _run_estado_fisico_basal()
+        resultados["test_5_resiliencia_extrema"] = _run_resiliencia_extrema()
         
         print("\n" + "="*80)
         print("RESUMEN FINAL")
         print("="*80)
         
-        print("\n📊 RESULTADO GENERAL:")
+        print("\n[STATS] RESULTADO GENERAL:")
         print(json.dumps(resultados, indent=2, ensure_ascii=False))
         
         print("\n" + "="*80)

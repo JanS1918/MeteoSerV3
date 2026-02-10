@@ -22,10 +22,15 @@ def gab_sorption_isotherm(hr, a, b, c, temp_c=None):
     if not (0.01 < a < 2.0 and 0.01 < b < 1.0 and 0.01 < c < 2.0):
         raise ValueError(f"Parámetros GAB fuera de rango físico: a={a}, b={b}, c={c}")
     rh = max(0.0, min(1.0, hr / 100.0))
-    # Corrección térmica opcional (placeholder, para materiales avanzados)
+    # Corrección térmica opcional (ajuste físico suave)
     if temp_c is not None:
-        # Ejemplo: a *= (1 + 0.0005 * (temp_c - 25))
-        pass
+        delta_t = temp_c - 25.0
+        a = a * (1 + 0.0005 * delta_t)
+        b = b * (1 - 0.0002 * delta_t)
+        c = c * (1 + 0.0003 * delta_t)
+        a = max(0.01, min(2.0, a))
+        b = max(0.01, min(1.0, b))
+        c = max(0.01, min(2.0, c))
     num = a * b * c * rh
     den = (1 - b * rh) * (1 - b * rh + b * c * rh)
     if abs(den) < 1e-12:

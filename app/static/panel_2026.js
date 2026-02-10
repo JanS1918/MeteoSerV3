@@ -23,12 +23,39 @@ function formatearCoord(valor) {
     return num.toString();
 }
 
+function crearContenedoresLaterales() {
+    const container = document.querySelector('.meteoser-container');
+    if (!container) return;
+    
+    // Crear contenedor izquierdo si no existe
+    let cajonesIzq = document.getElementById('cajones-izquierda');
+    if (!cajonesIzq) {
+        cajonesIzq = document.createElement('div');
+        cajonesIzq.id = 'cajones-izquierda';
+        cajonesIzq.style.cssText = 'display: flex; flex-direction: column; gap: 8px; grid-column: 1; grid-row: 2; overflow-y: auto;';
+        container.appendChild(cajonesIzq);
+    }
+    
+    // Crear contenedor derecho si no existe
+    let cajonesDer = document.getElementById('cajones-derecha');
+    if (!cajonesDer) {
+        cajonesDer = document.createElement('div');
+        cajonesDer.id = 'cajones-derecha';
+        cajonesDer.style.cssText = 'display: flex; flex-direction: column; gap: 8px; grid-column: 3; grid-row: 2; overflow-y: auto;';
+        container.appendChild(cajonesDer);
+    }
+}
+
 // ============================================================
 // INICIALIZACIÓN
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Panel 2026] Inicializando panel MeteoSer...');
+    
+    // Crear contenedores laterales si no existen
+    crearContenedoresLaterales();
+    
     inicializarAnimaciones();
     inicializarPanel();
     configurarEventos();

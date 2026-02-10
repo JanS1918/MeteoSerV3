@@ -58,7 +58,7 @@ class OmnipotenceManager:
     async def _process_new_device(self, device: DetectedDevice):
         """Procesa un nuevo dispositivo detectado"""
         try:
-            logger.info(f"🔍 Procesando nuevo dispositivo: {device.name} ({device.type})")
+            logger.info(f"[BUSCAR] Procesando nuevo dispositivo: {device.name} ({device.type})")
             
             # Intentar identificar e instalar driver si es necesario
             sensor_type = await self._identify_sensor(device.metadata)
@@ -77,7 +77,7 @@ class OmnipotenceManager:
                     'timestamp': device.detected_at.isoformat()
                 }
                 self.system_core.registrar_evento('hardware', evento)
-                logger.info(f"✅ Dispositivo registrado: {device.name}")
+                logger.info(f"[OK] Dispositivo registrado: {device.name}")
                 
         except Exception as e:
             logger.error(f"Error procesando dispositivo {device.name}: {e}")

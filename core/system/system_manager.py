@@ -2,6 +2,7 @@
 # MÓDULO F — SYSTEM MANAGER (GESTOR OPERATIVO)
 # ============================================================
 
+import logging
 from core.system.system_core import SystemCore
 from core.system.system_core import SystemCore
 from typing import Dict
@@ -40,8 +41,13 @@ class SystemManager:
         self.system: SystemCore = self.launcher.launch()
         return self.system
 
-    def set_manual_coordinates(self, lat: float, lon: float) -> None:
-        self.location.set_manual_coordinates(lat, lon)
+    def set_manual_coordinates(self, lat: float, lon: float, altitud: float = 0.0) -> None:
+        self.location.set_manual_coordinates(lat, lon, altitud)
+        if self.system is not None:
+            try:
+                self.system.location = self.location
+            except Exception:
+                logging.exception("Error inyectando LocationEngine en SystemCore")
 
     def obtener_coordenadas(self) -> None | Dict[str, float]:
         if not self.system:

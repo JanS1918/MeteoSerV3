@@ -4,6 +4,7 @@ Arquitectura de Resiliencia: nunca un cálculo se detiene por falta de datos.
 """
 import logging
 import math
+from datetime import datetime
 from typing import Any, Dict, Optional, Tuple, Callable
 from enum import Enum
 
@@ -24,7 +25,11 @@ class EstadoFisicoBasal:
     """
     
     # Constantes ISA (International Standard Atmosphere)
-    PRESION_ISA = 1013.25  # hPa al nivel del mar
+    # NOTA: Mantener 1013.25 aquí como REFERENCIA ISA teórica (nivel del mar).
+    # Para Argentona (118m) usar PRESION.ARGENTONA_MEDIA = 1011.3 hPa
+    from core.system.constants import PRESION
+    PRESION_ISA = 1013.25  # hPa al nivel del mar (SOLO REFERENCIA ISA)
+    PRESION_ARGENTONA = PRESION.ARGENTONA_MEDIA  # hPa - Fallback real
     TEMPERATURA_ISA = 15.0  # °C al nivel del mar
     HUMEDAD_RELATIVA_ISA = 50.0  # %
     VELOCIDAD_VIENTO_ISA = 2.0  # m/s (brisa ligera)
@@ -95,6 +100,12 @@ class CascadaDegradacion:
         'bird_hulstrom',          # Intermedio: Bird-Hulstrom
         'hottel'                  # Básico: Hottel simplificado
     ]
+
+    # Cascadas de WBGT / bulbo húmedo
+    CASCADA_WBGT = [
+        'stull',                   # Élite: Stull unificado
+        'liljegren'                # Reserva histórica
+    ]
     
     @classmethod
     def obtener_cascada(cls, tipo: str) -> list:
@@ -103,7 +114,8 @@ class CascadaDegradacion:
             'saturacion': cls.CASCADA_SATURACION,
             'estabilidad': cls.CASCADA_ESTABILIDAD,
             'et': cls.CASCADA_ET,
-            'radiacion': cls.CASCADA_RADIACION
+            'radiacion': cls.CASCADA_RADIACION,
+            'wbgt': cls.CASCADA_WBGT
         }
         return cascadas.get(tipo, [])
 
@@ -153,6 +165,10 @@ class FallbackUniversal:
         """
         Aplica fallback a un valor inválido usando el Estado Físico Basal.
         
+        [PHYSICS_COMPLIANCE] D-1 CORRECCIÓN:
+        Asegura que todo fallback retorna EstadoFisico.ESTIMADO
+        para que callers sepan que NO es dato real medido.
+        
         Parámetros:
         -----------
         valor : Any
@@ -166,6 +182,8 @@ class FallbackUniversal:
         --------
         Tuple[float, EstadoFisico]
             (valor_final, estado)
+            • REAL si valor es válido y medido
+            • ESTIMADO si se aplicó fallback ISA
         """
         es_valido, valor_limpio = self.validar_valor(valor, nombre)
         
@@ -176,12 +194,20 @@ class FallbackUniversal:
         basal_dict = self.basal.obtener_diccionario_completo()
         valor_fallback = basal_dict.get(clave_basal, 0.0)
         
-        logger.warning(f"Fallback aplicado a {nombre}: {valor} → {valor_fallback} (ISA)")
+        # D-1: MARCAR EXPLÍCITAMENTE como ESTIMADO (no real)
+        logger.warning(
+            f"[PHYSICS_FALLBACK] {nombre}: valor inválido ({valor}). "
+            f"Usando fallback ISA: {valor_fallback}. "
+            f"Estado: ESTIMADO (no medición real)"
+        )
+        
         self.historial_degradacion.append({
             'parametro': nombre,
             'valor_original': valor,
             'valor_fallback': valor_fallback,
-            'tipo': 'fallback_basal'
+            'tipo': 'fallback_basal',
+            'estado': EstadoFisico.ESTIMADO,  # D-1: Trazabilidad explícita
+            'timestamp': datetime.now().isoformat()
         })
         
         return valor_fallback, EstadoFisico.ESTIMADO

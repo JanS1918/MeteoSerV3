@@ -16,12 +16,19 @@ Resultado: "Lluvia/Tormenta aproximándose desde [Dirección] a [Velocidad] km/h
 import math
 from typing import Dict, Optional, Tuple
 from collections import deque
+from core.system.constants import ESTACION
+
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
 
 
 class VectorAproximacion:
     """Radar Pasivo de Inclemencia - Predicción #26"""
     
-    def __init__(self, lat: float = 41.5513, lon: float = 2.3998):
+    def __init__(self, lat: float = ESTACION.LATITUD, lon: float = ESTACION.LONGITUD):
         self.lat = lat
         self.lon = lon
         # Declinación magnética para Argentona (aproximadamente +2°)
@@ -128,7 +135,7 @@ class VectorAproximacion:
             direccion_flujo = cuadrante_oscuro
         
         return {
-            "transmitancia": round(transmitancia, 3),
+            "nubosidad": round(transmitancia, 3),
             "tipo_evento": tipo_evento,
             "aproximacion": aproximacion,
             "cuadrante_oscuro_grados": round(cuadrante_oscuro, 1),
@@ -287,13 +294,13 @@ class VectorAproximacion:
         # Nivel de alerta general
         severidad_presion = 1 if tendencia_presion_hpa_h < -3 else 0
         severidad_rayos = 1 if rayos_detectados > 5 else 0
-        severidad_optica = 1 if optica["transmitancia"] < 0.4 else 0
+        severidad_optica = 1 if optica["nubosidad"] < 0.4 else 0
         
         nivel_alerta = severidad_presion + severidad_rayos + severidad_optica
         if nivel_alerta >= 2:
-            alerta_general = "🚨 ALERTA ROJA - Tormenta inminente"
+            alerta_general = "[CRITICAL] ALERTA ROJA - Tormenta inminente"
         elif nivel_alerta == 1:
-            alerta_general = "⚠️ ALERTA NARANJA - Tormenta próxima"
+            alerta_general = "[WARNING] ALERTA NARANJA - Tormenta próxima"
         else:
             alerta_general = "✓ VERDE - Sin peligro inmediato"
         

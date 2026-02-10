@@ -42,17 +42,22 @@ class BucholtzRayleighV25:
         """
         Nivel 1: Índice de refracción (Ciddor 2002)
         
-        n = 1 + (P/T)[K₀ + K₁T + K₂T²](1 - 37e/P)
+        Aproximación estándar basada en refractividad (ITU-R):
+        n = 1 + 10⁻⁶ · [77.6·(P/T) + 3.73e5·(e/T²)]
         """
         T_k = temperatura_c + 273.15
-        P_pa = presion_hpa * 100
+        P_hpa = presion_hpa
+        rh = humedad_relativa / 100.0 if humedad_relativa > 1.0 else humedad_relativa
+        rh = max(0.0, min(1.0, rh))
         
-        # Presión de vapor
-        e_sat = 611.2 * math.exp(17.67 * temperatura_c / (temperatura_c + 243.5))
-        e = humedad_relativa * e_sat
+        # Presión de vapor de saturación (Hyland-Wexler) y presión parcial
+        from core.indices.environmental_indices import saturacion_vapor_hyland_wexler
+        e_sat_pa = saturacion_vapor_hyland_wexler(temperatura_c, presion_hpa * 100.0)
+        e_hpa = (e_sat_pa * rh) / 100.0
         
-        # Ciddor
-        n = 1 + (P_pa / T_k) * (self.K0 + self.K1 * T_k + self.K2 * T_k**2) * (1 - 37 * e / P_pa)
+        # Refractividad (válida para condiciones troposféricas estándar)
+        N = 77.6 * (P_hpa / T_k) + 3.73e5 * (e_hpa / (T_k ** 2))
+        n = 1.0 + N * 1e-6
         
         return n
     
@@ -72,15 +77,21 @@ class BucholtzRayleighV25:
         
         return N_L
     
-    def coeficiente_rayleigh(self, longitud_onda_nm, n, N_L):
+    def coeficiente_rayleigh(self, longitud_onda_nm, n=None, N_L=None,
+                             temperatura_c: float = 15.0, presion_hpa: float = 1013.25,
+                             humedad_relativa: float = 0.5):
         """
         Nivel 3: Coeficiente Rayleigh
         
         β_R = (8π³/3)(n-1)²N_L·F_K/λ⁴
         """
+        if n is None:
+            n = self.indice_refraccion_ciddor(temperatura_c, presion_hpa, humedad_relativa)
+        if N_L is None:
+            N_L = self.numero_loschmidt(temperatura_c, presion_hpa)
         lambda_m = longitud_onda_nm * 1e-9  # Convertir a metros
         
-        beta_R = (8 * math.pi**3 / 3) * (n - 1)**2 * N_L * self.F_K / lambda_m**4
+        beta_R = (8 * math.pi**3 / 3) * (n - 1)**2 * self.F_K / (lambda_m**4 * N_L)
         
         return beta_R
     

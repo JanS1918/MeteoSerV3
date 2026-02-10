@@ -48,6 +48,7 @@
                 <div class="voice-input">
                     <input id="voice-text" type="text" placeholder="Escribe un comando..." />
                 </div>
+                <div id="alerta-global" class="alerta-global"></div>
                 <button id="open-submenu" class="console-btn">SUBMENU</button>
             </div>
         </header>
@@ -178,6 +179,17 @@
             </div>
         </section>
     </div>
+
+    <div id="overlay-vanguard" class="overlay">
+        <div class="overlay-panel">
+            <div class="overlay-header">
+                <strong>Vanguard</strong>
+                <button class="console-btn" data-overlay-close>Cerrar</button>
+            </div>
+            <div id="overlay-vanguard-content" class="overlay-body"></div>
+        </div>
+    </div>
+
     <script src="/static/js/app.js"></script>
     <script>
     setLayoutColumns();

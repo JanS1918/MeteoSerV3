@@ -1,14 +1,24 @@
 import json
+import logging
 import math
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
+try:
+    from core.config.secrets_vault import get_vault
+    _HAS_VAULT = True
+except Exception:
+    get_vault = None
+    _HAS_VAULT = False
+
 
 class LocationEngine:
     def __init__(self, base_dir: Optional[Path] = None):
-        self.lat = None
-        self.lon = None
+        self.lat = 41.553267
+        self.lon = 2.396845
+        self.altitud = 118.0  # Altitud total (suelo + mástil)
         self.manual = False
         if base_dir is None:
             base_dir = Path(__file__).resolve().parents[2]
@@ -21,22 +31,24 @@ class LocationEngine:
             return
         try:
             data = json.loads(self._data_path.read_text(encoding="utf-8"))
-            self.lat = data.get("lat")
-            self.lon = data.get("lon")
-            self.manual = bool(data.get("manual", False))
+            self.lat = data.get("lat", self.lat)
+            self.lon = data.get("lon", self.lon)
+            self.altitud = float(data.get("altitud", self.altitud))  # NEW: Load altitude
+            self.manual = bool(data.get("manual", self.manual))
         except Exception:
-            pass
+            logging.exception("Error cargando ubicación persistida")
 
     def _save(self):
         try:
-            payload = {"lat": self.lat, "lon": self.lon, "manual": self.manual}
+            payload = {"lat": self.lat, "lon": self.lon, "altitud": self.altitud, "manual": self.manual}  # NEW: Save altitude
             self._data_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         except Exception:
-            pass
+            logging.exception("Error guardando ubicación persistida")
 
-    def set_manual_coordinates(self, lat: float, lon: float):
+    def set_manual_coordinates(self, lat: float, lon: float, altitud: float = 0.0):  # NEW: altitude param
         self.lat = float(lat)
         self.lon = float(lon)
+        self.altitud = float(altitud)  # NEW: Set altitude
         self.manual = True
         self._save()
 
@@ -44,58 +56,146 @@ class LocationEngine:
         self.manual = False
         self._save()
 
-    def _estimate_lat_from_radiation(self, rad_max: float) -> float:
-        if rad_max > 950:
-            return 0
-        if rad_max > 850:
-            return 10
-        if rad_max > 750:
-            return 25
-        if rad_max > 650:
-            return 40
-        if rad_max > 550:
-            return 50
-        return 60
-
-    def _estimate_lon_from_peak_hour(self, hour_peak: float) -> float:
-        diff = hour_peak - 12.0
-        lon_est = diff * 15.0
-        if lon_est > 180:
-            lon_est -= 360
-        if lon_est < -180:
-            lon_est += 360
-        return lon_est
-
     def estimate_coordinates(self, system) -> Optional[Dict[str, float]]:
-        historial_rad = system.obtener_historial_sensor("radiacion")
-        if not historial_rad:
-            return None
-        try:
-            t_peak, rad_max = max(historial_rad, key=lambda x: x[1])
-        except Exception:
-            return None
-        if rad_max is None:
-            return None
-        try:
-            hour_peak = datetime.fromtimestamp(t_peak).hour + (datetime.fromtimestamp(t_peak).minute / 60.0)
-        except Exception:
-            hour_peak = datetime.now().hour
-
-        lat_est = self._estimate_lat_from_radiation(float(rad_max))
-        lon_est = self._estimate_lon_from_peak_hour(float(hour_peak))
-
-        self.lat = round(lat_est, 4)
-        self.lon = round(lon_est, 4)
-        self.manual = False
-        self._save()
-        return {"lat": self.lat, "lon": self.lon, "origen": "estimada"}
+        """
+        DEPRECATED: Estimación geográfica movida al BusExpander.
+        Este método se mantiene por compatibilidad pero ya no calcula.
+        Los subfactores ahora se publican en bus_expander._publish_estimacion_geografica()
+        """
+        # Coordenadas ya deben estar establecidas manualmente o por otro medio
+        if self.lat is not None and self.lon is not None:
+            return {"lat": self.lat, "lon": self.lon, "altitud": self.altitud, "origen": "estimada"}
+        return None
 
     def get_coordinates(self, system) -> Optional[Dict[str, float]]:
         if self.manual and self.lat is not None and self.lon is not None:
-            return {"lat": self.lat, "lon": self.lon, "origen": "manual"}
+            return {"lat": self.lat, "lon": self.lon, "altitud": self.altitud, "origen": "manual"}  # NEW: Include altitude
         estimated = self.estimate_coordinates(system)
         if estimated:
             return estimated
         if self.lat is not None and self.lon is not None:
-            return {"lat": self.lat, "lon": self.lon, "origen": "estimada"}
+            return {"lat": self.lat, "lon": self.lon, "altitud": self.altitud, "origen": "estimada"}  # NEW: Include altitude
         return None
+
+    # NEW: Dict-like access for bus_expander compatibility
+    def get(self, key: str, default=None):
+        """Allow LocationEngine to be accessed like a dict (bus_expander compatibility)"""
+        if key == "altitud":
+            return self.altitud if self.altitud is not None else (default if default is not None else 0.0)
+        elif key in ("lat", "latitud"):
+            return self.lat if self.lat is not None else default
+        elif key in ("lon", "longitud"):
+            return self.lon if self.lon is not None else default
+        elif key == "manual":
+            return self.manual if self.manual is not None else default
+        return default
+
+    # Compatibilidad: algunas partes del código acceden a `latitud`/`longitud`
+    @property
+    def latitud(self) -> float:
+        return self.lat
+
+    @property
+    def longitud(self) -> float:
+        return self.lon
+
+    def load_altitude_srtm(self, force: bool = False) -> float:
+        """
+        Load altitude from SRTM database using Open-Elevation API.
+        
+        Fallback cascade:
+        1. Intenta API SRTM → guarda en self.altitud
+        2. Si API falla → retorna last_location.json (self.altitud cargada)
+        3. Si no hay última conocida → intenta meteoser_configuracion.txt
+        4. Si todo falla → retorna 0.0
+        
+        Args:
+            force: If True, reload from SRTM even if already set
+        
+        Returns:
+            Altitude in meters (from real satellite data)
+        """
+        if force or self.altitud is None or self.altitud == 0.0:
+            if self.lat is not None and self.lon is not None:
+                try:
+                    import requests
+                    url = self._build_srtm_url()
+                    headers = self._build_srtm_headers()
+                    response = requests.get(url, headers=headers, timeout=8)
+
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get("results"):
+                            elevation_real = data["results"][0].get("elevation")
+                            if elevation_real is not None:
+                                self.altitud = float(elevation_real)
+                                self._save()
+                                logging.info(f"[OK] SRTM API: Altitud real para ({self.lat}, {self.lon}) = {self.altitud}m")
+                                return self.altitud
+                    else:
+                        self._log_error(f"SRTM API status {response.status_code}: {response.text}")
+                except Exception as e:
+                    self._log_error(f"Error llamando SRTM API: {e}")
+
+                # FALLBACK 1: Si API falla, retornar última altitud conocida (last_location.json)
+                if self.altitud is not None and self.altitud > 0:
+                    logging.info(f"[OK] Usando última altitud SRTM conocida: {self.altitud}m")
+                    return self.altitud
+                
+                # FALLBACK 2: Si no hay altitud previa, intentar leer de meteoser_configuracion.txt
+                try:
+                    with open("meteoser_configuracion.txt", "r", encoding="utf-8") as f:
+                        for line in f:
+                            if "altitud" in line.lower() or "elevacion" in line.lower():
+                                # Permite: altitud: 96
+                                try:
+                                    valor = float(line.split(":")[-1].strip())
+                                    logging.info(f"[OK] Altitud desde config file: {valor}m")
+                                    return valor
+                                except Exception:
+                                    continue
+                except Exception:
+                    pass
+                
+                # FALLBACK 3: Sin éxito
+                return 0.0
+            self._log_error("SRTM sin lat/lon configuradas")
+        return self.altitud
+
+    def _build_srtm_url(self) -> str:
+        base_url = os.getenv(
+            "METEOSER_SRTM_API_URL",
+            "https://api.open-elevation.com/api/v1/lookup?locations={lat},{lon}",
+        )
+        # Obtener API key del vault cifrado
+        if _HAS_VAULT:
+            vault = get_vault()
+            api_key = vault.get_srtm_key() or ""
+        else:
+            api_key = os.getenv("METEOSER_SRTM_API_KEY", "").strip()
+        
+        url = base_url.replace("{lat}", str(self.lat)).replace("{lon}", str(self.lon))
+        if "{api_key}" in url:
+            url = url.replace("{api_key}", api_key)
+        elif api_key:
+            joiner = "&" if "?" in url else "?"
+            param_name = os.getenv("METEOSER_SRTM_API_KEY_PARAM", "key").strip() or "key"
+            url = f"{url}{joiner}{param_name}={api_key}"
+        return url
+
+    def _build_srtm_headers(self) -> Dict[str, str]:
+        # Obtener API key del vault cifrado
+        if _HAS_VAULT:
+            vault = get_vault()
+            api_key = vault.get_srtm_key() or ""
+        else:
+            api_key = os.getenv("METEOSER_SRTM_API_KEY", "").strip()
+        
+        header_name = os.getenv("METEOSER_SRTM_API_KEY_HEADER", "").strip()
+        headers: Dict[str, str] = {}
+        if api_key and header_name:
+            headers[header_name] = api_key
+        return headers
+
+    def _log_error(self, message: str) -> None:
+        logging.error(message)

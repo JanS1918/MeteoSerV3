@@ -18,6 +18,12 @@ import math
 from typing import Optional, Tuple
 from datetime import datetime
 
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
+
 
 class UVSpectralDiamond:
     """Motor de cálculo UV con transferencia radiativa completa."""
@@ -361,9 +367,13 @@ class UVSpectralDiamond:
 _uv_engine = None
 
 
-def get_uv_spectral_engine(lat: float = 41.55, lon: float = 2.40, altitud: float = 100.0) -> UVSpectralDiamond:
+def get_uv_spectral_engine(lat: float = None, lon: float = None, altitud: float = None) -> UVSpectralDiamond:
     """Obtiene o crea la instancia global del motor UV."""
+    from core.system.constants import ESTACION
     global _uv_engine
+    lat = lat if lat is not None else ESTACION.LATITUD
+    lon = lon if lon is not None else ESTACION.LONGITUD
+    altitud = altitud if altitud is not None else ESTACION.ALTITUD
     if _uv_engine is None:
         _uv_engine = UVSpectralDiamond(lat, lon, altitud)
     return _uv_engine

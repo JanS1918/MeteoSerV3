@@ -258,7 +258,7 @@ class UniversalOrchestrator:
             async with self.lock:
                 hardware.state = SensorState.READY
             
-            logger.info(f"✅ {sensor_id} listo para asimilación")
+            logger.info(f"[OK] {sensor_id} listo para asimilación")
             
             if self.on_ready_for_assimilation:
                 await self.on_ready_for_assimilation(hardware)

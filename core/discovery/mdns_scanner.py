@@ -5,6 +5,7 @@ Descubre sensores Shelly, Tasmota, ESPHome y otros por mDNS/ZeroConf
 
 import logging
 import asyncio
+import socket
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -57,6 +58,9 @@ class mDNSScanner:
         self.lock = asyncio.Lock()
         self.is_scanning = False
         self.mdns_browser = None
+        self.consecutive_failures = 0
+        self.last_error: Optional[str] = None
+        self.last_scan_at: Optional[datetime] = None
     
     async def _init_mdns_scanner(self):
         """Inicializa el escáner mDNS (zeroconf/avahi)"""
@@ -67,6 +71,8 @@ class mDNSScanner:
             return True
         except ImportError:
             logger.warning("zeroconf no está instalado. mDNS no disponible.")
+            self.consecutive_failures += 1
+            self.last_error = "zeroconf no disponible"
             return False
     
     async def scan_mdns_devices(self, timeout: int = 5, service_type: str = "_http._tcp.local.") -> List[mDNSDevice]:
@@ -76,20 +82,45 @@ class mDNSScanner:
         
         devices = []
         try:
+            self.last_scan_at = datetime.utcnow()
             from zeroconf import Zeroconf, ServiceBrowser
             
             class MDNSListener:
                 def __init__(self):
-                    self.services = []
+                    self.services: Dict[str, mDNSDevice] = {}
                 
                 def add_service(self, zeroconf, service_type, name):
-                    self.services.append(name)
+                    info = zeroconf.get_service_info(service_type, name)
+                    hostname = name.replace(f'.{service_type}', '')
+                    ip_address = None
+                    port = None
+                    properties = None
+
+                    if info:
+                        port = info.port
+                        if info.addresses:
+                            ip_address = socket.inet_ntoa(info.addresses[0])
+                        if info.properties:
+                            try:
+                                properties = {k.decode("utf-8"): v.decode("utf-8") for k, v in info.properties.items()}
+                            except Exception:
+                                properties = {str(k): str(v) for k, v in info.properties.items()}
+
+                    device = mDNSDevice(
+                        hostname=hostname,
+                        ip_address=ip_address,
+                        port=port,
+                        type_=service_type,
+                        properties=properties,
+                    )
+                    self.services[name] = device
                 
                 def update_service(self, zeroconf, service_type, name):
-                    pass
+                    self.add_service(zeroconf, service_type, name)
                 
                 def remove_service(self, zeroconf, service_type, name):
-                    pass
+                    if name in self.services:
+                        del self.services[name]
             
             listener = MDNSListener()
             zeroconf = Zeroconf()
@@ -97,11 +128,9 @@ class mDNSScanner:
             
             await asyncio.sleep(timeout)
             
-            for service_name in listener.services:
-                device = mDNSDevice(
-                    hostname=service_name.replace(f'.{service_type}', ''),
-                    type_='HTTP_SERVICE'
-                )
+            for device in listener.services.values():
+                if device.type_ is None:
+                    device.type_ = 'HTTP_SERVICE'
                 
                 # Identificar tipo de sensor
                 sensor_type = await self.identify_sensor_type(device)
@@ -112,9 +141,13 @@ class mDNSScanner:
                 logger.info(f"Detectado mDNS: {device.to_dict()}")
             
             zeroconf.close()
+            self.consecutive_failures = 0
+            self.last_error = None
         
         except Exception as e:
             logger.error(f"Error escaneando mDNS: {e}")
+            self.consecutive_failures += 1
+            self.last_error = str(e)
         
         return devices
     
@@ -156,3 +189,13 @@ class mDNSScanner:
     def stop_scanning(self):
         """Detiene el escaneo continuo"""
         self.is_scanning = False
+
+    def get_status(self) -> Dict[str, Optional[str]]:
+        """Estado del scanner mDNS"""
+        return {
+            "is_scanning": self.is_scanning,
+            "devices": len(self.detected_devices),
+            "consecutive_failures": self.consecutive_failures,
+            "last_error": self.last_error,
+            "last_scan_at": self.last_scan_at.isoformat() if self.last_scan_at else None,
+        }

@@ -1,3 +1,4 @@
+import logging
 # ============================================================
 # MÓDULO 6 — AUTO‑MODIFICACIÓN INTERNA (CONTROLADA)
 # Archivo: core/modification/self_mod_engine.py
@@ -18,7 +19,17 @@ import shutil
 import json
 import time
 import hashlib
+from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
+
+# Watchdog de cambios con rollback automático
+try:
+    from core.monitoring.auto_change_watchdog import AutoChangeWatchdog, ChangePolicy
+    WATCHDOG_AVAILABLE = True
+except Exception:
+    AutoChangeWatchdog = None
+    ChangePolicy = None
+    WATCHDOG_AVAILABLE = False
 
 LOG_FILE = "self_mod_log.json"
 BACKUP_DIR = "mod_backups"
@@ -48,7 +59,7 @@ class SelfModEngine:
     - sandbox: True = solo previsualiza; False = aplica cambios reales
     """
 
-    def __init__(self, base_path: str, sandbox: bool = True):
+    def __init__(self, base_path: str, sandbox: bool = True, use_watchdog: bool = True):
         self.base_path = base_path.rstrip("/")
         self.sandbox = sandbox
         _ensure_dir(self.base_path)
@@ -57,6 +68,12 @@ class SelfModEngine:
         self.versions_path = os.path.join(self.base_path, VERSIONS_FILE)
         _ensure_dir(self.backup_path)
         self._load_state()
+        self._watchdog = None
+        if use_watchdog and WATCHDOG_AVAILABLE:
+            try:
+                self._watchdog = AutoChangeWatchdog(Path(self.base_path))
+            except Exception:
+                self._watchdog = None
 
     # -------------------------
     # Estado y persistencia
@@ -83,14 +100,14 @@ class SelfModEngine:
             with open(self.log_path, "w", encoding="utf-8") as f:
                 json.dump(self.log, f, indent=2)
         except Exception:
-            pass
+            logging.exception("Silent except at 85 - revisar contexto")
 
     def _persist_versions(self):
         try:
             with open(self.versions_path, "w", encoding="utf-8") as f:
                 json.dump(self.versions, f, indent=2)
         except Exception:
-            pass
+            logging.exception("Silent except at 92 - revisar contexto")
 
     def _append_log(self, entry: Dict[str, Any]):
         entry["ts"] = _now_ts()
@@ -145,8 +162,14 @@ class SelfModEngine:
                 issues.append({"path": path, "issue": "path_outside_base"})
                 continue
             if action == "create":
-                # ok
-                pass
+                if os.path.exists(full):
+                    issues.append({"path": path, "issue": "target_exists"})
+                else:
+                    if path.endswith(".py"):
+                        try:
+                            compile(ch.get("content", ""), path, "exec")
+                        except Exception as e:
+                            issues.append({"path": path, "issue": f"syntax_error: {e}"})
             elif action == "update":
                 if not os.path.exists(full):
                     issues.append({"path": path, "issue": "target_not_found"})
@@ -264,6 +287,62 @@ class SelfModEngine:
             self._persist_versions()
             self._persist_log()
         return {"proposal_id": proposal.get("id"), "results": results, "sandbox": self.sandbox}
+
+    # -------------------------
+    # Watchdog y seguridad
+    # -------------------------
+    def can_accept_new_change(self) -> Dict[str, Any]:
+        if self._watchdog is None:
+            return {"ok": True, "watchdog": "unavailable"}
+        return self._watchdog.can_accept_new_change()
+
+    def apply_proposal_guarded(
+        self,
+        proposal: Dict[str, Any],
+        baseline_metrics: Optional[Dict[str, float]] = None,
+        policy: Optional["ChangePolicy"] = None,
+        allow_overwrite: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Aplica cambios con guardián:
+        - Bloquea si el sistema está congelado.
+        - Registra el cambio para rollback automático si hay métricas baseline.
+        """
+        guard = self.can_accept_new_change()
+        if not guard.get("ok", True):
+            return {"ok": False, "reason": guard.get("reason"), "blocked": True, "guard": guard}
+
+        result = self.apply_proposal(proposal, allow_overwrite=allow_overwrite)
+
+        if self._watchdog and (not self.sandbox) and baseline_metrics and proposal.get("id"):
+            paths = self._extract_paths(proposal)
+            self._watchdog.register_change(
+                change_id=proposal.get("id"),
+                paths=paths,
+                baseline_metrics=baseline_metrics,
+                policy=policy,
+            )
+        return {"ok": True, "apply": result, "guard": guard}
+
+    def record_change_metrics(self, change_id: str, metrics: Dict[str, float]) -> Dict[str, Any]:
+        if self._watchdog is None:
+            return {"ok": False, "reason": "watchdog_unavailable"}
+        self._watchdog.record_metrics(change_id, metrics)
+        return {"ok": True}
+
+    def evaluate_all_changes(self) -> Dict[str, Any]:
+        if self._watchdog is None:
+            return {"ok": False, "reason": "watchdog_unavailable"}
+        return self._watchdog.evaluate_all(self)
+
+    @staticmethod
+    def _extract_paths(proposal: Dict[str, Any]) -> List[str]:
+        paths = []
+        for ch in proposal.get("changes", []):
+            path = ch.get("path")
+            if path:
+                paths.append(path)
+        return list(dict.fromkeys(paths))
 
     # -------------------------
     # Rollback / Restauración

@@ -161,7 +161,7 @@ class SecretsManager:
             try:
                 self.persist_to_disk()
             except Exception:
-                pass
+                logging.exception("Silent except at 163 - revisar contexto")
             logger.info(f"Se ha eliminado el secreto (clave={key}) de memoria.")
             return True
         return False

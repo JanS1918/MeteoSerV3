@@ -16,7 +16,7 @@ CONVERSIONES = {
     # Métodos que ya están convertidos (skip)
     "punto_rocio": "DONE",
     "nubosidad_estimada": "DONE",
-    "radiacion_teorica": "DONE",
+    "nubosidad": "DONE",
     "_obtener_densidad_aire": "DONE",
     
     # Métodos pendientes de conversión (indicar qué publican y consumen)
@@ -47,7 +47,7 @@ def generar_patron_bus(nombre_metodo, info):
     
     # Header con comentario
     patron = f"""
-    # ⚡ CASCADA: Consumir del bus si ya existe
+    # [FAST] CASCADA: Consumir del bus si ya existe
     if self._bus and self._bus.existe("{publica[0] if publica else nombre_metodo}"):
         valor_bus = self._bus.consumir("{publica[0] if publica else nombre_metodo}", "{nombre_metodo}")
         return {{
@@ -70,7 +70,7 @@ def generar_patron_bus(nombre_metodo, info):
     publicaciones = "\n"
     for var in publica:
         publicaciones += f"""
-    # ⚡ CASCADA: Publicar {var}
+    # [FAST] CASCADA: Publicar {var}
     if self._bus:
         self._bus.publicar(
             "{var}",

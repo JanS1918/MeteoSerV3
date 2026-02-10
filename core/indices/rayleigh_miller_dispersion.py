@@ -63,7 +63,7 @@ def rayleigh_miller_scattering(presion_hpa: float, elevacion_solar_deg: float,
     
     return {
         "tau_rayleigh": tau_rayleigh_real,
-        "transmitancia": transmitancia,
+        "nubosidad": transmitancia,
         "masa_optica": m_opt,
         "extinction_mag": extinction_mag,
         "rho_factor": rho_factor
@@ -86,10 +86,10 @@ def correccion_irradiancia_directa(irradiancia_toa: float, presion_hpa: float,
     scattering = rayleigh_miller_scattering(presion_hpa, elevacion_solar_deg)
     
     # Irradiancia directa (transmitida)
-    I_direct = irradiancia_toa * scattering["transmitancia"]
+    I_direct = irradiancia_toa * scattering["nubosidad"]
     
     # Irradiancia difusa (dispersada)
-    I_diffuse = irradiancia_toa * (1.0 - scattering["transmitancia"]) * 0.5
+    I_diffuse = irradiancia_toa * (1.0 - scattering["nubosidad"]) * 0.5
     
     # Irradiancia global (directa + difusa)
     I_global = I_direct + I_diffuse
@@ -98,7 +98,7 @@ def correccion_irradiancia_directa(irradiancia_toa: float, presion_hpa: float,
         "directa": I_direct,
         "difusa": I_diffuse,
         "global": I_global,
-        "transmitancia": scattering["transmitancia"]
+        "nubosidad": scattering["nubosidad"]
     }
 
 
@@ -110,16 +110,16 @@ if __name__ == "__main__":
     result_arg = rayleigh_miller_scattering(1005.0, 45.0, 96.0)
     print(f"Argentona (1005 hPa, 96m):")
     print(f"  τ_Rayleigh: {result_arg['tau_rayleigh']:.6f}")
-    print(f"  Transmitancia: {result_arg['transmitancia']:.4f}")
+    print(f"  Transmitancia: {result_arg['nubosidad']:.4f}")
     print(f"  Masa óptica: {result_arg['masa_optica']:.2f}")
     
     # Nivel del mar
     result_sea = rayleigh_miller_scattering(1013.25, 45.0, 0.0)
     print(f"\nNivel del mar (1013 hPa, 0m):")
     print(f"  τ_Rayleigh: {result_sea['tau_rayleigh']:.6f}")
-    print(f"  Transmitancia: {result_sea['transmitancia']:.4f}")
+    print(f"  Transmitancia: {result_sea['nubosidad']:.4f}")
     print(f"  Masa óptica: {result_sea['masa_optica']:.2f}")
     
-    diff_percent = (result_arg['transmitancia'] - result_sea['transmitancia']) / result_sea['transmitancia'] * 100
+    diff_percent = (result_arg['nubosidad'] - result_sea['nubosidad']) / result_sea['nubosidad'] * 100
     print(f"\nDiferencia de transmitancia: {diff_percent:+.2f}%")
     print("(Argentona tiene ~0.8% más transmitancia por menor densidad atmosférica)")

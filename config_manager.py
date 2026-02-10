@@ -1,3 +1,4 @@
+import logging
 # ============================================================
 # MÓDULO 10 — CONFIG MANAGER
 # Archivo: core/config/config_manager.py
@@ -35,7 +36,7 @@ class ConfigManager:
                     k, v = ln.split("=", 1)
                     self.env[k.strip()] = v.strip()
         except:
-            pass
+            logging.exception("Silent except at 37 - revisar contexto")
 
     def get_env(self, key: str, default: Optional[str] = None) -> Optional[str]:
         return self.env.get(key, default)
@@ -50,7 +51,7 @@ class ConfigManager:
                 for k, v in self.env.items():
                     f.write(f"{k}={v}\n")
         except:
-            pass
+            logging.exception("Silent except at 52 - revisar contexto")
 
     # ------------------------------------------------------------
     # JSON SETTINGS
@@ -77,7 +78,7 @@ class ConfigManager:
             with open(self.json_path, "w", encoding="utf-8") as f:
                 json.dump(self.json_cfg, f, indent=2)
         except:
-            pass
+            logging.exception("Silent except at 79 - revisar contexto")
 
     # ------------------------------------------------------------
     # MERGE

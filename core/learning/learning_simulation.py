@@ -1,3 +1,4 @@
+import logging
 # ============================================================
 # MÓDULO UNIFICADO — LEARNING + SIMULATION
 # Archivo: core/learning/learning_simulation.py
@@ -200,7 +201,7 @@ class LearningEngine:
                     for target, md in data.get("models", {}).items():
                         self.models[target] = OnlineLinearModel.from_dict(md)
             except:
-                pass
+                logging.exception("Silent except at 202 - revisar contexto")
 
     def save_models(self):
         data = {"models": {t: m.to_dict() for t, m in self.models.items()}}
@@ -245,7 +246,7 @@ class SimulationEngine:
                     m.last_trend = md.get("last_trend", 0.0)
                     self.models[n] = m
         except:
-            pass
+            logging.exception("Silent except at 247 - revisar contexto")
 
     def step(self, real_inputs: Dict[str, float], dt_seconds: float = 60.0):
         inputs = dict(real_inputs)

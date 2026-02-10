@@ -4,3 +4,4 @@ archive/logs/
 archive/tests/
 archive/disabled_bats/
 archive/demo/
+.env

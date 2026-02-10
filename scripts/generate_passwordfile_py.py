@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""
+r"""
 Genera un passwordfile para Mosquitto usando bcrypt y lo instala en C:\mosquitto\conf\passwordfile
 
-Uso (PowerShell elevado, desde la raíz del proyecto):
-  python .\scripts\generate_passwordfile_py.py
+Uso (PowerShell elevado, desde la raiz del proyecto):
+    python .\scripts\generate_passwordfile_py.py
 
-El script intentará instalar 'bcrypt' si no está disponible.
+El script intentara instalar 'bcrypt' si no esta disponible.
 """
 import os
 import sys

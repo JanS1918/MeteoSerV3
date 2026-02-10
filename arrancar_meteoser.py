@@ -1,3 +1,4 @@
+import logging
 
 # Arranque robusto de MeteoSer FastAPI: libera el puerto 8080 automáticamente si está ocupado
 # Ejecuta este script desde la raíz del proyecto
@@ -24,9 +25,12 @@ def matar_procesos_puerto_8080():
                         try:
                             subprocess.run(['taskkill', '/F', '/PID', pid], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                         except Exception:
-                            pass
+                            logging.exception("Silent except at 26 - revisar contexto")
+        except subprocess.CalledProcessError as e:
+            if e.output:
+                logging.exception("Silent except at 28 - revisar contexto")
         except Exception:
-            pass
+            logging.exception("Silent except at 28 - revisar contexto")
 
 matar_procesos_puerto_8080()
 puerto_libre = 8080

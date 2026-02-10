@@ -3,8 +3,8 @@
 Test Omnipotencia V1.5: Verifica que el Radar Universal funciona
 """
 
-import asyncio
 import sys
+import time
 import requests
 import json
 from pathlib import Path
@@ -16,7 +16,7 @@ BASE_URL = "http://127.0.0.1:8080"
 OMNIPOTENCE_PREFIX = "/admin/omnipotence"
 
 
-async def test_omnipotence():
+def test_omnipotence():
     """Test del sistema de Omnipotencia"""
     
     print("\n" + "="*80)
@@ -29,27 +29,27 @@ async def test_omnipotence():
         resp = requests.get(f"{BASE_URL}{OMNIPOTENCE_PREFIX}/radar-status")
         if resp.status_code == 200:
             data = resp.json()
-            print(f"   ✅ Status: {data.get('status')}")
+            print(f"   [OK] Status: {data.get('status')}")
             print(f"   🛸 Radar ejecutándose: {data.get('radar_running')}")
             print(f"   📡 Total detectados: {data.get('total_detected')}")
             print(f"   ⏳ Pendientes asimilación: {data.get('pending_assimilation')}")
-            print(f"   📊 Por fuente: {data.get('detected_by_source')}")
+            print(f"   [STATS] Por fuente: {data.get('detected_by_source')}")
         else:
-            print(f"   ❌ Error: {resp.status_code} - {resp.text}")
+            print(f"   [ERROR] Error: {resp.status_code} - {resp.text}")
         
         # 2. Iniciar radar
         print("\n2️⃣ Iniciando Radar Universal...")
         resp = requests.post(f"{BASE_URL}{OMNIPOTENCE_PREFIX}/start-radar")
         if resp.status_code == 200:
             data = resp.json()
-            print(f"   ✅ {data.get('message')}")
+            print(f"   [OK] {data.get('message')}")
             print(f"   📝 {data.get('description')}")
         else:
-            print(f"   ❌ Error: {resp.status_code}")
+            print(f"   [ERROR] Error: {resp.status_code}")
         
         # Esperar un poco para que escanee
         print("\n⏳ Esperando a que el radar realice escaneos iniciales (10s)...")
-        await asyncio.sleep(10)
+        time.sleep(10)
         
         # 3. Obtener hardware detectado
         print("\n3️⃣ Consultando hardware detectado...")
@@ -57,7 +57,7 @@ async def test_omnipotence():
         if resp.status_code == 200:
             data = resp.json()
             count = data.get('count', 0)
-            print(f"   ✅ Hardware detectado: {count}")
+            print(f"   [OK] Hardware detectado: {count}")
             
             if count > 0:
                 hardware = data.get('hardware', [])
@@ -68,7 +68,7 @@ async def test_omnipotence():
                     print(f"      Fuente: {hw.get('source')}")
                     print(f"      Estado: {hw.get('state')}")
         else:
-            print(f"   ℹ️ Sin hardware detectado aún (normal si no hay sensores conectados)")
+            print(f"   [INFO] Sin hardware detectado aún (normal si no hay sensores conectados)")
         
         # 4. Obtener hardware pendiente
         print("\n4️⃣ Consultando hardware pendiente de asimilación...")
@@ -91,11 +91,11 @@ async def test_omnipotence():
             print(f"   📦 Drivers: {drivers}")
         
         print("\n" + "="*80)
-        print("✅ TEST COMPLETADO - OMNIPOTENCIA V1.5 FUNCIONANDO")
+        print("[OK] TEST COMPLETADO - OMNIPOTENCIA V1.5 FUNCIONANDO")
         print("="*80 + "\n")
         
     except Exception as e:
-        print(f"\n❌ Error en test: {e}")
+        print(f"\n[ERROR] Error en test: {e}")
         import traceback
         traceback.print_exc()
 
@@ -104,12 +104,12 @@ if __name__ == "__main__":
     # Intentar conectar al servidor
     try:
         resp = requests.get(f"{BASE_URL}/estado", timeout=2)
-        print("✅ Servidor MeteoSer está activo")
+        print("[OK] Servidor MeteoSer está activo")
     except:
-        print("❌ Error: No se puede conectar al servidor en {BASE_URL}")
+        print("[ERROR] Error: No se puede conectar al servidor en {BASE_URL}")
         print("   Asegúrate de que main_asgi.py está ejecutándose:")
         print("   .venv\\Scripts\\python.exe -m uvicorn main_asgi:app --host 127.0.0.1 --port 8080")
         sys.exit(1)
     
     # Ejecutar tests
-    asyncio.run(test_omnipotence())
+    test_omnipotence()

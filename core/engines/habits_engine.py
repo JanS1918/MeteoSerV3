@@ -26,7 +26,7 @@ class HabitLearningEngine:
             if isinstance(data, dict):
                 self.profile.update(data)
         except Exception:
-            pass
+            logging.exception("Silent except at 28 - revisar contexto")
 
     def _save(self) -> None:
         try:
@@ -35,7 +35,7 @@ class HabitLearningEngine:
                 encoding="utf-8",
             )
         except Exception:
-            pass
+            logging.exception("Silent except at 37 - revisar contexto")
 
     @staticmethod
     def _percentile(values: List[float], p: float) -> Optional[float]:

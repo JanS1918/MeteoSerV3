@@ -22,14 +22,14 @@ try:
     print(f"   Status: {resp.status_code}")
     if resp.status_code == 200:
         data = resp.json()
-        print(f"   ✅ Radar activo: {data.get('radar_running')}")
+        print(f"   [OK] Radar activo: {data.get('radar_running')}")
         print(f"   📡 Dispositivos: {data.get('detected_count')}")
     
     # 2. Iniciar radar
     print("\n2️⃣ Iniciando Radar...")
     resp = requests.post(f"{BASE_URL}{OMNIPOTENCE_PREFIX}/start-radar", timeout=5)
     if resp.status_code == 200:
-        print(f"   ✅ Radar iniciado")
+        print(f"   [OK] Radar iniciado")
     
     time.sleep(2)
     
@@ -41,7 +41,7 @@ try:
         timeout=5
     )
     if resp.status_code == 200:
-        print(f"   ✅ USB Detectado")
+        print(f"   [OK] USB Detectado")
     
     # 4. Simular detección BLE
     print("\n4️⃣ Simulando detección Bluetooth...")
@@ -51,7 +51,7 @@ try:
         timeout=5
     )
     if resp.status_code == 200:
-        print(f"   ✅ BLE Detectado")
+        print(f"   [OK] BLE Detectado")
     
     # 5. Simular detección WiFi
     print("\n5️⃣ Simulando detección WiFi...")
@@ -61,7 +61,7 @@ try:
         timeout=5
     )
     if resp.status_code == 200:
-        print(f"   ✅ WiFi Detectado")
+        print(f"   [OK] WiFi Detectado")
     
     # 6. Listar hardware
     print("\n6️⃣ Hardware detectado total...")
@@ -69,7 +69,7 @@ try:
     if resp.status_code == 200:
         data = resp.json()
         hardware = data.get('hardware', [])
-        print(f"   📊 Total: {len(hardware)}")
+        print(f"   [STATS] Total: {len(hardware)}")
         for hw in hardware:
             print(f"      - {hw.get('sensor_type')} ({hw.get('source')})")
     
@@ -83,13 +83,13 @@ try:
             timeout=5
         )
         if resp.status_code == 200:
-            print(f"   ✅ Sensor asimilado")
+            print(f"   [OK] Sensor asimilado")
     
     print("\n" + "="*80)
-    print("✅ TEST COMPLETADO - OMNIPOTENCIA V1.5 FUNCIONANDO")
+    print("[OK] TEST COMPLETADO - OMNIPOTENCIA V1.5 FUNCIONANDO")
     print("="*80 + "\n")
 
 except Exception as e:
-    print(f"\n❌ Error: {e}")
+    print(f"\n[ERROR] Error: {e}")
     import traceback
     traceback.print_exc()

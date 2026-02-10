@@ -10,6 +10,12 @@ NO usa PM2.5 interior. Utiliza presión real, temperatura y humedad con física 
 import math
 from typing import Dict, Optional, Tuple
 
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
+
 
 class BucholtzRayleighV25:
     """Visibilidad profesional de WMO: Bucholtz 1995 con correcciones modernas"""

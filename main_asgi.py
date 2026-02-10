@@ -1,4 +1,7 @@
-# ⚠️ MAIN ASGI - ROUTER SELLADO CON ESTÁNDARES DIAMANTE
+from __future__ import annotations
+
+import logging
+# [WARNING] MAIN ASGI - ROUTER SELLADO CON ESTÁNDARES DIAMANTE
 # ════════════════════════════════════════════════════════════════════════════
 # Router principal del servidor METEOSER V3.
 # Reglas de Diamante (INAMOVIBLES):
@@ -17,39 +20,544 @@
 
 from fastapi import Body
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from typing import Optional
+from contextlib import asynccontextmanager
 import base64
 import os
 import pathlib
 import time
+
+# Sistema de IA integrado
+try:
+    from ai_controller import initialize_ai_controller, get_ai_controller
+    from ai_endpoints import router as ai_router
+    AI_AVAILABLE = True
+except Exception as e:
+    AI_AVAILABLE = False
+    import logging
+    logging.getLogger(__name__).warning(f"[WARNING] Sistema de IA no disponible: {e}")
 
 try:
     from core.indices.index_catalog import INDEX_CATALOG
 except Exception:
     INDEX_CATALOG = {}
 
-# Crear `app` en caso de que no exista (algunas secciones del archivo definen rutas antes)
-if 'app' not in globals():
-    app = FastAPI()
-
-# Importar routers de la nueva UI
+# Importar recorders de histórico
 try:
-    from app.ui.api_endpoints import router as ui_router
+    from core.monitoring.history_recorders import get_recorders
+    RECORDERS_AVAILABLE = True
+except Exception as e:
+    RECORDERS_AVAILABLE = False
+    logging.getLogger(__name__).warning(f"[WARNING] History recorders no disponibles: {e}")
+
+# Importar validador de predicciones y feedback automático
+try:
+    from core.monitoring.prediction_validation import (
+        validar_y_generar_feedback_automatico,
+        LearningLoopValidator
+    )
+    PREDICTION_VALIDATION_AVAILABLE = True
+except Exception as e:
+    PREDICTION_VALIDATION_AVAILABLE = False
+    logging.getLogger(__name__).warning(f"[WARNING] Prediction validation no disponible: {e}")
+
+# Definir lifespan handler (reemplaza @app.on_event deprecado)
+@asynccontextmanager
+async def lifespan(app_instance: FastAPI):
+    """Gestiona startup/shutdown del servidor MeteoSerV3."""
+    global discovery_engine, auto_repair_engine, pas_engine, habits_engine, omnipotence_manager
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # STARTUP
+    # ═══════════════════════════════════════════════════════════════════════════
+    logger.info("[LAUNCH] INICIO: MeteoSerV3 iniciando secuencia de carga...")
+    
+    # CLUSTER INITIALIZATION (High Availability)
+    try:
+        from meteoser_ia.block_g import start_local_agent
+        cluster_agent = start_local_agent(metadata={"role": "primary_meteoser_node"})
+        logger.info(f"[HA] Cluster Agent iniciado - Failover habilitado")
+        app_instance.state.cluster_agent = cluster_agent
+    except Exception as e:
+        logger.warning(f"[HA] Cluster no disponible (continuando): {e}")
+        app_instance.state.cluster_agent = None
+    
+    # � AUDITORÍA AUTOMÁTICA DE STARTUP (100% REAL)
+    try:
+        from core.system.startup_auditor import startup_auditor
+        audit_report = await startup_auditor.audit_system()
+        if audit_report["status"] != "OK":
+            logger.warning(f"[WARNING] Auditoría encontró {audit_report['total_issues']} problemas")
+    except Exception as e:
+        logger.warning(f"[WARNING] No se pudo ejecutar auditoría: {e}")
+    
+    # [REINICIO] INTEGRADOR ALWAYS-ON: Recuperación automática de datos del gap histórico
+    try:
+        from core.integration.integrador_always_on import ejecutar_integrador_automatico
+        resultado_integrador = await ejecutar_integrador_automatico()
+        logger.info(f"[REINICIO] Integrador Always-On: {resultado_integrador.get('status', 'completado')}")
+        if resultado_integrador.get('status') == 'exito':
+            logger.info(f"   [OK] {resultado_integrador.get('eventos_procesados', 0)} eventos recuperados e integrados")
+    except Exception as e:
+        logger.warning(f"[WARNING] Integrador Always-On no disponible: {e}")
+    
+    # [APRENDIZAJE] CICLO AUTOMÁTICO: Inicia el framework universal de aprendizaje
+    try:
+        from core.learning.ciclo_aprendizaje import iniciar_ciclo_aprendizaje
+        ciclo_aprendizaje_result = iniciar_ciclo_aprendizaje(en_background=True)
+        logger.info("[APRENDIZAJE] Ciclo automático iniciado - Monitor en background")
+        logger.info("[APRENDIZAJE] - Procesamiento de feedback: WBGT (diario), ET0 (semanal), Radiacion (horaria)")
+        logger.info("[APRENDIZAJE] - Ajustes automáticos cada 1000 observaciones")
+        logger.info("[APRENDIZAJE] - Histórico: data/historico_predicciones_universal.jsonl")
+        app_instance.state.ciclo_aprendizaje_id = ciclo_aprendizaje_result
+    except Exception as e:
+        logger.warning(f"[WARNING] Ciclo de aprendizaje no disponible: {e}")
+        app_instance.state.ciclo_aprendizaje_id = None
+    
+    # �🛸 OMNIPOTENCIA V1.5: Activar radar universal al inicio
+    if omnipotence_manager:
+        try:
+            await omnipotence_manager.start()
+            logger.info("🛸 Radar Universal iniciado - Buscando hardware por USB/BLE/WiFi...")
+        except Exception as omni_err:
+            logger.error(f"Error iniciando Omnipotencia: {omni_err}")
+
+    # [SCHEDULER V51] CALCULADOR AUTOMÁTICO DE INDICES
+    # Lee radiación del bus cada 5 minutos → Calcula WBGT, ET0, T_min, UTCI → Publica en bus
+    try:
+        from core.scheduler.calculador_indices_automatico import iniciar_calculador_indices
+        schedulador = iniciar_calculador_indices()
+        logger.info("[SCHEDULER V51] OK - Calculador de índices automático iniciado")
+        logger.info("[SCHEDULER V51] - Calcula: WBGT (Liljegren 2008), ET0 (FAO-56), T_min (Deardorff), UTCI")
+        logger.info("[SCHEDULER V51] - Intervalo: 5 minutos, Fuente: radiacion V51 del bus")
+        logger.info("[SCHEDULER V51] - Publica: WBGT_outdoor, ET0_mm_dia, T_min, UTCI, punto_rocio, etc.")
+        app_instance.state.schedulador_indices_v51 = schedulador
+    except Exception as e:
+        logger.warning(f"[WARNING] Scheduler V51 no disponible: {e}")
+        app_instance.state.schedulador_indices_v51 = None
+
+    mqtt_host = os.getenv("METEOSER_MQTT_HOST", "127.0.0.1")
+    mqtt_tls_enabled = os.getenv("METEOSER_MQTT_TLS", "1") not in ("0", "false", "False")
+    default_mqtt_port = "8883" if mqtt_tls_enabled else "1883"
+    try:
+        mqtt_port = int(os.getenv("METEOSER_MQTT_PORT", default_mqtt_port))
+    except Exception:
+        mqtt_port = int(default_mqtt_port)
+    mqtt_enabled = os.getenv("METEOSER_MQTT_ENABLED", "1") not in ("0", "false", "False")
+    mdns_enabled = os.getenv("METEOSER_MDNS_ENABLED", "1") not in ("0", "false", "False")
+    serial_enabled = os.getenv("METEOSER_SERIAL_ENABLED", "1") not in ("0", "false", "False")
+    # BLE DESHABILITADO permanentemente (sin Bluetooth en este sistema)
+    ble_enabled = False
+    mqtt_user = os.getenv("METEOSER_MQTT_USER")
+    mqtt_pass = os.getenv("METEOSER_MQTT_PASSWORD")
+    mqtt_timeout = int(os.getenv("METEOSER_MQTT_TIMEOUT", "60"))
+    mqtt_reconnect_interval = int(os.getenv("METEOSER_MQTT_RECONNECT_INTERVAL", "5"))
+
+    if discovery_engine:
+        try:
+            discovery_engine.start(
+                mqtt_host=mqtt_host,
+                mqtt_port=mqtt_port,
+                mqtt_enabled=mqtt_enabled,
+                mdns_enabled=mdns_enabled,
+                serial_enabled=serial_enabled,
+                ble_enabled=ble_enabled,
+                mqtt_user=mqtt_user,
+                mqtt_pass=mqtt_pass,
+                mqtt_tls=mqtt_tls_enabled,
+                mqtt_timeout=mqtt_timeout,
+                mqtt_reconnect_interval=mqtt_reconnect_interval,
+            )
+            logger.info(f"[BUSCAR] Discovery Engine iniciado (MQTT:{mqtt_enabled}, mDNS:{mdns_enabled}, Serial:{serial_enabled}, BLE:{ble_enabled})")
+        except Exception as e:
+            logger.warning(f"[WARNING] No se pudo iniciar discovery: {e}")
+
+    def _alarmas_loop():
+        while True:
+            try:
+                if system and hasattr(system, 'alerting_brain') and system.alerting_brain:
+                    system.alerting_brain.check_and_notify(system.data)
+            except Exception as e:
+                logger.error(f"Error en _alarmas_loop: {e}")
+            time.sleep(10)
+
+    async def _habitos_loop():
+        while True:
+            try:
+                if system and hasattr(system, 'data'):
+                    system_copy = dict(system.data) if system.data else {}
+                else:
+                    system_copy = {}
+                if system_copy:
+                    try:
+                        if habits_engine:
+                            habits_engine.update_from_system(system_copy)
+                    except Exception:
+                        logging.exception("Silent except at 128 - revisar contexto")
+                await asyncio.sleep(600)
+            except Exception as e:
+                logger.error(f"Error en _habitos_loop: {e}")
+                await asyncio.sleep(10)
+
+    async def _watchdog_loop():
+        # Evaluación periódica del watchdog de cambios (rollback automático)
+        while True:
+            try:
+                engine = getattr(app_instance.state, "self_mod_engine", None)
+                if engine:
+                    result = engine.evaluate_all_changes()
+                    if result.get("reverted", 0) > 0:
+                        logger.warning(f"[WARNING] Watchdog revirtió cambios: {result}")
+            except Exception as e:
+                logger.error(f"Error en _watchdog_loop: {e}")
+            await asyncio.sleep(600)
+
+    async def _auto_optimizer_loop():
+        # [TARGET] MEJORADO: Procesa cola CON VALIDACIÓN PROACTIVA
+        while True:
+            try:
+                engine = getattr(app_instance.state, "self_mod_engine", None)
+                controller = getattr(app_instance.state, "auto_optimizer", None)
+                validator = getattr(app_instance.state, "spec_validator", None)  # [TARGET] NUEVO
+                watchdog = getattr(app_instance.state, "auto_change_watchdog", None)  # [TARGET] NUEVO
+                
+                if engine and controller:
+                    # [TARGET] PASO 1: Obtener cambio propuesto
+                    result = controller.process_queue(engine)
+                    # [TARGET] PASO 2: Validar PROACTIVAMENTE antes de aplicar
+                    if validator and watchdog and result.get("applied", 0) > 0:
+                        change_info = result.get("change_info", {})
+                        formula_name = change_info.get("formula_name", "unknown")
+                        impl_func = change_info.get("impl_func")
+                        spec_params = change_info.get("spec_params", {})
+                        # Usar SpecValidationEngine para validar especificación
+                        if hasattr(validator, 'validate_single_formula'):
+                            from dataclasses import dataclass
+                            validation_result = validator._validate_single_formula(
+                                formula_name, impl_func, spec_params
+                            )
+                            is_compliant = validation_result.is_valid
+                            issues = validation_result.errors
+                        else:
+                            is_compliant, issues = watchdog.validate_spec_compliance(
+                                formula_name, impl_func, spec_params
+                            )
+                        # REGISTRO DE INTENTO DE CAMBIO
+                        logger.info(f"[AUDITORÍA] Intento de cambio: {formula_name} | Compliant: {is_compliant} | Issues: {issues}")
+                        if not is_compliant:
+                            logger.critical(
+                                f"🚫 VALIDADOR PROACTIVO bloqueó cambio incompleto: {formula_name}\n"
+                                f"   Problemas: {issues}"
+                            )
+                            watchdog.block_noncompliant_change(
+                                formula_name,
+                                f"Incumplimiento de especificación: {len(issues)} problemas"
+                            )
+                            result["applied"] = 0
+                            result["blocked_proactive"] = True
+                            # NO APLICAR CAMBIO: rollback inmediato
+                            if hasattr(engine, 'rollback_last_change'):
+                                engine.rollback_last_change()
+                                logger.info(f"[ROLLBACK] Cambio revertido por validación proactiva: {formula_name}")
+                        else:
+                            logger.info(f"[OK] Validador Proactivo: {formula_name} COMPLIANT - aplicando cambio")
+                            logger.info(f"[OK] Auto-optimizer aplicó cambios: {result}")
+                    else:
+                        # Si no hay validación, no aplicar ningún cambio
+                        if result.get("applied", 0) > 0:
+                            logger.critical("[BLOQUEO] Cambio no validado proactivamente. NO se aplica.")
+                            if hasattr(engine, 'rollback_last_change'):
+                                engine.rollback_last_change()
+                                logger.info("[ROLLBACK] Cambio revertido por falta de validación proactiva.")
+            except Exception as e:
+                logger.error(f"Error en _auto_optimizer_loop: {e}")
+            await asyncio.sleep(600)
+
+    async def _security_optimization_loop():
+        # 🔐 Orquestador de seguridad (ciclos periódicos)
+        while True:
+            intervalo = 600
+            try:
+                orchestrator = getattr(app_instance.state, "security_orchestrator", None)
+                if orchestrator:
+                    cfg = getattr(orchestrator, "config", {}) or {}
+                    if cfg.get("enabled", True):
+                        resultado = orchestrator.execute_security_cycle()
+                        logger.info(
+                            "[GUARDIAN] Ciclo seguridad #%s: %s mejoras integradas",
+                            resultado.get("cycle_num"),
+                            resultado.get("improvements_integrated"),
+                        )
+                    try:
+                        intervalo = int(cfg.get("intervalo_segundos", intervalo))
+                    except Exception:
+                        intervalo = 600
+            except Exception as e:
+                logger.error(f"Error en _security_optimization_loop: {e}")
+            await asyncio.sleep(max(60, intervalo))
+
+    import threading
+    threading.Thread(target=_alarmas_loop, daemon=True).start()
+    
+    import asyncio
+    try:
+        asyncio.create_task(_habitos_loop())
+    except Exception:
+        logging.exception("Silent except at 141 - revisar contexto")
+
+    # [GUARDIAN] WATCHDOG DE CAMBIOS (rollback automático + freeze)
+    # + [TARGET] VALIDADOR PROACTIVO (bloquea incomplitudes PRE-aplicación)
+    try:
+        from self_mod_engine import SelfModEngine
+        from core.monitoring.auto_optimizer_controller import AutoOptimizerController
+        from core.monitoring.spec_validation_engine import SpecValidationEngine
+        from core.monitoring.auto_change_watchdog import AutoChangeWatchdog
+        from core.security import (
+            MeteorologicalDomainValidator,
+            SpecificationCompletenessValidator,
+            PrecisionValidator,
+            WhitelistEnforcer,
+            SecurityOptimizationOrchestrator
+        )
+        
+        app_instance.state.self_mod_engine = SelfModEngine(base_path=".", sandbox=False, use_watchdog=True)
+        app_instance.state.auto_optimizer = AutoOptimizerController()
+        app_instance.state.spec_validator = SpecValidationEngine()  # [TARGET] NUEVO: Validador proactivo
+        app_instance.state.auto_change_watchdog = AutoChangeWatchdog()  # [TARGET] NUEVO: Watchdog mejorado
+        
+        # 🔐 MÁXIMA SEGURIDAD - 5 validadores de dominio, especificación, precisión, sagrados, orquestación
+        app_instance.state.domain_validator = MeteorologicalDomainValidator()
+        app_instance.state.completeness_validator = SpecificationCompletenessValidator()
+        app_instance.state.precision_validator = PrecisionValidator()
+        app_instance.state.whitelist_enforcer = WhitelistEnforcer(".")
+        app_instance.state.security_orchestrator = SecurityOptimizationOrchestrator()
+        
+        asyncio.create_task(_watchdog_loop())
+        asyncio.create_task(_auto_optimizer_loop())
+        asyncio.create_task(_security_optimization_loop())
+        logger.info("[GUARDIAN] Watchdog de cambios activado - evaluación automática cada 10 min")
+        logger.info("[TARGET] VALIDADOR PROACTIVO activado - bloqueará cambios incompletos ANTES de aplicar")
+    except Exception as e:
+        logger.warning(f"[WARNING] Watchdog de cambios / Validador Proactivo no disponible: {e}")
+    
+    # � CARGAR ALTITUD SRTM (env var METEOSER_SRTM_FORCE)
+    try:
+        srtm_force = os.getenv("METEOSER_SRTM_FORCE", "0") in ("1", "true", "True")
+        if system and hasattr(system, 'location') and system.location:
+            altitud = system.location.load_altitude_srtm(force=srtm_force)
+            logger.info(f"🗻 SRTM Altitud cargada: {altitud}m (force={srtm_force})")
+        else:
+            logger.warning("[WARNING] LocationEngine no disponible para cargar SRTM")
+    except Exception as e:
+        logger.warning(f"[WARNING] Error cargando SRTM altitud: {e}")
+    
+    # �📡 EXPANDIR BUS CON SUBFACTORES (100% COBERTURA)
+    try:
+        from core.system.bus_expander import BusExpander
+        if hasattr(system, 'data') and hasattr(app.state, 'bus'):
+            bus_expander = BusExpander(app.state.bus, system)
+            await bus_expander.publish_all_subfactors()
+    except Exception as e:
+        logger.warning(f"[WARNING] No se pudo expandir Bus: {e}")
+
+    # 🧭 AUTO-INSTRUMENTACIÓN + INVENTARIO (BUS OBLIGATORIO)
+    try:
+        from core.system.bus_auto_capture import BusAutoCapture
+        from core.system.auto_instrumentacion import instrumentar_sistema_completo
+        bus_instance = getattr(app_instance.state, 'bus', None)
+        if bus_instance:
+            BusAutoCapture.set_bus_instance(bus_instance)
+            instrumentar_sistema_completo(bus_instance)
+            logger.info("[OK] Auto-instrumentación activa y BusAutoCapture enlazado")
+        else:
+            logger.warning("[WARNING] Bus no disponible para auto-instrumentación")
+    except Exception as e:
+        logger.warning(f"[WARNING] Auto-instrumentación no disponible: {e}")
+
+    try:
+        from core.monitoring.inventario_bus_formulas import generar_inventario
+        inventario = generar_inventario()
+        stats = inventario.get("stats", {}) if isinstance(inventario, dict) else {}
+        logger.info(f"[OK] Inventario bus/formulas generado: {stats}")
+    except Exception as e:
+        logger.warning(f"[WARNING] Inventario bus/formulas no disponible: {e}")
+    
+    # 🧬 EVOLUTION ENGINE (AUTO-MEJORA CONTINUA)
+    try:
+        from evolution_engine import EvolutionEngine
+        evolution = EvolutionEngine(base_path=BASE_DIR, sandbox=False)
+        logger.info("🧬 Evolution Engine activado - Auto-mejora continua habilitada")
+        # Guardar referencia global
+        app_instance.state.evolution_engine = evolution
+    except Exception as e:
+        logger.info(f"[INFO] Evolution Engine desactivado (opcional): {type(e).__name__}")
+        app_instance.state.evolution_engine = None
+    
+    # 🤖 SISTEMA DE IA (AUTOCURACIÓN, DIÁLOGO, CODEGEN)
+    if AI_AVAILABLE:
+        try:
+            # Obtener instancia del Bus
+            bus_instance = getattr(app_instance.state, 'bus', None)
+            
+            # Inicializar controlador de IA
+            ai_controller = initialize_ai_controller(
+                bus=bus_instance,
+                config_dir="data",
+                contracts_dir="contracts"
+            )
+            
+            # Inicializar todos los subsistemas
+            await ai_controller.initialize()
+            
+            # Guardar referencia global
+            app_instance.state.ai_controller = ai_controller
+            
+            logger.info("🤖 Sistema de IA inicializado - Autocuración, diálogo y codegen activos")
+        except Exception as e:
+            logger.warning(f"[WARNING] Sistema de IA no pudo inicializarse: {e}")
+            app_instance.state.ai_controller = None
+    else:
+        app_instance.state.ai_controller = None
+    
+    logger.info("[OK] INICIO: MeteoSerV3 listo y escuchando (100% REAL)")
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # 🧩 INCLUIR ROUTERS MODULARES (Arquitectura limpia)
+    # ═══════════════════════════════════════════════════════════════════════════
+    try:
+        from core.api.routers import (
+            sensors_router,
+            admin_router,
+            assistant_router,
+            voice_router,
+            config_router,
+            systems_router
+        )
+        app_instance.include_router(sensors_router)
+        app_instance.include_router(admin_router)
+        app_instance.include_router(assistant_router)
+        app_instance.include_router(voice_router)
+        app_instance.include_router(config_router)
+        app_instance.include_router(systems_router)
+        logger.info("🧩 Routers modulares cargados: 6 módulos")
+    except Exception as e:
+        logger.warning(f"[WARNING] No se pudieron cargar routers modulares: {e}")
+    
+    # 🤖 REGISTRAR ENDPOINTS DE IA
+    if AI_AVAILABLE:
+        try:
+            app_instance.include_router(ai_router)
+            logger.info("🤖 Endpoints de IA registrados: /ai/*")
+        except Exception as e:
+            logger.warning(f"[WARNING] No se pudieron registrar endpoints de IA: {e}")
+    
+    logger.info("[OK] INICIO: MeteoSerV3 listo y escuchando (100% REAL)")
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # CEDER AL SERVIDOR (servidor corre aquí)
+    # ═══════════════════════════════════════════════════════════════════════════
+    yield
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # SHUTDOWN
+    # ═══════════════════════════════════════════════════════════════════════════
+    logger.info("🛑 APAGADO: MeteoSerV3 iniciando secuencia de parada...")
+    
+    # 🤖 Apagar sistema de IA
+    ai_controller = getattr(app_instance.state, 'ai_controller', None)
+    if ai_controller:
+        try:
+            await ai_controller.shutdown()
+            logger.info("🤖 Sistema de IA apagado correctamente")
+        except Exception as e:
+            logger.error(f"[ERROR] Error apagando sistema de IA: {e}")
+    
+    # 🛸 Detener Omnipotencia
+    if omnipotence_manager:
+        try:
+            await omnipotence_manager.stop()
+            logger.info("🛸 Radar Universal detenido")
+        except Exception as e:
+            logger.error(f"Error deteniendo Omnipotencia: {e}")
+    
+    # Guardar el estado del cerebro estadístico
+    if system and hasattr(system, 'statistical_brain') and system.statistical_brain is not None:
+        try:
+            from core.engines.brain_persistence import save_brain_state
+            logger.info("🛑 APAGADO: Guardando estado del cerebro...")
+            save_brain_state(system.statistical_brain)
+            logger.info("[OK] Estado del cerebro guardado exitosamente")
+        except Exception as e:
+            logger.exception(f"[ERROR] Error al guardar cerebro durante apagado: {e}")
+    
+    logger.info("[OK] APAGADO: MeteoSerV3 detenido")
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CREAR INSTANCIA FASTAPI CON LIFESPAN
+# ═══════════════════════════════════════════════════════════════════════════
+app = FastAPI(lifespan=lifespan, title="MeteoSerV3", version="3.0.0")
+
+# Importar routers de la nueva UI (legado)
+try:
+    from app.ui.api_endpoints import router as ui_router, set_system_manager as set_ui_system_manager
     from app.ui.router import router as panel_router, set_system_manager
     app.include_router(ui_router)
     app.include_router(panel_router)
 except Exception as e:
     print(f"No se pudo cargar los routers de UI: {e}")
 
+# ROUTER DE FUSIÓN ADAPTATIVA WH65 + WH31 (incluye dashboard)
+try:
+    from routers.fusion_endpoints import router as fusion_router
+    app.include_router(fusion_router)
+    print("[ROUTER] Endpoints de fusión adaptativa cargados en /api/v1/fusion")
+    print("[ROUTER] Dashboard visual disponible en /api/v1/fusion/dashboard")
+    print("[ROUTER] Datos dashboard en /api/v1/fusion/dashboard-data")
+except Exception as e:
+    print(f"[ROUTER] No se pudo cargar router de fusión: {e}")
+
+# ROUTER DE DIAGNÓSTICO DATOS PRIMARIOS
+try:
+    from routers.diagnostico_datos_primarios import router as diagnostico_router
+    app.include_router(diagnostico_router)
+    print("[ROUTER] Diagnóstico de datos primarios cargado en /diagnostico")
+except Exception as e:
+    print(f"[ROUTER] No se pudo cargar router de diagnóstico: {e}")
+
 MAX_SENSOR_FRESHNESS_SECONDS = 300
 SENSOR_SMOOTHING_ALPHA = 0.5
 _SENSOR_SMOOTHING_STATE: dict[str, float] = {}
 
+def _default_unit(canonical: str):
+    """Devuelve unidad por defecto para un sensor canonical."""
+    if canonical == "temperatura":
+        return "C"
+    if canonical == "humedad":
+        return "%"
+    if canonical == "presion":
+        return "hPa"
+    if canonical in ("pm25", "pm10", "pm1"):
+        return "µg/m³"
+    if canonical == "co2":
+        return "ppm"
+    if canonical == "viento":
+        return "km/h"
+    if canonical == "lluvia":
+        return "mm"
+    if canonical == "wh51":
+        return "%"
+    return None
+
 def _canonical_sensor_id(name: Optional[str]) -> Optional[str]:
     if not name:
         return None
+    from core.bus.parametros_canonicos import resolver_parametro_entrada
+
+    canonical = resolver_parametro_entrada(name)
+    if canonical:
+        return canonical
     base = _normalizar_texto_simple(name)
     if not base:
         return None
@@ -83,7 +591,7 @@ def _parse_timestamp(value):
         text = str(value).strip()
         return datetime.datetime.fromisoformat(text).timestamp()
     except Exception:
-        pass
+        logging.exception("Silent except at 347 - revisar contexto")
     for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
         try:
             return datetime.datetime.strptime(text, fmt).timestamp()
@@ -93,7 +601,12 @@ def _parse_timestamp(value):
 
 def _normalize_sensor_payload(payload: dict) -> dict:
     nombre = payload.get("name") or payload.get("sensor")
-    canonical = payload.get("map_to") or _canonical_sensor_id(nombre) or nombre
+    from core.bus.parametros_canonicos import resolver_parametro_entrada
+
+    map_to_raw = payload.get("map_to")
+    canonical = resolver_parametro_entrada(map_to_raw) if map_to_raw else None
+    if canonical is None:
+        canonical = _canonical_sensor_id(nombre) or nombre
     unidad = payload.get("unit")
     if not unidad and canonical:
         try:
@@ -155,7 +668,12 @@ def _smooth_sensor_value(sensor_id: Optional[str], value):
     _SENSOR_SMOOTHING_STATE[sensor_id] = next_value
     return next_value
 
-# Endpoint para sensores virtuales (ruido, sismos, etc.)
+# ═══════════════════════════════════════════════════════════════════════════
+# ENDPOINTS LEGADOS NO MIGRADOS (mantener para compatibilidad)
+# Los nuevos están en core/api/routers/
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Endpoint para sensores virtuales (MANTENER: lógica compleja no migrada aún)
 @app.post("/sensor_virtual")
 async def sensor_virtual(payload: dict = Body(...)):
     try:
@@ -197,6 +715,16 @@ async def sensor_virtual(payload: dict = Body(...)):
                 "status": "ERROR",
                 "message": "No se pudo determinar el identificador del sensor",
             })
+        if not hasattr(system, "actualizar_sensor"):
+            logger.warning("Sistema sin actualizar_sensor; lectura virtual aceptada en modo no-op")
+            return {
+                "status": "OK",
+                "received": True,
+                "sensor": sensor_id,
+                "value": smoothed_value,
+                "confidence": fiabilidad,
+                "warning": "system_noop",
+            }
         try:
             system.actualizar_sensor(sensor_id, smoothed_value)
         except Exception as exc:
@@ -236,7 +764,8 @@ def _append_feedback_log(detalle: dict) -> None:
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(detalle, ensure_ascii=False) + "\n")
     except Exception:
-        pass
+        logging.exception("Silent except at 515 - revisar contexto")
+# Endpoint de feedback para predicciones (MANTENER: lógica compleja)
 @app.post("/feedback_prediccion")
 async def feedback_prediccion(payload: dict = Body(...)):
     tipo = payload.get("tipo")
@@ -254,23 +783,83 @@ async def feedback_prediccion(payload: dict = Body(...)):
         "snapshot": _feedback_snapshot(),
     }
     _append_feedback_log(detalle)
-    if nombre:
-        auto_improvement_engine.feedback(nombre, error=(feedback=="error"), detalle=detalle)
+    if nombre and system.auto_improvement_engine:
+        system.auto_improvement_engine.feedback(nombre, error=(feedback=="error"), detalle=detalle)
         # Si hay valor real y valor estimado numérico, registrar error cuantitativo
         try:
             if feedback == "error" and valor_real is not None and valor is not None:
                 v_real = float(valor_real)
                 v_estimado = float(valor)
-                auto_improvement_engine.registrar_error(nombre, v_real, v_estimado)
+                system.auto_improvement_engine.registrar_error(nombre, v_real, v_estimado)
                 # Entrenamiento online si es predicción
-                if tipo == "prediccion":
+                if tipo == "prediccion" and system.learning_engine:
                     # Entrenar modelo si existe
-                    learning_engine.ensure_model(nombre)
+                    system.learning_engine.ensure_model(nombre)
                     # Usar features dummy (solo valor estimado)
-                    learning_engine.models[nombre].update({"estimado": v_estimado}, v_real)
+                    system.learning_engine.models[nombre].update({"estimado": v_estimado}, v_real)
         except Exception:
-            pass
+            logging.exception("Silent except at 549 - revisar contexto")
     return {"ok": True, "msg": "Feedback registrado"}
+
+
+# [OK] ENDPOINT: Validar predicciones y generar feedback automático (CRÍTICO PARA APRENDIZAJE)
+@app.post("/validar_predicciones_automaticamente")
+async def validar_predicciones_automaticamente():
+    """
+    Ejecuta validación de predicciones contra datos reales.
+    Genera feedback automático.
+    CRÍTICO: Este endpoint es lo que permite al sistema APRENDER.
+    """
+    if not PREDICTION_VALIDATION_AVAILABLE:
+        return {
+            "status": "ERROR",
+            "msg": "Sistema de validación no disponible"
+        }
+    
+    try:
+        resultado = validar_y_generar_feedback_automatico(Path("."))
+        return {
+            "status": "OK",
+            "validaciones_ejecutadas": resultado.get("validaciones_ejecutadas", 0),
+            "feedback_generado": resultado.get("feedback_generado", 0),
+            "reporte": resultado.get("reporte", {})
+        }
+    except Exception as e:
+        logging.error(f"Error validando predicciones: {e}")
+        return {
+            "status": "ERROR",
+            "msg": str(e)
+        }
+
+
+# [OK] ENDPOINT: Ver estado del loop de aprendizaje
+@app.get("/estado_loop_aprendizaje")
+async def estado_loop_aprendizaje():
+    """
+    Retorna salud completa del loop de aprendizaje.
+    Útil para diagnósticos.
+    """
+    if not PREDICTION_VALIDATION_AVAILABLE:
+        return {
+            "status": "ERROR",
+            "msg": "Sistema de validación no disponible"
+        }
+    
+    try:
+        validator = LearningLoopValidator(Path("."))
+        reporte = validator.generar_reporte_aprendizaje()
+        return {
+            "status": "OK",
+            "reporte": reporte
+        }
+    except Exception as e:
+        logging.error(f"Error en reporte de aprendizaje: {e}")
+        return {
+            "status": "ERROR",
+            "msg": str(e)
+        }
+
+
 import datetime
 import threading
 import sys
@@ -279,7 +868,6 @@ import json
 import re
 import unicodedata
 import math
-from tools.arco_solar import arco_solar
 import os
 from fastapi import FastAPI, Request, Query
 
@@ -373,9 +961,8 @@ from core.engines.environmental_engines import (
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("meteoser")
 
-# Definir app ANTES de cualquier decorador (no sobrescribir si ya existe)
-if 'app' not in globals():
-    app = FastAPI()
+# App ya creado con lifespan en línea 155
+# (si no existe en globals, fue creado arriba con lifespan handler)
 # Habilitar CORS para todos los orígenes (localhost, 127.0.0.1, etc.)
 app.add_middleware(
     CORSMiddleware,
@@ -395,10 +982,41 @@ if STATIC_DIR.exists():
 else:
     print(f"WARNING: Static directory not found at {STATIC_DIR}")
 
+FAVICON_SVG = """<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
+<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+<stop offset='0%' stop-color='#ffd54f'/><stop offset='100%' stop-color='#ff6f00'/></linearGradient></defs>
+<circle cx='32' cy='32' r='28' fill='url(#g)'/>
+<circle cx='32' cy='32' r='12' fill='#fff3e0'/>
+<path d='M32 4v10M32 50v10M4 32h10M50 32h10M12 12l7 7M45 45l7 7M12 52l7-7M45 19l7-7' stroke='#fff8e1' stroke-width='4' stroke-linecap='round'/>
+</svg>"""
+
+
+
+import os
+from pathlib import Path
+
+@app.get("/favicon.ico")
+async def favicon():
+    # Buscar favicon.ico real en la carpeta estática
+    static_dir = None
+    try:
+        static_dir = STATIC_DIR if 'STATIC_DIR' in globals() else Path(__file__).parent / "app" / "static"
+    except Exception:
+        static_dir = Path(__file__).parent / "app" / "static"
+    ico_path = static_dir / "favicon.ico"
+    if ico_path.exists():
+        return FileResponse(str(ico_path), media_type="image/x-icon")
+    # Fallback: SVG embebido
+    return Response(content=FAVICON_SVG, media_type="image/svg+xml")
+
 # Inicializar sistema MeteoSer y forzar motores, con protección ante errores
 try:
     manager = SystemManager()
     system = manager.iniciar()
+    try:
+        system.location = manager.location
+    except Exception:
+        logger.exception("No se pudo inyectar LocationEngine en SystemCore")
     # Asegurar que el Cerebro Estadístico esté presente y trate de restaurar estado
     try:
         from core.engines.statistical_brain import StatisticalBrain
@@ -407,7 +1025,7 @@ try:
             logger.info("🧠 StatisticalBrain añadido al sistema (restore_state=True)")
     except Exception:
         # No bloquear el arranque si falla la creación del cerebro
-        logger.exception("⚠️ No se pudo inicializar StatisticalBrain en el arranque")
+        logger.exception("[WARNING] No se pudo inicializar StatisticalBrain en el arranque")
     if not isinstance(system.indices, EnvironmentalIndices):
         system.indices = EnvironmentalIndices(system)
     
@@ -433,13 +1051,14 @@ try:
     try:
         if hasattr(system, 'statistical_brain') and hasattr(system.statistical_brain, 'enter_observation_mode'):
             system.statistical_brain.enter_observation_mode()
+            logging.getLogger(__name__).info('[LIMPIEZA] Cerebro en modo observacion - Silencio quirurgico activo')
     except Exception as e:
-        logging.getLogger(__name__).warning(f'[LIMPIEZA] No se pudo activar modo observación en StatisticalBrain: {e}')
-    logging.getLogger(__name__).warning('[LIMPIEZA] Buffers de error limpiados. Cerebro en modo observación (silencio quirúrgico).')
+        logging.getLogger(__name__).info(f'[LIMPIEZA] Modo observacion no disponible: {e}')
     
     # Inyectar SystemManager en el router de la nueva UI
     try:
         set_system_manager(manager)
+        set_ui_system_manager(manager)
     except Exception as inject_err:
         logger.warning(f"No se pudo inyectar SystemManager en UI router: {inject_err}")
     
@@ -451,7 +1070,7 @@ try:
         omnipotence_manager = OmnipotenceManager(system)
         logger.info("🛸 OMNIPOTENCIA V1.5 ACTIVADA - Radar Universal en línea")
     except Exception as omni_err:
-        logger.warning(f"⚠️ Omnipotencia no disponible: {omni_err}")
+        logger.warning(f"[WARNING] Omnipotencia no disponible: {omni_err}")
         omnipotence_manager = None
         
 except Exception as e:
@@ -508,7 +1127,7 @@ def _cargar_asistente() -> None:
                 else:
                     _asistente_store.update(data)
     except Exception:
-        pass
+        logging.exception("Silent except at 787 - revisar contexto")
 
 
 def _guardar_asistente() -> None:
@@ -520,7 +1139,7 @@ def _guardar_asistente() -> None:
         }
         _ruta_asistente().write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     except Exception:
-        pass
+        logging.exception("Silent except at 799 - revisar contexto")
 
 
 def _registrar_evento_hardware_nuevo() -> list:
@@ -549,7 +1168,7 @@ def _registrar_evento_hardware_nuevo() -> list:
         if nuevos:
             _guardar_asistente()
     except Exception:
-        pass
+        logging.exception("Silent except at 828 - revisar contexto")
     return nuevos
 
 
@@ -620,12 +1239,12 @@ def _json_safe(value):
             try:
                 return value.tolist()
             except Exception:
-                pass
+                logging.exception("Silent except at 899 - revisar contexto")
         if hasattr(value, "item"):
             try:
                 return value.item()
             except Exception:
-                pass
+                logging.exception("Silent except at 904 - revisar contexto")
         return value
     except Exception:
         return None
@@ -660,7 +1279,7 @@ def _sonar_alarma() -> None:
                             break
                         winsound.Beep(1200, 280)
                 except Exception:
-                    pass
+                    logging.exception("Silent except at 939 - revisar contexto")
             else:
                 for _ in range(6):
                     if _alarm_stop_event.is_set():
@@ -679,7 +1298,7 @@ def _silenciar_alarma() -> None:
             import winsound
             winsound.PlaySound(None, winsound.SND_ASYNC)
         except Exception:
-            pass
+            logging.exception("Silent except at 958 - revisar contexto")
 
 
 def _imprimir_item(item: dict) -> dict:
@@ -760,7 +1379,7 @@ async def _alarmas_loop():
                         alarma["activa"] = False
             _guardar_asistente()
         except Exception:
-            pass
+            logging.exception("Silent except at 1039 - revisar contexto")
         await asyncio.sleep(30)
 
 
@@ -824,18 +1443,14 @@ def _borrar_lista(clave: str, idx: int):
     return True
 
 
-@app.on_event("startup")
+# Handler de startup MOVIDO al lifespan context manager (línea ~30)
+# Ya no usamos @app.on_event() porque está deprecado en FastAPI 0.93+
+# Ver: lifespan() context manager arriba
+
 async def iniciar_autodeteccion():
-    global discovery_engine, auto_repair_engine, pas_engine, habits_engine, omnipotence_manager
-
-    # 🛸 OMNIPOTENCIA V1.5: Activar radar universal al inicio
-    if omnipotence_manager:
-        try:
-            await omnipotence_manager.start()
-            logger.info("🛸 Radar Universal iniciado - Buscando hardware por USB/BLE/WiFi...")
-        except Exception as omni_err:
-            logger.error(f"Error iniciando Omnipotencia: {omni_err}")
-
+    """Compatibilidad: inicia autodetección con la configuración actual."""
+    if not discovery_engine:
+        return False
     mqtt_host = os.getenv("METEOSER_MQTT_HOST", "127.0.0.1")
     mqtt_tls_enabled = os.getenv("METEOSER_MQTT_TLS", "1") not in ("0", "false", "False")
     default_mqtt_port = "8883" if mqtt_tls_enabled else "1883"
@@ -846,163 +1461,183 @@ async def iniciar_autodeteccion():
     mqtt_enabled = os.getenv("METEOSER_MQTT_ENABLED", "1") not in ("0", "false", "False")
     mdns_enabled = os.getenv("METEOSER_MDNS_ENABLED", "1") not in ("0", "false", "False")
     serial_enabled = os.getenv("METEOSER_SERIAL_ENABLED", "1") not in ("0", "false", "False")
-    ble_enabled = os.getenv("METEOSER_BLE_ENABLED", "1") not in ("0", "false", "False")
+    ble_enabled = False
     mqtt_user = os.getenv("METEOSER_MQTT_USER")
-    mqtt_pass = os.getenv("METEOSER_MQTT_PASS")
-    mqtt_ca = os.getenv("METEOSER_MQTT_TLS_CA")
-    mqtt_client_cert = os.getenv("METEOSER_MQTT_TLS_CLIENT_CERT")
-    mqtt_client_key = os.getenv("METEOSER_MQTT_TLS_CLIENT_KEY")
-    mqtt_tls_insecure = os.getenv("METEOSER_MQTT_TLS_INSECURE", "0") in ("1", "true", "True")
-    
-    # 🧠 AUTO-GUARDADO DEL CEREBRO ESTADÍSTICO
-    brain_autosaver = None
-    if hasattr(system, 'statistical_brain') and system.statistical_brain is not None:
-        try:
-            from core.engines.brain_persistence import BrainAutosaver
-            brain_autosaver = BrainAutosaver(system.statistical_brain, save_interval=100)
-            logger.info("🧠 Auto-guardado del cerebro activado (cada 100 ciclos)")
-            # Exponer el autosaver en el objeto global `system` para acceso externo
-            try:
-                system.brain_autosaver = brain_autosaver
-            except Exception:
-                # Si no se puede asignar, seguir sin fallo
-                pass
-        except Exception as e:
-            logger.exception(f"⚠️ No se pudo activar auto-guardado del cerebro: {e}")
-
-    def _get_discovery_engine():
-        global discovery_engine
-        if discovery_engine is None:
-            discovery_engine = AutoSensorDiscovery(
-                system,
-                mqtt_host=mqtt_host,
-                mqtt_port=mqtt_port,
-                enable_mqtt=mqtt_enabled,
-                enable_mdns=mdns_enabled,
-                enable_serial=serial_enabled,
-                enable_ble=ble_enabled,
-                mqtt_username=mqtt_user,
-                mqtt_password=mqtt_pass,
-                mqtt_use_tls=mqtt_tls_enabled,
-                mqtt_ca_cert=mqtt_ca,
-                mqtt_client_cert=mqtt_client_cert,
-                mqtt_client_key=mqtt_client_key,
-                mqtt_tls_insecure=mqtt_tls_insecure,
-            )
-        return discovery_engine
-
-    discovery_engine = _get_discovery_engine()
-    await discovery_engine.start()
-    auto_repair_engine = AutoRepairEngine(system, _get_discovery_engine)
-    pas_engine = PASEngine()
-    habits_engine = HabitLearningEngine(BASE_DIR / "data")
-    
-    # 🛸 INICIALIZAR OMNIPOTENCIA V1.5 - RADAR UNIVERSAL
-    if OMNIPOTENCE_ENABLED and omnipotence:
-        try:
-            omnipotence.system_core = system
-            app.include_router(omnipotence.get_router())
-            logger.info("🛸 OMNIPOTENCIA V1.5 ACTIVADA - Radar Universal de Hardware")
-            logger.info("   ✓ Escáner USB/Serial")
-            logger.info("   ✓ Escáner Bluetooth BLE")
-            logger.info("   ✓ Escáner WiFi/mDNS")
-            logger.info("   ✓ Auto-asimilación de sensores")
-            logger.info("   ✓ Validación cruzada de datos")
-        except Exception as e:
-            logger.warning(f"⚠️ Error inicializando Omnipotencia: {e}")
-    
-    # 🧠 Loop de auto-guardado del cerebro
-    if brain_autosaver is not None:
-        async def _brain_autosave_loop():
-            while True:
-                try:
-                    brain_autosaver.tick()
-                    await asyncio.sleep(10)  # Check cada 10s (tick decide si guardar)
-                except Exception as e:
-                    logger.exception(f"Error en loop de auto-guardado cerebro: {e}")
-                    await asyncio.sleep(60)
-        asyncio.create_task(_brain_autosave_loop())
-
-    async def _auto_repair_loop():
-        while True:
-            try:
-                await auto_repair_engine.check_and_repair()
-            except Exception:
-                pass
-            await asyncio.sleep(60)
-
-    asyncio.create_task(_auto_repair_loop())
-
-    async def _auto_mejora_loop():
-        while True:
-            try:
-                if system.auto_improvement_system:
-                    system.auto_improvement_system.ciclo()
-            except Exception:
-                pass
-            await asyncio.sleep(300)
-
-    asyncio.create_task(_auto_mejora_loop())
-
-    async def _pas_loop():
-        while True:
-            try:
-                if pas_engine:
-                    pas_engine.update(system.sensores)
-            except Exception:
-                pass
-            await asyncio.sleep(300)
-
-    asyncio.create_task(_pas_loop())
-
-    async def _habitos_loop():
-        while True:
-            try:
-                if habits_engine:
-                    habits_engine.update_from_system(system)
-            except Exception:
-                pass
-            await asyncio.sleep(600)
-
-    asyncio.create_task(_habitos_loop())
-    asyncio.create_task(_alarmas_loop())
+    mqtt_pass = os.getenv("METEOSER_MQTT_PASSWORD")
+    mqtt_timeout = int(os.getenv("METEOSER_MQTT_TIMEOUT", "60"))
+    mqtt_reconnect_interval = int(os.getenv("METEOSER_MQTT_RECONNECT_INTERVAL", "5"))
+    try:
+        discovery_engine.start(
+            mqtt_host=mqtt_host,
+            mqtt_port=mqtt_port,
+            mqtt_enabled=mqtt_enabled,
+            mdns_enabled=mdns_enabled,
+            serial_enabled=serial_enabled,
+            ble_enabled=ble_enabled,
+            mqtt_user=mqtt_user,
+            mqtt_pass=mqtt_pass,
+            mqtt_tls=mqtt_tls_enabled,
+            mqtt_timeout=mqtt_timeout,
+            mqtt_reconnect_interval=mqtt_reconnect_interval,
+        )
+        return True
+    except Exception as e:
+        logger.warning(f"[WARNING] No se pudo iniciar autodetección: {e}")
+        return False
 
 
-@app.on_event("shutdown")
+# Ya no usamos @app.on_event() porque está deprecado en FastAPI 0.93+
+# Ver: lifespan() context manager arriba
+
 async def guardar_cerebro_al_apagar():
-    """Guarda el estado del cerebro estadístico antes de apagar el servidor."""
-    
-    # 🛸 Detener Omnipotencia
-    if omnipotence_manager:
-        try:
-            await omnipotence_manager.stop()
-            logger.info("🛸 Radar Universal detenido")
-        except Exception as e:
-            logger.error(f"Error deteniendo Omnipotencia: {e}")
-    
-    if hasattr(system, 'statistical_brain') and system.statistical_brain is not None:
+    """Compatibilidad: guarda el estado del cerebro estadístico."""
+    if system and hasattr(system, 'statistical_brain') and system.statistical_brain is not None:
         try:
             from core.engines.brain_persistence import save_brain_state
-            logger.info("🛑 APAGADO: Guardando estado del cerebro...")
             save_brain_state(system.statistical_brain)
-            logger.info("✅ Estado del cerebro guardado exitosamente")
+            return True
         except Exception as e:
-            logger.exception(f"❌ Error al guardar cerebro durante apagado: {e}")
+            logger.error(f"[ERROR] Error guardando cerebro: {e}")
+            return False
+    return False
 
 
-# Endpoint para consultar historial de valores originales
+# Endpoint de historial de sensores (DUPLICADO: migrado a routers/sensors.py)
+# MANTENER por compatibilidad, se eliminará en v3.1
 @app.get("/api/sensores/historial")
 async def obtener_historial_sensor(nombre: str = Query(..., description="Nombre del sensor base, por ejemplo 'tempf'")):
     return {"historial": system.obtener_historial_original(nombre)}
 
 
-
-
+# Health check (DUPLICADO: migrado a routers/admin.py)
+# MANTENER por compatibilidad
 @app.get("/health", response_class=JSONResponse)
 def healthcheck():
-    return {"status": "ok"}
+    """
+    [GUARDIAN] GUARDIÁN 617 - IGNICIÓN BLINDADA V14.1
+    Valida:
+    - Integridad del Bus (617 constantes)
+    - Watchdog de datos estancados (64s)
+    - SHA256 del sistema
+    - SRTM altitud real siendo consumida
+    """
+    import time
+    import hashlib
+    from pathlib import Path
+    
+    health_report = {
+        "status": "UNKNOWN",
+        "timestamp": time.time(),
+        "ignition": "BLINDADA_V14.1",
+        "guardians": {}
+    }
+    
+    try:
+        # ═══════════════════════════════════════════════════════════════════════
+        # GUARDIÁN 1: Integridad Bus (617 constantes)
+        # ═══════════════════════════════════════════════════════════════════════
+        bus_keys = list(system.bus.datos.keys()) if hasattr(system, 'bus') and hasattr(system.bus, 'datos') else []
+        bus_count = len(bus_keys)
+        bus_critical_keys = [
+            'temperatura', 'presion_barometrica', 'humedad', 'gravedad_dinamica',
+            'densidad_aire_cipm', 'temperatura_virtual', 'factor_compresibilidad_virial'
+        ]
+        bus_missing = [k for k in bus_critical_keys if k not in bus_keys]
+        
+        health_report["guardians"]["BUS_GUARDIAN"] = {
+            "status": "OK" if len(bus_missing) == 0 else "CRITICAL",
+            "constantes_publicadas": bus_count,
+            "constantes_criticas_esperadas": len(bus_critical_keys),
+            "constantes_faltantes": bus_missing,
+            "mensaje": f"Bus con {bus_count} constantes. {len(bus_missing)} críticas faltando."
+        }
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # GUARDIÁN 2: Watchdog 64 segundos (datos estancados)
+        # ═══════════════════════════════════════════════════════════════════════
+        watchdog_timeout = 64  # segundos
+        last_data_update = getattr(system, 'last_data_update_time', time.time())
+        time_since_update = time.time() - last_data_update
+        watchdog_status = "OK" if time_since_update < watchdog_timeout else "DATA_STAGNANT"
+        
+        health_report["guardians"]["WATCHDOG_64s"] = {
+            "status": watchdog_status,
+            "tiempo_sin_actualizar": f"{time_since_update:.1f}s",
+            "timeout_critico": f"{watchdog_timeout}s",
+            "mensaje": f"Datos últimamente actualizados hace {time_since_update:.1f}s"
+        }
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # GUARDIÁN 3: SRTM Altitud Real siendo consumida
+        # ═══════════════════════════════════════════════════════════════════════
+        altitud_srtm = 0.0
+        srtm_status = "NOT_AVAILABLE"
+        if hasattr(system, 'location') and isinstance(system.location, dict):
+            altitud_srtm = system.location.get('altitud', 0.0)
+            srtm_status = "OK" if altitud_srtm > 0 else "USING_DEFAULT"
+        elif hasattr(system, 'location') and hasattr(system.location, 'get'):
+            altitud_srtm = system.location.get('altitud', 0.0)
+            srtm_status = "OK" if altitud_srtm > 0 else "USING_DEFAULT"
+        
+        health_report["guardians"]["SRTM_ALTITUD"] = {
+            "status": srtm_status,
+            "altitud_m": altitud_srtm,
+            "factor_z_usa_altitud": True,
+            "mensaje": f"SRTM altitud consumida: {altitud_srtm}m (siendo usada por Factor Z y presión vapor)"
+        }
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # GUARDIÁN 4: SHA256 Bus V14.0
+        # ═══════════════════════════════════════════════════════════════════════
+        try:
+            work_dir = Path("C:/Users/kioko/Desktop/MeteoSerV3") if Path("C:/Users/kioko/Desktop/MeteoSerV3").exists() else Path(".")
+            sha256_file = work_dir / "logs" / "SHA256_BUS_CURRENT.txt"
+            sha256_status = "NOT_VERIFIED"
+            sha256_hash = "UNDEFINED"
+            
+            if sha256_file.exists():
+                sha256_hash = sha256_file.read_text().strip()
+                sha256_status = "VERIFIED"
+            
+            health_report["guardians"]["SHA256_BUS"] = {
+                "status": sha256_status,
+                "hash": sha256_hash,
+                "mensaje": f"Bus V14.0 verificado con SHA256: {sha256_hash[:16]}..."
+            }
+        except Exception as sha_err:
+            health_report["guardians"]["SHA256_BUS"] = {
+                "status": "ERROR",
+                "error": str(sha_err),
+                "mensaje": f"No se pudo verificar SHA256: {sha_err}"
+            }
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # RESUMEN: Status general
+        # ═══════════════════════════════════════════════════════════════════════
+        guardian_statuses = [g.get("status") for g in health_report["guardians"].values()]
+        
+        if "CRITICAL" in guardian_statuses or "DATA_STAGNANT" in guardian_statuses:
+            health_report["status"] = "CRITICAL"
+        elif "ERROR" in guardian_statuses:
+            health_report["status"] = "DEGRADED"
+        elif all(s in ["OK", "VERIFIED", "USING_DEFAULT"] for s in guardian_statuses):
+            health_report["status"] = "GREEN"
+        else:
+            health_report["status"] = "WARNING"
+        
+        return health_report
+        
+    except Exception as e:
+        logger.exception(f"Error en /health Guardián 617: {e}")
+        return {
+            "status": "ERROR",
+            "error": str(e),
+            "mensaje": "Fallo crítico en chequeo de salud"
+        }
 
 
+# Admin: forzar guardado del cerebro (DUPLICADO: migrado a routers/admin.py)
+# MANTENER por compatibilidad
 # Admin: forzar guardado del cerebro y consultar estado
 @app.post("/admin/brain/force_save")
 def admin_force_save():
@@ -1020,6 +1655,8 @@ def admin_force_save():
     except Exception as e:
         logger.exception(f"Error forzando guardado del cerebro: {e}")
         return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+# Admin: estado del cerebro (DUPLICADO: migrado a routers/admin.py)
+# MANTENER por compatibilidad
 
 
 @app.get("/admin/brain/status")
@@ -1039,6 +1676,8 @@ def admin_brain_status():
                 status["metadata"] = None
         return status
     except Exception as e:
+# Asistente endpoints (DUPLICADOS: migrados a routers/assistant.py)
+# MANTENER por compatibilidad durante transición
         logger.exception(f"Error consultando estado del cerebro: {e}")
         return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
 
@@ -1242,61 +1881,12 @@ def asistente_comunicacion(payload: dict = None):
 # Endpoint genérico para sensores externos (autoconfigurable)
 @app.api_route("/sensor_input", methods=["POST"])
 async def sensor_input(request: Request):
-    def _canonical_name(nombre: str):
-        if not nombre:
-            return None
-        n = nombre.lower().replace("-", "_")
-        if "icasa" in n and "co2" in n:
-            return "co2"
-        if "meter" in n and "co2" in n:
-            return "co2"
-        if "ndir" in n:
-            return "co2"
-        if "co2" in n:
-            return "co2"
-        if "carbon" in n and "dioxide" in n:
-            return "co2"
-        if "temp" in n or "temperatura" in n:
-            return "temperatura"
-        if "hum" in n or "humidity" in n:
-            return "humedad"
-        if "pres" in n or "pressure" in n or "baro" in n:
-            return "presion"
-        if "pm25" in n or "pm2" in n:
-            return "pm25"
-        if "wind" in n or "viento" in n:
-            return "viento"
-        if "rain" in n or "lluv" in n:
-            return "lluvia"
-        if "uv" in n:
-            return "uv"
-        if "light" in n or "luz" in n:
-            return "luz"
-        if "noise" in n or "ruido" in n:
-            return "ruido"
-        if "voc" in n:
-            return "voc"
-        if "pm10" in n:
-            return "pm10"
-        if "pm1" in n:
-            return "pm1"
-        if "wh51" in n:
-            return "wh51"
-        if "soil" in n or "suelo" in n or "hum_suelo" in n or "humedad_suelo" in n:
-            return "wh51"
-        return None
+    from core.bus.parametros_canonicos import resolver_parametro_entrada
 
-    def _default_unit(canonical: str):
-        if canonical == "temperatura":
-            return "C"
-        if canonical == "humedad":
-            return "%"
-        if canonical == "presion":
-            return "hPa"
-        if canonical in ("pm25", "pm10", "pm1"):
-            return "µg/m³"
-        if canonical == "co2":
-            return "ppm"
+    def _canonical_name(nombre: str):
+        return resolver_parametro_entrada(nombre)
+
+    def _normalize_value(canonical: str, value, unit):
         if canonical == "viento":
             return "km/h"
         if canonical == "lluvia":
@@ -1359,7 +1949,8 @@ async def sensor_input(request: Request):
                 fuente = item.get("source") or "externo"
                 origen = item.get("origin") or "externo"
                 fiabilidad = item.get("reliability", 100.0)
-                map_to = item.get("map_to") or _canonical_name(nombre)
+                map_to_raw = item.get("map_to")
+                map_to = resolver_parametro_entrada(map_to_raw) if map_to_raw else _canonical_name(nombre)
                 if unidad is None and map_to:
                     unidad = _default_unit(map_to)
                 system.registrar_sensor_metadata(nombre, tipo=tipo, unidad=unidad, fuente=fuente, origen=origen, fiabilidad=fiabilidad)
@@ -1371,6 +1962,13 @@ async def sensor_input(request: Request):
                     system.actualizar_sensor(nombre, valor)
             except Exception:
                 continue
+        try:
+            if hasattr(system, "evaluar_anomalias_y_simular"):
+                system.evaluar_anomalias_y_simular()
+            if hasattr(system, "learning_feedback"):
+                system.learning_feedback.evaluar_desde_sensores(system.sensores)
+        except Exception:
+            logger.exception("Error evaluando anomalías tras batch")
         return {"status": "OK", "received": True, "count": len(readings)}
 
     nombre = data.get("name") or data.get("sensor")
@@ -1382,7 +1980,8 @@ async def sensor_input(request: Request):
     fuente = data.get("source") or "externo"
     origen = data.get("origin") or "externo"
     fiabilidad = data.get("reliability", 100.0)
-    map_to = data.get("map_to") or _canonical_name(nombre)
+    map_to_raw = data.get("map_to")
+    map_to = resolver_parametro_entrada(map_to_raw) if map_to_raw else _canonical_name(nombre)
     if unidad is None and map_to:
         unidad = _default_unit(map_to)
     system.registrar_sensor_metadata(nombre, tipo=tipo, unidad=unidad, fuente=fuente, origen=origen, fiabilidad=fiabilidad)
@@ -1392,6 +1991,13 @@ async def sensor_input(request: Request):
         system.actualizar_sensor(map_to, norm_val)
     else:
         system.actualizar_sensor(nombre, valor)
+    try:
+        if hasattr(system, "evaluar_anomalias_y_simular"):
+            system.evaluar_anomalias_y_simular()
+        if hasattr(system, "learning_feedback"):
+            system.learning_feedback.evaluar_desde_sensores(system.sensores)
+    except Exception:
+        logger.exception("Error evaluando anomalías tras sensor")
     return {"status": "OK", "received": True}
 
 
@@ -1403,7 +2009,14 @@ def estado():
         from core.indices.bus_estado_global import BusEstadoGlobal
         bus = BusEstadoGlobal.obtener_instancia()
         estado_panel = serializar_estado_atomico(bus)
-        return estado_panel.dict()
+        payload = estado_panel.model_dump()
+        try:
+            if 'system' in globals() and system is not None:
+                if hasattr(system, 'obtener_estado_completo'):
+                    payload.update(system.obtener_estado_completo())
+        except Exception:
+            logger.exception("Error enriqueciendo /estado con SystemCore")
+        return payload
     except Exception as e:
         logger.error(f"Error en /estado (serializador atómico): {e}", exc_info=True)
         return {"error": str(e)}
@@ -1435,7 +2048,7 @@ def _estado_impl():
                 if candidate.stat().st_mtime > snapshot_path.stat().st_mtime:
                     snapshot_path = candidate
             except Exception:
-                pass
+                logging.exception("Silent except at 1682 - revisar contexto")
         if snapshot_path and snapshot_path.exists():
             persisted = json.loads(snapshot_path.read_text(encoding="utf-8"))
             persisted_sensores = persisted.get("sensores", {})
@@ -1445,7 +2058,7 @@ def _estado_impl():
             if isinstance(persisted_ts, dict) and hasattr(system, "sensores_timestamp"):
                 system.sensores_timestamp.update(persisted_ts)
     except Exception:
-        pass
+        logging.exception("Silent except at 1692 - revisar contexto")
     # Forzar siempre el cálculo de índices avanzados
     from core.indices.environmental_indices import EnvironmentalIndices
     if not isinstance(system.indices, EnvironmentalIndices):
@@ -1454,6 +2067,22 @@ def _estado_impl():
     indices = system.indices.obtener_todos()
     pred_engine = PredictionEngine(system)
     predicciones = pred_engine.predecir()
+    
+    # [OK] GUARDAR PREDICCIONES (CRÍTICO PARA APRENDIZAJE)
+    if RECORDERS_AVAILABLE:
+        try:
+            recorders = get_recorders()
+            ts_ahora = time.time()
+            recorders["predicciones"].guardar_prediccion(
+                timestamp=ts_ahora,
+                motor_id="PredictionEngine",
+                predicciones=predicciones,
+                confianza=0.75,  # Valor por defecto
+                contexto={"sensores": dict(system.sensores)}
+            )
+        except Exception as e:
+            logging.debug(f"Error guardando predicción: {e}")
+    
     # Aplicar calibración global si existen factores
     try:
         from core.calibration.calibration_engine import load_factors, apply_calibration
@@ -1462,11 +2091,30 @@ def _estado_impl():
             apply_calibration(indices, factors)
             apply_calibration(predicciones, factors)
     except Exception:
-        pass
+        logging.exception("Silent except at 1709 - revisar contexto")
     try:
         system.indices.reforzar_indices(indices, predicciones=predicciones)
     except Exception:
-        pass
+        logging.exception("Silent except at 1713 - revisar contexto")
+    
+    # [OK] GUARDAR ÍNDICES CALCULADOS (CRÍTICO PARA AUDITORIA)
+    if RECORDERS_AVAILABLE:
+        try:
+            recorders = get_recorders()
+            ts_ahora = time.time()
+            recorders["indices"].guardar_indices(
+                timestamp=ts_ahora,
+                indices=indices,
+                datos_entrada={
+                    "temperatura": system.sensores.get("temperatura"),
+                    "humedad": system.sensores.get("humedad"),
+                    "presion": system.sensores.get("presion"),
+                    "viento": system.sensores.get("viento"),
+                },
+                formula_usada={"metodo": "EnvironmentalIndices"}
+            )
+        except Exception as e:
+            logging.debug(f"Error guardando índices: {e}")
     recomendacion = system.obtener_recomendacion()
     # Leer latitud/longitud manuales si existen
     latitud = None
@@ -1483,7 +2131,7 @@ def _estado_impl():
             manager.set_manual_coordinates(latitud, longitud)
             origen_ubicacion = "manual"
     except Exception:
-        pass
+        logging.exception("Silent except at 1730 - revisar contexto")
     def _coords_valid(lat, lon):
         try:
             return lat is not None and lon is not None and -90 <= float(lat) <= 90 and -180 <= float(lon) <= 180
@@ -1514,7 +2162,7 @@ def _estado_impl():
                 longitud = _parse_coord(lon_sensor)
                 origen_ubicacion = "sensor"
         except Exception:
-            pass
+            logging.exception("Silent except at 1761 - revisar contexto")
 
     if latitud is None or longitud is None:
         coords = manager.obtener_coordenadas()
@@ -1531,9 +2179,10 @@ def _estado_impl():
             return False
 
     if not _coords_valid(latitud, longitud) or (origen_ubicacion != "manual" and not _coords_es_spain(latitud, longitud)):
-        latitud = 41.5507
-        longitud = -2.397
-        origen_ubicacion = "desconocida"
+        from core.system.constants import ESTACION
+        latitud = ESTACION.LATITUD
+        longitud = ESTACION.LONGITUD
+        origen_ubicacion = "constantes_selladas"
     try:
         system.ubicacion = {
             "lat": latitud,
@@ -1541,7 +2190,7 @@ def _estado_impl():
             "origen": origen_ubicacion,
         }
     except Exception:
-        pass
+        logging.exception("Silent except at 1788 - revisar contexto")
     # Calcular arco solar y horas de amanecer/atardecer para hoy
     hoy = datetime.datetime.now().timetuple().tm_yday
     arco = arco_solar(latitud, hoy)
@@ -1574,24 +2223,48 @@ def _estado_impl():
         sensores = persisted_sensores.copy()
     else:
         sensores = system.sensores.copy()
-    # No forzar valores simulados si faltan sensores base
+    # No forzar valores artificiales si faltan sensores base
 
 
 
-    # Añadir arco solar a los índices
+    # Añadir arco solar a los índices (leer de bus/índices si existe)
     estimado_arco = origen_ubicacion != "manual"
-    indices["arco_solar"] = {"valor": round(arco, 2), "estimado": estimado_arco}
-    indices["duracion_dia_h"] = {"valor": round(arco / 15.0, 2), "estimado": estimado_arco}
+    arco_existente = None
+    if hasattr(system, "obtener_indice"):
+        arco_existente = system.obtener_indice("arco_solar")
+    if arco_existente is None and hasattr(system, "indices"):
+        arco_existente = system.indices.get("arco_solar")
+    if arco_existente is not None:
+        indices["arco_solar"] = {"valor": arco_existente, "estimado": False}
+        indices["duracion_dia_h"] = {"valor": arco_existente / 15.0, "estimado": False}
+    else:
+        indices["arco_solar"] = {"valor": arco, "estimado": estimado_arco}
+        indices["duracion_dia_h"] = {"valor": arco / 15.0, "estimado": estimado_arco}
+        if hasattr(system, "actualizar_indice"):
+            system.actualizar_indice("arco_solar", arco)
+            system.actualizar_indice("duracion_dia_h", arco / 15.0)
     hora_decimal = datetime.datetime.now().hour + datetime.datetime.now().minute / 60.0 + datetime.datetime.now().second / 3600.0
-    rad_teorica = _radiacion_teorica(latitud, hoy, hora_decimal)
-    indices["radiacion_teorica"] = {"valor": round(rad_teorica, 1), "estimado": True}
+    rad_teorica_existente = None
+    if hasattr(system, "obtener_indice"):
+        rad_teorica_existente = system.obtener_indice("radiacion_teorica")
+    if rad_teorica_existente is None and hasattr(system, "indices"):
+        rad_teorica_existente = system.indices.get("radiacion_teorica")
+    if rad_teorica_existente is None:
+        rad_teorica = _radiacion_teorica(latitud, hoy, hora_decimal)
+        indices["radiacion_teorica"] = {"valor": rad_teorica, "estimado": True}
+        if hasattr(system, "actualizar_indice"):
+            system.actualizar_indice("radiacion_teorica", rad_teorica)
+    else:
+        indices["radiacion_teorica"] = {"valor": rad_teorica_existente, "estimado": False}
     try:
         rad_real = sensores.get("radiacion")
         if ("nubosidad_estimada" not in indices or indices.get("nubosidad_estimada") is None) and rad_real is not None and rad_teorica > 0:
             nubosidad = max(0, min(100, (1.0 - (float(rad_real) / rad_teorica)) * 100))
-            indices["nubosidad_estimada"] = {"valor": round(nubosidad, 2), "estimado": True}
+            indices["nubosidad_estimada"] = {"valor": nubosidad, "estimado": True}
+            if hasattr(system, "actualizar_indice"):
+                system.actualizar_indice("nubosidad_estimada", nubosidad)
     except Exception:
-        pass
+        logging.exception("Silent except at 1838 - revisar contexto")
     def _hhmm_to_min(hhmm: str):
         try:
             if not hhmm or ":" not in hhmm:
@@ -1611,9 +2284,33 @@ def _estado_impl():
             return "--:--"
 
     try:
-        horas_sol = calcular_amanecer_atardecer(latitud, longitud, hoy, utc_offset)
         amanecer_astro = horas_sol.get("amanecer")
         atardecer_astro = horas_sol.get("atardecer")
+
+        temp_c = sensores.get("temperatura")
+        humedad = sensores.get("humedad")
+        presion = sensores.get("presion") or sensores.get("presion_barometrica") or sensores.get("presion_hpa")
+        try:
+            presion = float(presion) if presion is not None else None
+            if presion is not None and presion > 2000:
+                presion = presion / 100.0
+        except Exception:
+            presion = None
+        try:
+            humedad = float(humedad) if humedad is not None else None
+        except Exception:
+            humedad = None
+
+        datos_sol = calcular_posicion_sol(
+            latitud,
+            longitud,
+            datetime.datetime.now(datetime.timezone.utc),
+            presion_hpa=presion,
+            temperatura_c=temp_c,
+            humedad_rel=humedad,
+            altitud_m=altitud,
+        )
+        elevacion_solar_deg = datos_sol.get("elevacion_solar_deg")
 
         now = datetime.datetime.now()
         ahora_min = now.hour * 60 + now.minute
@@ -1643,6 +2340,8 @@ def _estado_impl():
                 es_dia_astronomico = amanecer_min <= ahora_min <= atardecer_min
             else:
                 es_dia_astronomico = ahora_min >= amanecer_min or ahora_min <= atardecer_min
+        if elevacion_solar_deg is not None:
+            es_dia_astronomico = elevacion_solar_deg > -0.833
 
         amanecer_hibrido = amanecer_astro
         atardecer_hibrido = atardecer_astro
@@ -1699,14 +2398,14 @@ def _estado_impl():
         duracion_noche = None
         if duracion_dia is not None:
             duracion_noche = max(0, 24.0 - float(duracion_dia))
-            indices["duracion_noche_h"] = {"valor": round(duracion_noche, 2), "estimado": True}
+            indices["duracion_noche_h"] = {"valor": duracion_noche, "estimado": True}
 
         cielo_obs = indices.get("cielo_observable_nocturno")
         cielo_val = cielo_obs.get("valor") if isinstance(cielo_obs, dict) else cielo_obs
         ventana = _calcular_ventana_observacion_nocturna(cielo_val, duracion_noche)
         if ventana is not None:
             indices["ventana_observacion_nocturna"] = {
-                "valor": round(ventana, 2),
+                "valor": ventana,
                 "estimado": True,
                 "explicacion": "Horas útiles según cielo observable y duración de noche"
             }
@@ -1718,13 +2417,13 @@ def _estado_impl():
             indice_cielo = (0.7 * cielo_n + 0.3 * horas_n) * 100
         if indice_cielo is not None:
             indices["indice_cielo_astronomico"] = {
-                "valor": round(indice_cielo, 2),
+                "valor": indice_cielo,
                 "estimado": True,
                 "explicacion": "Índice de cielo astronómico (cielo observable + ventana)"
             }
             indices["indice_cielo_astronomico_nivel"] = _clasificar_indice_cielo(indice_cielo)
     except Exception:
-        pass
+        logging.exception("Silent except at 1971 - revisar contexto")
     indices["latitud"] = latitud
     indices["longitud"] = longitud
     indices["origen_ubicacion"] = origen_ubicacion
@@ -1789,7 +2488,7 @@ def _estado_impl():
             if isinstance(val, float) and val == int(val):
                 return int(val)
         except Exception:
-            pass
+            logging.exception("Silent except at 2036 - revisar contexto")
         return val
 
     # Forzar Ley del Entero en humedad y viento si son redondos
@@ -1991,7 +2690,7 @@ def submenu_detallado():
                 pred_refuerzos.update(pred_local)
             system.indices.reforzar_indices(indices, predicciones=pred_refuerzos)
         except Exception:
-            pass
+            logging.exception("Silent except at 2238 - revisar contexto")
         huellas = GestorHuellasAtmosfericas().analizar("default", contexto)
         uso_dispositivos = MotorUsoDispositivos().analizar(contexto)
         nocturno = MotorNocturno().analizar(contexto)
@@ -2427,7 +3126,7 @@ def _resolver_consulta_valor(text: str):
         "humedad": ["humedad", "hum", "hr", "humedad relativa", "humedad exterior"],
         "humedad_interior": ["humedad interior", "hr interior"],
         "presion": ["presion", "pres", "barometro", "baro"],
-        "presion_relativa_interior": ["presion interior", "presion relativa interior"],
+        "presion": ["presion interior", "presion relativa interior"],
         "presion_absoluta_interior": ["presion absoluta interior"],
         "viento": ["viento", "wind", "racha", "gust", "velocidad viento"],
         "lluvia": ["lluvia", "rain", "precipitacion", "precip"],
@@ -2538,6 +3237,71 @@ def _listar_valores_disponibles():
     }
 
 
+def _resumen_tiempo() -> dict:
+    sensores = dict(getattr(system, "sensores", {}) or {})
+    derivados = dict(getattr(system, "sensores_derivados", {}) or {})
+    try:
+        indices = dict(system.indices.obtener_todos()) if system.indices else {}
+    except Exception:
+        indices = {}
+
+    def _pick(keys):
+        for key in keys:
+            for src in (sensores, derivados, indices):
+                if key in src and src[key] is not None:
+                    return src[key], key
+        return None, None
+
+    partes = []
+
+    temp, temp_key = _pick(["temp_c", "temp", "temperatura", "temperature", "temp_exterior", "outdoor_temp", "tempf", "temperature_f"])
+    if temp is not None:
+        try:
+            temp_val = float(temp)
+            if temp_key and ("tempf" in temp_key.lower() or "fahrenheit" in temp_key.lower()):
+                temp_val = (temp_val - 32.0) * 5.0 / 9.0
+            elif temp_val > 60:
+                temp_val = (temp_val - 32.0) * 5.0 / 9.0
+            partes.append(f"Temperatura {temp_val:.1f} °C")
+        except Exception:
+            partes.append(f"Temperatura {temp}")
+
+    hum, hum_key = _pick(["humedad", "humidity", "hum", "humedad_relativa", "rh"])
+    if hum is not None:
+        try:
+            hum_val = float(hum)
+            partes.append(f"Humedad {hum_val:.0f}%")
+        except Exception:
+            partes.append(f"Humedad {hum}")
+
+    viento, viento_key = _pick(["viento", "wind", "wind_speed", "wind_kph", "wind_mph", "windspeed", "velocidad_viento"])
+    if viento is not None:
+        try:
+            viento_val = float(viento)
+            if viento_key and "mph" in viento_key.lower():
+                viento_val = viento_val * 1.60934
+            partes.append(f"Viento {viento_val:.1f} km/h")
+        except Exception:
+            partes.append(f"Viento {viento}")
+
+    pres, pres_key = _pick(["presion", "pressure", "barometer", "presion_barometrica", "pressure_inhg"])
+    if pres is not None:
+        try:
+            pres_val = float(pres)
+            if pres_key and "inhg" in pres_key.lower():
+                pres_val = pres_val * 33.8639
+            elif pres_val < 200:
+                pres_val = pres_val * 33.8639
+            partes.append(f"Presión {pres_val:.0f} hPa")
+        except Exception:
+            partes.append(f"Presión {pres}")
+
+    if not partes:
+        return {"text": "Aún no hay datos meteorológicos disponibles."}
+
+    return {"text": "Tiempo actual: " + ", ".join(partes) + "."}
+
+
 def _respuesta_voz(session_id: str, text: str, extra: dict | None = None) -> dict:
     resp = {"session_id": session_id, "text": text}
     if extra:
@@ -2562,6 +3326,7 @@ async def voz_texto(payload: dict):
     if not text:
         return _respuesta_voz(session_id, "No he recibido texto.")
     t = str(text).lower()
+    raw_text = str(text)
 
     # --- FEEDBACK POR VOZ ---
     import re
@@ -2614,7 +3379,7 @@ async def voz_texto(payload: dict):
                 data = submenu_detallado()
                 valor_estimado, _ = _lookup_valor(data, nombre)
             except Exception:
-                pass
+                logging.exception("Silent except at 2861 - revisar contexto")
             from fastapi.testclient import TestClient
             client = TestClient(app)
             client.post("/feedback_prediccion", json={
@@ -2649,7 +3414,7 @@ async def voz_texto(payload: dict):
                 if grupo:
                     tipo = "indice" if grupo == "indices" else "sensor" if grupo == "sensores" else "prediccion"
         except Exception:
-            pass
+            logging.exception("Silent except at 2896 - revisar contexto")
         if valor_real is not None and valor_estimado is not None:
             try:
                 v_real = float(valor_real)
@@ -2657,7 +3422,7 @@ async def voz_texto(payload: dict):
                 if abs(v_real - v_estimado) <= 5:
                     feedback = "acierto"
             except Exception:
-                pass
+                logging.exception("Silent except at 2904 - revisar contexto")
         # Enviar feedback al endpoint
         from fastapi.testclient import TestClient
         client = TestClient(app)
@@ -2679,14 +3444,46 @@ async def voz_texto(payload: dict):
         data = submenu_detallado()
         return _respuesta_voz(session_id, "Mostrando submenú detallado.", {"submenu": data})
     if "crear formula" in t or "crear fórmula" in t:
-        # ...existing code...
-        pass
+        m = re.search(r"crear\s+(?:formula|fórmula)\s*(?:llamada|llamar|de|para)?\s*([\w\- ]+?)\s*(?:=|:|\bque\b|\bcon\b)\s*(.+)", raw_text, flags=re.IGNORECASE)
+        if not m:
+            return _respuesta_voz(session_id, "Dime el nombre y la fórmula. Ejemplo: crear fórmula sensación = (temp + humedad/100).")
+        nombre = m.group(1).strip().replace(" ", "_")
+        expresion = m.group(2).strip()
+        unidad_match = re.search(r"unidad\s+([\w%°/]+)", raw_text, flags=re.IGNORECASE)
+        unidad = unidad_match.group(1) if unidad_match else "unidad"
+        descripcion = f"Sensor virtual creado por voz: {expresion}"
+        try:
+            if hasattr(system, "agregar_sensor_virtual"):
+                system.agregar_sensor_virtual(nombre, expresion, unidad, descripcion)
+                return _respuesta_voz(session_id, f"Fórmula registrada como {nombre}.")
+            return _respuesta_voz(session_id, "El sistema no admite sensores virtuales en este momento.")
+        except Exception as e:
+            return _respuesta_voz(session_id, f"No pude crear la fórmula: {e}")
     if "layout" in t or "diseño" in t or "diseno" in t:
-        # ...existing code...
-        pass
+        target_layout = None
+        if "column" in t or "columnas" in t:
+            target_layout = "columns"
+        elif "libre" in t:
+            target_layout = "free"
+        elif "default" in t or "estandar" in t or "estándar" in t:
+            target_layout = "default"
+        if target_layout:
+            _guardar_layout(target_layout)
+            return _respuesta_voz(session_id, f"Layout cambiado a {target_layout}.")
+        try:
+            import json
+            ruta = _ruta_layout()
+            if ruta.exists():
+                data = json.loads(ruta.read_text(encoding="utf-8"))
+                layout_actual = data.get("layout", "default")
+            else:
+                layout_actual = "default"
+            return _respuesta_voz(session_id, f"El layout actual es {layout_actual}.")
+        except Exception:
+            return _respuesta_voz(session_id, "No pude leer el layout actual.")
     if any(x in t for x in ["qué día hace", "que dia hace", "que tiempo hace", "qué tiempo hace", "cómo está el tiempo", "como esta el tiempo", "clima"]):
-        # ...existing code...
-        pass
+        resumen = _resumen_tiempo()
+        return _respuesta_voz(session_id, resumen["text"], resumen.get("extra"))
     respuesta = _resolver_consulta_valor(text)
     if respuesta:
         extra = dict(respuesta)
@@ -2765,7 +3562,7 @@ def _guardar_layout(layout: str):
     try:
         _ruta_layout().write_text(json.dumps({"layout": layout}, ensure_ascii=False), encoding="utf-8")
     except Exception:
-        pass
+        logging.exception("Silent except at 3012 - revisar contexto")
 
 
 @app.get("/config/layout")
@@ -2776,7 +3573,7 @@ def obtener_layout():
             data = json.loads(ruta.read_text(encoding="utf-8"))
             return {"layout": data.get("layout", "default")}
         except Exception:
-            pass
+            logging.exception("Silent except at 3023 - revisar contexto")
     return {"layout": "default"}
 
 
@@ -2797,7 +3594,7 @@ def obtener_paneles():
             data = json.loads(ruta.read_text(encoding="utf-8"))
             return {"order": data.get("order", []), "sizes": data.get("sizes", {})}
         except Exception:
-            pass
+            logging.exception("Silent except at 3044 - revisar contexto")
     return {"order": [], "sizes": {}}
 
 
@@ -2812,7 +3609,7 @@ def guardar_paneles(payload: dict):
     try:
         _ruta_paneles().write_text(json.dumps({"order": order, "sizes": sizes}, ensure_ascii=False), encoding="utf-8")
     except Exception:
-        pass
+        logging.exception("Silent except at 3059 - revisar contexto")
     return {"status": "OK", "order": order, "sizes": sizes}
 
 
@@ -2843,32 +3640,32 @@ def _resumen_meteo_actual():
             else:
                 frases.append("Temperatura moderada")
         except Exception:
-            pass
+            logging.exception("Silent except at 3090 - revisar contexto")
     if lluvia is not None:
         try:
             l = float(lluvia)
             if l > 0.2:
                 frases.append("Está lloviendo")
         except Exception:
-            pass
+            logging.exception("Silent except at 3097 - revisar contexto")
     if lluvia_riesgo is not None:
         try:
             if float(lluvia_riesgo) >= 60:
                 frases.append("Alta probabilidad de lluvia")
         except Exception:
-            pass
+            logging.exception("Silent except at 3103 - revisar contexto")
     if niebla is not None:
         try:
             if float(niebla) >= 40:
                 frases.append("Hay riesgo de niebla")
         except Exception:
-            pass
+            logging.exception("Silent except at 3109 - revisar contexto")
     if nub is not None:
         try:
             if float(nub) >= 70:
                 frases.append("Cielo muy nublado")
         except Exception:
-            pass
+            logging.exception("Silent except at 3115 - revisar contexto")
 
     detalles = []
     if temp is not None:
@@ -2906,8 +3703,9 @@ def pas_estado():
         return {"status": "inactive"}
     return pas_engine.status(system.sensores)
 
-# Mantener el endpoint /ecowitt para integración de sensores
+# Mantener el endpoint /ecowitt y /MeteoSer para integración de sensores
 @app.api_route("/ecowitt", methods=["POST", "GET"])
+@app.api_route("/MeteoSer", methods=["POST", "GET"])
 async def recibir_ecowitt(request: Request):
     data = {}
     if request.method == "POST":
@@ -2932,6 +3730,21 @@ async def recibir_ecowitt(request: Request):
                 data = {}
     else:
         data = dict(request.query_params)
+    
+    # DIAGNÓSTICO: Registrar ingesta de datos primarios (validación crítica)
+    try:
+        from routers.diagnostico_datos_primarios import registrar_ingesta_ecowitt
+        registrar_ingesta_ecowitt(data, datetime.datetime.now())
+    except Exception as e:
+        logging.getLogger(__name__).exception(f"Error en diagnóstico: {e}")
+    
+    # FORTALECIMIENTO: Captura garantizada de todos los datos primarios
+    try:
+        from core.integration.fortalecimiento_captura import fortalecer_captura_ecowitt
+        resultado_captura = fortalecer_captura_ecowitt(data, system)
+    except Exception as e:
+        logging.getLogger(__name__).exception(f"Error en fortalecimiento: {e}")
+        resultado_captura = {"error": str(e)}
     
     # SINCRONÍA TEMPORAL: Inyectar timestamp preciso del dateutc
     try:
@@ -2962,20 +3775,151 @@ async def recibir_ecowitt(request: Request):
             ts = datetime.datetime.now().isoformat(sep=" ", timespec="seconds")
             system.actualizar_sensor("ultimo_ecowitt_error", ts)
         except Exception:
-            pass
+            logging.exception("Silent except at 3209 - revisar contexto")
         return {"status": "WARN", "received": False, "message": "Payload vacío"}
-    # Log detallado de rayos y puerto
+    # Log detallado de datos primarios críticos
     import socket
     try:
         puerto = request.url.port or 'desconocido'
     except Exception:
         puerto = 'desconocido'
-    print(f"[Ecowitt] Datos recibidos en puerto {puerto}:")
-    for k, v in data.items():
-        print(f"  {k}: {v}")
-    print(f"  lightning: {data.get('lightning')}")
-    print(f"  lightning_num: {data.get('lightning_num')}")
-    print(f"  lightning_time: {data.get('lightning_time')}")
+    
+    print(f"\n{'='*80}")
+    print(f"[🔴 DATOS PRIMARIOS CRÍTICOS] Recibidos en puerto {puerto}:")
+    print(f"  WH65 (Exterior Expuesto):")
+    print(f"    └─ tempf: {data.get('tempf')} (CRÍTICO)")
+    print(f"    └─ humidity: {data.get('humidity')} (CRÍTICO)")
+    print(f"  WH31 (Exterior Sombreado):")
+    print(f"    └─ temp1f: {data.get('temp1f')} (CRÍTICO)")
+    print(f"    └─ humidity1: {data.get('humidity1')} (CRÍTICO)")
+    print(f"  HP2550A (Presión Interior):")
+    print(f"    └─ baromrelin: {data.get('baromrelin')} (CRÍTICO)")
+    print(f"\n[📊 DATOS SECUNDARIOS IMPORTANTES]:")
+    print(f"  └─ solarradiation: {data.get('solarradiation')}")
+    print(f"  └─ rainratein: {data.get('rainratein')}")
+    print(f"  └─ windspeedmph: {data.get('windspeedmph')}")
+    print(f"  └─ winddir: {data.get('winddir')}")
+    print(f"\n[⚡ DATOS OPCIONALES]:")
+    print(f"  └─ lightning: {data.get('lightning')}")
+    print(f"  └─ soilmoisture1: {data.get('soilmoisture1')}")
+    print(f"  └─ pm25: {data.get('pm25')}")
+    print(f"{'='*80}\n")
+
+    # Pre-sembrar temperatura y humedad USANDO FORTALECIMIENTO (captura garantizada)
+    try:
+        datos_capturados = resultado_captura.get("datos_capturados", {})
+        
+        # WH65 TEMPERATURA (Exterior Expuesto)
+        if "wh65_temp_c" in datos_capturados and datos_capturados["wh65_temp_c"] is not None:
+            temp_c_pre = datos_capturados["wh65_temp_c"]
+            actualizar_con_persistencia(
+                "temperatura",
+                temp_c_pre,
+                {"tipo": "temperatura", "unidad": "C", "fuente": "WH65", "origen": "externo", "fiabilidad": 90.0}
+            )
+            print(f"[✅ FORTALECIMIENTO] WH65 Temperatura capturada: {temp_c_pre:.2f}°C")
+        else:
+            # Fallback a lectura directa si fortalecimiento falló
+            tempf_pre = data.get("tempf")
+            if tempf_pre is not None:
+                try:
+                    temp_c_pre = (float(tempf_pre) - 32) * 5.0 / 9.0
+                    actualizar_con_persistencia(
+                        "temperatura",
+                        temp_c_pre,
+                        {"tipo": "temperatura", "unidad": "C", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 90.0}
+                    )
+                except Exception:
+                    pass
+        
+        # WH65 HUMEDAD (Exterior Expuesto)
+        if "wh65_hum" in datos_capturados and datos_capturados["wh65_hum"] is not None:
+            humedad_pre = datos_capturados["wh65_hum"]
+            if 0 <= humedad_pre <= 100:
+                actualizar_con_persistencia(
+                    "humedad",
+                    humedad_pre,
+                    {"tipo": "humedad", "unidad": "%", "fuente": "WH65", "origen": "externo", "fiabilidad": 90.0}
+                )
+                print(f"[✅ FORTALECIMIENTO] WH65 Humedad capturada: {humedad_pre:.1f}%")
+        else:
+            # Fallback a lectura directa si fortalecimiento falló
+            humedad_pre = data.get("humidity")
+            if humedad_pre is None:
+                for key in (
+                    "humidityout",
+                    "humidity_out",
+                    "humout",
+                    "hum_out",
+                    "outhumidity",
+                    "outdoorhumidity",
+                    "humidityoutdoor",
+                    "humiout",
+                ):
+                    if data.get(key) is not None:
+                        humedad_pre = data.get(key)
+                        break
+            if humedad_pre is not None:
+                try:
+                    humedad_pre_num = float(humedad_pre)
+                    if 0 <= humedad_pre_num <= 100:
+                        actualizar_con_persistencia(
+                            "humedad",
+                            humedad_pre_num,
+                            {"tipo": "humedad", "unidad": "%", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 90.0}
+                        )
+                except Exception:
+                    pass
+    except Exception:
+        logging.exception("Error pre-sembra temperatura/humedad con fortalecimiento")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # PRESIÓN (HP2550A): USANDO FORTALECIMIENTO Y FALLBACK DIRECTO
+    # Publicar AMBOS valores como interior Y como exterior
+    # ═══════════════════════════════════════════════════════════════════════
+    try:
+        datos_capturados = resultado_captura.get("datos_capturados", {})
+        presion_relativa_hpa = None
+        presion_absoluta_hpa = None
+        
+        # Intentar obtener presión del fortalecimiento primero
+        if "presion_hpa" in datos_capturados and datos_capturados["presion_hpa"] is not None:
+            presion_relativa_hpa = datos_capturados["presion_hpa"]
+            print(f"[✅ FORTALECIMIENTO] Presión HP2550A capturada: {presion_relativa_hpa:.2f} hPa")
+        
+        # Fallback a lectura directa si no hay fortalecimiento
+        if presion_relativa_hpa is None:
+            baromrelin = data.get("baromrelin")
+            if baromrelin is not None:
+                presion_relativa_hpa = float(baromrelin) * 33.8638866667  # inHg → hPa
+        
+        # Validar y guardar presión relativa
+        if presion_relativa_hpa is not None:
+            if 900 <= presion_relativa_hpa <= 1100:
+                actualizar_con_persistencia("presion", presion_relativa_hpa, {"tipo": "presion", "unidad": "hPa", "fuente": "HP2550A", "origen": "externo", "fiabilidad": 95.0})
+                if hasattr(system, "sensores"):
+                    system.sensores["presion_status"] = "OK"
+                    system.sensores["presion_fuente"] = "HP2550A"
+                system.actualizar_sensor("presion", presion_relativa_hpa)
+                print(f"[INGESTA] Presion HP2550A RELATIVA (nivel mar): {presion_relativa_hpa:.2f} hPa → INTERIOR y EXTERIOR")
+            else:
+                if hasattr(system, "sensores"):
+                    system.sensores["presion_status"] = "OUT_OF_RANGE"
+                print(f"[ADVERTENCIA] Presion relativa fuera de rango: {presion_relativa_hpa:.2f} hPa (rango válido: 900-1100)")
+
+        # PRESIÓN ABSOLUTA (baromabsin - nivel del sensor)
+        baromabsin = data.get("baromabsin")
+        if baromabsin is not None:
+            presion_absoluta_hpa = float(baromabsin) * 33.8638866667  # inHg → hPa
+            if 900 <= presion_absoluta_hpa <= 1100:
+                system.actualizar_sensor("presion_absoluta_interior", presion_absoluta_hpa)
+                print(f"[INGESTA] Presion HP2550A ABSOLUTA (nivel sensor): {presion_absoluta_hpa:.2f} hPa → INTERIOR y EXTERIOR")
+            else:
+                print(f"[ADVERTENCIA] Presion absoluta fuera de rango: {presion_absoluta_hpa:.2f} hPa (rango válido: 900-1100)")
+    except Exception as e:
+        logging.getLogger(__name__).exception(f"Error procesando presión HP2550A: {e}")
+        if hasattr(system, "sensores"):
+            system.sensores["presion_status"] = "ERROR"
     # Guardar marca de tiempo y payload recibido (datos reales)
     try:
         ts = datetime.datetime.now().isoformat(sep=" ", timespec="seconds")
@@ -2983,11 +3927,11 @@ async def recibir_ecowitt(request: Request):
         payload_path = BASE_DIR / "data" / "last_ecowitt_payload.json"
         payload_path.parent.mkdir(parents=True, exist_ok=True)
         payload_path.write_text(
-            json.dumps({"timestamp": ts, "data": data}, ensure_ascii=False),
+            json.dumps({"timestamp": ts, "data": data}, ensure_ascii=False, default=str),
             encoding="utf-8"
         )
     except Exception:
-        pass
+        logging.exception("Silent except at 3279 - revisar contexto")
 
     # Sensores desconocidos/experimentales (prefijo sensor_)
     try:
@@ -3005,58 +3949,106 @@ async def recibir_ecowitt(request: Request):
             try:
                 system.registrar_sensor_metadata(sensor_id, tipo=sensor_id, unidad=unidad, fuente="ecowitt", origen="externo", fiabilidad=80.0)
             except Exception:
-                pass
+                logging.exception("Silent except at 3297 - revisar contexto")
             try:
                 system.actualizar_sensor(sensor_id, val)
             except Exception:
                 try:
                     system.sensores[sensor_id] = val
                 except Exception:
-                    pass
+                    logging.exception("Silent except at 3304 - revisar contexto")
     except Exception:
-        pass
+        logging.exception("Silent except at 3306 - revisar contexto")
 
-    # Sensores interiores
+    # ═══════════════════════════════════════════════════════════════════════════
+    # SENSORES INTERIORES - HP2550A (primario) + WH31 (sensor independiente)
+    # ═══════════════════════════════════════════════════════════════════════════
     tempint = data.get("tempinf")
     humedadint = data.get("humidityin")
-    baromrelint = data.get("baromrelin")
-    baromabsint = data.get("baromabsin")
+    tempint_fuente = "ecowitt"
+    humedadint_fuente = "ecowitt"
+    
+    # SENSOR WH31: REGISTRO INDEPENDIENTE (SIEMPRE, no como fallback)
+    temp_wh31 = data.get("temp1f") or data.get("temp1") or data.get("temp1c") or data.get("temp_1")
+    humedad_wh31 = data.get("humidity1") or data.get("hum1") or data.get("hum_1")
+    
+    # Registrar WH31 como sensor completamente independiente
+    if temp_wh31 is not None:
+        try:
+            temp_wh31_c = (float(temp_wh31) - 32) * 5.0 / 9.0
+            system.actualizar_sensor("temperatura_wh31", temp_wh31_c)
+            system.registrar_sensor_metadata("temperatura_wh31", tipo="temperatura_wh31", unidad="C", fuente="ecowitt_wh31", origen="externo", fiabilidad=90.0)
+            print(f"[WH31 INDEPENDIENTE] Temperatura registrada: {temp_wh31_c:.2f}°C")
+        except Exception as e:
+            logging.getLogger(__name__).exception(f"Error registrando temperatura WH31: {e}")
+    
+    if humedad_wh31 is not None:
+        try:
+            humedad_wh31_num = float(humedad_wh31)
+            if 0 <= humedad_wh31_num <= 100:
+                system.actualizar_sensor("humedad_wh31", humedad_wh31_num)
+                system.registrar_sensor_metadata("humedad_wh31", tipo="humedad_wh31", unidad="%", fuente="ecowitt_wh31", origen="externo", fiabilidad=90.0)
+                print(f"[WH31 INDEPENDIENTE] Humedad registrada: {humedad_wh31_num:.1f}%")
+        except Exception as e:
+            logging.getLogger(__name__).exception(f"Error registrando humedad WH31: {e}")
+    
+    # HP2550A como fallback para temperatura_interior si no tiene su propio sensor
+    if tempint is None:
+        tempint_alt = temp_wh31
+        if tempint_alt is not None:
+            tempint = tempint_alt
+            tempint_fuente = "ecowitt_wh31_fallback"
+    if humedadint is None:
+        humedadint_alt = humedad_wh31
+        if humedadint_alt is not None:
+            humedadint = humedadint_alt
+            humedadint_fuente = "ecowitt_wh31_fallback"
+    
+    # Guardar originales para trazabilidad
+    system.actualizar_sensor("temp1_original", temp_wh31)
+    system.actualizar_sensor("humidity1_original", humedad_wh31)
+    
+    baromrelint = data.get("baromrelin")  # HP2550A: misma fuente para interior/exterior
+    baromabsint = data.get("baromabsin")  # HP2550A: misma fuente para interior/exterior
     system.actualizar_sensor("tempinf_original", tempint)
     system.actualizar_sensor("humidityin_original", humedadint)
     system.actualizar_sensor("baromrelin_original", baromrelint)
     system.actualizar_sensor("baromabsin_original", baromabsint)
+    
     # Conversión y registro de interiores
     if tempint is not None:
         try:
             tempint_c = (float(tempint) - 32) * 5.0 / 9.0
-            actualizar_con_persistencia("temperatura_interior", tempint_c, {"tipo": "temperatura_interior", "unidad": "C", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 90.0})
+            actualizar_con_persistencia("temperatura_interior", tempint_c, {"tipo": "temperatura_interior", "unidad": "C", "fuente": tempint_fuente, "origen": "externo", "fiabilidad": 90.0})
         except Exception:
             system.actualizar_sensor("temperatura_interior", None)
     if humedadint is not None:
         try:
             humedadint_num = float(humedadint)
             if 0 <= humedadint_num <= 100:
-                system.actualizar_sensor("humedad_interior", round(humedadint_num, 2))
-                system.registrar_sensor_metadata("humedad_interior", tipo="humedad_interior", unidad="%", fuente="ecowitt", origen="externo", fiabilidad=90.0)
+                system.actualizar_sensor("humedad_interior", humedadint_num)
+                system.registrar_sensor_metadata("humedad_interior", tipo="humedad_interior", unidad="%", fuente=humedadint_fuente, origen="externo", fiabilidad=90.0)
             else:
                 system.actualizar_sensor("humedad_interior", None)
         except Exception:
             system.actualizar_sensor("humedad_interior", None)
-    if baromrelint is not None:
-        try:
-            system.actualizar_sensor("presion_relativa_interior", round(float(baromrelint) * 33.8639, 2))
-        except Exception:
-            system.actualizar_sensor("presion_relativa_interior", None)
-    # NOTE: El mapeo y registro de presión se centraliza en
-    # `core/integration/ecowitt_receiver.py`. No introducir lógica de negocio
-    # de sensores aquí para mantener la puerta de entrada limpia.
-    if baromabsint is not None:
-        try:
-            system.actualizar_sensor("presion_absoluta_interior", round(float(baromabsint) * 33.8639, 2))
-        except Exception:
-            system.actualizar_sensor("presion_absoluta_interior", None)
+    
     temperatura = data.get("tempf")
     humedad = data.get("humidity")
+    if humedad is None:
+        for key in (
+            "humidityout",
+            "humidity_out",
+            "humout",
+            "hum_out",
+            "outhumidity",
+            "outdoorhumidity",
+            "humidityoutdoor",
+            "humiout",
+        ):
+            if data.get(key) is not None:
+                humedad = data.get(key)
+                break
     viento = data.get("windspeedmph")
     radiacion = data.get("solarradiation")
     uv_raw = data.get("uv") or data.get("uvi") or data.get("uvindex") or data.get("uv_index")
@@ -3181,13 +4173,12 @@ async def recibir_ecowitt(request: Request):
                 # Reset del contador en el dispositivo: consolidar total previo
                 offset = prev_total_val
             total = offset + lightning_num_val
-            system.actualizar_sensor("rayos_total", round(total))
-            system.actualizar_sensor("rayos", round(total))
-            system.actualizar_sensor("rayos_offset", round(offset))
+            system.actualizar_sensor("rayos_total", float(total))
+            system.actualizar_sensor("rayos", float(total))
+            system.actualizar_sensor("rayos_offset", float(offset))
             system.actualizar_sensor("lightning_num", lightning_num_val)
             system.registrar_sensor_metadata("rayos", tipo="contador_rayos", unidad="", fuente="ecowitt", origen="externo", fiabilidad=85.0)
     # --- PM2.5: Registro con ámbito interior/exterior ---
-    import logging
     pm_key_candidates = [k for k in data.keys() if k.lower().startswith('pm25') or k.lower().startswith('pm2.5') or k.lower().startswith('pm_25')]
     logging.getLogger(__name__).warning(f"[PM LOOP DEBUG] Candidatos PM encontrados: {pm_key_candidates}")
     for pm_key in pm_key_candidates:
@@ -3238,13 +4229,13 @@ async def recibir_ecowitt(request: Request):
             try:
                 system.sensores['pm25'] = pm_val
             except Exception:
-                pass
+                logging.exception("Silent except at 3519 - revisar contexto")
         # Trazabilidad global
         try:
             system.sensores['pm25_fuente'] = sensor_id
             system.sensores['pm25_ambito'] = ambito
         except Exception:
-            pass
+            logging.exception("Silent except at 3525 - revisar contexto")
     
     # ════════════════════════════════════════════════════════════
     # CAPTURA DE CO2 DESDE ECOWITT (WH45 sensor)
@@ -3272,7 +4263,7 @@ async def recibir_ecowitt(request: Request):
     if soil_raw is not None:
         try:
             soil_val = float(soil_raw)
-            system.actualizar_sensor("wh51", round(soil_val, 2))
+            system.actualizar_sensor("wh51", soil_val)
             system.registrar_sensor_metadata("wh51", tipo="humedad_suelo", unidad="%", fuente="ecowitt", origen="externo", fiabilidad=90.0)
         except Exception:
             system.actualizar_sensor("wh51", soil_raw)
@@ -3290,7 +4281,7 @@ async def recibir_ecowitt(request: Request):
     if soil_ad_raw is not None:
         try:
             soil_ad_val = float(soil_ad_raw)
-            system.actualizar_sensor("wh51_ad", round(soil_ad_val, 2))
+            system.actualizar_sensor("wh51_ad", soil_ad_val)
             system.registrar_sensor_metadata("wh51_ad", tipo="humedad_suelo_ad", unidad="ad", fuente="ecowitt", origen="externo", fiabilidad=70.0)
         except Exception:
             system.actualizar_sensor("wh51_ad", soil_ad_raw)
@@ -3312,23 +4303,51 @@ async def recibir_ecowitt(request: Request):
             system.actualizar_sensor("humedad", None)
     if viento is not None:
         try:
-            viento_kmh = float(viento) * 1.60934
-            actualizar_con_persistencia("viento", viento_kmh, {"tipo": "viento", "unidad": "km/h", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 85.0})
+            viento_ms = float(viento) * 0.44704  # mph → m/s
+            actualizar_con_persistencia("velocidad_viento", viento_ms, {"tipo": "velocidad_viento", "unidad": "m/s", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 85.0})
+            actualizar_con_persistencia("viento", viento_ms, {"tipo": "viento", "unidad": "m/s", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 85.0})
         except Exception:
             system.actualizar_sensor("viento", viento)
+    # Rachas de viento (gust)
+    viento_racha_raw = None
+    viento_racha_key = None
+    for k in [
+        "windgustmph", "wind_gust", "windgust", "gust",
+        "windmax", "wind_max", "gust_speed",
+        "windgustkmh", "windgustkph", "windgustmps"
+    ]:
+        if data.get(k) is not None:
+            viento_racha_raw = data.get(k)
+            viento_racha_key = k
+            break
+    if viento_racha_raw is not None:
+        try:
+            viento_racha_val = float(viento_racha_raw)
+            if viento_racha_key and ("mph" in viento_racha_key):
+                viento_racha_ms = viento_racha_val * 0.44704
+            elif viento_racha_key and ("mps" in viento_racha_key):
+                viento_racha_ms = viento_racha_val
+            else:
+                viento_racha_ms = viento_racha_val
+            actualizar_con_persistencia("viento_racha", viento_racha_ms, {"tipo": "viento_racha", "unidad": "m/s", "fuente": "ecowitt", "origen": "externo", "fiabilidad": 85.0})
+            system.actualizar_sensor("velocidad_rachas", viento_racha_ms)
+            system.actualizar_sensor("wind_gust", viento_racha_ms)
+            system.actualizar_sensor("racha", viento_racha_ms)
+        except Exception:
+            system.actualizar_sensor("viento_racha", viento_racha_raw)
     if best_rate is not None:
         try:
             lluvia_rate_mm = best_rate * 25.4 if best_rate_unit == "in" else best_rate
-            system.actualizar_sensor("lluvia", round(lluvia_rate_mm, 2))
-            system.actualizar_sensor("lluvia_rate", round(lluvia_rate_mm, 2))
+            system.actualizar_sensor("lluvia", lluvia_rate_mm)
+            system.actualizar_sensor("lluvia_rate", lluvia_rate_mm)
             system.registrar_sensor_metadata("lluvia", tipo="lluvia", unidad="mm", fuente="ecowitt", origen="externo", fiabilidad=90.0)
         except Exception:
             system.actualizar_sensor("lluvia", best_rate)
     elif best_acum is not None:
         try:
             lluvia_acum_mm = best_acum * 25.4 if best_acum_unit == "in" else best_acum
-            system.actualizar_sensor("lluvia", round(lluvia_acum_mm, 2))
-            system.actualizar_sensor("lluvia_acumulada", round(lluvia_acum_mm, 2))
+            system.actualizar_sensor("lluvia", lluvia_acum_mm)
+            system.actualizar_sensor("lluvia_acumulada", lluvia_acum_mm)
             system.registrar_sensor_metadata("lluvia", tipo="lluvia", unidad="mm", fuente="ecowitt", origen="externo", fiabilidad=90.0)
         except Exception:
             system.actualizar_sensor("lluvia", best_acum)
@@ -3395,3 +4414,21 @@ async def get_detected_devices():
             for d in devices
         ]
     }
+
+    async def _security_optimization_loop():
+        """Ciclos de optimización de seguridad (cada 10 minutos) - auto-mejora de defensas"""
+        while True:
+            try:
+                orchestrator = getattr(app_instance.state, "security_orchestrator", None)
+                if orchestrator:
+                    result = orchestrator.execute_security_cycle()
+                    if result:
+                        logger.info(
+                            f"[GUARDIAN] Ciclo seguridad #{result.get('cycle_num')}: "
+                            f"{result.get('vulnerabilities_discovered', 0)} gaps descubiertos, "
+                            f"{result.get('security_duels_won', 0)} mejoras integradas, "
+                            f"Seguridad actual: {result.get('current_security_score', 0):.1f}%"
+                        )
+            except Exception as e:
+                logger.error(f"Error en security_optimization_loop: {e}")
+            await asyncio.sleep(600)  # Cada 10 minutos

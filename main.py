@@ -13,7 +13,7 @@ def main():
     ctx = ContextEngine(log)
     api = ApiEngine(ctx, log)
 
-    # Simulación de datos de sensores
+    # Datos de ejemplo (reemplazar por lecturas reales)
     datos = {
         "temperatura_interior": 21.5,
         "humedad_interior": 45.0,

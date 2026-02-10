@@ -225,7 +225,7 @@ class TestVectorAproximacion(unittest.TestCase):
         )
         
         self.assertIn("tipo_evento", resultado)
-        self.assertIn("transmitancia", resultado)
+        self.assertIn("nubosidad", resultado)
         self.assertIn("cuadrante", resultado)
     
     def test_filtro_ema(self):

@@ -432,15 +432,29 @@ async function abrirSubmenuValor(nombreValor) {
 function mostrarSubmenu(data) {
     const overlay = document.getElementById('submenu-overlay');
     const contenido = document.getElementById('submenu-contenido');
+
+    const medidoVirtual = data.medido_virtual ? data.medido_virtual : '—';
+    const tipoEstimacion = data.tipo_estimacion ? data.tipo_estimacion : '—';
+    const reglaFiabilidad = data.regla_fiabilidad ? data.regla_fiabilidad : '—';
+    const mapa = data.mapa_dependencias || {};
+    const mapaSensores = Array.isArray(mapa.sensores) ? mapa.sensores.join(', ') : '—';
+    const mapaIndices = Array.isArray(mapa.indices) ? mapa.indices.join(', ') : '—';
+    const mapaEntradas = Array.isArray(mapa.entradas) ? mapa.entradas.join(', ') : '—';
     
     contenido.innerHTML = `
         <h2>${data.nombre}</h2>
         <p><strong>Tipo:</strong> ${data.tipo}</p>
         <p><strong>Valor:</strong> ${data.valor} ${data.unidad}</p>
         <p><strong>Fiabilidad:</strong> ${data.fiabilidad}</p>
+        <p><strong>Origen:</strong> ${medidoVirtual}</p>
+        <p><strong>Estimación:</strong> ${tipoEstimacion}</p>
+        <p><strong>Regla fiabilidad:</strong> ${reglaFiabilidad}</p>
         <p><strong>Fórmula:</strong> ${data.formula}</p>
         <p><strong>Sensores origen:</strong> ${data.sensores_origen.join(', ')}</p>
         <p><strong>Dependencias:</strong> ${data.dependencias.join(', ')}</p>
+        <p><strong>Mapa dependencias (sensores):</strong> ${mapaSensores}</p>
+        <p><strong>Mapa dependencias (índices):</strong> ${mapaIndices}</p>
+        <p><strong>Mapa dependencias (entradas):</strong> ${mapaEntradas}</p>
         <p><strong>Estado:</strong> ${data.estado}</p>
         ${data.alerta ? `<p style="color: #ff6b6b;"><strong>Alerta:</strong> ${data.alerta}</p>` : ''}
     `;
@@ -477,13 +491,13 @@ function configurarEventos() {
 // ============================================================
 
 function iniciarActualizaciones() {
-    // Actualizar cada 30 segundos
+    // Actualizar cada 12 segundos (óptimo: siempre recoge dato nuevo del HP2550A, deja margen para cálculos y evita saturación)
     setInterval(async () => {
         await cargarPanelSuperior();
         await cargarArcosSolares();
         await cargarPanelCentral();
         await cargarCajones();
-    }, 30000);
+    }, 12000);
     
     // Actualizar hora cada segundo
     setInterval(() => {

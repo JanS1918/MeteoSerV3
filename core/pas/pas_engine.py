@@ -3,6 +3,12 @@ import time
 from pathlib import Path
 from typing import Dict, Optional
 
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
+
 
 class PASEngine:
     """
@@ -27,7 +33,7 @@ class PASEngine:
             self._profiles = data.get("profiles", {}) or {}
             self._last_update = data.get("last_update")
         except Exception:
-            pass
+            logging.exception("Silent except at 29 - revisar contexto")
 
     def _save(self):
         try:
@@ -37,7 +43,7 @@ class PASEngine:
             }
             self._data_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         except Exception:
-            pass
+            logging.exception("Silent except at 39 - revisar contexto")
 
     def _hour_key(self, ts: float) -> str:
         hour = time.localtime(ts).tm_hour

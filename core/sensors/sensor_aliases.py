@@ -9,8 +9,13 @@ SENSOR_ALIASES = {
     'temperatura_aparente': ['apparent_temp', 'sensible_temp', 'feel'],
     
     # Humedad
-    'humedad': ['hr', 'rh', 'relative_humidity', 'humidity', 'humedad_relativa', 'humidity_%'],
+    'humedad': [
+        'hr', 'rh', 'relative_humidity', 'humidity', 'humedad_relativa', 'humidity_%',
+        'humidityout', 'humidity_out', 'humout', 'hum_out',
+        'outhumidity', 'outdoorhumidity', 'humidityoutdoor', 'humiout'
+    ],
     'humedad_absoluta': ['vapor_density', 'absolute_humidity'],
+    'humedad_suelo': ['hum_suelo', 'soil_moisture', 'soil', 'wh51', 'soilmoisture', 'soilmoisture1'],
     
     # Presión
     'presion': ['pressure', 'pres', 'presion_atm', 'presion_barometrica', 'hpa', 'mbar'],

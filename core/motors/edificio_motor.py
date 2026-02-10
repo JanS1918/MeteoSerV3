@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Any
 
 class MotorEdificio:
@@ -33,6 +34,6 @@ class MotorEdificio:
                 if float(humedad) > 70:
                     resultado["detalles"]["humedad_alta"] = "Humedad interior alta"
             except Exception:
-                pass
+                logging.exception("Silent except at 35 - revisar contexto")
 
         return resultado

@@ -3,9 +3,11 @@ Módulo de autocuración, autoexpansión y automejora para MeteoSer
 Utiliza IA externa gratuita (HuggingFace, OpenRouter, etc) para analizar y corregir código, JS, configuración y sugerir mejoras.
 Se activa automáticamente ante errores, fallos o eventos de mejora.
 """
+import json
 import requests
 import traceback
 import os
+from datetime import datetime
 
 # Proveedores IA gratuitos (puedes añadir más)
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/bigcode/starcoder"
@@ -53,13 +55,41 @@ class AutoCureEngine:
             return response.json().get("choices", [{}])[0].get("message", {}).get("content")
         return None
 
+    def _enqueue_suggestion(self, kind: str, suggestion_text: str) -> bool:
+        """Guarda sugerencias en un archivo de cola para revisión/aplicación."""
+        try:
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+            data_dir = os.path.join(base_dir, "data")
+            os.makedirs(data_dir, exist_ok=True)
+            queue_path = os.path.join(data_dir, "autocure_queue.json")
+
+            item = {
+                "kind": kind,
+                "timestamp": datetime.utcnow().isoformat(),
+                "suggestion": suggestion_text,
+            }
+
+            if os.path.exists(queue_path):
+                with open(queue_path, "r", encoding="utf-8") as f:
+                    queue = json.load(f)
+            else:
+                queue = []
+
+            queue.append(item)
+            with open(queue_path, "w", encoding="utf-8") as f:
+                json.dump(queue, f, ensure_ascii=False, indent=2)
+            return True
+        except Exception as exc:
+            print(f"Error guardando sugerencia de autocuración: {exc}")
+            return False
+
     def autoexpand(self, suggestion_text):
-        # Aquí puedes implementar lógica para aplicar sugerencias de expansión
-        pass
+        """Registra sugerencias de expansión para aplicación posterior."""
+        return self._enqueue_suggestion("autoexpand", suggestion_text)
 
     def automejora(self, suggestion_text):
-        # Aquí puedes implementar lógica para aplicar sugerencias de mejora
-        pass
+        """Registra sugerencias de mejora para aplicación posterior."""
+        return self._enqueue_suggestion("automejora", suggestion_text)
 
     def handle_error(self, error, code_snippet=None, language="python", context=None):
         error_text = str(error)

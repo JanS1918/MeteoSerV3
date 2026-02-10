@@ -17,6 +17,12 @@ from core.indices.bucholtz_rayleigh_v25 import BucholtzRayleighV25
 from core.indices.vector_aproximacion_v26 import VectorAproximacion
 from core.indices.bus_estado_global import BusEstadoGlobal
 
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
+
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +68,7 @@ class IntegracionMotoresV25:
             sensores.get("winddir", 0),
             sensores.get("viento", 0),
             sensores.get("radiacion", 0),
-            contexto.get("radiacion_teorica", 100),
+            contexto.get("nubosidad", 100),
             contexto.get("azimut_solar", 180),
             contexto.get("angulo_cenital", 45),
             contexto.get("rayos_detectados", 0),

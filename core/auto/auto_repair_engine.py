@@ -91,7 +91,7 @@ class AutoRepairEngine:
                         try:
                             engine.stop()
                         except Exception:
-                            pass
+                            logging.exception("Silent except at 93 - revisar contexto")
                         await engine.start()
                         report["actions"].append("reiniciar_autodeteccion")
             except Exception:

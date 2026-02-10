@@ -44,7 +44,7 @@ def test_hampel_filter():
     print(f"✓ Outlier: valid={is_valid}, residual={residual:.3f}, reason={reason}")
     assert not is_valid, "Outlier debe ser rechazado"
     
-    print("✅ Hampel Filter: PASADO\n")
+    print("[OK] Hampel Filter: PASADO\n")
 
 
 def test_mahalanobis():
@@ -70,11 +70,11 @@ def test_mahalanobis():
     print(f"✓ Dato incoherente: flags={result_incoherent['flags']}")
     
     if "coherencia" in result_incoherent["flags"]:
-        print(f"✅ Mahalanobis detectó incoherencia: {result_incoherent['flags']['coherencia']}")
+        print(f"[OK] Mahalanobis detectó incoherencia: {result_incoherent['flags']['coherencia']}")
     else:
-        print("⚠️  Mahalanobis no detectó incoherencia (puede requerir más datos)")
+        print("[WARNING]  Mahalanobis no detectó incoherencia (puede requerir más datos)")
     
-    print("✅ Mahalanobis: PASADO\n")
+    print("[OK] Mahalanobis: PASADO\n")
 
 
 def test_mann_kendall():
@@ -99,7 +99,7 @@ def test_mann_kendall():
     tau, trend = mann_kendall_test(series_flat)
     print(f"✓ Serie plana: tau={tau:.3f}, trend={trend}")
     
-    print("✅ Mann-Kendall: PASADO\n")
+    print("[OK] Mann-Kendall: PASADO\n")
 
 
 def test_cusum():
@@ -114,7 +114,7 @@ def test_cusum():
     for value in [20.0, 20.1, 19.9, 20.0, 20.2] * 10:
         drift, state = cusum_drift_detection(value, state, threshold=5.0, slack=0.5)
         if drift:
-            print(f"⚠️  Deriva detectada en valor={value}")
+            print(f"[WARNING]  Deriva detectada en valor={value}")
     
     print(f"✓ Serie sin deriva: cumsum_pos={state.cumsum_pos:.2f}, cumsum_neg={state.cumsum_neg:.2f}")
     
@@ -130,7 +130,7 @@ def test_cusum():
             break
     
     assert drift_detected, "CUSUM debe detectar deriva"
-    print("✅ CUSUM: PASADO\n")
+    print("[OK] CUSUM: PASADO\n")
 
 
 def test_savitzky_golay():
@@ -155,7 +155,7 @@ def test_savitzky_golay():
     print(f"✓ Reducción de ruido: {(1 - noise_smoothed/noise_original)*100:.1f}%")
     
     assert noise_smoothed < noise_original, "Debe reducir el ruido"
-    print("✅ Savitzky-Golay: PASADO\n")
+    print("[OK] Savitzky-Golay: PASADO\n")
 
 
 def test_lyapunov():
@@ -182,7 +182,7 @@ def test_lyapunov():
     print(f"✓ Serie estable (r=2.5): Lyapunov={lyap_stable:.4f}")
     
     print(f"✓ Diferencia: {lyap_chaotic - lyap_stable:.4f}")
-    print("✅ Lyapunov: PASADO\n")
+    print("[OK] Lyapunov: PASADO\n")
 
 
 def test_transfer_entropy():
@@ -206,7 +206,7 @@ def test_transfer_entropy():
     print(f"✓ Ruido → Ruido (no causal): TE={te_random:.3f}")
     
     assert te_causal > te_random, "Debe detectar mayor causalidad en datos relacionados"
-    print("✅ Transfer Entropy: PASADO\n")
+    print("[OK] Transfer Entropy: PASADO\n")
 
 
 def test_fusion_transversal():
@@ -263,7 +263,7 @@ def test_fusion_transversal():
     print(f"✓ Predicción EKF temperatura: {pred_ekf:.2f} °C")
     
     print(f"\n✓ Metadata: {metrics['metadata']}")
-    print("✅ FUSIÓN TRANSVERSAL: PASADO\n")
+    print("[OK] FUSIÓN TRANSVERSAL: PASADO\n")
 
 
 def main():
@@ -288,18 +288,18 @@ def main():
         print("=" * 80)
         print("🏆 TODOS LOS TESTS PASADOS - EXCELENCIA UNIVERSAL CERTIFICADA 🏆")
         print("=" * 80)
-        print("\n✅ Motor: Quantum_Universal_Metrology_v1.3")
-        print("✅ Fecha: " + datetime.now(timezone.utc).isoformat())
-        print("✅ Estado: PRODUCCIÓN - ORGANISMO ÚNICO")
+        print("\n[OK] Motor: Quantum_Universal_Metrology_v1.3")
+        print("[OK] Fecha: " + datetime.now(timezone.utc).isoformat())
+        print("[OK] Estado: PRODUCCIÓN - ORGANISMO ÚNICO")
         print("\n")
         
         return 0
         
     except AssertionError as e:
-        print(f"\n❌ TEST FALLIDO: {e}")
+        print(f"\n[ERROR] TEST FALLIDO: {e}")
         return 1
     except Exception as e:
-        print(f"\n❌ ERROR: {e}")
+        print(f"\n[ERROR] ERROR: {e}")
         import traceback
         traceback.print_exc()
         return 1

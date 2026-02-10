@@ -11,6 +11,7 @@ Incluye:
 from typing import Dict, Any, Optional
 from core.logger import get_logger
 import math
+from core.indices.environmental_indices import _dew_point
 
 
 class SensorFusion:
@@ -79,9 +80,10 @@ class SensorFusion:
     def estimar_punto_rocio(self, temperatura: float, humedad: float) -> Optional[float]:
         if temperatura is None or humedad is None:
             return None
-        a, b = 17.27, 237.7
-        alpha = ((a * temperatura) / (b + temperatura)) + math.log(humedad / 100.0)
-        return (b * alpha) / (a - alpha)
+        try:
+            return _dew_point(float(temperatura), float(humedad))
+        except Exception:
+            return None
 
     def estimar_ot(self, temperatura: float, radiacion: float = 0.0) -> Optional[float]:
         if temperatura is None:

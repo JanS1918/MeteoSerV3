@@ -131,10 +131,10 @@ class ProtocoloCertificacionV26:
         logger.info("="*70)
         
         modulos_criticos = [
-            "core/elite_motors_v25.py",
-            "core/bucholtz_rayleigh_v25.py",
-            "core/vector_aproximacion_v26.py",
-            "core/integracion_elite_motors_v25.py",
+            "core/indices/elite_motors_v25.py",
+            "core/indices/bucholtz_rayleigh_v25.py",
+            "core/indices/vector_aproximacion_v26.py",
+            "core/indices/integracion_elite_motors_v25.py",
             "core/correccion_geofisica_v26.py"
         ]
         
@@ -165,10 +165,10 @@ class ProtocoloCertificacionV26:
                 json.dumps(hashes, sort_keys=True).encode()
             ).hexdigest()
             logger.info(f"[SHA256] HASH MAESTRO: {hash_maestro}")
-            logger.info("[SHA256] ✓ INTEGRIDAD VERIFICADA - VERDE")
+            logger.info("[SHA256] OK - INTEGRIDAD VERIFICADA - VERDE")
             self.sha256_valido = True
         else:
-            logger.error("[SHA256] ✗ INTEGRIDAD COMPROMETIDA - ROJO")
+            logger.error("[SHA256] ERROR - INTEGRIDAD COMPROMETIDA - ROJO")
             self.sha256_valido = False
             hash_maestro = None
         
@@ -197,7 +197,7 @@ class ProtocoloCertificacionV26:
                 except Exception as e:
                     logger.warning(f"[LIMPIEZA] No se pudo eliminar {archivo.name}: {e}")
         
-        logger.info("[LIMPIEZA] ✓ Sistema preparado para producción")
+        logger.info("[LIMPIEZA] OK - Sistema preparado para produccion")
     
     def ejecutar_certificacion_completa(self, presion_hpa, temperatura_c, velocidad_viento_ms):
         """
@@ -211,10 +211,10 @@ class ProtocoloCertificacionV26:
         Returns:
             dict: Resultado completo de certificación
         """
-        logger.info("╔" + "="*68 + "╗")
-        logger.info("║" + " "*15 + "ACORAZADO ARGENTONA V2.6" + " "*29 + "║")
-        logger.info("║" + " "*10 + "PROTOCOLO DE CERTIFICACIÓN DE ARRANQUE" + " "*20 + "║")
-        logger.info("╚" + "="*68 + "╝")
+        logger.info("=" * 70)
+        logger.info("               ACORAZADO ARGENTONA V2.6")
+        logger.info("          PROTOCOLO DE CERTIFICACION DE ARRANQUE")
+        logger.info("=" * 70)
         logger.info("")
         logger.info(f"Timestamp: {datetime.now().isoformat()}")
         logger.info("")
@@ -240,16 +240,16 @@ class ProtocoloCertificacionV26:
         # Estado final
         if resultado_sha256["integridad_valida"]:
             self.estado_certificacion = "CERTIFICADO_VALIDO"
-            logger.info("╔" + "="*68 + "╗")
-            logger.info("║" + " "*18 + "✓ CERTIFICACIÓN EXITOSA" + " "*27 + "║")
-            logger.info("║" + " "*12 + "ACORAZADO ARGENTONA V2.6 OPERATIVO" + " "*22 + "║")
-            logger.info("╚" + "="*68 + "╝")
+            logger.info("=" * 70)
+            logger.info("                  OK - CERTIFICACION EXITOSA")
+            logger.info("            ACORAZADO ARGENTONA V2.6 OPERATIVO")
+            logger.info("=" * 70)
         else:
             self.estado_certificacion = "CERTIFICACION_FALLIDA"
-            logger.error("╔" + "="*68 + "╗")
-            logger.error("║" + " "*18 + "✗ CERTIFICACIÓN FALLIDA" + " "*27 + "║")
-            logger.error("║" + " "*15 + "SISTEMA BLOQUEADO POR SEGURIDAD" + " "*22 + "║")
-            logger.error("╚" + "="*68 + "╝")
+            logger.error("=" * 70)
+            logger.error("                  ERROR - CERTIFICACION FALLIDA")
+            logger.error("               SISTEMA BLOQUEADO POR SEGURIDAD")
+            logger.error("=" * 70)
         
         return {
             "estado": self.estado_certificacion,
@@ -294,7 +294,7 @@ class ProtocoloCertificacionV26:
         logger.info(f"[EXTERIOR] Presión: {presion_ext:.1f} hPa | Temp: {temp_ext:.1f}°C")
         logger.info(f"[EXTERIOR] Factor Z: {z_exterior:.6f} | Densidad: {densidad_ext:.4f} kg/m³")
         logger.info("")
-        logger.info(f"[DIFERENCIA] ΔZ: {diff_z:.6f} | Δρ: {diff_densidad:.4f} kg/m³")
+        logger.info(f"[DIFERENCIA] DeltaZ: {diff_z:.6f} | Delta-rho: {diff_densidad:.4f} kg/m3")
         logger.info(f"[FÍSICA] La densidad del aire cambia {diff_densidad*1000:.2f} g/m³ entre ambientes")
         
         return {

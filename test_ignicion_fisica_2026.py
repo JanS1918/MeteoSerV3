@@ -17,6 +17,7 @@ from core.indices.environmental_indices import indice_utci, indice_vpd_kpa, indi
 from core.context.contexto_maestro_global import ContextoMaestro
 from core.indices.advanced_physics_models import monin_obukhov_stability
 from core.indices.rayleigh_miller_dispersion import rayleigh_miller_scattering
+from core.system.constants import ESTACION
 import datetime
 
 def test_ignicion():
@@ -26,10 +27,10 @@ def test_ignicion():
     
     # Crear contexto maestro (Argentona)
     contexto = ContextoMaestro(
-        elevation_ground=96.0,
-        elevation_total=109.0,
-        lat=41.5513,
-        lon=2.3998,
+        elevation_ground=ESTACION.ALTITUD - 13.0,
+        elevation_total=ESTACION.ALTITUD,
+        lat=ESTACION.LATITUD,
+        lon=ESTACION.LONGITUD,
         sensor_height_above_ground=13.0,
         hora_utc=datetime.datetime.now(datetime.timezone.utc),
         elevacion_solar=45.0,
@@ -49,7 +50,7 @@ def test_ignicion():
     rad_wm2 = 220.0  # W/m²
     presion_kpa = 101.3  # kPa
     
-    print(f"\n📊 DATOS DE ENTRADA:")
+    print(f"\n[STATS] DATOS DE ENTRADA:")
     print(f"  Temperatura: {temp_c:.1f} °C")
     print(f"  Humedad: {humedad:.1f} %")
     print(f"  Viento: {viento_ms:.2f} m/s")
@@ -67,9 +68,9 @@ def test_ignicion():
         
         hum_abs = indice_humedad_absoluta_gm3(temp_c, humedad, contexto.lat, contexto.lon, contexto.elevation_ground, contexto.hora_utc)
         print(f"  Humedad absoluta (Virial): {hum_abs:.3f} g/m³")
-        print(f"  ✅ Factor de Mejora de Greenspan ACTIVO")
+        print(f"  [OK] Factor de Mejora de Greenspan ACTIVO")
     except Exception as e:
-        print(f"  ❌ Error en psicrometría: {e}")
+        print(f"  [ERROR] Error en psicrometría: {e}")
     
     # ========================================================================
     # 2. MONIN-OBUKHOV CON ZILITINKEVICH
@@ -89,9 +90,9 @@ def test_ignicion():
         print(f"  u* (fricción): {turb['u_star']:.3f} m/s")
         print(f"  z_0m (rugosidad mecánica): {turb['z0m']:.4f} m")
         print(f"  z_0h (rugosidad térmica): {turb['z0h']:.6f} m")
-        print(f"  ✅ Relación de Zilitinkevich ACTIVA (z_0h ≠ z_0m)")
+        print(f"  [OK] Relación de Zilitinkevich ACTIVA (z_0h ≠ z_0m)")
     except Exception as e:
-        print(f"  ❌ Error en turbulencia: {e}")
+        print(f"  [ERROR] Error en turbulencia: {e}")
     
     # ========================================================================
     # 3. RAYLEIGH-MILLER (DISPERSIÓN ATMOSFÉRICA)
@@ -104,12 +105,12 @@ def test_ignicion():
             altitud_m=contexto.elevation_ground
         )
         print(f"  τ_Rayleigh (extinción): {rayleigh['tau_rayleigh']:.6f}")
-        print(f"  Transmitancia: {rayleigh['transmitancia']:.4f}")
+        print(f"  Transmitancia: {rayleigh['nubosidad']:.4f}")
         print(f"  Masa óptica: {rayleigh['masa_optica']:.2f}")
         print(f"  Factor densidad (ρ): {rayleigh['rho_factor']:.4f}")
-        print(f"  ✅ Dispersión corregida por presión barométrica REAL")
+        print(f"  [OK] Dispersión corregida por presión barométrica REAL")
     except Exception as e:
-        print(f"  ❌ Error en Rayleigh-Miller: {e}")
+        print(f"  [ERROR] Error en Rayleigh-Miller: {e}")
     
     # ========================================================================
     # 4. UTCI CON RESISTENCIA TÉRMICA DINÁMICA
@@ -122,11 +123,11 @@ def test_ignicion():
         print(f"  Tmrt (radiante): {result_utci['tmrt']:.1f} °C")
         print(f"  Viento calle (corregido): {result_utci['wind_calle']:.3f} m/s")
         print(f"  Viento sensor (corregido): {result_utci['wind_sensor']:.3f} m/s")
-        print(f"  ✅ Resistencia térmica vinculada a turbulencia real")
-        print(f"  ✅ Aislamiento de ropa DINÁMICO por viento")
-        print(f"  ✅ Tmrt corregido por transmitancia Rayleigh-Miller")
+        print(f"  [OK] Resistencia térmica vinculada a turbulencia real")
+        print(f"  [OK] Aislamiento de ropa DINÁMICO por viento")
+        print(f"  [OK] Tmrt corregido por transmitancia Rayleigh-Miller")
     except Exception as e:
-        print(f"  ❌ Error en UTCI: {e}")
+        print(f"  [ERROR] Error en UTCI: {e}")
         import traceback
         traceback.print_exc()
     
@@ -134,15 +135,15 @@ def test_ignicion():
     # RESUMEN FINAL
     # ========================================================================
     print(f"\n" + "=" * 80)
-    print("🎯 RESUMEN DE IGNICIÓN:")
+    print("[TARGET] RESUMEN DE IGNICIÓN:")
     print("=" * 80)
-    print("✅ Factor de Mejora de Greenspan: INYECTADO en psicrometría")
-    print("✅ Relación de Zilitinkevich: IMPLEMENTADA en Monin-Obukhov")
-    print("✅ Dispersión de Rayleigh-Miller: ACTIVA por presión barométrica real")
-    print("✅ Resistencia térmica del aire (I_a,r): DINÁMICA (no estática)")
-    print("✅ Aislamiento de la ropa (clo): DINÁMICO por turbulencia")
-    print("✅ Migración completa: Barro, Nubes (Romps), ET0 (Shuttleworth-Wallace)")
-    print("\n🚀 EL NÚCLEO DE DIAMANTE ESTÁ OPERATIVO - FÍSICA 2026 ACTIVADA")
+    print("[OK] Factor de Mejora de Greenspan: INYECTADO en psicrometría")
+    print("[OK] Relación de Zilitinkevich: IMPLEMENTADA en Monin-Obukhov")
+    print("[OK] Dispersión de Rayleigh-Miller: ACTIVA por presión barométrica real")
+    print("[OK] Resistencia térmica del aire (I_a,r): DINÁMICA (no estática)")
+    print("[OK] Aislamiento de la ropa (clo): DINÁMICO por turbulencia")
+    print("[OK] Migración completa: Barro, Nubes (Romps), ET0 (Shuttleworth-Wallace)")
+    print("\n[LAUNCH] EL NÚCLEO DE DIAMANTE ESTÁ OPERATIVO - FÍSICA 2026 ACTIVADA")
     print("=" * 80)
 
 if __name__ == "__main__":

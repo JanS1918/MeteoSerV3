@@ -42,32 +42,32 @@ def verificacion_1_latencia():
             linea_separador()
             
             if latencia_ms < 100:
-                print("║ ✅ RENDIMIENTO: ÓPTIMO (< 100ms) - OBJETIVO CUMPLIDO           ║")
-                resultado = "✅ APROBADO"
+                print("║ [OK] RENDIMIENTO: ÓPTIMO (< 100ms) - OBJETIVO CUMPLIDO           ║")
+                resultado = "[OK] APROBADO"
             elif latencia_ms < 200:
-                print("║ ⚠️  RENDIMIENTO: ACEPTABLE (100-200ms) - MEJORABLE              ║")
-                resultado = "⚠️ ACEPTABLE"
+                print("║ [WARNING]  RENDIMIENTO: ACEPTABLE (100-200ms) - MEJORABLE              ║")
+                resultado = "[WARNING] ACEPTABLE"
             else:
                 print("║ 🔴 RENDIMIENTO: DEGRADADO (> 200ms) - REQUIERE OPTIMIZACIÓN    ║")
-                resultado = "❌ FALLIDO"
+                resultado = "[ERROR] FALLIDO"
                 
             print("╚═════════════════════════════════════════════════════════════════════╝")
             return resultado, latencia_ms
         else:
-            print(f"║ ❌ ERROR: Status code {response.status_code}")
+            print(f"║ [ERROR] ERROR: Status code {response.status_code}")
             print("╚═════════════════════════════════════════════════════════════════════╝")
-            return "❌ ERROR", None
+            return "[ERROR] ERROR", None
             
     except Exception as e:
-        print(f"║ ❌ ERROR DE CONEXIÓN: {str(e)}")
+        print(f"║ [ERROR] ERROR DE CONEXIÓN: {str(e)}")
         print("╚═════════════════════════════════════════════════════════════════════╝")
-        return "❌ ERROR", None
+        return "[ERROR] ERROR", None
 
 
 def verificacion_2_persistencia():
     """VERIFICACIÓN 2: Persistencia Drag & Drop"""
     print("\n╔═════════════════════════════════════════════════════════════════════╗")
-    print("║   💾 VERIFICACIÓN 2: PERSISTENCIA DRAG & DROP                       ║")
+    print("║   [GUARDAR] VERIFICACIÓN 2: PERSISTENCIA DRAG & DROP                       ║")
     print("╠═════════════════════════════════════════════════════════════════════╣")
     
     try:
@@ -90,31 +90,31 @@ def verificacion_2_persistencia():
         if response.status_code == 200:
             data = response.json()
             
-            print(f"║ Endpoint disponible:     ✅ SI")
+            print(f"║ Endpoint disponible:     [OK] SI")
             print(f"║ Respuesta servidor:      {data.get('success', False)}")
             print(f"║ Mensaje:                 {data.get('mensaje', 'N/A')}")
             print(f"║ Latencia POST:           {latencia_ms:.2f} ms")
             linea_separador()
             
             if data.get('success'):
-                print("║ ✅ PERSISTENCIA: FUNCIONAL - Endpoint responde correctamente    ║")
-                print("║ ℹ️  NOTA: Los movimientos se registran en AuditoriaManager      ║")
-                resultado = "✅ APROBADO"
+                print("║ [OK] PERSISTENCIA: FUNCIONAL - Endpoint responde correctamente    ║")
+                print("║ [INFO]  NOTA: Los movimientos se registran en AuditoriaManager      ║")
+                resultado = "[OK] APROBADO"
             else:
-                print("║ ⚠️  PERSISTENCIA: PARCIAL - Endpoint responde pero con error    ║")
-                resultado = "⚠️ PARCIAL"
+                print("║ [WARNING]  PERSISTENCIA: PARCIAL - Endpoint responde pero con error    ║")
+                resultado = "[WARNING] PARCIAL"
                 
             print("╚═════════════════════════════════════════════════════════════════════╝")
             return resultado
         else:
-            print(f"║ ❌ ERROR: Status code {response.status_code}")
+            print(f"║ [ERROR] ERROR: Status code {response.status_code}")
             print("╚═════════════════════════════════════════════════════════════════════╝")
-            return "❌ ERROR"
+            return "[ERROR] ERROR"
             
     except Exception as e:
-        print(f"║ ❌ ERROR DE CONEXIÓN: {str(e)}")
+        print(f"║ [ERROR] ERROR DE CONEXIÓN: {str(e)}")
         print("╚═════════════════════════════════════════════════════════════════════╝")
-        return "❌ ERROR"
+        return "[ERROR] ERROR"
 
 
 def verificacion_3_sincronizacion():
@@ -131,8 +131,8 @@ def verificacion_3_sincronizacion():
             data = response.json()
             estado_tiempo = data.get('estado_tiempo', {})
             
-            print(f"║ Endpoint central:        ✅ Disponible")
-            print(f"║ Estado tiempo recibido:  {'✅' if estado_tiempo else '❌'}")
+            print(f"║ Endpoint central:        [OK] Disponible")
+            print(f"║ Estado tiempo recibido:  {'[OK]' if estado_tiempo else '[ERROR]'}")
             linea_separador()
             
             if estado_tiempo:
@@ -151,34 +151,34 @@ def verificacion_3_sincronizacion():
                 print(f"║   - Nubosidad:      {estado_tiempo.get('nubosidad', 0)}%")
                 linea_separador()
                 
-                print("║ ✅ SINCRONIZACIÓN: FUNCIONAL")
+                print("║ [OK] SINCRONIZACIÓN: FUNCIONAL")
                 print("║ ✓  El backend genera estado_tiempo correctamente")
                 print("║ ✓  panel.js lee estado_tiempo en actualizarAnimaciones()")
                 print("║ ✓  AnimadorMeteorologico cambia animaciones según estado")
-                print("║ ℹ️  La animación se activa automáticamente en el navegador")
-                resultado = "✅ APROBADO"
+                print("║ [INFO]  La animación se activa automáticamente en el navegador")
+                resultado = "[OK] APROBADO"
             else:
-                print("║ ⚠️  SINCRONIZACIÓN: PARCIAL - No hay estado_tiempo en respuesta ║")
-                resultado = "⚠️ PARCIAL"
+                print("║ [WARNING]  SINCRONIZACIÓN: PARCIAL - No hay estado_tiempo en respuesta ║")
+                resultado = "[WARNING] PARCIAL"
                 
             print("╚═════════════════════════════════════════════════════════════════════╝")
             return resultado
         else:
-            print(f"║ ❌ ERROR: Status code {response.status_code}")
+            print(f"║ [ERROR] ERROR: Status code {response.status_code}")
             print("╚═════════════════════════════════════════════════════════════════════╝")
-            return "❌ ERROR"
+            return "[ERROR] ERROR"
             
     except Exception as e:
-        print(f"║ ❌ ERROR DE CONEXIÓN: {str(e)}")
+        print(f"║ [ERROR] ERROR DE CONEXIÓN: {str(e)}")
         print("╚═════════════════════════════════════════════════════════════════════╝")
-        return "❌ ERROR"
+        return "[ERROR] ERROR"
 
 
 def main():
     print("\n" + "=" * 71)
-    print("🚀 INICIANDO VERIFICACIÓN COMPLETA DEL ACORAZADO ARGENTONA V3")
+    print("[LAUNCH] INICIANDO VERIFICACIÓN COMPLETA DEL ACORAZADO ARGENTONA V3")
     print("=" * 71)
-    print(f"📅 Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"[FECHA] Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"🌐 URL Base: {BASE_URL}")
     print("=" * 71)
     
@@ -189,32 +189,32 @@ def main():
     
     # Resumen final
     print("\n╔═════════════════════════════════════════════════════════════════════╗")
-    print("║       📊 RESUMEN FINAL DE VERIFICACIONES                            ║")
+    print("║       [STATS] RESUMEN FINAL DE VERIFICACIONES                            ║")
     print("╠═════════════════════════════════════════════════════════════════════╣")
-    print(f"║ ⚡ Latencia < 100ms:      {resultado_1:20}")
+    print(f"║ [FAST] Latencia < 100ms:      {resultado_1:20}")
     if latencia:
         print(f"║    └─ Valor medido:      {latencia:.2f} ms")
-    print(f"║ 💾 Persistencia D&D:      {resultado_2:20}")
+    print(f"║ [GUARDAR] Persistencia D&D:      {resultado_2:20}")
     print(f"║ 🔗 Sincronización Canvas: {resultado_3:20}")
     print("╠═════════════════════════════════════════════════════════════════════╣")
     
     # Verificar si todo está OK
-    aprobados = [r for r in [resultado_1, resultado_2, resultado_3] if "✅" in r]
+    aprobados = [r for r in [resultado_1, resultado_2, resultado_3] if "[OK]" in r]
     
     if len(aprobados) == 3:
         print("║                                                                     ║")
         print("║   🎉 ¡LUZ VERDE! TODAS LAS VERIFICACIONES APROBADAS                ║")
-        print("║   🛡️ EL ACORAZADO ARGENTONA ESTÁ LISTO PARA COMBATE                ║")
+        print("║   [GUARDIAN] EL ACORAZADO ARGENTONA ESTÁ LISTO PARA COMBATE                ║")
         print("║                                                                     ║")
     elif len(aprobados) >= 2:
         print("║                                                                     ║")
-        print("║   ⚠️  SISTEMA OPERATIVO CON ADVERTENCIAS                            ║")
+        print("║   [WARNING]  SISTEMA OPERATIVO CON ADVERTENCIAS                            ║")
         print("║   🔧 Se recomienda revisar las verificaciones fallidas              ║")
         print("║                                                                     ║")
     else:
         print("║                                                                     ║")
         print("║   🔴 SISTEMA NO OPERATIVO                                           ║")
-        print("║   🚨 REQUIERE INTERVENCIÓN INMEDIATA                                ║")
+        print("║   [CRITICAL] REQUIERE INTERVENCIÓN INMEDIATA                                ║")
         print("║                                                                     ║")
         
     print("╚═════════════════════════════════════════════════════════════════════╝\n")

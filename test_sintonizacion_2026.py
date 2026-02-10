@@ -11,29 +11,36 @@ sys.path.insert(0, str(Path(__file__).parent))
 from core.indices.physics_engine_2026 import obtener_constantes_dinamicas, PhysicsEngine2026
 from core.indices.environmental_indices import indice_vpd_kpa, calcular_saturacion_vapor_con_fallback
 from core.indices.advanced_physics_models import et_shuttleworth_wallace, monin_obukhov_stability
+from core.system.constants import ESTACION
 
 
-def test_constantes_dinamicas_argentona():
+def _run_constantes_dinamicas_argentona():
     """Test 1: Constantes dinámicas para condiciones reales de Argentona."""
     print("\n" + "="*80)
-    print("TEST 1: CONSTANTES DINÁMICAS - Argentona (41.55°N, 17.8°C, 65%HR)")
+    print(f"TEST 1: CONSTANTES DINÁMICAS - Argentona ({ESTACION.LATITUD:.8f}°N, 17.8°C, 65%HR)")
     print("="*80)
     
     # Condiciones reales de Argentona
-    latitud = 41.5513
+    latitud = ESTACION.LATITUD
     temp_c = 17.8
     presion_hpa = 1013.25
     humedad_rel = 65.0
     
     constantes = obtener_constantes_dinamicas(latitud, temp_c, presion_hpa, humedad_rel)
     
-    print("\n📊 MOTOR DE FÍSICA 2026 - CONSTANTES VIVAS:")
+    print("\n[STATS] MOTOR DE FÍSICA 2026 - CONSTANTES VIVAS:")
     print(json.dumps(constantes, indent=2, ensure_ascii=False))
     
     return constantes
 
 
-def test_comparacion_isa_vs_real():
+def test_constantes_dinamicas_argentona():
+    constantes = _run_constantes_dinamicas_argentona()
+    assert isinstance(constantes, dict)
+    assert "gravedad_somigliana" in constantes
+
+
+def _run_comparacion_isa_vs_real():
     """Test 2: Comparación entre valores ISA y valores reales de Argentona."""
     print("\n" + "="*80)
     print("TEST 2: COMPARACIÓN ISA vs REAL")
@@ -55,7 +62,7 @@ def test_comparacion_isa_vs_real():
     
     # Condiciones reales de Argentona
     print("\n🟢 CONDICIONES REALES (Argentona):")
-    constantes_real = obtener_constantes_dinamicas(41.5513, 17.8, 1013.25, 65.0)
+    constantes_real = obtener_constantes_dinamicas(ESTACION.LATITUD, 17.8, 1013.25, 65.0)
     
     g_real = constantes_real["gravedad_somigliana"]["valor"]
     mu_real = constantes_real["viscosidad_sutherland"]["valor"]
@@ -68,7 +75,7 @@ def test_comparacion_isa_vs_real():
     print(f"  Z (Argentona) = {Z_real:.8f}")
     
     # Diferencias
-    print("\n⚡ DIFERENCIAS ABSOLUTAS:")
+    print("\n[FAST] DIFERENCIAS ABSOLUTAS:")
     print(f"  Δg = {abs(g_real - g_isa):.6f} m/s² ({abs((g_real - g_isa)/g_isa)*100:.3f}%)")
     print(f"  Δμ = {abs(mu_real - mu_isa):.10f} Pa·s ({abs((mu_real - mu_isa)/mu_isa)*100:.3f}%)")
     print(f"  Δk = {abs(k_real - k_isa):.6f} W/(m·K) ({abs((k_real - k_isa)/k_isa)*100:.3f}%)")
@@ -86,7 +93,13 @@ def test_comparacion_isa_vs_real():
     }
 
 
-def test_psicrometria_con_z():
+def test_comparacion_isa_vs_real():
+    resultado = _run_comparacion_isa_vs_real()
+    assert "isa" in resultado
+    assert "real" in resultado
+
+
+def _run_psicrometria_con_z():
     """Test 3: Psicrometría con Factor Z dinámico."""
     print("\n" + "="*80)
     print("TEST 3: PSICROMETRÍA CON FACTOR Z (Gas Real)")
@@ -122,7 +135,12 @@ def test_psicrometria_con_z():
     return resultado
 
 
-def test_et0_con_somigliana():
+def test_psicrometria_con_z():
+    resultado = _run_psicrometria_con_z()
+    assert "factor_Z" in resultado
+
+
+def _run_et0_con_somigliana():
     """Test 4: ET0 con gravedad Somigliana y cp dinámico."""
     print("\n" + "="*80)
     print("TEST 4: ET0 CON GRAVEDAD SOMIGLIANA + cp DINÁMICO")
@@ -145,7 +163,7 @@ def test_et0_con_somigliana():
     
     # Obtener constantes usadas
     engine = PhysicsEngine2026(
-        latitud=41.5513,
+        latitud=ESTACION.LATITUD,
         temperatura_k=temp_c+273.15,
         presion_pa=presion_hpa*100.0,
         humedad_fraccion=humedad/100.0
@@ -170,7 +188,12 @@ def test_et0_con_somigliana():
     return resultado
 
 
-def test_estabilidad_con_cp_dinamico():
+def test_et0_con_somigliana():
+    resultado = _run_et0_con_somigliana()
+    assert "et0_total" in resultado
+
+
+def _run_estabilidad_con_cp_dinamico():
     """Test 5: Estabilidad Monin-Obukhov con cp dinámico."""
     print("\n" + "="*80)
     print("TEST 5: MONIN-OBUKHOV CON cp DINÁMICO")
@@ -193,7 +216,7 @@ def test_estabilidad_con_cp_dinamico():
     
     # Obtener constantes usadas
     engine = PhysicsEngine2026(
-        latitud=41.5513,
+        latitud=ESTACION.LATITUD,
         temperatura_k=temp_c+273.15
     )
     g, _ = engine.gravedad_somigliana()
@@ -217,6 +240,11 @@ def test_estabilidad_con_cp_dinamico():
     return resultado
 
 
+def test_estabilidad_con_cp_dinamico():
+    resultado = _run_estabilidad_con_cp_dinamico()
+    assert "clase_estabilidad" in resultado
+
+
 def main():
     """Ejecutar todos los tests de sintonización dinámica."""
     print("\n" + "#"*80)
@@ -227,17 +255,17 @@ def main():
     resultados = {}
     
     try:
-        resultados["test_1_constantes_argentona"] = test_constantes_dinamicas_argentona()
-        resultados["test_2_comparacion_isa_real"] = test_comparacion_isa_vs_real()
-        resultados["test_3_psicrometria_z"] = test_psicrometria_con_z()
-        resultados["test_4_et0_somigliana"] = test_et0_con_somigliana()
-        resultados["test_5_estabilidad_cp"] = test_estabilidad_con_cp_dinamico()
+        resultados["test_1_constantes_argentona"] = _run_constantes_dinamicas_argentona()
+        resultados["test_2_comparacion_isa_real"] = _run_comparacion_isa_vs_real()
+        resultados["test_3_psicrometria_z"] = _run_psicrometria_con_z()
+        resultados["test_4_et0_somigliana"] = _run_et0_con_somigliana()
+        resultados["test_5_estabilidad_cp"] = _run_estabilidad_con_cp_dinamico()
         
         print("\n" + "="*80)
         print("RESUMEN FINAL - JSON COMPLETO")
         print("="*80)
         
-        print("\n📊 RESULTADO GENERAL:")
+        print("\n[STATS] RESULTADO GENERAL:")
         print(json.dumps(resultados, indent=2, ensure_ascii=False))
         
         print("\n" + "="*80)

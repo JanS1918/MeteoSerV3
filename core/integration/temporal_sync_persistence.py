@@ -202,9 +202,24 @@ def reset_monin_obukhov_on_pressure_change(
             logger.info("[RESET MONIN-OBUKHOV] Presión pasó de falta a OK. Reseteando estados.")
             
             # Resetear estados del motor si existe
+            engine = None
             if hasattr(system_obj, 'indices_engine'):
-                # TODO: Implementar reset específico si es necesario
-                logger.debug("[RESET] Estabilidad atmosférica reseteable")
+                engine = system_obj.indices_engine
+            elif hasattr(system_obj, 'indices'):
+                engine = system_obj.indices
+
+            if engine is not None:
+                if hasattr(engine, 'reset_estabilidad'):
+                    engine.reset_estabilidad()
+                    logger.debug("[RESET] reset_estabilidad() ejecutado")
+                elif hasattr(engine, '_monin_obukhov_state'):
+                    engine._monin_obukhov_state = None
+                    logger.debug("[RESET] _monin_obukhov_state limpiado")
+                elif hasattr(engine, 'monin_obukhov_state'):
+                    engine.monin_obukhov_state = None
+                    logger.debug("[RESET] monin_obukhov_state limpiado")
+                else:
+                    logger.debug("[RESET] Sin método específico; no hay caché de estabilidad detectado")
             
             # Guardar estado actual para próxima comparación
             if '__INTERNAL__' not in system_obj.sensores_metadata:

@@ -1,3 +1,4 @@
+import logging
 #!/usr/bin/env python3
 """Genera un passwordfile para Mosquitto usando bcrypt y adapta el prefijo a $2y$.
 Escribe también la contraseña en `scripts/generated_password.txt`.
@@ -65,7 +66,7 @@ def main():
             subprocess.call(['icacls', plainpath, '/inheritance:r'])
             subprocess.call(['icacls', plainpath, '/grant', 'SYSTEM:R'])
     except Exception:
-        pass
+        logging.exception("Silent except at 67 - revisar contexto")
 
     print(f'Wrote passwordfile: {args.out}')
     print(f'Wrote plaintext password: {plainpath}')

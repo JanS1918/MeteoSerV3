@@ -62,7 +62,7 @@ class SensorAssimilator:
                 if self.system_core:
                     await self._register_in_core(sensor_id, sensor_type, sensor_config)
                 
-                logger.info(f"✅ {sensor_id} asimilado al sistema")
+                logger.info(f"[OK] {sensor_id} asimilado al sistema")
                 return True
         
         except Exception as e:

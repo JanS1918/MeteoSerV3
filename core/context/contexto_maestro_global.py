@@ -1,71 +1,92 @@
-"""
-Contexto Maestro Global - Información centralizada del sistema.
-"""
+# Contexto Maestro Global - Información centralizada del sistema.
+# Ahora carga parámetros de configuración dinámicamente y publica automáticamente al Bus de Capas de Información.
 import logging
+from typing import Optional, Dict, Any
+from datetime import datetime
+from core.system.constants import ESTACION
 
 logger = logging.getLogger(__name__)
 
 
 class ContextoMaestro:
-    """Contexto básico con información geográfica y temporal."""
-    
-    def __init__(self, elevation_ground=96.0, elevation_total=109.0, 
-                 lat=41.5513, lon=2.3998, sensor_height_above_ground=13.0,
-                 hora_utc=None, elevacion_solar=None, presion_barometrica=None, estado_suelo=None):
-        import datetime
+    # Contexto básico con información geográfica y temporal.
+    def __init__(self, elevation_ground=None, elevation_total=None, lat=None, lon=None, sensor_height_above_ground=None, hora_utc=None, elevacion_solar=None, presion_barometrica=None, estado_suelo=None, usar_config=True):
+        # Inicializa atributos
         self.elevation_ground = elevation_ground
         self.elevation_total = elevation_total
         self.lat = lat
         self.lon = lon
         self.sensor_height_above_ground = sensor_height_above_ground
-        self.hora_utc = hora_utc or datetime.datetime.now(datetime.timezone.utc)
-        self.elevacion_solar = elevacion_solar if elevacion_solar is not None else 45.0  # grados
-        self.presion_barometrica = presion_barometrica if presion_barometrica is not None else 1013.25  # hPa
-        self.estado_suelo = estado_suelo if estado_suelo is not None else {
-            "humedad": 0.25,  # fracción volumétrica
-            "temperatura": 15.0,  # °C
-            "conductividad": 0.8  # W/mK
-        }
-        # Atributo estacion para Argentona_V3 (Directiva de Integridad ISA)
-        self.estacion = "Argentona_V3"
-        # Atributos adicionales para compatibilidad con perfil de viento
-        self.z0_calle = 0.5  # Rugosidad típica zona urbana (m)
-        self.z0_terraza = 0.03  # Rugosidad terraza (m)
+        self.hora_utc = hora_utc
+        self.elevacion_solar = elevacion_solar
+        self.presion_barometrica = presion_barometrica
+        self.estado_suelo = estado_suelo or {}
+        self.usar_config = usar_config
+        self.z0_calle = 0.3  # Rugosidad del terreno (m) - Argentona zona urbana costera
+        # Calcular la estación del año
+        self.estacion = self._calcular_estacion()
+
+        # Publicar valores físicos en el bus
+        try:
+            from core.bus.bus_capas_informacion import obtener_bus
+            from physical_constants_bus import PHYSICAL_CONSTANTS
+            bus = obtener_bus()
+            for nombre, datos in PHYSICAL_CONSTANTS.items():
+                bus.publicar(
+                    variable=f"contexto.fisica.{nombre}",
+                    valor=datos['valor'],
+                    nivel="CORE",
+                    origen="core.context.ContextoMaestro",
+                    confianza=1.0,
+                    unidad=datos.get('unidad', ''),
+                    notas=f"{datos.get('fuente', '')} | {datos.get('justificación', '')}"
+                )
+        except Exception as e:
+            logger.warning(f"Error al publicar valores físicos en el bus: {e}")
     def actualizar_astronomia(self):
         import datetime
+        from core.arcos_solares import calcular_posicion_sol
         self.hora_utc = datetime.datetime.now(datetime.timezone.utc)
-        # Simulación simple de elevación solar
-        hora = self.hora_utc.hour + self.hora_utc.minute / 60.0
-        self.elevacion_solar = max(0.0, 90.0 * abs(12.0 - hora) / 12.0)
+        datos_sol = calcular_posicion_sol(self.lat, self.lon, self.hora_utc, altitud_m=self.elevation_ground)
+        elevacion = datos_sol.get("elevacion_solar_deg")
+        self.elevacion_solar = max(0.0, elevacion) if elevacion is not None else 0.0
+    
+    def _calcular_estacion(self):
+        """Calcula la estación del año basado en el día del año."""
+        from datetime import datetime
+        ahora = datetime.now()
+        dia_ano = ahora.timetuple().tm_yday
+        
+        # Definir los días de transición de estaciones (aproximados)
+        dia_equinoccio_primavera = 80
+        dia_solsticio_verano = 172
+        dia_equinoccio_otono = 266
+        dia_solsticio_invierno = 355
+        
+        if dia_equinoccio_primavera <= dia_ano < dia_solsticio_verano:
+            return "primavera"
+        elif dia_solsticio_verano <= dia_ano < dia_equinoccio_otono:
+            return "verano"
+        elif dia_equinoccio_otono <= dia_ano < dia_solsticio_invierno:
+            return "otono"
+        else:
+            return "invierno"
 
 
 class ContextoMaestroGlobal:
-    """Singleton global que proporciona contexto maestro a todo el sistema."""
+    # Singleton global que proporciona contexto maestro a todo el sistema.
     
     _instance = None
     
     @classmethod
     def obtener_contexto(cls, actualizar=False):
-        """
-        Obtiene la instancia global del contexto.
-        
-        Parámetros:
-        -----------
-        actualizar : bool
-            Si True, actualiza el contexto (ej: astronomía)
-            
-        Retorna:
-        --------
-        ContextoMaestro
-            Instancia con información geográfica y temporal
-        """
         if cls._instance is None:
             # Crear con valores por defecto (Argentona, Barcelona)
             cls._instance = ContextoMaestro(
-                elevation_ground=96.0,
-                elevation_total=109.0,
-                lat=41.5513,
-                lon=2.3998,
+                elevation_ground=ESTACION.ALTITUD - 13.0,
+                elevation_total=ESTACION.ALTITUD,
+                lat=ESTACION.LATITUD,
+                lon=ESTACION.LONGITUD,
                 sensor_height_above_ground=13.0
             )
         
@@ -76,11 +97,8 @@ class ContextoMaestroGlobal:
     
     @classmethod
     def establecer_contexto(cls, contexto):
-        """Establece una instancia personalizada de contexto."""
         cls._instance = contexto
         return cls._instance
-    
     @classmethod
     def resetear(cls):
-        """Resetea el contexto al estado inicial."""
         cls._instance = None

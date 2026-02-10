@@ -100,13 +100,13 @@ class PresenceModel:
                 continue
 
             if sensor.type == block_a.SensorType.TABLET_PROXIMITY:
-                if reading.values.get("near"):
+                if reading.values.get("near") or reading.values.get("presencia") or reading.values.get("presence"):
                     now = time.time()
-                    if block_a.EXTERNAL_INTEGRATION_MODE == block_a.ExternalIntegrationMode.MOCK:
-                        if int(now) % 2 == 0:
-                            self.last_seen_you = now
-                        else:
-                            self.last_seen_wife = now
+                    sid = sensor.id.lower()
+                    if "wife" in sid or "mujer" in sid:
+                        self.last_seen_wife = now
+                    else:
+                        self.last_seen_you = now
 
     def wife_is_present(self) -> bool:
         if not self.last_seen_wife:
@@ -125,38 +125,62 @@ def condition_wife_morning_presence() -> bool:
     return 5 <= hour <= 9 and PRESENCE_MODEL.wife_is_present()
 
 def action_good_morning_wife() -> None:
-    logger.info("Acción: Buenos días para tu mujer (simulado).")
+    alert = Alert(
+        level=AlertLevel.LOW,
+        message="Buenos días. Presencia detectada.",
+        requires_intervention=False,
+        reason="Rutina de saludo matinal"
+    )
+    logger.info(f"ALERTA: {alert.to_dict()}")
+
 
 def action_recommend_clothing() -> None:
-    api_sensor = None
+    temp = None
+    lluvia = None
+
     for s in block_a.SENSOR_REGISTRY.list_sensors():
-        if s.type == block_a.SensorType.VIRTUAL_EXTERNAL_API:
-            api_sensor = s
+        reading = block_a.read_sensor(s.id)
+        if not reading or not reading.valid:
+            continue
+        for key in ("temp_ext", "temp_int", "temperatura", "temperature", "temp"):
+            if key in reading.values and temp is None:
+                try:
+                    temp = float(reading.values[key])
+                except Exception:
+                    temp = reading.values[key]
+        for key in ("lluvia", "rain", "precip", "precip_rate"):
+            if key in reading.values and lluvia is None:
+                lluvia = reading.values[key]
+        if temp is not None and lluvia is not None:
             break
 
-    if not api_sensor:
-        logger.warning("No hay API meteorológica simulada disponible.")
+    if temp is None:
+        logger.warning("No hay temperatura disponible para recomendación de ropa.")
         return
 
-    reading = block_a.read_sensor(api_sensor.id)
-    if not reading or not reading.valid:
-        logger.warning("Lectura meteorológica inválida.")
-        return
+    try:
+        temp_val = float(temp)
+    except Exception:
+        temp_val = None
 
-    temp = reading.values.get("temp", 20)
-    condition = reading.values.get("condition", "sunny")
-
-    if temp < 10:
+    if temp_val is None:
+        msg = f"Temperatura reportada: {temp}. Ajusta la ropa según tu confort."
+    elif temp_val < 10:
         msg = "Hace frío, mejor abrigo."
-    elif temp < 18:
+    elif temp_val < 18:
         msg = "Temperatura fresca, una chaqueta ligera."
     else:
         msg = "Temperatura agradable, ropa ligera."
 
-    if condition == "rain":
+    try:
+        lluvia_val = float(lluvia) if lluvia is not None else 0.0
+    except Exception:
+        lluvia_val = 0.0
+
+    if lluvia_val and lluvia_val > 0:
         msg += " Y coge paraguas."
 
-    logger.info(f"Recomendación de ropa (simulada): {msg}")
+    logger.info(f"Recomendación de ropa: {msg}")
 
 def register_default_rules() -> None:
     RULE_ENGINE.register_rule(

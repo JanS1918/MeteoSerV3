@@ -170,11 +170,23 @@ def apply_pm_calibration(pm_val: float, rh: float, model_hint: Optional[str] = N
         return None
     
     # Estimar temperatura nominal (fallback 20°C)
-        # ...comentario obsoleto eliminado...
+    temp = 20.0
     
     # Estimar VPD desde HR (aprox: cuando HR=50%, VPD~1.2 kPa a 20°C)
     rh_clamped = max(1.0, min(100.0, rh))
-    es = 0.6108 * math.exp((17.27 * temp) / (temp + 237.3))
+    from core.indices.environmental_indices import (
+        saturacion_vapor_iapws_elite,
+        saturacion_vapor_virial_greenspan,
+        saturacion_vapor_hyland_wexler,
+    )
+    try:
+        pws_pa = saturacion_vapor_iapws_elite(temp, 101325.0)
+    except Exception:
+        try:
+            pws_pa = saturacion_vapor_virial_greenspan(temp, 101325.0)
+        except Exception:
+            pws_pa = saturacion_vapor_hyland_wexler(temp, 101325.0)
+    es = pws_pa / 1000.0
     ea = es * (rh_clamped / 100.0)
     vpd = max(0.0, es - ea)
     

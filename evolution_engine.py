@@ -1,17 +1,24 @@
+import logging
 # ============================================================
-# MÓDULO 5 — AUTO‑EVOLUCIÓN
+# MÓDULO 5 — AUTO‑EVOLUCIÓN [DEPRECATED]
 # Archivo: core/evolution/evolution_engine.py
 # ============================================================
 """
-Funciones seguras para auto‑evolución:
+[DEPRECATED]: Este módulo ha sido reemplazado por:
+    - core.engines.self_modification_engine.SelfModEngine
+    - core.engines.auto_improvement_engine.AutoImprovementEngine
+
+Usa SelfModEngine en su lugar. Este módulo se mantiene para compatibilidad
+pero NO se llama desde main_asgi.py.
+
+Funciones legadas para auto-evolución:
 - crear carpetas/archivos nuevos siguiendo plantillas
 - reorganizar estructura (mover archivos de forma controlada)
 - generar/actualizar MANIFEST.md (documento maestro)
 - registrar cambios en un log de evolución
 - simular cambios en modo sandbox antes de aplicar
-No realiza auto‑modificación de código ejecutable; solo gestión de archivos,
-documentación y estructura. El módulo está pensado para ser llamado por un
-operador o por un proceso supervisado.
+No realiza auto-modificación de código ejecutable; solo gestión de archivos,
+documentación y estructura.
 """
 
 import os
@@ -81,7 +88,7 @@ class EvolutionEngine:
     """
 
     def __init__(self, base_path: str, sandbox: bool = True):
-        self.base_path = base_path.rstrip("/")
+        self.base_path = str(base_path).rstrip("/")
         self.sandbox = sandbox
         self.log_path = os.path.join(self.base_path, EVOLUTION_LOG)
         _ensure_dir(self.base_path)
@@ -111,7 +118,7 @@ class EvolutionEngine:
                 with open(self.log_path, "w", encoding="utf-8") as f:
                     json.dump(self.log, f, indent=2)
             except Exception:
-                pass
+                logging.exception("Silent except at 113 - revisar contexto")
 
     # -------------------------
     # MANIFEST (DOCUMENTO MAESTRO)

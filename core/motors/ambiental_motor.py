@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Any
 
 class MotorAmbiental:
@@ -19,7 +20,7 @@ class MotorAmbiental:
                 if float(co2) > 1200:
                     resultado["detalles"]["aire_cargado"] = "CO2 alto"
             except Exception:
-                pass
+                logging.exception("Silent except at 21 - revisar contexto")
         if humedad is not None:
             try:
                 if float(humedad) < 35:
@@ -27,19 +28,19 @@ class MotorAmbiental:
                 if float(humedad) > 70:
                     resultado["detalles"]["aire_humedo"] = "Humedad alta"
             except Exception:
-                pass
+                logging.exception("Silent except at 29 - revisar contexto")
         if ruido is not None:
             try:
                 if float(ruido) > 70:
                     resultado["detalles"]["ruido_alto"] = "Ruido elevado"
             except Exception:
-                pass
+                logging.exception("Silent except at 35 - revisar contexto")
         if luz is not None:
             try:
                 if float(luz) > 80:
                     resultado["detalles"]["luz_alta"] = "Luz intensa"
             except Exception:
-                pass
+                logging.exception("Silent except at 41 - revisar contexto")
 
         # Apoyarse en índices calculados
         riesgo_niebla = indices.get("riesgo_niebla", {}).get("valor")
@@ -58,6 +59,6 @@ class MotorAmbiental:
                 if abs(float(t_int) - float(t_ext)) > 8:
                     resultado["anomalias"].append("Diferencia térmica alta int/ext")
         except Exception:
-            pass
+            logging.exception("Silent except at 60 - revisar contexto")
 
         return resultado

@@ -1,3 +1,4 @@
+import logging
 """
 Sistema de Testigo de Fallo y Auditoría Selectiva.
 Detecta anomalías físicas y romps en los cálculos.
@@ -38,7 +39,7 @@ class FallbackWitness:
                 resultado["anotaciones"].append("[TESTIGO] Valor NaN/Inf detectado")
                 return resultado
         except:
-            pass
+            logging.exception("Silent except at 40 - revisar contexto")
         
         # Verificación de rango
         try:

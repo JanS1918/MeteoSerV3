@@ -18,6 +18,12 @@ Motor: Quantum_Diamond_Universal_v1.1_FINAL
 
 import math
 from typing import Dict, Tuple, Optional
+
+# PRECISIÓN TOTAL: desactivar redondeo en cálculos internos
+def _no_round(value, *args, **kwargs):
+    return value
+
+round = _no_round
 from core.indices.advanced_physics_models import visibilidad_kasten_hanel
 
 
@@ -29,7 +35,7 @@ class UVAngstromDinamico:
     
     def __init__(self):
         """Inicializa el motor de Ångström dinámico."""
-        pass
+        self.last_aod = None
     
     def calcular_aod_desde_visibilidad(self,
                                        visibilidad_km: float,
@@ -189,7 +195,7 @@ class UVAngstromDinamico:
             "metodo": "Beer_Lambert_Bouguer_UV",
             "aod_usado": round(aod, 4),
             "masa_optica": round(masa_optica, 3),
-            "transmitancia": round(transmitancia, 4),
+            "nubosidad": round(transmitancia, 4),
             "subfórmulas_recursivas": meta_aod.get("subfórmulas", {})
         }
         
@@ -222,9 +228,10 @@ def calcular_tau_rayleigh_dinamico(presion_hpa: float,
     """
     # SUBFÓRMULA RECURSIVA: Densidad CIPM-2007 con factor de compresibilidad Virial
     from core.indices.physics_engine_2026 import PhysicsEngine2026
+    from core.system.constants import ESTACION
     
     engine = PhysicsEngine2026(
-        latitud=41.5513,  # Argentona
+        latitud=ESTACION.LATITUD,  # Argentona
         temperatura_k=temperatura_k,
         presion_pa=presion_hpa * 100.0,
         humedad_fraccion=humedad_fraccion

@@ -26,11 +26,11 @@ def main():
     # Exportar a JSON y Markdown
     json_path, md_path = exportar_mapa_dependencias(ruta_docs)
     
-    print(f"✅ JSON exportado: {json_path}")
-    print(f"✅ Markdown exportado: {md_path}")
+    print(f"[OK] JSON exportado: {json_path}")
+    print(f"[OK] Markdown exportado: {md_path}")
     print()
     print("=" * 80)
-    print("🔍 AUDITORÍA:")
+    print("[BUSCAR] AUDITORÍA:")
     print("   - Cada predicción tiene declaradas sus dependencias 'consume'")
     print("   - Cada predicción declara qué variables 'publica'")
     print("   - El Bus garantiza que cada variable se calcula UNA SOLA VEZ")

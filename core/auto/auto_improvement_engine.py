@@ -51,7 +51,7 @@ class AutoImprovementEngine:
             data = json.loads(self._data_path.read_text(encoding="utf-8"))
             self.metricas = data.get("metricas", {}) or {}
         except Exception:
-            pass
+            logging.exception("Silent except at 53 - revisar contexto")
 
     def _save(self):
         try:
@@ -61,7 +61,7 @@ class AutoImprovementEngine:
             }
             self._data_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         except Exception:
-            pass
+            logging.exception("Silent except at 63 - revisar contexto")
 
     def registrar_error(self, nombre: str, real: float, estimado: float) -> None:
         try:

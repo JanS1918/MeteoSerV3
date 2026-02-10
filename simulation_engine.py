@@ -1,3 +1,4 @@
+import logging
 # ============================================================
 # MÓDULO 4 — SIMULACIÓN INTERNA (MODELOS PREDICTIVOS)
 # Archivo: core/simulation/simulation_engine.py
@@ -189,10 +190,36 @@ class SimulationEngine:
                 
                 # ⚛️ EKF: Predicción con modelo físico si disponible
                 if self.statistical_brain and name in ["humedad_pared", "sorcion_gab"]:
-                    # Modelo físico para GAB (simplificado)
+                    # Modelo físico GAB con inercia (estado: [humedad, tasa])
                     def gab_model(state, dt):
-                        # Estado: [humedad, tasa_absorcion]
-                        return state  # TODO: Implementar modelo GAB completo
+                        try:
+                            humedad = float(state[0])
+                        except Exception:
+                            humedad = 0.0
+                        try:
+                            tasa = float(state[1])
+                        except Exception:
+                            tasa = 0.0
+                        rh = inputs.get("humedad") or inputs.get("humedad_relativa") or inputs.get("humidity")
+                        temp_c = inputs.get("temperatura") or inputs.get("temperature") or inputs.get("temp")
+                        if rh is None:
+                            target = humedad
+                        else:
+                            try:
+                                rh_val = float(rh)
+                                target = rh_val / 100.0 if rh_val > 1.5 else rh_val
+                            except Exception:
+                                target = humedad
+                        # constante de tiempo (s) y amortiguación
+                        tau = 3600.0
+                        k = 1.0 / max(1.0, tau)
+                        dt_s = max(0.0, float(dt))
+                        # dinámica de segundo orden suave hacia target
+                        tasa_nueva = tasa + (-k * (humedad - target)) * dt_s
+                        humedad_nueva = humedad + tasa_nueva * dt_s
+                        # mantener rango físico 0..1
+                        humedad_nueva = max(0.0, min(1.0, humedad_nueva))
+                        return [humedad_nueva, tasa_nueva]
                     
                     pred_ekf = self.statistical_brain.predict_with_ekf(name, gab_model, dt_seconds)
                     if pred_ekf is not None:
@@ -260,7 +287,7 @@ class SimulationEngine:
             with open(log_file, "a") as f:
                 f.write(json.dumps(payload) + "\n")
         except Exception:
-            pass
+            logging.exception("Silent except at 262 - revisar contexto")
 
 # ============================================================
 # FIN DEL MÓDULO

@@ -138,7 +138,7 @@ class VirtualSensorManager:
                 try:
                     self.registry.capabilities.add(c)
                 except Exception:
-                    pass
+                    logging.exception("Silent except at 140 - revisar contexto")
 
     @staticmethod
     def fn_ratio(inputs: Dict[str, float], numerator: str = None, denominator: str = None, scale: float = 1.0):

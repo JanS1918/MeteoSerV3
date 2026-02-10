@@ -993,3 +993,32 @@ canvas#graficoArcoSolar, canvas#graficoTempHum {
     background: #101a1c;
     box-shadow: 0 2px 12px rgba(24,255,160,0.08);
 }
+
+.item-alert {
+    margin-left: 6px;
+    font-size: 0.85em;
+    color: var(--alert);
+}
+
+.item-cambio {
+    margin-left: 6px;
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(79, 195, 247, 0.12);
+    border: 1px solid rgba(79, 195, 247, 0.35);
+    padding: 1px 6px;
+    border-radius: 10px;
+}
+
+.alerta-global {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: rgba(255, 123, 123, 0.12);
+    border: 1px solid rgba(255, 123, 123, 0.4);
+    color: var(--alert);
+    font-weight: 700;
+    margin-right: 8px;
+}

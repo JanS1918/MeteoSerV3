@@ -164,11 +164,11 @@ class SimpleOmnipotence:
                     raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
                 
                 device = self.detected_devices[sensor_id]
-                logger.info(f"✅ Asimilado: {sensor_id} ({device.sensor_type})")
+                logger.info(f"[OK] Asimilado: {sensor_id} ({device.sensor_type})")
                 
                 return {
                     "status": "success",
-                    "message": f"✅ {device.sensor_type} asimilado al sistema",
+                    "message": f"[OK] {device.sensor_type} asimilado al sistema",
                     "device": device.dict()
                 }
             except Exception as e:

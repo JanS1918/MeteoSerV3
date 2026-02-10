@@ -73,9 +73,9 @@ class IntegracionMotoresV25:
         # 4. Nivel de alerta
         distancia = vector_result['distancia_km']
         if distancia < 30:
-            nivel_alerta = "🚨 ALERTA ROJA - Inclemencia inmediata"
+            nivel_alerta = "[CRITICAL] ALERTA ROJA - Inclemencia inmediata"
         elif distancia < 100:
-            nivel_alerta = "⚠️ ALERTA NARANJA - Tormenta próxima"
+            nivel_alerta = "[WARNING] ALERTA NARANJA - Tormenta próxima"
         else:
             nivel_alerta = "✓ VERDE - Sin peligro inmediato"
         

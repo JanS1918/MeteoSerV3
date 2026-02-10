@@ -1,3 +1,4 @@
+import logging
 # ============================================================
 #  MÓDULO 1 — INTEGRACIÓN AUTOMÁTICA DE SENSORES
 #  Archivo: core/integration/integration_manager.py
@@ -96,7 +97,7 @@ class SensorIntegrationManager:
                     self.registry.sensors = data.get("sensors", {})
                     self.registry.capabilities = set(data.get("capabilities", []))
             except:
-                pass  # Si falla, se reconstruye solo
+                logging.exception("Silent except at 98 - revisar contexto")
 
     def _save_registry(self):
         """
