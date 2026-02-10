@@ -162,10 +162,34 @@ class CalculadorDerivadosRapidosV51:
         self.derivada_p_actual = self._calcular_derivada(self.historial_p, factor_tiempo=60.0)
         
         # ═══════════════════════════════════════════════════════════════════════
-        # PUBLICAR EN EL BUS
+        # PUBLICAR EN EL BUS - ENTERA + DESCOMPUESTA
         # ═══════════════════════════════════════════════════════════════════════
         
-        # Radiación
+        # ENTERA: Resumen compuesto
+        resumen_completo = {
+            "derivada_ghi_w_m2_s": self.derivada_ghi_actual,
+            "derivada_hr_porciento_min": self.derivada_hr_actual,
+            "derivada_presion_hpa_min": self.derivada_p_actual,
+            "valor_ghi_actual_w_m2": ghi,
+            "valor_hr_actual_pct": hr,
+            "valor_presion_actual_hpa": p,
+            "puntos_historial": len(self.historial_ghi),
+            "timestamp": ahora.isoformat()
+        }
+        
+        self.bus.publicar(
+            clave="derivadas_resumen_rapido",
+            valor=resumen_completo,
+            fuente="derivadas_rapidas_v51",
+            metadatos={
+                "arquitectura": "V51_DERIVADAS_RAPIDAS",
+                "componentes": "ghi|hr|presion"
+            }
+        )
+        
+        # DESCOMPUESTA: Cada derivada por separado
+        
+        # Radiación GHI
         self.bus.publicar(
             clave="derivada_ghi_w_m2_s",
             valor=self.derivada_ghi_actual,
@@ -174,53 +198,59 @@ class CalculadorDerivadosRapidosV51:
                 "unidad": "W/m²/s",
                 "interpretacion": "neg=nubes, pos=clearing",
                 "umbral_nube": "abs(valor) > 50",
+                "valor_actual": ghi,
                 "actualizado": ahora.isoformat()
             }
         )
         
-        # Humedad
+        # Humedad Relativa
         self.bus.publicar(
             clave="derivada_hr_porciento_min",
             valor=self.derivada_hr_actual,
             fuente="derivadas_rapidas_v51",
             metadatos={
                 "unidad": "%/min",
-                "interpretacion": "pos=aumento humedad",
+                "interpretacion": "pos=aumento humedad, neg=secado",
                 "umbral_lluvia": "valor > 2",
+                "valor_actual": hr,
                 "actualizado": ahora.isoformat()
             }
         )
         
-        # Presión
+        # Presión Barométrica
         self.bus.publicar(
             clave="derivada_presion_hpa_min",
             valor=self.derivada_p_actual,
             fuente="derivadas_rapidas_v51",
             metadatos={
                 "unidad": "hPa/min",
-                "interpretacion": "neg=baja presión frontal",
+                "interpretacion": "neg=baja presión frontal, pos=aumento",
                 "umbral_sistema": "valor < -1",
+                "valor_actual": p,
                 "actualizado": ahora.isoformat()
             }
         )
         
-        # Resumen de derivadas
-        resumen = {
-            "dGHI_dt_w_m2_s": self.derivada_ghi_actual,
-            "dHR_dt_pct_min": self.derivada_hr_actual,
-            "dP_dt_hpa_min": self.derivada_p_actual,
-            "ghi_actual_w_m2": ghi,
-            "hr_actual_pct": hr,
-            "p_actual_hpa": p,
-            "historial_puntos": len(self.historial_ghi),
-            "timestamp": ahora.isoformat()
-        }
+        # Valores ACTUALES (contexto)
+        self.bus.publicar(
+            clave="valor_ghi_w_m2",
+            valor=ghi,
+            fuente="derivadas_rapidas_v51",
+            metadatos={"unidad": "W/m²", "contexto": "para derivadas"}
+        )
         
         self.bus.publicar(
-            clave="derivadas_resumen_rapido",
-            valor=resumen,
+            clave="valor_humedad_relativa_pct",
+            valor=hr,
             fuente="derivadas_rapidas_v51",
-            metadatos={"arquitectura": "V51_DERIVADAS_RAPIDAS"}
+            metadatos={"unidad": "%", "contexto": "para derivadas"}
+        )
+        
+        self.bus.publicar(
+            clave="valor_presion_hpa",
+            valor=p,
+            fuente="derivadas_rapidas_v51",
+            metadatos={"unidad": "hPa", "contexto": "para derivadas"}
         )
         
         logger.debug(

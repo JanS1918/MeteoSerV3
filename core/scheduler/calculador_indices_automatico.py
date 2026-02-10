@@ -287,7 +287,9 @@ class CalculadorIndicesAutomatico:
                 # Evaluar alerta
                 resultado_alerta = self.alerta_lluvia.evaluar(datos_alerta)
                 
-                # Publicar resultado en el bus
+                # ─────────────────────────────────────────────────────────────
+                # PUBLICAR ENTERA: Score compuesto + metadatos
+                # ─────────────────────────────────────────────────────────────
                 self.bus.publicar(
                     clave="alerta_lluvia_inminente_score",
                     valor=resultado_alerta.get("score", 0),
@@ -295,20 +297,122 @@ class CalculadorIndicesAutomatico:
                     metadatos={
                         "eta_minutos": resultado_alerta.get("eta_minutos", 0),
                         "confianza": resultado_alerta.get("confianza", 0),
-                        "modelo": "AlertaLluviaInmediata_V51"
+                        "modelo": "AlertaLluviaInmediata_V51",
+                        "version": "v51"
                     }
                 )
                 
-                # Publicar componentes de la alerta
+                # ─────────────────────────────────────────────────────────────
+                # PUBLICAR DESCOMPUESTA: Cada componente por separado
+                # ─────────────────────────────────────────────────────────────
+                
+                # Componentes individuales
                 componentes = resultado_alerta.get("componentes", {})
+                
+                # GHI (radiación)
+                comp_ghi = componentes.get("caida_ghi_wm2s", 0.0)
                 self.bus.publicar(
-                    clave="alerta_lluvia_componentes",
-                    valor=componentes,
+                    clave="alerta_lluvia_componente_ghi_derivada",
+                    valor=comp_ghi,
                     fuente="scheduler_v51",
-                    metadatos={"detalles": "dGHI/dt, dHR/dt, dP/dt, dΔT, Sundqvist"}
+                    metadatos={"unidad": "W/m²/s", "componente": "radiacion"}
                 )
                 
-                logger.debug(f"[SCHEDULER] Alerta lluvia: score={resultado_alerta.get('score', 0):.0f}, ETA={resultado_alerta.get('eta_minutos', 0):.0f}min")
+                score_ghi = componentes.get("score_ghi", 0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_componente_ghi_score",
+                    valor=score_ghi,
+                    fuente="scheduler_v51",
+                    metadatos={"rango": "0-25", "peso": 0.25}
+                )
+                
+                # Humedad
+                comp_hr = componentes.get("aumento_hr_porciento_min", 0.0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_componente_humedad_derivada",
+                    valor=comp_hr,
+                    fuente="scheduler_v51",
+                    metadatos={"unidad": "%/min", "componente": "humedad"}
+                )
+                
+                score_hr = componentes.get("score_hr", 0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_componente_humedad_score",
+                    valor=score_hr,
+                    fuente="scheduler_v51",
+                    metadatos={"rango": "0-15", "peso": 0.15}
+                )
+                
+                # Presión
+                comp_p = componentes.get("caida_presion_hpa_h", 0.0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_componente_presion_derivada",
+                    valor=comp_p,
+                    fuente="scheduler_v51",
+                    metadatos={"unidad": "hPa/h", "componente": "presion"}
+                )
+                
+                score_p = componentes.get("score_presion", 0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_componente_presion_score",
+                    valor=score_p,
+                    fuente="scheduler_v51",
+                    metadatos={"rango": "0-25", "peso": 0.25}
+                )
+                
+                # ΔT Solar
+                comp_dt = componentes.get("caida_dt_solar_c_min", 0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_componente_dt_solar_derivada",
+                    valor=comp_dt,
+                    fuente="scheduler_v51",
+                    metadatos={"unidad": "°C/min", "componente": "dt_solar"}
+                )
+                
+                score_dt = componentes.get("score_dt_solar", 0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_componente_dt_solar_score",
+                    valor=score_dt,
+                    fuente="scheduler_v51",
+                    metadatos={"rango": "0-10", "peso": 0.10}
+                )
+                
+                # Sundqvist
+                prob_sundq = componentes.get("prob_sundqvist", 0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_componente_sundqvist_probabilidad",
+                    valor=prob_sundq,
+                    fuente="scheduler_v51",
+                    metadatos={"unidad": "%", "componente": "sundqvist"}
+                )
+                
+                score_sundq = componentes.get("score_sundqvist", 0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_componente_sundqvist_score",
+                    valor=score_sundq,
+                    fuente="scheduler_v51",
+                    metadatos={"rango": "0-25", "peso": 0.25}
+                )
+                
+                # ETA
+                eta = resultado_alerta.get("eta_minutos", 0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_eta_minutos",
+                    valor=eta,
+                    fuente="scheduler_v51",
+                    metadatos={"unidad": "minutos", "rango": "10-20"}
+                )
+                
+                # Confianza
+                conf = resultado_alerta.get("confianza", 0)
+                self.bus.publicar(
+                    clave="alerta_lluvia_confianza",
+                    valor=conf,
+                    fuente="scheduler_v51",
+                    metadatos={"unidad": "0-1", "rango": "0.5-1.0"}
+                )
+                
+                logger.debug(f"[SCHEDULER] Alerta lluvia: score={resultado_alerta.get('score', 0):.0f}, ETA={eta:.0f}min, conf={conf:.2f}")
                 
             except Exception as e:
                 logger.debug(f"[SCHEDULER] Error en alerta lluvia: {e}")
