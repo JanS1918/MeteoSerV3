@@ -1,0 +1,118 @@
+TEST DETALLADO DE LILJEGREN-CARHART 2008
+═════════════════════════════════════════
+
+Condiciones:
+T_a = 28°C
+RH = 65%
+V = 2.5 m/s
+Rad = 500 W/m²
+
+CÁLCULOS PASO A PASO:
+
+1. BULBO HÚMEDO (Tw):
+   ───────────────────
+   Tw_stull = 25.12°C
+   Tw_steadman = 27.75°C
+   Promedio: 26.43°C ✓ (razonable)
+
+2. GLOBO NEGRO (Tg) - Liljegren Correcto:
+   ─────────────────────────────────────
+   
+   COMPONENTE RADIATIVA:
+   ────────────────────
+   αs = 0.95
+   I = 500 W/m²
+   ε = 0.95
+   σ = 5.67e-8
+   
+   Término radiativo en K⁴:
+   (αs × I) / (ε × σ) = (0.95 × 500) / (0.95 × 5.67e-8)
+                       = 475 / (5.6865e-8)
+                       = 8.354e9 K⁴
+   
+   Ta en Kelvin: 28 + 273.15 = 301.15 K
+   Ta^4 = 8.246e9 K⁴
+   
+   Tg_K = (8.354e9 + 8.246e9)^0.25
+        = (16.6e9)^0.25
+        = 341.1 K
+   
+   Tg_radiativo = 341.1 - 273.15 = 67.95°C
+   
+   ✓ CORRECTO: La radiación solar realmente ELEVA mucho el globo
+   
+   COMPONENTE CONVECTIVA:
+   ───────────────────────
+   Conv_factor = 2.6 × √2.5 = 2.6 × 1.581 = 4.11°C
+   
+   Tg_convectivo = -4.11°C (enfriamiento por viento)
+   
+   ✓ CORRECTO: El viento enfría, pero no es suficiente
+   
+   TEMPERATURA FINAL DEL GLOBO:
+   ─────────────────────────────
+   Tg = 67.95 - 4.11 = 63.84°C
+   
+   Pero el test muestra 68.00°C (sin aplicar convección)
+   Esto sugiere que Tg_convectivo no se está restando correctamente
+
+3. WBGT:
+   ──────
+   WBGT = 0.7 × 26.43 + 0.2 × 68 + 0.1 × 28
+        = 18.5 + 13.6 + 2.8
+        = 34.9°C
+   
+   ✓ CORRECTO según el cálculo actual
+
+PROBLEMA IDENTIFICADO:
+══════════════════════
+
+Tg = 68°C parece demasiado (sin convección aplicada)
+Debería ser: Tg = 63-64°C (con convección)
+
+VERIFICACIÓN CON CÁLCULO MANUAL:
+════════════════════════════════
+
+Si Tg_radiativo = 67.95°C
+Y Tg_convectivo = -4.11°C
+Entonces Tg_final = 63.84°C
+
+PERO EL TEST MUESTRA: 68.00°C
+
+Esto significa que la convección NO se está aplicando correctamente.
+
+REVISIÓN DEL CÓDIGO:
+════════════════════
+
+En la función wbgt_liljegren_completo():
+
+```python
+tg_solar_component = tg_radiativo - t_a  # Esto calcula 67.95 - 28 = 39.95
+tg = tg_radiativo + tg_convectivo       # Esto debería ser 67.95 - 4.11 = 63.84
+
+Pero el retorno muestra:
+"tg": tg,  # Muestra 68.00 ← PROBLEMA
+```
+
+Posible causa:
+- tg_convectivo no se está calculando correctamente
+- O hay un redondeo que no está siendo aplicado
+
+NECESIDAD DE AJUSTE:
+════════════════════
+
+La fórmula está básicamente correcta, pero hay un bug en la aplicación de convección.
+El resultado de 68°C es DEMASIADO ALTO (significa que el viento no está enfriando).
+
+WBGT resultante: 34.90°C es probablemente correcto, pero podría ser:
+- 34.90°C si Tg no tiene convección aplicada
+- ~34°C si la convección se aplica correctamente
+
+La diferencia es pequeña (~1°C en WBGT), pero debe ser exacta.
+
+CONCLUSIÓN:
+═══════════
+
+✅ La fórmula DE LILJEGREN ES CORRECTA
+❌ LA APLICACIÓN DE LA CONVECCIÓN tiene un bug
+⚠️ WBGT = 34.90°C es probablemente cercano, pero necesita depuración

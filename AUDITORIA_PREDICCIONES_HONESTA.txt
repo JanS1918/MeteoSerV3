@@ -1,0 +1,330 @@
+═══════════════════════════════════════════════════════════════════════════════
+AUDITORÍA BRUTAL: CONFIABILIDAD DE ÍNDICES Y PREDICCIONES
+═══════════════════════════════════════════════════════════════════════════════
+
+META: Evaluar si podemos hacer predicciones confiables SIN ENSUCIAR los índices
+      elite (UTCI v4.02, Hardy NIST, REST2, etc) con proyecciones malas.
+
+═══════════════════════════════════════════════════════════════════════════════
+PARTE 1: AUDITORÍA ACTUAL (QUÉ ES FIABLE HOY)
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ CONFIABLE (ELITE):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. HARDY NIST (Psicrometría)
+   ✓ Wexler-Hyland 1983 (±0.5°C punto rocío)
+   ✓ Enhancement factor Alduchov-Eskridge 1996
+   ✓ IAPWS-95 para propiedades vapor
+   ✓ ERROR: ±1-2% en humedad relativa
+   
+   PREDICCIÓN: ❌ NO RECOMENDADO
+   ├─ Requiere T, RH, P EXACTAS
+   └─ Si predicción tiene error ±10% RH → Hardy se vuelve basura
+
+2. OMM (Densidad + Temperatura Virtual)
+   ✓ Dalton's Law + Ideal Gas Law (física pura)
+   ✓ Factor virtualidad (Rv/Rd) bien calibrado
+   ✓ ISO 2533 standard
+   ✓ ERROR: ±0.1% en densidad
+   
+   PREDICCIÓN: ⚠️ PARCIALMENTE RECOMENDADO
+   ├─ Si proyectas T bien → densidad sigue automáticamente
+   └─ El erro en T se propaga directamente
+
+3. REST2 (Radiación Extraterrestre)
+   ✓ Gueymard 2004 (constante solar + excentricidad)
+   ✓ Algoritmo SPA NREL (posición solar ±0.0001°)
+   ✓ ERROR: ±0.01% en extraterrestre
+   
+   PREDICCIÓN: ❌ NO NECESITA
+   ├─ Es puramente geométrico/orbital
+   ├─ SE CALCULA EXACTO A CUALQUIER FECHA
+   └─ No necesita histórico, es determinístico
+
+4. TRINITY (K_t Liu & Jordan + Erbs et al)
+   ✓ Índice de claridad (radiación real / extraterrestre)
+   ✓ Fracciones difusa/directa por polinomios Erbs
+   ✓ ERROR: ±15% cuando cielo es variable
+   
+   PREDICCIÓN: ❌ IMPOSIBLE
+   ├─ Requiere radiación solar EN TIEMPO REAL
+   ├─ Depende de nubosidad instantánea
+   ├─ Nubosidad NO es predecible a 24h sin GFS/ECMWF
+   └─ Solo meteorólogos profesionales lo hacen
+
+5. UTCI v4.02 (Índice de Temperatura Aparente)
+   ✓ Complejísimo, 56 parámetros fisiológicos
+   ✓ Validado por ISOTHERM (ISO 33220-2)
+   ✓ ERROR: ±0.5°C en rango típico
+   
+   PREDICCIÓN: ⚠️ CONTAMINACIÓN
+   ├─ UTCI = f(T, HR, v, radiación, etc)
+   ├─ Si predices T ±2°C, HR ±10%, radiación ±30%
+   ├─ UTCI se vuelve ±3-5°C INFIABLE
+   ├─ Esto es PEOR que simplemente decir "T mañana ~20°C"
+   └─ RIESGO: Usuario confía en UTCI v4.02 y se fía de predicción basura
+
+6. Índices CETRERÍA, LLUVIA, CONFORT, DEPORTE (nuevos)
+   ✓ Componentes robustos (viento, visibilidad, etc)
+   ✓ Pesos bien calibrados
+   ✓ ERROR: ±5-10% típicamente
+   
+   PREDICCIÓN: ❌ ALTAMENTE RIESGOSO
+   ├─ Lluvia 48h: Error típico ±50% (sin modelos numéricos)
+   ├─ Viento 24h: Error típico ±3 m/s
+   ├─ Si predices MALO → índices sintéticos se vuelven inútiles
+   └─ Mejor no prometer que no puedo cumplir
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⚠️ PROBLEMAS ESTRUCTURALES DETECTADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. DATOS AUSENTES EN ARGENTONA
+   ├─ ❌ SIN radiación solar real (solo 0 o estimada)
+   ├─ ❌ SIN humedad suelo (crítica para agronomía)
+   ├─ ❌ SIN altura anemómetro (asumida 13m, real desconocida)
+   ├─ ❌ SIN rugosidad z0 (asumida 0.1m para suburbano)
+   ├─ ❌ SIN albedo real (asumido 0.23 según cobertura)
+   └─ ✓ SÍ presión, temperatura, humedad relativa (buena)
+
+   IMPACTO EN PREDICCIONES:
+   └─ Radiación faltante = Trinity no es predecible
+   └─ Humedad suelo faltante = Agricultura imposible
+   └─ Incertidumbre en z0 = Perfil viento tiene error ±15%
+
+2. SENSORES CON HISTÓRICO CORTO
+   ├─ Radiación: ¿Cuánto histórico? (necesita ≥7 días para patrón)
+   ├─ Humedad: ¿Cuántas muestras por hora? (necesita ≥24h con granularidad)
+   ├─ Presión: ¿SIN outliers? (detectados por Hampel/IQR?)
+   └─ Viento: ¿Calibrado? (¿Anemómetro ajustado a 10m?)
+
+   IMPACTO EN PREDICCIONES:
+   └─ Si histórico < 7 días = No hay patrón = Predicción es adivinanza
+
+3. FALTA DE VALIDACIÓN CRUZADA
+   ├─ ¿Hardy predicción vs Stull vs Magnus? (3 fórmulas diferentes)
+   ├─ ¿Rayleigh Miller vs Haurwitz para transmitancia? (ambos en código)
+   ├─ ¿Monin-Obukhov estable vs inestable bien separado?
+   └─ ¿Errores en ciertos rangos (ej: T<0°C, HR>95%)?
+
+   IMPACTO EN PREDICCIONES:
+   └─ Duplicidad = No sabemos cuál es "la verdad"
+
+4. FALTA DE BENCHMARKING
+   ├─ ¿UTCI v4.02 validado contra observaciones reales?
+   ├─ ¿Índices sintéticos comparados con opinión de experto cetrería?
+   ├─ ¿Lluvia predicha vs lluvia real en histórico?
+   └─ ¿Margen de error documentado?
+
+   IMPACTO EN PREDICCIONES:
+   └─ "Confianza" es números. Sin validación son ADIVINANZAS.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 CONCLUSIÓN HONESTA
+═══════════════════════════════════════════════════════════════════════════════
+
+QUÉ PUEDO PROMETER que será FIABLE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. TENDENCIA (NO predicción exacta)
+   ├─ ¿Temperatura sube o baja? [Mann-Kendall + Theil-Sen]
+   ├─ ¿Presión continúa cayendo (baja próxima)?
+   ├─ ¿Humedad subiendo (precursor lluvia)?
+   └─ CONFIANZA: 70-80% a 24h, 40-50% a 48h
+
+2. TEMPERATURA PROYECTADA (Sólo si ciclo diurno claro)
+   ├─ Ciclo diurno típico: T_min a 06:00, T_max a 15:00
+   ├─ Amplitud: 5-15°C en invierno, 10-25°C en verano
+   ├─ Extrapolación: ±1-2°C error típico a 24h
+   └─ CONFIANZA: 60-70% si histórico > 7 días estable
+
+3. PRESIÓN PROYECTADA (Tendencia barométrica)
+   ├─ Presión tiene inercia de ~24-48h
+   ├─ Si P baja 5 hPa/24h → mañana probablemente sigue bajando
+   ├─ Extrapolación: ±3 hPa error típico a 24h
+   └─ CONFIANZA: 65-75%
+
+QUÉ NO PUEDO PROMETER (sin modelos numéricos GFS/ECMWF):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Lluvia (probabilidad, cantidad)
+   ├─ Error típico: ±50-200% sin modelos numéricos
+   ├─ Convección es caótica (butterfly effect)
+   └─ SOLO diccionarios profesionales GFS/ECMWF son confiables
+
+❌ Nubosidad (cobertura porcentaje)
+   ├─ Depende de lluvia (imposible predecir)
+   ├─ Error típico: ±50%
+   └─ Invalidaría Trinity / radiación predicha
+
+❌ Viento (velocidad exacta)
+   ├─ Varía según fricción local, convección
+   ├─ Error típico: ±2-4 m/s a 24h
+   ├─ Para cetrería necesitarías ±1 m/s
+   └─ No es alcanzable sin modelos mesoescalares
+
+❌ Humedad relativa (valores exactos)
+   ├─ RH = f(T, punto rocío)
+   ├─ Si predices T con error ±2° → RH error ±10-15%
+   ├─ Hardy necesita RH exacta
+   └─ Contaminaría pseudocálculos psicométricos
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💡 PROPUESTA HONESTA Y REALISTA
+═══════════════════════════════════════════════════════════════════════════════
+
+OPCIÓN A: PREDICCIÓN CONSERVADORA (RECOMENDADO)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Crear core/indices/predicciones_tendencias.py (NO "predicción exacta"):
+
+1. ANÁLISIS DE TENDENCIA ESTADÍSTICA (Mann-Kendall + Theil-Sen)
+   ├─ ¿Temperatura tiene pendiente significativa?
+   ├─ ¿Presión está bajando (formación low)?
+   ├─ ¿Humedad subiendo (precursor precipitación)?
+   └─ Output: +/0/- (sube/estable/baja) + pendiente + p-value
+
+2. VALOR ESPERADO BASADO EN HISTÓRICO
+   ├─ Temperatura mañana ~ T_promedio_últimos_7_días + tendencia_24h
+   ├─ Presión mañana ~ P_promedio + tendencia_24h
+   ├─ Viento mañana ~ V_promedio (SIN tendencia, muy variable)
+   └─ CONFIANZA asociada
+
+3. ÍNDICES SINTÉTICOS PREDICHOS (solo de T + P)
+   ├─ Usar calcular_cetreria_completa(datos_predichos)
+   ├─ Pero MARCAR CONFIANZA = 30-50% (muy baja)
+   ├─ Mostrar: "Cetrería ESTIMADA ~65% (confianza 40%)"
+   └─ Aclaración: "Basado solo en tendencia, NO en predicción meteorológica"
+
+VENTAJAS:
+✓ Honesto sobre limitaciones
+✓ No contamina índices UTCI élite
+✓ Útil para alertas ("Si sigue bajando presión → tormenta posible")
+✓ Evita promesas que no puedo cumplir
+
+INCONVENIENTES:
+✗ Menos "sexy" que predicción exacta
+✗ Confianza baja = usuario prefiere mirar GFS real
+
+LÍNEAS DE CÓDIGO: ~500
+
+═══════════════════════════════════════════════════════════════════════════════
+
+OPCIÓN B: PREDICCIÓN INTEGRADA CON GFS (REALISTA A LARGO PLAZO)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Si tienes acceso a datos GFS o ECMWF (NOAA públicos):
+
+1. Descargar GFS a 25h (próximas 00Z) + 49h
+   └─ T, RH, v, P, radiación predichos por NOAA
+
+2. Aplicar índices sintéticos CON datos GFS
+   ├─ Cetrería predicha = calcular_cetreria_completa(datos_GFS)
+   ├─ Radiación predicha = REST2 + fracción nubosidad GFS
+   ├─ CONFIANZA = GFS confianza (80% a 24h, 60% a 48h)
+   └─ Validar GFS vs observaciones Argentona
+
+3. Comparar índices Argentona actual vs GFS predicción
+   ├─ ¿Diferencia muy grande? → Sesgo local
+   ├─ Ajustar predicción por sesgo histórico
+   └─ Publicar con bandas de confianza
+
+VENTAJAS:
+✓ Predicción real científica (respaldada por NOAA)
+✓ Confianza documentada y honesta
+✓ Índices sintéticos son VÁLIDOS porque datos base son válidos
+✓ No "ensucia" nada
+
+INCONVENIENTES:
+✓ Necesita API GFS (gratis pero requiere internet)
+✓ Más complejidad (parsing GFS, interpolación espacial)
+✓ Latencia (GFS publica cada 6h)
+
+LÍNEAS DE CÓDIGO: ~800
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔍 AUDITORÍA ACTUAL: DÓNDE SE PUEDE MEJORAR AHORA
+═══════════════════════════════════════════════════════════════════════════════
+
+ANTES DE hacer predicciones, encontré problemas que deberían solucionarse:
+
+1. ❌ RADIACIÓN SOLAR FALTANTE O CERO
+   Impacto: Trinity, UV, confort, energía solar = unreliable
+   
+   Solución:
+   ├─ Verificar sensor radiación está conectado
+   ├─ Si está 0 todo el día (noche)) → es OK
+   ├─ Si está 0 también a mediodía → PROBLEMA
+   ├─ Fallback: Usar Bird-Hulstrom simple (predicción)
+   └─ Acción: audit_radiacion_sensor.py
+
+2. ❌ HUMEDAD SUELO NO PUBLICADA
+   Impacto: Agricultura indices imposibles, deporte adherencia incierta
+   
+   Solución:
+   ├─ Sensor capacitivo disponible?
+   ├─ Si no → estimarla con balance hídrico Thornthwaite
+   └─ Acción: estimador_humedad_suelo.py
+
+3. ⚠️ VALIDACIÓN CRUZADA INSUFICIENTE
+   Entre formulas alternativas (Hardy vs Magnus, Haurwitz vs Rayleigh)
+   
+   Solución:
+   ├─ Crear suite de tests que compare formulas
+   ├─ Mostrar qué diferencias hay en casos reales
+   ├─ Documentar qué usar para qué caso
+   └─ Acción: test_formulae_comparison.py
+
+4. ⚠️ SIN BENCHMARKING HISTÓRICO
+   No sabemos cuán precisos son nuestros índices vs realidad
+   
+   Solución:
+   ├─ Guardar: índice cetrería calculado vs cetrería real observada
+   ├─ Cada semana: ¿Predijimos bien el día de ayer?
+   ├─ Calcular RMSE, MAE, bias por índice
+   └─ Acción: benchmarking_framework.py
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 RECOMENDACIÓN FINAL
+═══════════════════════════════════════════════════════════════════════════════
+
+PLAN IMPLEMENTACIÓN (ORDEN):
+
+FASE 1 (ANTES de predicciones): AUDITORÍAS [2-3 horas]
+  1. Verificar radiación sensor (¿está conectado? ¿tiene valores realistas?)
+  2. Crear estimador humedad suelo (si sensor no existe)
+  3. Comparar formulas: Hardy vs Magnus en 30 casos reales
+  4. Documentar confianza de cada índice
+
+FASE 2 (SI auditoria OK): PREDICCIÓN CONSERVADORA [4 horas]
+  1. Análisis tendencia Mann-Kendall + Theil-Sen robust
+  2. Proyectar: temperatura, presión (solo con tendencia)
+  3. Calcular índices sintéticos CON datos proyectados
+  4. MARCAR CONFIANZA = 30-50% en todos
+
+FASE 3 (Mejora futura): GFS INTEGRATION [6-8 horas]
+  1. API GFS NOAA
+  2. Descargar predicciones GFS 25h + 49h
+  3. Aplicar índices con datos GFS
+  4. Comparar vs Argentona observado (sesgo?)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 MI RECOMENDACIÓN HONESTA:
+
+→ HACER FASE 1 (auditorías) AHORA (2-3 horas)
+→ Después, BASADO EN RESULTADOS, decidir si Fase 2 o Fase 3
+
+Si auditoría revela buenos datos → Fase 2 es viable y útil
+Si auditoría revela problemas → Primero arreglamos, después predicciones
+
+¿Te parece bien este approach? Te doy la verdad: sin saber qué datos
+realmente tenemos en Argentona, prometer predicciones sería IRRESPONSABLE.
+
+═══════════════════════════════════════════════════════════════════════════════

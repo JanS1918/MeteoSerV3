@@ -1,0 +1,69 @@
+........................................................................ [ 61%]
+........s....................................                            [100%]
+============================== warnings summary ===============================
+tests\ai\test_orchestrator.py:67
+  C:\Users\kioko\Desktop\MeteoSerV3\tests\ai\test_orchestrator.py:67: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+test_resiliencia_universal.py::test_fallback_con_datos_completos
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_resiliencia_universal.py::test_fallback_con_datos_completos returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+test_resiliencia_universal.py::test_fallback_con_datos_faltantes
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_resiliencia_universal.py::test_fallback_con_datos_faltantes returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+test_resiliencia_universal.py::test_cascada_degradacion
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_resiliencia_universal.py::test_cascada_degradacion returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+test_resiliencia_universal.py::test_estado_fisico_basal
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_resiliencia_universal.py::test_estado_fisico_basal returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+test_resiliencia_universal.py::test_resiliencia_extrema
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_resiliencia_universal.py::test_resiliencia_extrema returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+test_sintonizacion_2026.py::test_constantes_dinamicas_argentona
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_sintonizacion_2026.py::test_constantes_dinamicas_argentona returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+test_sintonizacion_2026.py::test_comparacion_isa_vs_real
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_sintonizacion_2026.py::test_comparacion_isa_vs_real returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+test_sintonizacion_2026.py::test_psicrometria_con_z
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_sintonizacion_2026.py::test_psicrometria_con_z returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+test_sintonizacion_2026.py::test_et0_con_somigliana
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_sintonizacion_2026.py::test_et0_con_somigliana returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+test_sintonizacion_2026.py::test_estabilidad_con_cp_dinamico
+  C:\Users\kioko\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but test_sintonizacion_2026.py::test_estabilidad_con_cp_dinamico returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+116 passed, 1 skipped, 11 warnings in 29.64s

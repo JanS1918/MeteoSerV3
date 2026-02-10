@@ -1,0 +1,22 @@
+{
+  "modifications": [
+    {
+      "timestamp": 1770225708.0048325,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770225708.0062032,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "scipy_sensacion_termica_0": {
+    "id": "scipy_sensacion_termica_0",
+    "parametro": "sensacion_termica",
+    "nombre": "scipy.optimize.curve_fit - Wind chill model",
+    "descripcion": "Modelo optimizado de sensación térmica por viento",
+    "fuente": "scipy",
+    "inputs_requeridos": [
+      "temperatura",
+      "velocidad_viento"
+    ],
+    "formula_ref": "scipy.optimize.curve_fit",
+    "metadata": {
+      "categoria": "estadística"
+    },
+    "discovery_ts": 1770241218.028844,
+    "validada": true,
+    "score_validacion": 92.0
+  },
+  "scipy_sensacion_termica_1": {
+    "id": "scipy_sensacion_termica_1",
+    "parametro": "sensacion_termica",
+    "nombre": "scipy.stats.norm - Normal distribution",
+    "descripcion": "Distribución normal para sensación térmica",
+    "fuente": "scipy",
+    "inputs_requeridos": [
+      "temperatura"
+    ],
+    "formula_ref": "scipy.stats.norm",
+    "metadata": {
+      "categoria": "estadística"
+    },
+    "discovery_ts": 1770241218.028852,
+    "validada": true,
+    "score_validacion": 91.0
+  },
+  "scipy_humedad_relativa_0": {
+    "id": "scipy_humedad_relativa_0",
+    "parametro": "humedad_relativa",
+    "nombre": "scipy.special.erf - Error function",
+    "descripcion": "Función de error para suavización de humedad",
+    "fuente": "scipy",
+    "inputs_requeridos": [
+      "humedad_relativa"
+    ],
+    "formula_ref": "scipy.special.erf",
+    "metadata": {
+      "categoria": "estadística"
+    },
+    "discovery_ts": 1770241220.645699,
+    "validada": true,
+    "score_validacion": 91.0
+  },
+  "scipy_humedad_relativa_1": {
+    "id": "scipy_humedad_relativa_1",
+    "parametro": "humedad_relativa",
+    "nombre": "scipy.interpolate.interp1d",
+    "descripcion": "Interpolación para relación temperatura-humedad",
+    "fuente": "scipy",
+    "inputs_requeridos": [
+      "temperatura",
+      "humedad_relativa"
+    ],
+    "formula_ref": "scipy.interpolate.interp1d",
+    "metadata": {
+      "categoria": "estadística"
+    },
+    "discovery_ts": 1770241220.64571,
+    "validada": true,
+    "score_validacion": 92.0
+  },
+  "scipy_indice_uv_0": {
+    "id": "scipy_indice_uv_0",
+    "parametro": "indice_uv",
+    "nombre": "scipy.integrate.quad - UV index integration",
+    "descripcion": "Integración de espectro UV",
+    "fuente": "scipy",
+    "inputs_requeridos": [
+      "radiacion",
+      "altitud"
+    ],
+    "formula_ref": "scipy.integrate.quad",
+    "metadata": {
+      "categoria": "estadística"
+    },
+    "discovery_ts": 1770241220.652422,
+    "validada": true,
+    "score_validacion": 92.0
+  },
+  "scipy_velocidad_viento_0": {
+    "id": "scipy_velocidad_viento_0",
+    "parametro": "velocidad_viento",
+    "nombre": "scipy.stats.weibull_min - Wind speed distribution",
+    "descripcion": "Distribución Weibull para vientos",
+    "fuente": "scipy",
+    "inputs_requeridos": [
+      "velocidad_viento"
+    ],
+    "formula_ref": "scipy.stats.weibull_min",
+    "metadata": {
+      "categoria": "estadística"
+    },
+    "discovery_ts": 1770241220.656033,
+    "validada": true,
+    "score_validacion": 91.0
+  },
+  "scipy_radiacion_solar_0": {
+    "id": "scipy_radiacion_solar_0",
+    "parametro": "radiacion_solar",
+    "nombre": "scipy.ndimage.gaussian_filter",
+    "descripcion": "Filtro Gaussiano para suavizar radiación",
+    "fuente": "scipy",
+    "inputs_requeridos": [
+      "radiacion_solar"
+    ],
+    "formula_ref": "scipy.ndimage.gaussian_filter",
+    "metadata": {
+      "categoria": "estadística"
+    },
+    "discovery_ts": 1770241220.659707,
+    "validada": true,
+    "score_validacion": 91.0
+  }
+}

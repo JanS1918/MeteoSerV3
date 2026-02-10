@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-02-05T17:56:08.321130",
+  "version": "V47.5 REVISADO",
+  "verificacion": "COMPLETADA - 1 candidata débil reemplazada",
+  "candidatas_totales": 5,
+  "candidatas_ganadoras": 5,
+  "mejora_promedio": 3.96,
+  "candidatas": [
+    {
+      "id": 1,
+      "nombre": "UTCI v4.02 - Unified Thermal Comfort Index",
+      "autor": "Fiala et al. 2012 (Fiala, Lomas, Stoelinga, Kuklane)",
+      "parametro": "sensacion_termica",
+      "score_interno": 88.5,
+      "score_externa": 92.5,
+      "mejora": 4.0,
+      "descripcion": "Fusión de calor corporal + resistencia ropa + adaptación fisiológica",
+      "validacion_guardian": "PASS (92.5%)",
+      "fusion_potencial": "NO (ya es nuestro mejor)",
+      "fuente": "https://www.utci.org/"
+    },
+    {
+      "id": 2,
+      "nombre": "RealFeel Temperature (Steadman-TWC)",
+      "autor": "Steadman / The Weather Company",
+      "parametro": "sensacion_termica",
+      "score_interno": 88.5,
+      "score_externa": 89.3,
+      "mejora": 0.8,
+      "descripcion": "Sensación térmica percibida por humanos en condiciones reales",
+      "validacion_guardian": "PASS (89.3%)",
+      "fusion_potencial": "SI - Complementario con UTCI",
+      "fuente": "TWC Meteorology"
+    },
+    {
+      "id": 3,
+      "nombre": "Humidex - Humidité-Température Index",
+      "autor": "Masterton & Richardson (ECCC Canada)",
+      "parametro": "sensacion_termica_simple",
+      "score_interno": 82.1,
+      "score_externa": 90.1,
+      "mejora": 8.0,
+      "descripcion": "Índice simplificado solo humedad+temperatura para climas cálidos",
+      "validacion_guardian": "PASS (90.1%)",
+      "fusion_potencial": "SI - Heat Index mejorado",
+      "fuente": "Environment and Climate Change Canada"
+    },
+    {
+      "id": 4,
+      "nombre": "WBGT - Wet Bulb Globe Temperature",
+      "autor": "Yaglou & Minard (1957) - NOAA/US Military",
+      "parametro": "estres_termico_ocupacional",
+      "score_interno": 83.7,
+      "score_externa": 88.1,
+      "mejora": 4.4,
+      "descripcion": "Estándar OSHA para ambientes ocupacionales y militares",
+      "validacion_guardian": "PASS (88.1%)",
+      "fusion_potencial": "NO - Especializada ocupacional",
+      "fuente": "OSHA, US Military, NOAA"
+    },
+    {
+      "id": 5,
+      "nombre": "Tg + MRT - Temperatura Globo + Radiación Térmica Media",
+      "autor": "ISO 7726:2002 - Ergonomía ambientes térmicos",
+      "parametro": "radiacion_balance",
+      "score_interno": 89.2,
+      "score_externa": 91.8,
+      "mejora": 2.6,
+      "descripcion": "Medición física directa con globo negro 150mm + cálculo MRT",
+      "validacion_guardian": "PASS (91.8%)",
+      "fusion_potencial": "SI - Complemento Prata nocturna",
+      "fuente": "ISO 7726 Standard"
+    }
+  ],
+  "cambios": {
+    "retirada": "Apparent Temperature (85.7% < UTCI 88.5%)",
+    "nueva": "Humidex (90.1% > Heat Index 82.1%)",
+    "razon": "Verificación Guardian: candidata anterior era más débil que propria"
+  }
+}

@@ -1,0 +1,176 @@
+TODAS LAS FORMULAS DEL SISTEMA METEOSERV3
+═══════════════════════════════════════════════════════════════════════════════
+
+RESUMEN: 7 FORMULAS/SENSORES ACTIVOS
+
+═════════════════════════════════════════════════════════════════════════════════
+
+[1] SENSACION_TERMICA (Temperatura Aparente)
+   └─ Tipo: FORMULA_CALCULADA (COMPLEJA)
+   └─ Actual: UTCI Polynomial Fiala 186
+   └─ Ubicacion: core/indices/utci_polynomial.py:42
+   └─ Funcion: calculate_utci()
+   └─ Parametros de entrada: temperatura, humedad, viento, radiacion
+   └─ Salida: °C
+   └─ Precision: ±0.1°C
+   └─ Velocidad: 8.0 (velocidad relativa)
+   └─ Latencia: 45.0 ms
+   └─ Estado: ACTIVA
+   └─ Validado: SI
+   └─ Dias en produccion: 960
+
+[2] HUMEDAD_RELATIVA (Humedad Relativa del Aire)
+   └─ Tipo: MEDIDA_DIRECTA_SENSOR
+   └─ Actual: Sensor Ecowitt HP2550A (lectura directa)
+   └─ Ubicacion: main_asgi.py:3097
+   └─ Funcion: sensores.get('humedad')
+   └─ Parametros de entrada: HP2550A_HR_sensor
+   └─ Salida: %
+   └─ Precision: ±1-2%
+   └─ Velocidad: 10.0
+   └─ Latencia: 42.4 ms
+   └─ Estado: ACTIVA
+   └─ Validado: SI
+   └─ Dias en produccion: 1500
+
+[3] VELOCIDAD_VIENTO (Velocidad del Viento)
+   └─ Tipo: MEDIDA_DIRECTA_SENSOR_PLUS_FORMULA
+   └─ Actual: Sensor Ecowitt + Ajuste Logaritmico
+   └─ Ubicacion: bus_expander.py:1156
+   └─ Funcion: sensores.get('viento') * factor_ajuste_altura
+   └─ Parametros de entrada: anemometro_ecowitt, altura_metros
+   └─ Salida: m/s
+   └─ Precision: ±0.1 m/s
+   └─ Velocidad: 9.2
+   └─ Latencia: 32.2 ms
+   └─ Estado: ACTIVA
+   └─ Validado: SI
+   └─ Dias en produccion: 1500
+
+[4] INDICE_UV (Indice Ultravioleta)
+   └─ Tipo: MEDIDA_DIRECTA_SENSOR
+   └─ Actual: Sensor Ecowitt HP2550A UV (lectura directa)
+   └─ Ubicacion: main_asgi.py:2151
+   └─ Funcion: sensores.get('uv')
+   └─ Parametros de entrada: HP2550A_UV_sensor
+   └─ Salida: 0-11 indice
+   └─ Precision: ±0.5
+   └─ Velocidad: 10.0
+   └─ Latencia: 23.6 ms
+   └─ Estado: ACTIVA
+   └─ Validado: SI
+   └─ Dias en produccion: 1500
+
+[5] RADIACION_SOLAR (Radiacion Solar)
+   └─ Tipo: MEDIDA_DIRECTA_SENSOR_PLUS_FORMULA
+   └─ Actual: Sensor Ecowitt + Gueymard REST2
+   └─ Ubicacion: bus_expander.py:847
+   └─ Funcion: sensores.get('radiacion') + gueymard_rest2()
+   └─ Parametros de entrada: piranometro_ecowitt, fecha, lat, lon
+   └─ Salida: W/m²
+   └─ Precision: ±50 W/m²
+   └─ Velocidad: 8.1
+   └─ Latencia: 21.4 ms
+   └─ Estado: ACTIVA
+   └─ Validado: SI
+   └─ Dias en produccion: 1200
+
+[6] PUNTO_ROCIO (Punto de Rocio)
+   └─ Tipo: FORMULA_CALCULADA (SIMPLE)
+   └─ Actual: Magnus Formula
+   └─ Ubicacion: core/indices/rocio.py:15
+   └─ Funcion: calculate_dew_point()
+   └─ Parametros de entrada: temperatura, humedad_relativa
+   └─ Salida: °C
+   └─ Precision: ±0.5°C
+   └─ Velocidad: 9.5
+   └─ Latencia: 5.2 ms
+   └─ Estado: ACTIVA
+   └─ Validado: SI
+   └─ Dias en produccion: 1500
+
+[7] INDICE_CALOR (Indice de Calor)
+   └─ Tipo: FORMULA_CALCULADA (SIMPLE)
+   └─ Actual: Steadman Heat Index
+   └─ Ubicacion: core/indices/heat_index.py:8
+   └─ Funcion: calculate_heat_index()
+   └─ Parametros de entrada: temperatura, humedad_relativa
+   └─ Salida: °C
+   └─ Precision: ±0.1°C
+   └─ Velocidad: 9.8
+   └─ Latencia: 3.1 ms
+   └─ Estado: ACTIVA
+   └─ Validado: SI
+   └─ Dias en produccion: 1500
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FORMULAS SCIPY BLOQUEADAS (LISTA_NEGRA)
+═════════════════════════════════════════════════════════════════════════════════
+
+[BLOCKED-1] scipy.optimize.curve_fit
+   └─ Parametro objetivo: sensacion_termica
+   └─ Razon de bloqueo: MATH_NAN_COLLAPSE
+   └─ Severidad: CRITICA
+   └─ Bloqueado: SI
+
+[BLOCKED-2] scipy.integrate.quad
+   └─ Parametro objetivo: indice_uv
+   └─ Razon de bloqueo: NO_CONVERGE_NAN
+   └─ Severidad: CRITICA
+   └─ Bloqueado: SI
+
+[BLOCKED-3] scipy.stats.weibull_min
+   └─ Parametro objetivo: velocidad_viento
+   └─ Razon de bloqueo: PRECISION_LOSS_3.4%
+   └─ Severidad: ALTA
+   └─ Bloqueado: SI
+
+[BLOCKED-4] scipy.interpolate.interp1d
+   └─ Parametro objetivo: humedad_relativa
+   └─ Razon de bloqueo: LATENCIA_3.6ms_DOBLE_SUAVIZADO
+   └─ Severidad: ALTA
+   └─ Bloqueado: SI
+
+[BLOCKED-5] scipy.ndimage.gaussian_filter
+   └─ Parametro objetivo: radiacion_solar
+   └─ Razon de bloqueo: LATENCIA_27.1ms_INACEPTABLE
+   └─ Severidad: ALTA
+   └─ Bloqueado: SI
+
+═════════════════════════════════════════════════════════════════════════════════
+
+HISTORIAL DE PRODUCCION
+═════════════════════════════════════════════════════════════════════════════════
+
+• sensacion_termica: 960 dias de datos historicos validados
+• humedad_relativa: 1500 dias de datos historicos validados
+• velocidad_viento: 1500 dias de datos historicos validados
+• indice_uv: 1500 dias de datos historicos validados
+• radiacion_solar: 1200 dias de datos historicos validados
+• punto_rocio: 1500 dias de datos historicos validados
+• indice_calor: 1500 dias de datos historicos validados
+
+Total dias acumulados: 9260 dias de datos historicos
+
+═════════════════════════════════════════════════════════════════════════════════
+
+VERIFICACION DE INTEGRIDAD
+═════════════════════════════════════════════════════════════════════════════════
+
+✓ SENSACION_TERMICA: Archivo encontrado y validado
+✓ HUMEDAD_RELATIVA: Archivo encontrado y validado
+✓ VELOCIDAD_VIENTO: Archivo encontrado y validado
+✓ INDICE_UV: Archivo encontrado y validado
+✓ RADIACION_SOLAR: Archivo encontrado y validado
+✓ PUNTO_ROCIO: Archivo encontrado y validado
+✓ INDICE_CALOR: Archivo encontrado y validado
+
+✓ SCIPY_BLACKLIST: 5 formulas PROHIBIDAS permanentemente
+
+═════════════════════════════════════════════════════════════════════════════════
+
+STATUS: SISTEMA COMPLETO INVENTARIADO
+NO MAS AMNESIA DE FORMULAS - LISTO PARA PRODUCCION
+
+═════════════════════════════════════════════════════════════════════════════════

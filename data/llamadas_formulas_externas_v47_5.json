@@ -1,0 +1,194 @@
+{
+  "timestamp": "2026-02-05T17:50:58.702386",
+  "candidatas_evaluadas": 5,
+  "evaluaciones": [
+    {
+      "idx": 1,
+      "nombre": "UTCI v4.02 (Fiala et al. 2012)",
+      "fuente": "Universitat Autonoma de Barcelona",
+      "parametro": "sensacion_termica",
+      "score_teorico": 92.5,
+      "validacion": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      },
+      "estado_final": "GANADORA"
+    },
+    {
+      "idx": 2,
+      "nombre": "RealFeel Temperature (Steadman/TWC)",
+      "fuente": "The Weather Company / Steadman 1994",
+      "parametro": "sensacion_termica",
+      "score_teorico": 89.3,
+      "validacion": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      },
+      "estado_final": "GANADORA"
+    },
+    {
+      "idx": 3,
+      "nombre": "Apparent Temperature (Steadman 1994)",
+      "fuente": "Australian Bureau of Meteorology",
+      "parametro": "sensacion_termica",
+      "score_teorico": 85.7,
+      "validacion": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      },
+      "estado_final": "GANADORA"
+    },
+    {
+      "idx": 4,
+      "nombre": "WBGT - Wet Bulb Globe Temperature (Yaglou 1957)",
+      "fuente": "US Military / NOAA / WHO",
+      "parametro": "estres_termico_ocupacional",
+      "score_teorico": 88.1,
+      "validacion": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      },
+      "estado_final": "GANADORA"
+    },
+    {
+      "idx": 5,
+      "nombre": "Tg (Temperatura Globo) + MRT (Radiación Térmica Media)",
+      "fuente": "ISO 7726:2002 / Campbell-Norman",
+      "parametro": "radiacion_balance",
+      "score_teorico": 91.8,
+      "validacion": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      },
+      "estado_final": "GANADORA"
+    }
+  ],
+  "ganadoras": [
+    {
+      "nombre": "UTCI v4.02 (Fiala et al. 2012)",
+      "fuente": "Universitat Autonoma de Barcelona",
+      "parametro": "sensacion_termica",
+      "descripcion": "Universal Thermal Climate Index - 6 niveles de comodidad, modelo mónaco-dimensional",
+      "score_teorico": 92.5,
+      "validacion_guardian": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      }
+    },
+    {
+      "nombre": "RealFeel Temperature (Steadman/TWC)",
+      "fuente": "The Weather Company / Steadman 1994",
+      "parametro": "sensacion_termica",
+      "descripcion": "Incorpora radiación solar, cobertura nubes, reflexión suelo, masa corporal",
+      "score_teorico": 89.3,
+      "validacion_guardian": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      }
+    },
+    {
+      "nombre": "Apparent Temperature (Steadman 1994)",
+      "fuente": "Australian Bureau of Meteorology",
+      "parametro": "sensacion_termica",
+      "descripcion": "AT = T + 0.33*VP - 0.70*WS - 4.00 (simple, rápido)",
+      "score_teorico": 85.7,
+      "validacion_guardian": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      }
+    },
+    {
+      "nombre": "WBGT - Wet Bulb Globe Temperature (Yaglou 1957)",
+      "fuente": "US Military / NOAA / WHO",
+      "parametro": "estres_termico_ocupacional",
+      "descripcion": "Estándar ISO para ambientes ocupacionales - más conservador que UTCI",
+      "score_teorico": 88.1,
+      "validacion_guardian": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      }
+    },
+    {
+      "nombre": "Tg (Temperatura Globo) + MRT (Radiación Térmica Media)",
+      "fuente": "ISO 7726:2002 / Campbell-Norman",
+      "parametro": "radiacion_balance",
+      "descripcion": "Radiación efectiva en balance energético - crucial para nocturnos",
+      "score_teorico": 91.8,
+      "validacion_guardian": {
+        "pasa_guardian": true,
+        "criterios": {
+          "pasa_integrity": true,
+          "pasa_sanitizacion": true,
+          "pasa_rango_fisico": true,
+          "pasa_peer_review": true
+        },
+        "motivo": "",
+        "nota": "Fórmula externa validada. Candidata a duelos con nuestras fórmulas."
+      }
+    }
+  ],
+  "respuesta_guardian": {}
+}

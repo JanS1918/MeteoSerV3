@@ -1,0 +1,16 @@
+{
+    "contexto.fisica.capacidad_calorica_suelo": 870,
+    "contexto.fisica.conductividad_suelo_wm2k": 1.7,
+    "contexto.fisica.densidad_suelo": 1350,
+    "contexto.fisica.albedo_suelo": 0.16,
+    "contexto.fisica.emisividad_suelo": 0.96,
+    "contexto.fisica.capacidad_calorica_aire": 1006,
+    "contexto.fisica.densidad_aire": 1.188,
+    "contexto.fisica.conductividad_aire": 0.026,
+    "contexto.fisica.calor_latente_vaporizacion_agua": 2256000,
+    "contexto.fisica.calor_latente_fusion_agua": 333700,
+    "contexto.fisica.calor_latente_sublimacion_agua": 2834000,
+    "contexto.fisica.capacidad_calorica_agua": 4184,
+    "contexto.fisica.capacidad_calorica_hielo": 2090,
+    "contexto.fisica.capacidad_calorica_vapor_agua": 2010
+}

@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-02-05T10:27:07.931526",
+  "version": "V45.0",
+  "latencia": {
+    "tiempo_carmona_ms": 0.13586900022346526,
+    "tiempo_gryning_ms": 0.12379499996313824,
+    "tiempo_thompson_ms": 0.2190839999821037,
+    "tiempo_total_ms": 0.4787480001687072,
+    "estable": true,
+    "nan_carmona": false,
+    "nan_gryning": false,
+    "nan_thompson": false
+  },
+  "certificacion_estabilidad": "APROBADA",
+  "sha256_sistema": "1bcfc553f51deae4235c0b9662b251665cd1b554417952ca6140671d8e1408fd"
+}

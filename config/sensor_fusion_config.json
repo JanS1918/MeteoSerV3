@@ -1,0 +1,186 @@
+{
+  "descripcion": "Configuración de ponderaciones adaptativas para fusión WH65 + WH31",
+  "version": "1.0.0",
+  "ultima_actualizacion": "2026-02-10T00:00:00Z",
+  "ubicacion_wh65": "Exterior, zona soleada/expuesta",
+  "ubicacion_wh31": "Exterior, zona sombría/protegida",
+  
+  "ponderaciones": {
+    "confort": {
+      "descripcion": "Para índices de confort humano (WBGT, THI, etc.)",
+      "temperatura": {
+        "wh65": 0.3,
+        "wh31": 0.7,
+        "justificacion": "Priorizar zona sombría para confort real"
+      },
+      "humedad": {
+        "wh65": 0.4,
+        "wh31": 0.6,
+        "justificacion": "Humedad más realista en sombra"
+      }
+    },
+    
+    "lluvia": {
+      "descripcion": "Para predicción de lluvia y fenómenos de precipitación",
+      "temperatura": {
+        "wh65": 0.7,
+        "wh31": 0.3,
+        "justificacion": "Usar zona expuesta para detectar cambios de presión"
+      },
+      "humedad": {
+        "wh65": 0.65,
+        "wh31": 0.35,
+        "justificacion": "WH65 más expuesto a cambios de humedad ante lluvia"
+      }
+    },
+    
+    "alerta": {
+      "descripcion": "Para sistemas de alerta y validación",
+      "temperatura": {
+        "wh65": 0.5,
+        "wh31": 0.5,
+        "justificacion": "Balance para detectar anomalías"
+      },
+      "humedad": {
+        "wh65": 0.5,
+        "wh31": 0.5,
+        "justificacion": "Balance para detección de condensación"
+      }
+    },
+    
+    "microclima": {
+      "descripcion": "Para análisis de microclimas locales",
+      "temperatura": {
+        "wh65": 0.5,
+        "wh31": 0.5,
+        "justificacion": "Estudiar diferencias reales entre zonas"
+      },
+      "humedad": {
+        "wh65": 0.5,
+        "wh31": 0.5,
+        "justificacion": "Comparar humedad en ambas zonas"
+      }
+    },
+    
+    "rocio_niebla": {
+      "descripcion": "Para predicción de rocío, niebla y condensación",
+      "temperatura": {
+        "wh65": 0.4,
+        "wh31": 0.6,
+        "justificacion": "Rocío propenso en zonas sombrías húmedas"
+      },
+      "humedad": {
+        "wh65": 0.35,
+        "wh31": 0.65,
+        "justificacion": "Usar humedad de zona donde ocurre rocío"
+      }
+    },
+    
+    "confort_expuesto": {
+      "descripcion": "Para confort en zonas soleadas (terrazas, azoteas)",
+      "temperatura": {
+        "wh65": 0.7,
+        "wh31": 0.3,
+        "justificacion": "Usar temperatura real de zona soleada"
+      },
+      "humedad": {
+        "wh65": 0.6,
+        "wh31": 0.4,
+        "justificacion": "Humedad relevante para zona expuesta"
+      }
+    },
+    
+    "prediccion_general": {
+      "descripcion": "Para predicciones generales cuando contexto es ambiguo",
+      "temperatura": {
+        "wh65": 0.6,
+        "wh31": 0.4,
+        "justificacion": "Ligeramente más peso a zona expuesta"
+      },
+      "humedad": {
+        "wh65": 0.55,
+        "wh31": 0.45,
+        "justificacion": "Balance con predominio zona expuesta"
+      }
+    },
+    
+    "validacion": {
+      "descripcion": "Para detección de anomalías entre sensores",
+      "temperatura": {
+        "wh65": 0.5,
+        "wh31": 0.5,
+        "justificacion": "Simetría para detectar desviaciones"
+      },
+      "humedad": {
+        "wh65": 0.5,
+        "wh31": 0.5,
+        "justificacion": "Simetría para validación"
+      }
+    }
+  },
+  
+  "umbrales_anomalia": {
+    "temperatura_delta_max_celsius": 15.0,
+    "humedad_delta_max_porcentaje": 40.0,
+    "descripcion": "Si la diferencia entre sensores excede estos valores, se activa alerta de anomalía"
+  },
+  
+  "umbrales_microclima": {
+    "temperatura_delta_min_celsius": 3.0,
+    "humedad_delta_min_porcentaje": 15.0,
+    "descripcion": "Si la diferencia supera esto, se detecta microclima significativo"
+  },
+  
+  "umbrales_radiacion": {
+    "radiacion_sesgo_alto_w_m2": 400,
+    "delta_temp_sesgo_probable_celsius": 3.0,
+    "descripcion": "Criterio para detectar posible sesgo por radiación en WH65"
+  },
+  
+  "logging": {
+    "archivo_decisiones": "data/fusion_decisions.jsonl",
+    "archivo_alertas": "data/fusion_alerts.jsonl",
+    "archivo_microclimas": "data/fusion_microclimates.jsonl",
+    "guardar_decisiones": true,
+    "guardar_alertas": true,
+    "guardar_microclimas": true,
+    "verbosidad": "INFO"
+  },
+  
+  "api": {
+    "endpoint_fusion": "/api/v1/fusion/sensor_mix",
+    "endpoint_alertas": "/api/v1/fusion/alerts",
+    "endpoint_microclima": "/api/v1/fusion/microclimate",
+    "endpoint_analisis": "/api/v1/fusion/analysis"
+  },
+  
+  "indices_integracion": {
+    "wbgt": {
+      "habilitado": true,
+      "contexto": "confort",
+      "descripcion": "Wet Bulb Globe Temperature para confort"
+    },
+    "utci": {
+      "habilitado": true,
+      "contexto": "confort",
+      "descripcion": "Universal Thermal Climate Index"
+    },
+    "thi": {
+      "habilitado": true,
+      "contexto": "confort",
+      "descripcion": "Temperature Humidity Index"
+    },
+    "lluvia": {
+      "habilitado": true,
+      "contexto": "lluvia",
+      "descripcion": "Predicción de lluvia"
+    },
+    "rocio_niebla": {
+      "habilitado": true,
+      "contexto": "rocio_niebla",
+      "descripcion": "Punto de rocío y niebla"
+    }
+  },
+  
+  "notas": "Este archivo es editabledesde UI o manualmente. Los cambios se recargan automáticamente sin reiniciar servidor."
+}

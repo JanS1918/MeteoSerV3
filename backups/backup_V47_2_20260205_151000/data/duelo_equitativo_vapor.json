@@ -1,0 +1,18 @@
+{
+  "tipo_duelo": "Equitativo - Ambas COMPLETAS con Enhancement Factor",
+  "fecha": "2026-02-04",
+  "parametro": "presion_vapor",
+  "ganador": "HARDY",
+  "score_hardy": 0.33,
+  "score_iapws": 0.32,
+  "hardy_promedio_pa": 1347.4740876635685,
+  "iapws_promedio_pa": 1349.7343191318832,
+  "diferencia_promedio_pa": 2.2602314683146574,
+  "muestras": 20,
+  "observaciones": {
+    "hardy": "Presi\u00f3n vapor real con Enhancement Factor (f) + Wexler-Hyland",
+    "iapws": "Presi\u00f3n vapor real con Enhancement Factor (f) + IAPWS-95",
+    "ambas_completas": true,
+    "conclusion": "IAPWS-95 es marginalmente mejor (+0.3%) por mayor precisi\u00f3n en e_s"
+  }
+}

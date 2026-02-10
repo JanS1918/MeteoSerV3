@@ -1,0 +1,246 @@
+2026-02-05 17:03:03,793 - CENTINELA - INFO - ­ƒøí´©Å Cortafuegos de Cascada inicializado
+2026-02-05 17:03:03,796 - CENTINELA - INFO - ­ƒøí´©Å Monitor de Recursos y Auto-Limpieza inicializado
+2026-02-05 17:03:03,799 - CENTINELA - INFO - ­ƒøí´©Å Integridad SHA-256 (Sello de Oro) inicializada
+2026-02-05 17:03:03,800 - CENTINELA - INFO - ­ƒøí´©Å Sanitizaci├│n de Datos Externos (Higiene Meteorol├│gica) inicializada
+2026-02-05 17:03:03,801 - CENTINELA - INFO - ­ƒøí´©Å CENTINELA SOBERANO INICIADO
+2026-02-05 17:03:03,802 - CENTINELA - INFO -    Heartbeat: data\bus_heartbeat.json
+2026-02-05 17:03:03,802 - CENTINELA - INFO -    Timeout: 10.0s
+2026-02-05 17:03:03,803 - CENTINELA - INFO -    Verificaci├│n cada: 2.0s
+2026-02-05 17:03:03,803 - CENTINELA - INFO - Ô£à MOSClusteringValidator inicializado
+2026-02-05 17:03:03,804 - CENTINELA - INFO - Ô£à FeedbackLearningAuditor inicializado
+2026-02-05 17:03:03,806 - CENTINELA - INFO - ­ƒøí´©Å Guardian 25 Capas V47.5 PATRULLA SOBERANA inicializado
+
+­ƒöì Ejecutando auditor├¡a completa...
+2026-02-05 17:03:03,806 - CENTINELA - INFO - ­ƒöì Iniciando auditor├¡a completa de 25 capas (ORDEN POR RESTRICCI├ôN)...
+2026-02-05 17:03:03,807 - CENTINELA - INFO - 
+­ƒøí´©Å Ejecutando CAPA_24 (VITAL): Integridad c├│digo SHA-256
+2026-02-05 17:03:03,808 - CENTINELA - CRITICAL - ­ƒÜ¿ MODIFICACI├ôN DETECTADA: core/monitoring/centinela_soberano.py
+   Original: cc3129ad6ebdf65d...
+   Actual:   ea7538cce841bd88...
+2026-02-05 17:03:03,812 - CENTINELA - CRITICAL - ­ƒÜ¿ CAPA VITAL capa_24 FALL├ô - STOP_SISTEMA
+   Sistema aut├│nomo NO puede continuar sin esta capa
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 45-46: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 606, in <module>
+    guardian = Guardian25Capas()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 204, in __init__
+    "capa_22": CortafuegosCascada(workspace_root),
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\monitoring\cortafuegos_cascada.py", line 89, in __init__
+    logger.info("­ƒøí´©Å Cortafuegos de Cascada inicializado")
+Message: '­ƒøí´©Å Cortafuegos de Cascada inicializado'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 45-46: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 606, in <module>
+    guardian = Guardian25Capas()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 205, in __init__
+    "capa_23": MonitorRecursosAutoLimpieza(workspace_root),
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\monitoring\monitor_recursos_auto_limpieza.py", line 77, in __init__
+    logger.info("­ƒøí´©Å Monitor de Recursos y Auto-Limpieza inicializado")
+Message: '­ƒøí´©Å Monitor de Recursos y Auto-Limpieza inicializado'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 45-46: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 606, in <module>
+    guardian = Guardian25Capas()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 206, in __init__
+    "capa_24": IntegridadCodigoSHA256(workspace_root),
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\security\integridad_codigo_sha256.py", line 89, in __init__
+    logger.info("­ƒøí´©Å Integridad SHA-256 (Sello de Oro) inicializada")
+Message: '­ƒøí´©Å Integridad SHA-256 (Sello de Oro) inicializada'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 45-46: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 606, in <module>
+    guardian = Guardian25Capas()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 207, in __init__
+    "capa_25": SanitizacionDatosExternos(),
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\security\sanitizacion_datos_externos.py", line 92, in __init__
+    logger.info("­ƒøí´©Å Sanitizaci├│n de Datos Externos (Higiene Meteorol├│gica) inicializada")
+Message: '­ƒøí´©Å Sanitizaci├│n de Datos Externos (Higiene Meteorol├│gica) inicializada'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 45-46: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 606, in <module>
+    guardian = Guardian25Capas()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 208, in __init__
+    "capa_31": CentinelaSoberano(),
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\monitoring\centinela_soberano.py", line 81, in __init__
+    logger.info("­ƒøí´©Å CENTINELA SOBERANO INICIADO")
+Message: '­ƒøí´©Å CENTINELA SOBERANO INICIADO'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 45: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 606, in <module>
+    guardian = Guardian25Capas()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 209, in __init__
+    "capa_39": MOSClusteringValidator(workspace_root),
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\validation\mos_clustering_validator.py", line 69, in __init__
+    logger.info("Ô£à MOSClusteringValidator inicializado")
+Message: 'Ô£à MOSClusteringValidator inicializado'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 45: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 606, in <module>
+    guardian = Guardian25Capas()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 210, in __init__
+    "capa_40": FeedbackLearningAuditor(workspace_root),
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\learning\feedback_learning_auditor.py", line 58, in __init__
+    logger.info("Ô£à FeedbackLearningAuditor inicializado")
+Message: 'Ô£à FeedbackLearningAuditor inicializado'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 45-46: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 606, in <module>
+    guardian = Guardian25Capas()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 216, in __init__
+    logger.info("­ƒøí´©Å Guardian 25 Capas V47.5 PATRULLA SOBERANA inicializado")
+Message: '­ƒøí´©Å Guardian 25 Capas V47.5 PATRULLA SOBERANA inicializado'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f50d' in position 45: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 610, in <module>
+    informe = guardian.generar_informe_guardian()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 461, in generar_informe_guardian
+    auditoria = self.ejecutar_auditoria_completa()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 250, in ejecutar_auditoria_completa
+    logger.info("­ƒöì Iniciando auditor├¡a completa de 25 capas (ORDEN POR RESTRICCI├ôN)...")
+Message: '­ƒöì Iniciando auditor├¡a completa de 25 capas (ORDEN POR RESTRICCI├ôN)...'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 47-48: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 610, in <module>
+    informe = guardian.generar_informe_guardian()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 461, in generar_informe_guardian
+    auditoria = self.ejecutar_auditoria_completa()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 267, in ejecutar_auditoria_completa
+    logger.info(f"\n­ƒøí´©Å Ejecutando {capa_id.upper()} ({nivel}): {capa_config['nombre']}")
+Message: '\n­ƒøí´©Å Ejecutando CAPA_24 (VITAL): Integridad c├│digo SHA-256'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f6a8' in position 49: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 610, in <module>
+    informe = guardian.generar_informe_guardian()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 461, in generar_informe_guardian
+    auditoria = self.ejecutar_auditoria_completa()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 273, in ejecutar_auditoria_completa
+    resultado_capa = self._ejecutar_capa(capa_id)
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 362, in _ejecutar_capa
+    integridad = self.capas["capa_24"].verificar_integridad()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\security\integridad_codigo_sha256.py", line 214, in verificar_integridad
+    logger.critical(
+Message: '­ƒÜ¿ MODIFICACI├ôN DETECTADA: core/monitoring/centinela_soberano.py\n   Original: cc3129ad6ebdf65d...\n   Actual:   ea7538cce841bd88...'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f6a8' in position 49: character maps to <undefined>
+Call stack:
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 610, in <module>
+    informe = guardian.generar_informe_guardian()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 461, in generar_informe_guardian
+    auditoria = self.ejecutar_auditoria_completa()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 298, in ejecutar_auditoria_completa
+    logger.critical(
+Message: '­ƒÜ¿ CAPA VITAL capa_24 FALL├ô - STOP_SISTEMA\n   Sistema aut├│nomo NO puede continuar sin esta capa'
+Arguments: ()
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 610, in <module>
+    informe = guardian.generar_informe_guardian()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_V47_5.py", line 522, in generar_informe_guardian
+    f"  Total Capas: {auditoria['resumen']['capas_total']}",
+                      ~~~~~~~~~^^^^^^^^^^^
+KeyError: 'resumen'

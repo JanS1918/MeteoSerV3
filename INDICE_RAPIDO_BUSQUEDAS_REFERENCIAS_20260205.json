@@ -1,0 +1,335 @@
+{
+  "INDICE_RAPIDO_ELEMENTOS_ELIMINADOS": {
+    "generado": "2026-02-05",
+    "total_elementos": 87,
+    "archivo_json_completo": "ANALISIS_ELEMENTOS_ELIMINADOS_NO_IMPLEMENTADOS_20260205.json",
+    "archivo_resumen": "ANALISIS_ELEMENTOS_ELIMINADOS_RESUMEN_EJECUTIVO_20260205.md",
+    "BÚSQUEDAS_COMUNES": {
+      "q1_que_se_elimino": {
+        "respuesta": "Ver categoría 1 (Métodos/Funciones Eliminadas) - 12 funciones",
+        "ejemplo": "UTCI v3 → v4.02, Radiación Ångström → REST2",
+        "veredicto": "✅ 100% bien justificadas"
+      },
+      "q2_que_no_se_implemento": {
+        "respuesta": "Ver categoría 3 (Arquitecturas Descartadas) - 8 capas críticas",
+        "ejemplo": "CAPA 18 Canary Rollout, CAPA 21 Watchdog Soberano",
+        "severidad": "🔴 CRÍTICO - Requiere implementación inmediata"
+      },
+      "q3_features_no_implementadas": {
+        "respuesta": "Ver categoría 6 (Features Changelog) - 10 items",
+        "ejemplo": "GFS/ECMWF (bloqueado credenciales), LSTM (3 meses datos, necesita 5)",
+        "veredicto": "✅ Todas con bloqueador documentado"
+      },
+      "q4_constantes_diferentes": {
+        "respuesta": "Ver categoría 7 (Constantes/Parámetros) - 12 cambios",
+        "ejemplo": "g: 9.81→Somigliana, Factor Z: NO→Dinámico, z0: 0.5→0.15",
+        "veredicto": "✅ Mejoras continuas medidas"
+      },
+      "q5_modulos_en_backup_no_en_core": {
+        "respuesta": "Ver categoría 4 (Módulos en Backups) - 15 total",
+        "eliminados": 9,
+        "nunca_creados": 6,
+        "ejemplo_eliminado": "utci_v3_legacy.py → bien reemplazada",
+        "ejemplo_no_creado": "core/deployment/canary_rollout_manager.py → CAPA 18 CRÍTICA"
+      }
+    },
+    "ACCESO_RAPIDO_POR_CRITICIDAD": {
+      "CRÍTICO": [
+        {
+          "id": "ARCH_007",
+          "nombre": "CAPA 18: Canary Rollout",
+          "razon": "ÚNICO mecanismo deploy seguro",
+          "ubicacion_json": "categorias.3_arquitecturas_descartadas.elementos[6]",
+          "tiempo_fix": "3-4 horas",
+          "bloqueador": "Ninguno - implementar ya"
+        },
+        {
+          "id": "ARCH_008",
+          "nombre": "CAPA 21: Watchdog Soberano",
+          "razon": "Defensa final contra IA comprometida",
+          "ubicacion_json": "categorias.3_arquitecturas_descartadas.elementos[7]",
+          "tiempo_fix": "3-4 horas",
+          "bloqueador": "Ninguno - implementar ya"
+        },
+        {
+          "id": "CONST_003",
+          "nombre": "ISA Fallback Bug",
+          "razon": "1013.25 hPa vs 1011.3 real en Argentona = ±2 hPa error",
+          "ubicacion_json": "categorias.7_constantes_parametros_diferentes.elementos[2]",
+          "tiempo_fix": "1 línea",
+          "bloqueador": "Ninguno - bug identificado"
+        }
+      ],
+      "ALTO": [
+        {
+          "id": "ARCH_006",
+          "nombre": "CAPA 17: Execution Sandbox",
+          "razon": "Previene fórmulas maliciosas colgando sistema",
+          "tiempo_fix": "2.5-3 horas"
+        },
+        {
+          "id": "ARCH_003",
+          "nombre": "CAPA 14: Drift Detection Gate",
+          "razon": "Detecta fórmulas degradadas en tiempo real",
+          "tiempo_fix": "2 horas",
+          "nota": "CUSUM existe, solo integrar como gate"
+        },
+        {
+          "id": "FEATURE_003",
+          "nombre": "Test Ignición Física 2026",
+          "razon": "Test diseñado pero nunca ejecutado",
+          "tiempo_fix": "5 minutos"
+        }
+      ],
+      "MEDIO": [
+        {
+          "id": "ARCH_005",
+          "nombre": "CAPA 16: Anomaly Detector Winners",
+          "razon": "Evita IA acepte 'trampas' matemáticas",
+          "tiempo_fix": "2 horas"
+        },
+        {
+          "id": "STRAT_001",
+          "nombre": "Caché Constantes Dinámicas",
+          "razon": "Optimización -30 a -50% CPU",
+          "tiempo_fix": "1.5 horas"
+        }
+      ]
+    },
+    "REFERENCIAS_RAPIDAS_POR_CATEGORIA": {
+      "categoria_1_funciones_eliminadas": {
+        "nombre": "Métodos/Funciones Eliminadas o Desactivadas",
+        "cantidad": 12,
+        "todas_justificadas": "✅ SÍ",
+        "items_clave": [
+          "FUNC_001: @app.on_event → lifespan (FastAPI)",
+          "FUNC_003: UTCI v3 → v4.02 (+2.5% precisión)",
+          "FUNC_004: WBGT Simple → Liljegren (+400% rango)",
+          "FUNC_005: Radiación Ångström → REST2 (10x mejor)"
+        ],
+        "json_path": "categorias.1_metodos_funciones_eliminadas.elementos[*]"
+      },
+      "categoria_2_ideas_no_implementadas": {
+        "nombre": "Ideas Mencionadas en .md No Implementadas",
+        "cantidad": 12,
+        "todas_planificadas": "✅ SÍ (100% con bloqueador)",
+        "items_clave": [
+          "IDEA_001: GFS/ECMWF - V49, bloqueado credenciales",
+          "IDEA_002: LSTM - V50, espera 5 años datos",
+          "IDEA_003: GUI Dashboard - V51, personal limitado",
+          "IDEA_009: ML MOS - Q4 2026, espera 18 meses data"
+        ],
+        "json_path": "categorias.2_ideas_no_implementadas.elementos[*]"
+      },
+      "categoria_3_arquitecturas_descartadas": {
+        "nombre": "Arquitecturas Intentadas Pero Descartadas",
+        "cantidad": 8,
+        "criticas_no_implementadas": 2,
+        "items_clave": [
+          "⚠️ ARCH_007: CAPA 18 Canary Rollout - CRÍTICO",
+          "⚠️ ARCH_008: CAPA 21 Watchdog Soberano - CRÍTICO-MÁXIMO",
+          "ARCH_003: CAPA 14 Drift Gate - ALTO (CUSUM existe parcial)",
+          "ARCH_006: CAPA 17 Sandbox - CRÍTICO"
+        ],
+        "json_path": "categorias.3_arquitecturas_descartadas.elementos[*]"
+      },
+      "categoria_4_modulos_en_backups": {
+        "nombre": "Módulos Completos en Backups No en core/",
+        "cantidad": 15,
+        "eliminadas_justificadas": 9,
+        "nunca_creadas": 6,
+        "items_clave": [
+          "utci_v3_legacy.py (eliminada, bien reemplazada)",
+          "canary_rollout_manager.py (NUNCA creada - CRÍTICA)",
+          "watchdog_soberano.py (NUNCA creada - CRÍTICA-MÁXIMA)",
+          "bus_integration_auditor.py (NUNCA creada)"
+        ],
+        "json_path": "categorias.4_modulos_en_backups_no_en_core.elementos[*]"
+      },
+      "categoria_5_estrategias_optimizacion": {
+        "nombre": "Estrategias de Optimización Mencionadas No Usadas",
+        "cantidad": 8,
+        "implementables_rapido": 3,
+        "items_clave": [
+          "STRAT_001: Caché Constantes (1.5h, -30 a -50% CPU)",
+          "STRAT_002: ISA Fallback Dinámico (1h)",
+          "STRAT_003: Config JSON Estación (2-3h)",
+          "STRAT_004: UTCI Dual (experimental)"
+        ],
+        "json_path": "categorias.5_estrategias_optimizacion_no_usadas.elementos[*]"
+      },
+      "categoria_6_features_changelog": {
+        "nombre": "Features Mencionadas en CHANGELOG No Implementadas",
+        "cantidad": 10,
+        "tests_listos_no_ejecutados": 5,
+        "items_clave": [
+          "FEATURE_003: test_ignicion_fisica_2026.py (5 min)",
+          "FEATURE_004: test_sintonizacion_2026.py (5 min)",
+          "FEATURE_001: WH51 soil moisture (hardware pendiente)",
+          "Canary Rollout (CAPA 18 - CRÍTICA)"
+        ],
+        "json_path": "categorias.6_features_changelog_no_implementadas.elementos[*]"
+      },
+      "categoria_7_constantes_diferentes": {
+        "nombre": "Constantes/Parámetros Diferentes en Backups",
+        "cantidad": 12,
+        "mejoras_medidas": "✅ SÍ (evolución positiva)",
+        "items_clave": [
+          "g: 9.81→Somigliana (±0.07% Argentona)",
+          "Factor Z: NO→Dinámico (±0.5% densidad)",
+          "ISA Fallback: 1013.25→BUG IDENTIFICADO (1011.3)",
+          "Presión Vapor: Magnus→Hardy NIST (±0.05 hPa)"
+        ],
+        "json_path": "categorias.7_constantes_parametros_diferentes.elementos[*]"
+      }
+    },
+    "MAPA_MENTAL_PROBLEMAS": {
+      "NO_IMPLEMENTADO_CRÍTICO": {
+        "componentes": [
+          "CAPA 18",
+          "CAPA 21"
+        ],
+        "impacto": "SISTEMA SIN DEFENSA DEPLOY + ROLLBACK",
+        "riesgo": "🔴 MÁXIMO",
+        "horas_fix": "6-8"
+      },
+      "ARQUITECTURA_INCOMPLETA": {
+        "componentes": [
+          "CAPA 12-17"
+        ],
+        "impacto": "8 capas de validación/seguridad faltantes",
+        "riesgo": "🔴 ALTO",
+        "horas_fix": "12-15"
+      },
+      "TESTS_NO_EJECUTADOS": {
+        "componentes": [
+          "test_ignicion",
+          "test_sintonizacion",
+          "test_certificacion"
+        ],
+        "impacto": "Cobertura incomplete",
+        "riesgo": "🟡 MEDIO",
+        "horas_fix": "0.33"
+      },
+      "OPTIMIZACIONES_NO_APLICADAS": {
+        "componentes": [
+          "Caché",
+          "ISA Dinámico",
+          "Config JSON"
+        ],
+        "impacto": "-30 a -50% CPU potencial",
+        "riesgo": "🟢 BAJO",
+        "horas_fix": "5"
+      }
+    },
+    "BÚSQUEDAS_POR_PALABRA_CLAVE": {
+      "ELIMINATED": [
+        "FUNC_001",
+        "FUNC_003",
+        "FUNC_004",
+        "FUNC_005",
+        "MOD_001-009"
+      ],
+      "DEPRECATED": [
+        "FUNC_001",
+        "FUNC_002",
+        "FUNC_011"
+      ],
+      "NOT_IMPLEMENTED": [
+        "ARCH_001-008",
+        "FEATURE_001-010"
+      ],
+      "PENDING_HARDWARE": [
+        "IDEA_004",
+        "IDEA_010",
+        "IDEA_011",
+        "FEATURE_001",
+        "FEATURE_002"
+      ],
+      "PENDING_DATA": [
+        "IDEA_002",
+        "IDEA_009"
+      ],
+      "PENDING_BUDGET": [
+        "IDEA_005",
+        "IDEA_006"
+      ],
+      "PENDING_ADMIN": [
+        "IDEA_007"
+      ],
+      "QUICK_WINS": [
+        "FEATURE_003-007",
+        "CONST_003",
+        "STRAT_002"
+      ]
+    },
+    "RECOMENDACIONES_ORDENADAS_PRIORIDAD": [
+      {
+        "orden": 1,
+        "accion": "Implementar CAPA 18 (Canary Rollout)",
+        "razon": "ÚNICO mecanismo deploy seguro",
+        "tiempo": "3-4 horas",
+        "estado": "❌ NO EXISTE",
+        "urgencia": "🔴 INMEDIATA",
+        "impacto": "CRÍTICO",
+        "referencias": [
+          "ARCH_007",
+          "CAPAS_QUE_NO_HACEMOS.md",
+          "FEATURE_001"
+        ]
+      },
+      {
+        "orden": 2,
+        "accion": "Implementar CAPA 21 (Watchdog Soberano)",
+        "razon": "Defensa final IA comprometida",
+        "tiempo": "3-4 horas",
+        "estado": "❌ NO EXISTE",
+        "urgencia": "🔴 INMEDIATA",
+        "impacto": "CRÍTICO-MÁXIMO",
+        "referencias": [
+          "ARCH_008",
+          "CAPAS_QUE_NO_HACEMOS.md"
+        ]
+      },
+      {
+        "orden": 3,
+        "accion": "Corregir ISA Fallback dinámico",
+        "razon": "Bug: 1013.25 vs 1011.3 hPa en Argentona",
+        "tiempo": "1 hora",
+        "estado": "⚠️ BUG IDENTIFICADO",
+        "urgencia": "🔴 INMEDIATA",
+        "impacto": "ALTO",
+        "referencias": [
+          "CONST_003",
+          "ESTADO_Y_MEJORAS.md"
+        ]
+      },
+      {
+        "orden": 4,
+        "accion": "Ejecutar tests pendientes (5 tests)",
+        "razon": "Quick wins: cobertura completa",
+        "tiempo": "20 minutos",
+        "estado": "⏳ LISTOS PARA EJECUTAR",
+        "urgencia": "🟡 HOY",
+        "impacto": "MEDIO",
+        "referencias": [
+          "FEATURE_003-007",
+          "AUDITORIA_TAREAS_PENDIENTES_COMPLETA.md"
+        ]
+      },
+      {
+        "orden": 5,
+        "accion": "Integrar CAPA 14 (Drift Detection Gate)",
+        "razon": "CUSUM existe, solo integrar como gate",
+        "tiempo": "2 horas",
+        "estado": "⚠️ PARCIAL (CUSUM existe)",
+        "urgencia": "🟡 ESTA SEMANA",
+        "impacto": "ALTO",
+        "referencias": [
+          "ARCH_003",
+          "core/engines/statistical_brain.py"
+        ]
+      }
+    ]
+  }
+}

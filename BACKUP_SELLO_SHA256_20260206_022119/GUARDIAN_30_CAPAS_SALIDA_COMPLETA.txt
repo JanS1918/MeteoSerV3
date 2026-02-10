@@ -1,0 +1,196 @@
+[INFO] 
+================================================================================
+[INFO] \U0001f6e1\ufe0f\U0001f6e1\ufe0f\U0001f6e1\ufe0f GUARDI┴N DE 30 CAPAS - AUDITOR═A TOTAL V47.0 \U0001f6e1\ufe0f\U0001f6e1\ufe0f\U0001f6e1\ufe0f
+[INFO] ================================================================================
+[INFO] FLUJO: Capa 0 (Pre) \u2192 Capas 1-25 \u2192 Capas 26-30 (Post)
+[INFO] MANDATO: Verificar TODO, validar TODO, enfrentar TODO (si es SANO)
+[INFO] ================================================================================
+[INFO] \U0001f6e1\ufe0f CAPA 0: PRE-AUDITOR═A - VALIDACIËN DE FËRMULAS PROPIAS
+[INFO] Verificando que nuestras f¾rmulas son matemßticamente sanas...
+[INFO] 
+\U0001f4ca RESUMEN CAPA 0:
+[INFO] \u2705 F¾rmulas SANAS: 6
+[INFO] \u274c F¾rmulas DEFECTUOSAS: 3
+[INFO] \u26a0\ufe0f F¾rmulas SOSPECHOSAS: 4
+[ERROR] \U0001f6a8 ALERTA CR═TICA: F¾rmulas defectuosas detectadas!
+[ERROR]    - EVAPOTRANSPIRACION/FAO56_PM_ESTANDAR
+[ERROR]      Detalles: {'estado': 'DEFECTUOSA', 'razon': "Error al validar: 'charmap' codec can't encode character '\\u2705' in position 2: character maps to", 'detalles': []}
+[ERROR]    - EVAPOTRANSPIRACION/SHUTTLEWORTH_WALLACE
+[ERROR]      Detalles: {'estado': 'DEFECTUOSA', 'razon': 'Funci¾n no encontrada: evapotranspiracion_shuttleworth_wallace', 'detalles': []}
+[ERROR]    - NUBOSIDAD/SUNDQVIST_LATENT_HEAT
+[ERROR]      Detalles: {'estado': 'DEFECTUOSA', 'razon': 'Funci¾n no encontrada: calcular_nubosidad_sundqvist', 'detalles': []}
+[WARNING] \u26a0\ufe0f F¾rmulas sospechosas (revisar antes de duelos):
+[WARNING]    - EVAPOTRANSPIRACION/WRIGHT_2005_NOCTURNAL
+[WARNING]      Detalles: {'estado': 'SOSPECHOSA', 'razon': 'Problemas detectados', 'detalles': ['\u26a0\ufe0f Error parßmetros: evapotranspiracion_penman_monteith_wrigh']}
+[WARNING]    - TEMPERATURA_MINIMA/DEARDORFF_V46_5
+[WARNING]      Detalles: {'estado': 'SOSPECHOSA', 'razon': 'Problemas detectados', 'detalles': ['\u26a0\ufe0f Error parßmetros: calcular_temperatura_minima_deardorff_v4']}
+[WARNING]    - TEMPERATURA_MINIMA/DEARDORFF_V47_0_PRATA
+[WARNING]      Detalles: {'estado': 'SOSPECHOSA', 'razon': 'Problemas detectados', 'detalles': ['\u26a0\ufe0f Error parßmetros: get_temperatura_minima_v47_0() missing 2']}
+[WARNING]    - NUBOSIDAD/LIU_JORDAN_KASTEN
+[WARNING]      Detalles: {'estado': 'SOSPECHOSA', 'razon': 'Problemas detectados', 'detalles': ['\u26a0\ufe0f Error parßmetros: calcular_nubosidad_liu_jordan_kasten() m']}
+[INFO] ================================================================================
+[INFO] \U0001f6e1\ufe0f CAPAS 1-5: VERIFICACIËN DE EXISTENCIA DE ARCHIVOS
+[INFO] ================================================================================
+[INFO] 
+\U0001f4c2 CategorÝa: RADIACION_LW
+[INFO]   \u2705 VDI_3787: core/indices/temperatura_radiante_dinamica.py (estado: EN_USO)
+[INFO]      \u2705 Funci¾n calcular_temperatura_radiante_media() verificada
+[INFO]   \u2705 PRATA_1996: core/indices/radiacion_lw_prata.py (estado: IMPLEMENTADO_V47)
+[INFO]      \u2705 Funci¾n calcular_temperatura_cielo_efectiva_prata() verificada
+[INFO]   \u2705 DILLEY_OBRIEN_1998: core/indices/nubosidad_liu_jordan_kasten.py (estado: EN_USO_V45)
+[WARNING]      \u26a0\ufe0f Funci¾n radiacion_lw_dilley_obrien() NO ENCONTRADA en core/indices/nubosidad_liu_jordan_kasten.py
+[INFO] 
+\U0001f4c2 CategorÝa: EVAPOTRANSPIRACION
+[INFO]   \u2705 FAO56_PM_ESTANDAR: core/indices/environmental_indices.py (estado: EN_USO)
+[WARNING]      \u26a0\ufe0f Error verificando _penman_monteith_full(): 'charmap' codec can't encode character '\u2705' in position 2: character maps to <undefined>
+[INFO]   \u2705 WRIGHT_2005_NOCTURNAL: core/indices/et_nocturna_wright.py (estado: IMPLEMENTADO_V47)
+[INFO]      \u2705 Funci¾n evapotranspiracion_penman_monteith_wright() verificada
+[INFO]   \u2705 SHUTTLEWORTH_WALLACE: core/indices/advanced_physics_models.py (estado: EN_USO)
+[WARNING]      \u26a0\ufe0f Funci¾n evapotranspiracion_shuttleworth_wallace() NO ENCONTRADA en core/indices/advanced_physics_models.py
+[INFO] 
+\U0001f4c2 CategorÝa: CONFORT_TERMICO
+[INFO]   \u2705 UTCI_V1_FIALA_2012: core/indices/utci_polynomial.py (estado: EN_USO)
+[INFO]      \u2705 Funci¾n utci_polynomial() verificada
+[INFO]   \u2705 UTCI_V2_BLAZEJCZYK_2013: core/indices/utci_v2_blazejczyk.py (estado: IMPLEMENTADO_V47)
+[INFO]      \u2705 Funci¾n utci_v2_blazejczyk() verificada
+[INFO] 
+\U0001f4c2 CategorÝa: TEMPERATURA_MINIMA
+[INFO]   \u2705 DEARDORFF_V46_5: core/indices/deardorff_microclima_v46_5_argentona.py (estado: EN_USO)
+[INFO]      \u2705 Funci¾n calcular_temperatura_minima_deardorff_v46_5() verificada
+[INFO]   \u2705 DEARDORFF_V46_8_TERRAZA: core/indices/deardorff_v46_7_terraza_final.py (estado: DISPONIBLE)
+[INFO]      \u2705 Funci¾n calcular_temperatura_minima_v46_8_soberania() verificada
+[INFO]   \u2705 DEARDORFF_V47_0_PRATA: core/indices/deardorff_v47_0_prata_integration.py (estado: IMPLEMENTADO_V47)
+[INFO]      \u2705 Funci¾n get_temperatura_minima_v47_0() verificada
+[INFO] 
+\U0001f4c2 CategorÝa: FILTROS_RUIDO
+[INFO]   \u2705 RC_FILTER_TAU_6H: core/indices/deardorff_microclima_v46_5_argentona.py (estado: EN_USO)
+[INFO]      \u2705 Funci¾n FiltroRCHumedad() verificada
+[INFO]   \u2705 KALMAN_SOIL_WH51: core/indices/kalman_soil_wh51.py (estado: IMPLEMENTADO_V47)
+[INFO]      \u2705 Funci¾n KalmanSoilWH51() verificada
+[INFO] 
+\U0001f4c2 CategorÝa: NUBOSIDAD
+[INFO]   \u2705 LIU_JORDAN_KASTEN: core/indices/nubosidad_liu_jordan_kasten.py (estado: EN_USO)
+[INFO]      \u2705 Funci¾n calcular_nubosidad_liu_jordan_kasten() verificada
+[INFO]   \u2705 SUNDQVIST_LATENT_HEAT: core/indices/nubosidad_liu_jordan_kasten.py (estado: EN_USO)
+[WARNING]      \u26a0\ufe0f Funci¾n calcular_nubosidad_sundqvist() NO ENCONTRADA en core/indices/nubosidad_liu_jordan_kasten.py
+[INFO] 
+\U0001f4ca RESUMEN CAPAS 1-5:
+[INFO]   Archivos encontrados: 15
+[INFO]   Archivos faltantes: 0
+[INFO]   Funciones verificadas: 11
+[INFO]   Funciones faltantes: 3
+[INFO] 
+================================================================================
+[INFO] \U0001f6e1\ufe0f CAPAS 6-10: AN┴LISIS DE USO REAL EN BUS
+[INFO] ================================================================================
+[WARNING]   \u26a0\ufe0f PRATA_1996: DISPONIBLE pero NO USADA en bus
+[INFO]   \u2705 FAO56_PM_ESTANDAR: EN USO en bus_expander.py
+[WARNING]   \u26a0\ufe0f WRIGHT_2005_NOCTURNAL: DISPONIBLE pero NO USADA en bus
+[INFO]   \u2705 SHUTTLEWORTH_WALLACE: EN USO en bus_expander.py
+[INFO]   \u2705 UTCI_V1_FIALA_2012: EN USO en bus_expander.py
+[WARNING]   \u26a0\ufe0f UTCI_V2_BLAZEJCZYK_2013: DISPONIBLE pero NO USADA en bus
+[WARNING]   \u26a0\ufe0f DEARDORFF_V46_8_TERRAZA: DISPONIBLE pero NO USADA en bus
+[INFO]   \u2705 DEARDORFF_V47_0_PRATA: EN USO en bus_expander.py
+[INFO]   \u2705 KALMAN_SOIL_WH51: EN USO en bus_expander.py
+[INFO] 
+\U0001f4ca RESUMEN CAPAS 6-10:
+[INFO]   F¾rmulas en uso: 5
+[INFO]   F¾rmulas disponibles NO usadas: 4
+[WARNING] 
+\u26a0\ufe0f ALERTA: 4 f¾rmulas superiores NO estßn en el Bus:
+[WARNING]      - PRATA_1996: Mejora esperada +25.7%
+[WARNING]      - WRIGHT_2005_NOCTURNAL: Mejora esperada +18.7% nocturno
+[WARNING]      - UTCI_V2_BLAZEJCZYK_2013: Mejora esperada +5% (normal), +10.4░C (alta HR Maresme)
+[WARNING]      - DEARDORFF_V46_8_TERRAZA: Mejora esperada N/A
+[INFO] 
+================================================================================
+[INFO] \U0001f6e1\ufe0f CAPAS 11-15: DUELO DE FËRMULAS (Mejor vs Mejor)
+[INFO] ================================================================================
+[INFO] 
+\u2694\ufe0f CATEGOR═A: RADIACION_LW
+[INFO]   \u2705 VDI_3787 ya es la mejor y estß en uso
+[INFO] 
+\u2694\ufe0f CATEGOR═A: EVAPOTRANSPIRACION
+[WARNING]   \u2694\ufe0f DUELO: FAO56_PM_ESTANDAR (en uso) vs WRIGHT_2005_NOCTURNAL (disponible)
+[WARNING]      En uso: ▒15% diurno, ▒50% nocturno (1998)
+[WARNING]      Disponible: ▒10% nocturno (2005)
+[WARNING]      \U0001f3c6 GANADORA: WRIGHT_2005_NOCTURNAL
+[WARNING]      \U0001f4a1 ACCIËN: Reemplazar FAO56_PM_ESTANDAR por WRIGHT_2005_NOCTURNAL
+[INFO] 
+\u2694\ufe0f CATEGOR═A: CONFORT_TERMICO
+[WARNING]   \u2694\ufe0f DUELO: UTCI_V1_FIALA_2012 (en uso) vs UTCI_V2_BLAZEJCZYK_2013 (disponible)
+[WARNING]      En uso: ▒1.5░C (normal), ▒5░C (alta HR) (2012)
+[WARNING]      Disponible: ▒1.0░C (normal), ▒1.5░C (alta HR) (2013)
+[WARNING]      \U0001f3c6 GANADORA: UTCI_V2_BLAZEJCZYK_2013
+[WARNING]      \U0001f4a1 ACCIËN: Reemplazar UTCI_V1_FIALA_2012 por UTCI_V2_BLAZEJCZYK_2013
+[INFO] 
+\u2694\ufe0f CATEGOR═A: TEMPERATURA_MINIMA
+[WARNING]   \u2694\ufe0f DUELO: DEARDORFF_V46_5 (en uso) vs DEARDORFF_V47_0_PRATA (disponible)
+[WARNING]      En uso: ▒0.5░C (1978)
+[WARNING]      Disponible: ▒0.2░C (2026)
+[WARNING]      \U0001f3c6 GANADORA: DEARDORFF_V47_0_PRATA
+[WARNING]      \U0001f4a1 ACCIËN: Reemplazar DEARDORFF_V46_5 por DEARDORFF_V47_0_PRATA
+[INFO] 
+\u2694\ufe0f CATEGOR═A: FILTROS_RUIDO
+[INFO]   \u2705 RC_FILTER_TAU_6H ya es la mejor y estß en uso
+[INFO] 
+\u2694\ufe0f CATEGOR═A: NUBOSIDAD
+[INFO]   \u2705 LIU_JORDAN_KASTEN ya es la mejor y estß en uso
+[INFO] 
+\U0001f4ca RESUMEN CAPAS 11-15:
+[INFO]   Cambios recomendados: 3
+[INFO]   CategorÝas ¾ptimas: 3
+[INFO] 
+================================================================================
+[INFO] \U0001f6e1\ufe0f CAPAS 16-20: DETECCIËN DE FUSIONES POSIBLES
+[INFO] ================================================================================
+[INFO]   \u2705 Fusi¾n Prata + Deardorff: YA IMPLEMENTADA (Deardorff V47.0)
+[INFO]   \u2705 Fusi¾n Wright + FAO-56 PM: WRAPPER CREADO
+[INFO]   \U0001f4a1 Fusi¾n UTCI v1 + v2: PROPUESTA (validaci¾n cruzada)
+[INFO]   \U0001f4a1 Fusi¾n Kalman + RC: PROPUESTA (cascada de filtros)
+[INFO] 
+\U0001f4ca RESUMEN CAPAS 16-20:
+[INFO]   Fusiones detectadas: 4
+[INFO]   Fusiones implementadas: 1
+[INFO]   Fusiones con wrapper: 1
+[INFO]   Fusiones propuestas: 2
+[INFO] 
+================================================================================
+[INFO] \U0001f6e1\ufe0f CAPAS 21-25: PLAN DE ACCIËN AUTOM┴TICO
+[INFO] ================================================================================
+[INFO] 
+\U0001f4cb PLAN DE ACCIËN V47.0:
+[INFO] 
+\U0001f534 ACCIONES CR═TICAS (8):
+[INFO]   1. INTEGRAR_FORMULA: PRATA_1996
+[INFO]      Mejora: +25.7%
+[INFO]   2. INTEGRAR_FORMULA: WRIGHT_2005_NOCTURNAL
+[INFO]      Mejora: +18.7% nocturno
+[INFO]   3. INTEGRAR_FORMULA: UTCI_V2_BLAZEJCZYK_2013
+[INFO]      Mejora: +5% (normal), +10.4░C (alta HR Maresme)
+[INFO]   4. INTEGRAR_FORMULA: DEARDORFF_V46_8_TERRAZA
+[INFO]      Mejora: N/A
+[INFO]   5. REEMPLAZAR_FORMULA: N/A
+[INFO]   6. REEMPLAZAR_FORMULA: N/A
+[INFO]   7. REEMPLAZAR_FORMULA: N/A
+[INFO]   8. ACTIVAR_WRAPPER: Wright_2005 + FAO56_PM
+[INFO] 
+\U0001f7e1 ACCIONES RECOMENDADAS (2):
+[INFO]   1. IMPLEMENTAR_FUSION: UTCI_V1_Fiala + UTCI_V2_Blazejczyk
+[INFO]   2. IMPLEMENTAR_FUSION: Kalman_Soil_WH51 + RC_Filter_Tau6h
+[INFO] 
+\U0001f6e1\ufe0f CAPAS 26-30: POST-DUELO - VALIDACIËN DE DECISIONES
+[INFO] Verificando que duelos son confiables...
+
+VALIDANDO CONSTITUCION FISICA DE ARGENTONA...
+
+VALIDANDO CONSTITUCION FISICA DE ARGENTONA...
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_AUDITORIA_V47.py", line 904, in <module>
+    resultado = ejecutar_guardian_25_capas()
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_AUDITORIA_V47.py", line 846, in ejecutar_guardian_25_capas
+    duelos_validados = capa_26_30_validar_duelos_y_decidir(capa_0, duelos)
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_25_CAPAS_AUDITORIA_V47.py", line 764, in capa_26_30_validar_duelos_y_decidir
+    formula_actual = cambio["formula_en_uso"]
+                     ~~~~~~^^^^^^^^^^^^^^^^^^
+KeyError: 'formula_en_uso'

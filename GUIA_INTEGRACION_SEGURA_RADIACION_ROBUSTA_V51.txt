@@ -1,0 +1,361 @@
+"""
+═══════════════════════════════════════════════════════════════════════════════
+GUÍA DE INTEGRACIÓN SEGURA - Radiación Robusta V51
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJETIVO: Activar la nueva arquitectura con CERO riesgo de romper el sistema actual.
+
+VERSIÓN: 1.0
+FECHA: 10 de febrero de 2026
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 1: VALIDACIÓN SIN ACTIVACIÓN (Hoje)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 1.1: Verificar estructura de directorios
+────────────────────────────────────────────
+
+Debe existir: c:\Users\kioko\Desktop\MeteoSerV3\core\radiation\
+
+Con archivos:
+✓ __init__.py
+✓ clasificador_contexto_radiativo.py
+✓ estrategias_aprendizaje.py
+✓ publicador_radiacion_robusto.py
+✓ controlador_radiacion_robusto.py
+✓ wrapper_integracion.py
+
+Comando para verificar:
+  ls -la core/radiation/
+
+
+PASO 1.2: Verificar importaciones (dry-run)
+────────────────────────────────────────────
+
+En terminal Python:
+
+  from core.radiation.clasificador_contexto_radiativo import ClasificadorContextoRadiativo
+  from core.radiation.estrategias_aprendizaje import EstiloAprendizajeCorrectivo, EstiloAprendizajeDiagnostico
+  from core.radiation.publicador_radiacion_robusto import PublicadorRadiacionRobusto, ValidadorCruzadoRadiacion
+  from core.radiation.controlador_radiacion_robusto import ControladorRadiacionRobusto
+  from core.radiation.wrapper_integracion import WrapperRadiacionRobusta
+  
+  print("[OK] Todos los módulos se importan correctamente")
+
+RESULTADO ESPERADO: "[OK] Todos los módulos se importan correctamente"
+FALLO: ImportError → revisar archivos .py
+
+
+PASO 1.3: Instanciar componentes (dry-run)
+───────────────────────────────────────────
+
+  clasificador = ClasificadorContextoRadiativo()
+  aprendizaje_correctivo = EstiloAprendizajeCorrectivo()
+  aprendizaje_diagnostico = EstiloAprendizajeDiagnostico()
+  publicador = PublicadorRadiacionRobusto()
+  validador = ValidadorCruzadoRadiacion()
+  
+  wrapper = WrapperRadiacionRobusta(enabled=False)  # Deshabilitada (fallback)
+  
+  print("[OK] Todos los componentes se instancian correctamente")
+
+RESULTADO ESPERADO: "[OK] Todos los componentes se instancian correctamente"
+FALLO: Exception → revisar constructor
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 2: MODO COMPARATIVA (Paralelo sin riesgo)
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJETIVO: Ejecutar nueva arquitectura en PARALELO con la antigua.
+Esto permite detectar cualquier diferencia sin romper el sistema.
+
+PASO 2.1: Crear wrapper en modo comparativa
+─────────────────────────────────────────────
+
+En arrancar_meteoser.py o donde se procese radiación:
+
+  from core.radiation.wrapper_integracion import WrapperRadiacionRobusta
+  
+  # CRIAR wrapper en modo comparativa (nueva arquitectura activa, pero en paralelo)
+  wrapper_radiacion = WrapperRadiacionRobusta(
+      enabled=True,           # Activar nueva arquitectura
+      modo_comparativa=True   # Registrar diferencias
+  )
+
+
+PASO 2.2: En el loop principal de sensores
+───────────────────────────────────────────
+
+  # Obtener datos de sensores (existente)
+  datos_sensores = {...}
+  resultado_rest2 = rest2.calcular(...)
+  
+  # PROCESAR CON WRAPPER (nueva arquitectura en paralelo)
+  resultado_robusto = wrapper_radiacion.procesar(
+      elevacion_solar_deg=datos_sensores['elevacion'],
+      ghi_w_m2_medida=datos_sensores.get('ghi'),
+      presion_hpa=datos_sensores['presion'],
+      humedad_rel=datos_sensores['humedad'],
+      temperatura_c=datos_sensores['temperatura'],
+      velocidad_viento_ms=datos_sensores['viento'],
+      precipitacion_mm=datos_sensores.get('precip', 0),
+      visibilidad_km=datos_sensores.get('visibilidad'),
+      rest2_output={'ghi': resultado_rest2['ghi'], 'dni': resultado_rest2['dni'], 'dhi': resultado_rest2['dhi']},
+      sensor_real_confiable=True
+  )
+  
+  # ¡IMPORTANTE!
+  # Por ahora, IGNORAR resultado_robusto y seguir usando resultado_rest2 como antes
+  # Solo registramos para comparativa
+  
+  # Los índices siguen consumiendo REST2 direct
+  calcular_wbgt(..., ghi=resultado_rest2['ghi'])
+  calcular_et0(..., ghi=resultado_rest2['ghi'])
+  # ...etc
+
+
+PASO 2.3: Monitoreo de comparativa
+──────────────────────────────────
+
+CADA HORA (o donde veas logs):
+  
+  # Mostrar stats de comparativa
+  stats = wrapper_radiacion.obtener_estadisticas_comparativa()
+  print(f"[COMPARATIVA] GHI diferencia media: {stats['diferencia_ghi_media']:.1f}W/m²")
+  print(f"[COMPARATIVA] GHI diferencia máx:   {stats['diferencia_ghi_max']:.1f}W/m²")
+  print(f"[COMPARATIVA] GHI percentil 95%:    {stats['diferencia_ghi_percentil_95']:.1f}W/m²")
+  print(f"[COMPARATIVA] Confianza media:      {stats['confianza_media']:.2f}")
+  print(f"[COMPARATIVA] Advertencias:         {stats['advertencias_frecuencia']:.1f}%")
+
+CRITERIOS DE ACEPTACIÓN:
+✓ diferencia_ghi_media < 10 W/m²      (menos del 3%)
+✓ diferencia_ghi_max < 100 W/m²       (tolerancia para casos raros)
+✓ diferencia_ghi_percentil_95 < 50 W/m² (el 95% de casos está bien)
+✓ confianza_media >= 0.85             (Confianza general alta)
+✓ advertencias_frecuencia < 5%        (Menos del 5% de ciclos con advertencias)
+
+Si TODO está verde → PROCEDER A FASE 3
+Si algo rojo → REVERTIR Y REVISAR
+
+
+═════════════════════════════════════════════════════════════════════════════
+FASE 3: TRANSICIÓN GRADUAL (Si Fase 2 está verde)
+═════════════════════════════════════════════════════════════════════════════
+
+PASO 3.1: Hacer que radiacion_hibrida use wrapper
+────────────────────────────────────────────────
+
+En core/indices/radiacion_hibrida.py (clase PiranometroHibrido):
+
+  def calcular_radiacion_final(self, sensores_dict, rest2_output):
+      """
+      Nueva versión: usa wrapper robusto.
+      """
+      from core.radiation.wrapper_integracion import WrapperRadiacionRobusta
+      
+      # Crear wrapper si no existe
+      if not hasattr(self, '_wrapper_radiacion'):
+          self._wrapper_radiacion = WrapperRadiacionRobusta(
+              enabled=True,
+              modo_comparativa=False  # Ya no comparativa, ahora productivo
+          )
+      
+      # Procesar con wrapper (ahora USAR resultado)
+      resultado = self._wrapper_radiacion.procesar(
+          elevacion_solar_deg=sensores_dict.get('elevacion_solar', 0),
+          ghi_w_m2_medida=sensores_dict.get('ghi_sensor'),
+          presion_hpa=sensores_dict.get('presion_hpa'),
+          humedad_rel=sensores_dict.get('humedad_rel'),
+          temperatura_c=sensores_dict.get('temperatura_c'),
+          velocidad_viento_ms=sensores_dict.get('velocidad_viento',0),
+          precipitacion_mm=sensores_dict.get('precipitacion', 0),
+          visibilidad_km=sensores_dict.get('visibilidad_km'),
+          rest2_output=rest2_output,
+          sensor_real_confiable=True
+      )
+      
+      # Retornar resultado final (ahora de arquitectura robusta)
+      return {
+          'ghi': resultado['ghi'],
+          'dni': resultado['dni'],
+          'dhi': resultado['dhi'],
+          'confianza': resultado['confianza'],
+          'contexto': resultado['contexto'],
+          'advertencias': resultado['advertencias']
+      }
+
+
+PASO 3.2: Validar que índices sigan funcionando
+────────────────────────────────────────────────
+
+Iniciar server y verificar:
+  python arrancar_meteoser.py
+
+Acceder a endpoints:
+  curl http://localhost:8080/api/v1/indices/wbgt
+  curl http://localhost:8080/api/v1/indices/et0
+  curl http://localhost:8080/api/v1/indices/t_min
+
+RESULTADO ESPERADO:
+  - Valores radiación similares a antes
+  - WBGT, ET0, T_MIN siguen calculando
+  - Logs muestran "[CONTEXTO]" y "[CONTROLADOR]"
+  - Sin errores de excepción
+
+FALLO:
+  - Valores radiación muy diferentes (> 50 W/m²)
+  - Índices retornan error
+  - Exception en logs
+
+Si falla → REVERTIR wrapper en radiacion_hibrida.py
+
+
+PASO 3.3: Ejecutar test suite (si existe)
+──────────────────────────────────────────
+
+  python -m pytest tests/ -v
+
+Esperado: ALL TESTS PASS
+Si fallan tests → revisar qué broke
+
+
+═════════════════════════════════════════════════════════════════════════════
+FASE 4: MONITOREO EN PRODUCCIÓN (Después de Phase 3 OK)
+═════════════════════════════════════════════════════════════════════════════
+
+PASO 4.1: Verificar logs regularmente
+──────────────────────────────────────
+
+Buscar patronos:
+
+  [CONTEXTO] BLOQUEADO     → Esperado, significa que aprendizaje está protegido
+  [CONTEXTO] ABIERTO       → Buena señal, contexto limpio
+  [COMPONADOR] *ERROR*     → PROBLEMA, investigar immediatamente
+  [APRENDIZAJE_CORRECTIVO] → Se está aprendiendo, verificar confianza
+  
+Si ves mucs "[COMPONADOR] *ERROR*" → REVERTIR
+
+
+PASO 4.2: Monitoreo de confianza
+────────────────────────────────
+
+Ideal:
+  - Confianza >= 0.8 durante el día
+  - Confianza >= 0.7 incluso con anomalías
+  - Confianza < 0.5 solo raramente (lluvia, niebla)
+
+Si confianza < 0.5 por > 30% del tiempo → Revisar sensores
+
+
+PASO 4.3: Auditoría semanal
+──────────────────────────
+
+Cada domingo (ejemplo):
+  
+  stats = wrapper_radiacion.obtener_estadisticas_comparativa()
+  logger.info(f"[AUDITORÍA SEMANAL] {stats}")
+  wrapper_radiacion.resetear_comparativa()  # Reset para próxima semana
+
+Guardar resultado en archivo de auditoría.
+
+
+═════════════════════════════════════════════════════════════════════════════
+ROLLBACK (Si algo sale mal)
+═════════════════════════════════════════════════════════════════════════════
+
+OPCIÓN 1: Deshabilitar wrapper (rápido)
+  
+  wrapper_radiacion.deshabilitar()
+  # El sistema vuelve a usar REST2 directo
+  # Riesgo mínimo, solo pierde nueva arquitectura
+
+
+OPCIÓN 2: Revertir radiacion_hibrida.py
+  
+  # Revert cambios en radiacion_hibrida.py
+  # Volver a usar REST2 directo sin wrapper
+  # Server reiniciado
+
+
+OPCIÓN 3: Revert git completo
+  
+  git revert <commit de cambios>
+  git push
+
+
+═════════════════════════════════════════════════════════════════════════════
+METRICAS DE ÉXITO
+═════════════════════════════════════════════════════════════════════════════
+
+✓ INMEDIATO (Fase 1):
+  - Todos los módulos se importan sin error
+  - Todos los componentes se instancian
+
+✓ PARALELO (Fase 2):
+  - Diferencias GHI < 10 W/m² en promedio
+  - Confianza >= 0.85
+  - Advertencias < 5% del tiempo
+
+✓ TRANSICIÓN (Fase 3):
+  - WBGT, ET0, T_MIN valores similares al anterior
+  - Índices no lanzan excepciones
+  - Tests pasan
+
+✓ PRODUCCIÓN (Fase 4):
+  - Sistema estable por 7 días mínimo
+  - Confianza media >= 0.80
+  - Logs sin errores frecuentes
+
+═════════════════════════════════════════════════════════════════════════════
+TIMELINE SUGERIDO
+═════════════════════════════════════════════════════════════════════════════
+
+Hoy (Feb 10):
+  [X] Crear módulos core/radiation
+  [X] Crear documentación
+  [ ] FASE 1: Validación sin activación (30 min)
+
+Mañana (Feb 11):
+  [ ] FASE 2: Modo comparativa (8-24 horas de running)
+  [ ] Monitoreo de estadísticas
+
+Dentro de 3 días (Feb 13):
+  [ ] FASE 3: Transición gradual (si Fase 2 OK)
+  [ ] Validar índices
+  [ ] Test suite
+
+Semana siguiente (Feb 17):
+  [ ] FASE 4: Monitoreo en producción
+  [ ] Auditoría semanal
+
+═════════════════════════════════════════════════════════════════════════════
+PUNTOS CLAVE A RECORDAR
+═════════════════════════════════════════════════════════════════════════════
+
+1. NO SEAS PRISA: Cada fase debe validarse antes de pasar a siguiente
+2. REVERT FÁCIL: En todas las fases, puedes volver atrás en 5 minutos
+3. LOGS SON AMIGOS: Lee logs regularmente, especialmente [CONTEXTO] y [CONTROLADOR]
+4. CONFIANZA ES TODO: Si confianza cae, algo anda mal
+5. Las diferencias pequeñas son NORMALES: La nueva arquitectura es más conservadora
+6. El aprendizaje es LENTO: Necesita múltiples observaciones limpias
+7. La noche es SIN APRENDIZAJE: Contexto bloqueado (sun < 10°), es correcto
+
+═════════════════════════════════════════════════════════════════════════════
+CONTACTO / DEBUG
+═════════════════════════════════════════════════════════════════════════════
+
+Si algo no funciona:
+
+1. Ver logs: Buscar [WRAPPER], [CONTEXTO], [CONTROLADOR]
+2. Verificar importaciones: Python imports test
+3. Verificar fase anterior: ¿Pasó validación?
+4. Revert y reintentar: No temas volver atrás
+
+═════════════════════════════════════════════════════════════════════════════
+Documento: GUIA_INTEGRACION_SEGURA_V51
+Versión: 1.0
+Fecha: 10 de febrero de 2026
+Autor: Sistema Robusto MeteoSerV3
+═════════════════════════════════════════════════════════════════════════════
+"""

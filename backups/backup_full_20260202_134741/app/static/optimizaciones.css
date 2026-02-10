@@ -1,0 +1,91 @@
+/* ============================================================ */
+/* OPTIMIZACIONES DE RENDIMIENTO */
+/* ============================================================ */
+
+/* Aceleraci\u00f3n GPU para canvas de animaciones */
+#canvas-animaciones {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    will-change: auto;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* Posicionamiento relativo para panel central */
+#panel-central {
+    position: relative;
+}
+
+/* Optimizar transiciones con GPU */
+.cajon, .valor-item, .btn-control {
+    will-change: transform, box-shadow, opacity;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Suavizar animaciones con GPU */
+@keyframes pulsoSuave {
+    0%, 100% { 
+        transform: scale(1) translateZ(0); 
+        opacity: 0.5; 
+    }
+    50% { 
+        transform: scale(1.1) translateZ(0); 
+        opacity: 0.8; 
+    }
+}
+
+@keyframes rotacionSuave {
+    0%, 100% { 
+        transform: rotate(0deg) translateZ(0); 
+    }
+    50% { 
+        transform: rotate(5deg) translateZ(0); 
+    }
+}
+
+@keyframes rebote {
+    0%, 100% { 
+        transform: translateY(0) translateZ(0); 
+    }
+    50% { 
+        transform: translateY(-10px) translateZ(0); 
+    }
+}
+
+@keyframes pulsoConfirmacion {
+    0% { 
+        transform: scale(1) translateZ(0); 
+    }
+    50% { 
+        transform: scale(1.15) translateZ(0); 
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); 
+    }
+    100% { 
+        transform: scale(1) translateZ(0); 
+    }
+}
+
+/* Prevenir layout thrashing */
+.valores-principales > *, .valores-secundarios > * {
+    contain: layout style paint;
+}
+
+/* Optimizar scrolling */
+.submenu-contenido, .cajon-contenido {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+}
+
+/* Reducir repaints en hover */
+.cajon:hover, .valor-item:hover, .btn-control:hover {
+    will-change: transform, box-shadow;
+}

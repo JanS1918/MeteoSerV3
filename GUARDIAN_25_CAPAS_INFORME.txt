@@ -1,0 +1,113 @@
+================================================================================
+GUARDIAN 30 CAPAS - PATRULLA SOBERANA V47.5
+================================================================================
+
+Timestamp: 2026-02-08T03:49:24.900869
+Estado Global: OK
+
+ARQUITECTURA DE CAPAS (DESGLOSE):
+--------------------------------------------------------------------------------
+  0-21: Capas Físicas y Supervivencia
+  24: Integridad código SHA-256
+  25: Sanitización datos externos
+  23: Monitor recursos auto-limpieza
+  31: Centinela soberano
+  39: MOS Clustering validator
+  40: Feedback Learning auditor
+  26: Post-duelo validación estadística
+  27: Post-duelo comparación histórica
+  28: Post-duelo auditoría de dependencias
+  29: Post-duelo validación física
+  30: Post-duelo validación lógica
+
+  Capas Extra Seguridad:
+    - Validación estadística
+    - Comparación histórica
+    - Auditoría de dependencias
+    - Validación física
+
+  CAPA_00: Pre-auditoría de fórmulas
+  CAPA_06_10: Análisis de uso del Bus
+  CAPA_11_15: Duelos automáticos de fórmulas
+  CAPA_16: Validación física cruzada
+  CAPA_17: Anti-oscilación (histéresis)
+  CAPA_18: Detector sensor muerto
+  CAPA_19: Validador gradientes extremos
+  CAPA_20: Auditor coherencia tendencias
+  CAPA_21: Auto-recuperación degradación elegante
+  CAPA_22: Cortafuegos de cascada (alertas)
+  CAPA_23: Monitor recursos auto-limpieza
+  CAPA_24: Integridad código SHA-256
+  CAPA_25: Sanitización datos externos
+  CAPA_26: Post-duelo validación estadística
+  CAPA_27: Post-duelo comparación histórica
+  CAPA_28: Post-duelo auditoría de dependencias
+  CAPA_29: Post-duelo validación física
+  CAPA_30: Post-duelo validación lógica
+  CAPA_31: Centinela soberano (watchdog)
+  CAPA_39: MOS Clustering validator
+  CAPA_40: Feedback Learning auditor
+
+📈 ESTADO DE CAPAS ACTIVAS:
+--------------------------------------------------------------------------------
+  [OK] CAPA_24: Integridad Código SHA-256
+      archivos_modificados: 0
+      archivos_borrados: 0
+  [OK] CAPA_25: Sanitización Datos Externos
+      total_validaciones: 0
+      rechazados_total: 0
+      tasa_rechazo_pct: 0.0
+  [OK] CAPA_23: Monitor Recursos Auto-Limpieza
+      disco_libre_gb: 110.78
+      ram_usado_pct: 43.7
+      cpu_uso_pct: 24.3
+  [OK] CAPA_00: Pre-auditoría de fórmulas
+      nota: Capa no implementada aún (placeholder)
+  [OK] CAPA_31: Centinela Soberano
+      bloqueos: 0
+      reinicios: 0
+  [OK] CAPA_21: Auto-recuperación degradación elegante
+      nota: Capa no implementada aún (placeholder)
+  [OK] CAPA_22: Cortafuegos de Cascada
+      alertas_bloqueadas: 0
+      alertas_permitidas: 0
+  [OK] CAPA_39: MOS Clustering Validator
+      validaciones: 0
+      rechazos: 0
+  [OK] CAPA_40: Feedback Learning Auditor
+      auditorias: 0
+      alertas_overfitting: 0
+  [OK] CAPA_16_19: Desconocida
+      nota: Capa no implementada aún (placeholder)
+  [OK] CAPA_06_10: Análisis de uso del Bus
+      nota: Capa no implementada aún (placeholder)
+  [CRITICAL] CAPA_11_15: Duelos Automáticos (Cobertura Total)
+      resumen: {'formulas_total': 5, 'formulas_ok': 0, 'candidatas_total': 0, 'candidatas_ok': 0, 'fusiones_total': 0, 'fusiones_ok': 0}
+      faltantes: {'formulas': 3, 'candidatas': 0, 'fusiones': 0}
+      archivo: C:\Users\kioko\Desktop\MeteoSerV3\data\guardian_duel_coverage.json
+      promociones: []
+  [OK] CAPA_26: Post-duelo validación estadística
+      detalle: Distribución estadística aceptable
+  [OK] CAPA_27: Post-duelo comparación histórica
+      detalle: Consistente con histórico
+  [OK] CAPA_28: Post-duelo auditoría de dependencias
+      detalle: Dependencias seguras
+  [OK] CAPA_29: Post-duelo validación física
+      detalle: ['Validación física OK', 'Validación física OK', 'Validación física OK']
+  [OK] CAPA_30: Post-duelo validación lógica
+      detalle: Validación lógica no implementada
+
+[CRITICAL] ALERTAS Y CRÍTICOS:
+--------------------------------------------------------------------------------
+  [OK] Sin alertas ni críticos
+
+[STATS] RESUMEN:
+--------------------------------------------------------------------------------
+  Total Capas: 21
+  Capas Activas: 17
+  Alertas: 0
+  Críticos: 0
+
+================================================================================
+[GUARDIAN] FIN DEL INFORME
+================================================================================

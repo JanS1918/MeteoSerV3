@@ -1,0 +1,1653 @@
+{
+  "cape": {
+    "timestamp": "2026-02-07T19:07:31.441690",
+    "parameters": {
+      "cape": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "cape"
+      ]
+    }
+  },
+  "alerta_polvo": {
+    "timestamp": "2026-02-07T19:07:31.464454",
+    "parameters": {
+      "alerta_polvo": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "alerta_polvo"
+      ]
+    }
+  },
+  "alerta_tormenta": {
+    "timestamp": "2026-02-07T19:07:31.493916",
+    "parameters": {
+      "alerta_tormenta": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "alerta_tormenta"
+      ]
+    }
+  },
+  "temp_running_mean": {
+    "timestamp": "2026-02-07T19:07:31.524109",
+    "parameters": {
+      "temp_running_mean": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "calcular_temp_running_mean": 0.95
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "calcular_temp_running_mean",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temp_running_mean"
+      ]
+    }
+  },
+  "humedad_critica_moho_vtt": {
+    "timestamp": "2026-02-07T19:07:31.578183",
+    "parameters": {
+      "humedad_critica_moho_vtt": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "humedad_critica_moho_vtt"
+      ]
+    }
+  },
+  "moho_vtt": {
+    "timestamp": "2026-02-07T19:07:31.608205",
+    "parameters": {
+      "moho_vtt": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "moho_vtt"
+      ]
+    }
+  },
+  "temperatura_confort_ashrae55_adaptativo": {
+    "timestamp": "2026-02-07T19:07:31.642507",
+    "parameters": {
+      "temperatura_confort_ashrae55_adaptativo": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temperatura_confort_ashrae55_adaptativo"
+      ]
+    }
+  },
+  "temperatura_operativa": {
+    "timestamp": "2026-02-07T19:07:31.670395",
+    "parameters": {
+      "temperatura_operativa": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "temperatura_operativa": 0.95
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "temperatura_operativa",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temperatura_operativa"
+      ]
+    }
+  },
+  "scorer": {
+    "timestamp": "2026-02-07T19:07:31.703901",
+    "parameters": {
+      "scorer": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "scorer"
+      ]
+    }
+  },
+  "temperatura_adiabática_seca": {
+    "timestamp": "2026-02-07T19:07:31.731810",
+    "parameters": {
+      "temperatura_adiabática_seca": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temperatura_adiabática_seca"
+      ]
+    }
+  },
+  "viento_ley_hellman": {
+    "timestamp": "2026-02-07T19:07:31.766784",
+    "parameters": {
+      "viento_ley_hellman": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "viento_ley_hellman": 0.95
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "viento_ley_hellman",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "viento_ley_hellman"
+      ]
+    }
+  },
+  "temperatura_minima_deardorff": {
+    "timestamp": "2026-02-07T19:07:31.798418",
+    "parameters": {
+      "temperatura_minima_deardorff": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temperatura_minima_deardorff"
+      ]
+    }
+  },
+  "temperatura_minima_desde_sensores": {
+    "timestamp": "2026-02-07T19:07:31.833227",
+    "parameters": {
+      "temperatura_minima_desde_sensores": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temperatura_minima_desde_sensores"
+      ]
+    }
+  },
+  "temperatura_minima_deardorff_v46_5": {
+    "timestamp": "2026-02-07T19:07:31.855241",
+    "parameters": {
+      "temperatura_minima_deardorff_v46_5": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temperatura_minima_deardorff_v46_5"
+      ]
+    }
+  },
+  "temperatura_minima_v46_5_final": {
+    "timestamp": "2026-02-07T19:07:31.883002",
+    "parameters": {
+      "temperatura_minima_v46_5_final": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temperatura_minima_v46_5_final"
+      ]
+    }
+  },
+  "filtrar_humedad_maceta": {
+    "timestamp": "2026-02-07T19:07:31.922827",
+    "parameters": {
+      "filtrar_humedad_maceta": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "filtrar_humedad_maceta": 0.9442212370747785
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "filtrar_humedad_maceta",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "filtrar_humedad_maceta"
+      ]
+    }
+  },
+  "get_temperatura_minima": {
+    "timestamp": "2026-02-07T19:07:31.949026",
+    "parameters": {
+      "get_temperatura_minima": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "get_temperatura_minima"
+      ]
+    }
+  },
+  "temperatura_minima_v46_8_soberania": {
+    "timestamp": "2026-02-07T19:07:32.050572",
+    "parameters": {
+      "temperatura_minima_v46_8_soberania": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temperatura_minima_v46_8_soberania"
+      ]
+    }
+  },
+  "emissividad_cielo_prata": {
+    "timestamp": "2026-02-07T19:07:32.088514",
+    "parameters": {
+      "emissividad_cielo_prata": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "emissividad_cielo_prata"
+      ]
+    }
+  },
+  "radiacion_solar": {
+    "timestamp": "2026-02-07T19:07:32.115982",
+    "parameters": {
+      "radiacion_solar": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 11,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 4
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "radiacion_solar"
+      ]
+    }
+  },
+  "t_cielo_prata_v47": {
+    "timestamp": "2026-02-07T19:07:32.157598",
+    "parameters": {
+      "t_cielo_prata_v47": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "t_cielo_prata_v47"
+      ]
+    }
+  },
+  "temperatura_cielo_efectiva_prata": {
+    "timestamp": "2026-02-07T19:07:32.193476",
+    "parameters": {
+      "temperatura_cielo_efectiva_prata": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "temperatura_cielo_efectiva_prata"
+      ]
+    }
+  },
+  "humedad_suelo": {
+    "timestamp": "2026-02-07T19:07:32.256686",
+    "parameters": {
+      "humedad_suelo": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "filtrar_humedad_suelo": 0.9442212370747785
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "filtrar_humedad_suelo",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "humedad_suelo"
+      ]
+    }
+  },
+  "get_temperatura_minima_v47_0": {
+    "timestamp": "2026-02-07T19:07:32.326941",
+    "parameters": {
+      "get_temperatura_minima_v47_0": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "get_temperatura_minima_v47_0"
+      ]
+    }
+  },
+  "cielo_observable_nocturno": {
+    "timestamp": "2026-02-07T19:07:32.357431",
+    "parameters": {
+      "cielo_observable_nocturno": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "_calcular_cielo_observable_nocturno": 0.95
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "_calcular_cielo_observable_nocturno",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "cielo_observable_nocturno"
+      ]
+    }
+  },
+  "fried_r0": {
+    "timestamp": "2026-02-07T19:07:32.387936",
+    "parameters": {
+      "fried_r0": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "_calcular_fried_r0": 0.95
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "_calcular_fried_r0",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "fried_r0"
+      ]
+    }
+  },
+  "hash_manifiesto": {
+    "timestamp": "2026-02-07T19:07:32.424570",
+    "parameters": {
+      "hash_manifiesto": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "hash_manifiesto"
+      ]
+    }
+  },
+  "nubosidad": {
+    "timestamp": "2026-02-07T19:07:32.464078",
+    "parameters": {
+      "nubosidad": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 4,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 3
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "nubosidad"
+      ]
+    }
+  },
+  "qnet_brunt_monteith": {
+    "timestamp": "2026-02-07T19:07:32.496243",
+    "parameters": {
+      "qnet_brunt_monteith": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "qnet_brunt_monteith"
+      ]
+    }
+  },
+  "riesgo_empaniamiento_optica": {
+    "timestamp": "2026-02-07T19:07:32.531473",
+    "parameters": {
+      "riesgo_empaniamiento_optica": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "riesgo_empaniamiento_optica"
+      ]
+    }
+  },
+  "seeing_termico_basico": {
+    "timestamp": "2026-02-07T19:07:32.559188",
+    "parameters": {
+      "seeing_termico_basico": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "_calcular_seeing_termico_basico": 0.8974191718591145
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "_calcular_seeing_termico_basico",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "seeing_termico_basico"
+      ]
+    }
+  },
+  "transparencia_atmosferica": {
+    "timestamp": "2026-02-07T19:07:32.589283",
+    "parameters": {
+      "transparencia_atmosferica": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "transparencia_atmosferica"
+      ]
+    }
+  },
+  "ventana_observacion_nocturna": {
+    "timestamp": "2026-02-07T19:07:32.629975",
+    "parameters": {
+      "ventana_observacion_nocturna": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "_calcular_ventana_observacion_nocturna": 0.95
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "_calcular_ventana_observacion_nocturna",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "ventana_observacion_nocturna"
+      ]
+    }
+  },
+  "clasificar_indice_cielo": {
+    "timestamp": "2026-02-07T19:07:32.665475",
+    "parameters": {
+      "clasificar_indice_cielo": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "clasificar_indice_cielo"
+      ]
+    }
+  },
+  "cetreria": {
+    "timestamp": "2026-02-07T19:07:32.699244",
+    "parameters": {
+      "cetreria": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "cetreria"
+      ]
+    }
+  },
+  "indice_con_metadata": {
+    "timestamp": "2026-02-07T19:07:32.728323",
+    "parameters": {
+      "indice_con_metadata": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {
+          "calcular_indice_con_metadata": 0.95
+        },
+        "combination_stats": {
+          "combos_checked": 0,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 1
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": {
+          "id": "calcular_indice_con_metadata",
+          "wins": null,
+          "losses": 0
+        }
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "indice_con_metadata"
+      ]
+    }
+  },
+  "presion_vapor": {
+    "timestamp": "2026-02-07T19:07:32.773814",
+    "parameters": {
+      "presion_vapor": {
+        "status": "ok",
+        "matches": [],
+        "contenders": {},
+        "combination_stats": {
+          "combos_checked": 57,
+          "combos_skipped": false,
+          "max_total_combinations": 100,
+          "max_combination_size": 6
+        },
+        "tournament": {
+          "rounds": 0,
+          "group_size": 4
+        },
+        "winner": null
+      }
+    },
+    "config": {
+      "samples_per_param": 5,
+      "seed": 42,
+      "externals": false,
+      "auto_apply": false,
+      "include_discovered": true,
+      "discovered_unmapped_count": 0,
+      "discovered_unmapped": [],
+      "max_combination_size": null,
+      "max_total_combinations": 100,
+      "combination_types": [
+        "avg",
+        "weighted_score",
+        "complement",
+        "subfactor"
+      ],
+      "use_tournament": true,
+      "tournament_group_size": 4,
+      "parametros": [
+        "presion_vapor"
+      ]
+    }
+  }
+}

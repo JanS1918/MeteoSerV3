@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-02-03T23:32:09.846366",
+  "version": "V30.0",
+  "nombre_sistema": "MeteoSerV3 - Acorazado Omnisciente",
+  "arquitectura": "Tier1(Sagrada)+Tier2(Layout-Aware)+Tier3(Centinela)+Heartbeat",
+  "estado": "SELLADO",
+  "modo": "PATRULLA ETERNA 24/7",
+  "garantias": {
+    "datos_sagrados": "SIEMPRE publicados (50 parametros)",
+    "layout_aware": "Adaptativo a paneles activos",
+    "centinela": "Alerta automatica si riesgo >= 0.7",
+    "heartbeat": "Deteccion de consola 24/7",
+    "cero_datos_perdidos": true,
+    "cero_latencia_critica": true
+  },
+  "archivos_clave": [
+    "core/bus/whitelist_sagrados_v30.py",
+    "core/bus/bus_grifo_inteligente.py",
+    "core/system/auto_instrumentacion.py",
+    "core/bus/bus_capas_informacion.py",
+    "core/bus/bus_v3_adapter.py",
+    "LIBRO_BLANCO_V30_0_OMNISCIENTE.md",
+    "sha256_v30_0.txt"
+  ]
+}

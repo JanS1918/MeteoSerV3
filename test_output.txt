@@ -1,0 +1,19 @@
+[OK] Bus V3 Mejorado iniciado
+
+VALIDANDO CONSTITUCION FISICA DE ARGENTONA...
+  [OK] ESTACION: Coordenadas selladas
+  [OK] GRAVEDAD: 9.80272394 m/s▓ sellada
+  [OK] PRESION: F¾rmula baromÚtrica unificada
+[OK] CONSTITUCION FISICA VALIDADA - SISTEMA EN SOBERANIA
+
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\test_mejoras_rocio_balance.py", line 248, in <module>
+    exit(main())
+         ~~~~^^
+  File "C:\Users\kioko\Desktop\MeteoSerV3\test_mejoras_rocio_balance.py", line 204, in main
+    print("\n" + "\u2588"*70)
+    ~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 2-71: character maps to <undefined>

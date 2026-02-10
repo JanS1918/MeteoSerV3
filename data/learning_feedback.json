@@ -1,0 +1,53 @@
+{
+  "signals": {
+    "lluvia": {
+      "buckets": {
+        "0": {
+          "n": 1,
+          "hits": 0
+        }
+      },
+      "offset": 0.0,
+      "last_prediction": 0.0,
+      "last_prediction_ts": 1770409594.3627164,
+      "last_actual": false
+    },
+    "tormenta": {
+      "buckets": {
+        "5": {
+          "n": 1,
+          "hits": 0
+        }
+      },
+      "offset": 0.0,
+      "last_prediction": 4.340815895827262,
+      "last_prediction_ts": 1770409594.363709,
+      "last_actual": false
+    },
+    "helada": {
+      "buckets": {
+        "25": {
+          "n": 1,
+          "hits": 0
+        }
+      },
+      "offset": 0.0,
+      "last_prediction": 24.0,
+      "last_prediction_ts": 1770409594.3644345,
+      "last_actual": false
+    },
+    "calor": {
+      "buckets": {
+        "0": {
+          "n": 1,
+          "hits": 0
+        }
+      },
+      "offset": 0.0,
+      "last_prediction": 0.0,
+      "last_prediction_ts": 1770409594.367062,
+      "last_actual": false
+    }
+  },
+  "last_update": 1770409594.3670626
+}

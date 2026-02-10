@@ -1,0 +1,22 @@
+[
+  {
+    "timestamp": "2026-02-08T03:46:32.090001",
+    "estado_global": "OK",
+    "resumen": {
+      "capas_total": 21,
+      "capas_activas": 17,
+      "alertas_total": 0,
+      "criticos_total": 0
+    }
+  },
+  {
+    "timestamp": "2026-02-08T03:49:24.900869",
+    "estado_global": "OK",
+    "resumen": {
+      "capas_total": 21,
+      "capas_activas": 17,
+      "alertas_total": 0,
+      "criticos_total": 0
+    }
+  }
+]

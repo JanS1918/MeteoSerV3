@@ -1,0 +1,50 @@
+2026-02-05 16:51:01,028 - CENTINELA - INFO -    Heartbeat: data\bus_heartbeat.json
+2026-02-05 16:51:01,029 - CENTINELA - INFO -    Timeout: 10.0s
+2026-02-05 16:51:01,029 - CENTINELA - INFO -    Verificación cada: 2.0s
+2026-02-05 16:56:47,509 - CENTINELA - INFO -    Heartbeat: data\bus_heartbeat.json
+2026-02-05 16:56:47,509 - CENTINELA - INFO -    Timeout: 10.0s
+2026-02-05 16:56:47,509 - CENTINELA - INFO -    Verificación cada: 2.0s
+2026-02-05 17:03:03,802 - CENTINELA - INFO -    Heartbeat: data\bus_heartbeat.json
+2026-02-05 17:03:03,802 - CENTINELA - INFO -    Timeout: 10.0s
+2026-02-05 17:03:03,803 - CENTINELA - INFO -    Verificación cada: 2.0s
+2026-02-05 17:04:01,031 - CENTINELA - INFO -    Heartbeat: data\bus_heartbeat.json
+2026-02-05 17:04:01,031 - CENTINELA - INFO -    Timeout: 10.0s
+2026-02-05 17:04:01,031 - CENTINELA - INFO -    Verificación cada: 2.0s
+2026-02-05 17:08:24,216 - CENTINELA - INFO -    Heartbeat: data\bus_heartbeat.json
+2026-02-05 17:08:24,216 - CENTINELA - INFO -    Timeout: 10.0s
+2026-02-05 17:08:24,216 - CENTINELA - INFO -    Verificación cada: 2.0s
+2026-02-05 17:08:24,220 - CENTINELA - INFO - [GUARDIAN] 25 Capas V47.5 PATRULLA SOBERANA inicializado
+2026-02-05 17:08:24,220 - CENTINELA - INFO - [AUDITORIA] Iniciando auditoria completa de 25 capas (ORDEN POR RESTRICCION)...
+2026-02-05 17:08:24,221 - CENTINELA - INFO - 
+[VITAL] Ejecutando CAPA_24: Integridad código SHA-256
+2026-02-05 17:08:24,225 - CENTINELA - INFO - 
+[VITAL] Ejecutando CAPA_25: Sanitización datos externos
+2026-02-05 17:08:24,225 - CENTINELA - INFO - 
+[VITAL] Ejecutando CAPA_23: Monitor recursos auto-limpieza
+2026-02-05 17:08:25,227 - CENTINELA - INFO - 
+[VITAL] Ejecutando CAPA_00: Pre-auditoría fórmulas
+2026-02-05 17:08:25,228 - CENTINELA - INFO - 
+[CRITICA] Ejecutando CAPA_31: Centinela soberano
+2026-02-05 17:08:25,232 - CENTINELA - ERROR - [ERROR] capa_31 (intento 1/6): 'reinicios_totales'
+2026-02-05 17:08:25,234 - CENTINELA - ERROR - [ERROR] capa_31 (intento 2/6): 'reinicios_totales'
+2026-02-05 17:08:25,237 - CENTINELA - ERROR - [ERROR] capa_31 (intento 3/6): 'reinicios_totales'
+2026-02-05 17:08:25,242 - CENTINELA - ERROR - [ERROR] capa_31 (intento 4/6): 'reinicios_totales'
+2026-02-05 17:08:25,245 - CENTINELA - ERROR - [ERROR] capa_31 (intento 5/6): 'reinicios_totales'
+2026-02-05 17:08:25,249 - CENTINELA - CRITICAL - [FALLO TOTAL] capa_31 despues de 6 intentos
+2026-02-05 17:08:25,249 - CENTINELA - ERROR - [CRITICA] Capa capa_31 fallo - REINICIAR_PROCESO
+2026-02-05 17:08:25,250 - CENTINELA - INFO - 
+[CRITICA] Ejecutando CAPA_21: Degradación elegante
+2026-02-05 17:08:25,250 - CENTINELA - INFO - 
+[CRITICA] Ejecutando CAPA_22: Cortafuegos de cascada
+2026-02-05 17:08:25,250 - CENTINELA - INFO - 
+[IMPORTANTE] Ejecutando CAPA_39: MOS Clustering validator
+2026-02-05 17:08:25,251 - CENTINELA - INFO - 
+[IMPORTANTE] Ejecutando CAPA_40: Feedback Learning auditor
+2026-02-05 17:08:25,251 - CENTINELA - INFO - 
+[IMPORTANTE] Ejecutando CAPA_16_19: Validación física cruzada
+2026-02-05 17:08:25,252 - CENTINELA - INFO - 
+[OPCIONAL] Ejecutando CAPA_06_10: Análisis uso Bus
+2026-02-05 17:08:25,252 - CENTINELA - INFO - 
+[OPCIONAL] Ejecutando CAPA_11_15: Duelos automáticos
+2026-02-05 17:08:25,252 - CENTINELA - INFO - 
+[OPCIONAL] Ejecutando CAPA_26_30: Post-duelo validación

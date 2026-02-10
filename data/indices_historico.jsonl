@@ -1,0 +1,2 @@
+{"timestamp": 1770203547.3938918, "datetime": "2026-02-04T12:12:27.393892", "indices": {"utci": 19.3, "punto_rocio": 8.5, "steadman": 21.0, "helada_riesgo": 0}, "datos_entrada": {"temperatura": 12.78, "humedad": 77, "presion": 1010}, "formula_usada": {"utci": "ELITE_nist", "rocio": "hardy_nist"}}
+{"timestamp": 1770203847.3938918, "datetime": "2026-02-04T12:17:27.393892", "indices": {"utci": 19.5, "punto_rocio": 8.6, "steadman": 21.2}, "datos_entrada": {"temperatura": 12.85, "humedad": 78, "presion": 1010.5}, "formula_usada": {}}

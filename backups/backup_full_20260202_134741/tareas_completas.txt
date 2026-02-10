@@ -1,0 +1,951 @@
+
+TaskName : Adobe Acrobat Update Task
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : AvastBrowserProtectS-1-5-21-4145920242-3820320187-358418441-1001
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : MeteoSer - Arranque
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : MeteoSer Backup
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : MeteoSer Estado Monitor
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : MeteoSer Health Monitor
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : MeteoSer Official Watchdog
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : OneDrive Reporting Task-S-1-5-21-4145920242-3820320187-358418441-1001
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : OneDrive Standalone Update Task-S-1-5-21-4145920242-3820320187-358418441-1001
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : OneDrive Startup Task-S-1-5-21-4145920242-3820320187-358418441-1001
+TaskPath : \
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : HP Support Assistant Update Notice
+TaskPath : \Hewlett-Packard\HP Support Assistant\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : WarrantyChecker
+TaskPath : \Hewlett-Packard\HP Support Assistant\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : WarrantyChecker_DeviceScan
+TaskPath : \Hewlett-Packard\HP Support Assistant\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : .NET Framework NGEN v4.0.30319
+TaskPath : \Microsoft\Windows\.NET Framework\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : .NET Framework NGEN v4.0.30319 64
+TaskPath : \Microsoft\Windows\.NET Framework\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : .NET Framework NGEN v4.0.30319 64 Critical
+TaskPath : \Microsoft\Windows\.NET Framework\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : .NET Framework NGEN v4.0.30319 Critical
+TaskPath : \Microsoft\Windows\.NET Framework\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RecoverabilityToastTask
+TaskPath : \Microsoft\Windows\AccountHealth\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : AD RMS Rights Policy Template Management (Automated)
+TaskPath : \Microsoft\Windows\Active Directory Rights Management Services Client\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : AD RMS Rights Policy Template Management (Manual)
+TaskPath : \Microsoft\Windows\Active Directory Rights Management Services Client\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : PolicyConverter
+TaskPath : \Microsoft\Windows\AppID\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : VerifiedPublisherCertStoreCheck
+TaskPath : \Microsoft\Windows\AppID\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : MareBackup
+TaskPath : \Microsoft\Windows\Application Experience\
+State    : Ready
+Actions  : {MSFT_TaskExecAction, MSFT_TaskExecAction, MSFT_TaskExecAction}
+
+TaskName : Microsoft Compatibility Appraiser Exp
+TaskPath : \Microsoft\Windows\Application Experience\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : PcaPatchDbTask
+TaskPath : \Microsoft\Windows\Application Experience\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : SdbinstMergeDbTask
+TaskPath : \Microsoft\Windows\Application Experience\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : StartupAppTask
+TaskPath : \Microsoft\Windows\Application Experience\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : appuriverifierdaily
+TaskPath : \Microsoft\Windows\ApplicationData\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : appuriverifierinstall
+TaskPath : \Microsoft\Windows\ApplicationData\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : CleanupTemporaryState
+TaskPath : \Microsoft\Windows\ApplicationData\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : DsSvcCleanup
+TaskPath : \Microsoft\Windows\ApplicationData\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Backup
+TaskPath : \Microsoft\Windows\AppListBackup\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : BackupNonMaintenance
+TaskPath : \Microsoft\Windows\AppListBackup\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Pre-staged app cleanup
+TaskPath : \Microsoft\Windows\AppxDeploymentClient\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Proxy
+TaskPath : \Microsoft\Windows\Autochk\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : BitLocker Encrypt All Drives
+TaskPath : \Microsoft\Windows\BitLocker\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : BitLocker MDM policy Refresh
+TaskPath : \Microsoft\Windows\BitLocker\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : UninstallDeviceTask
+TaskPath : \Microsoft\Windows\Bluetooth\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : BgTaskRegistrationMaintenanceTask
+TaskPath : \Microsoft\Windows\BrokerInfrastructure\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : maintenancetasks
+TaskPath : \Microsoft\Windows\capabilityaccessmanager\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : UserTask
+TaskPath : \Microsoft\Windows\CertificateServicesClient\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : UserTask-Roam
+TaskPath : \Microsoft\Windows\CertificateServicesClient\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ProactiveScan
+TaskPath : \Microsoft\Windows\Chkdsk\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : SyspartRepair
+TaskPath : \Microsoft\Windows\Chkdsk\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : CreateObjectTask
+TaskPath : \Microsoft\Windows\CloudExperienceHost\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Backup
+TaskPath : \Microsoft\Windows\CloudRestore\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Restore
+TaskPath : \Microsoft\Windows\CloudRestore\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : MicTray
+TaskPath : \Microsoft\Windows\Conexant\
+State    : Running
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : UnifiedConsentSyncTask
+TaskPath : \Microsoft\Windows\ConsentUX\UnifiedConsent\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : CmCleanup
+TaskPath : \Microsoft\Windows\Containers\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Consolidator
+TaskPath : \Microsoft\Windows\Customer Experience Improvement Program\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : UsbCeip
+TaskPath : \Microsoft\Windows\Customer Experience Improvement Program\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Data Integrity Check And Scan
+TaskPath : \Microsoft\Windows\Data Integrity Scan\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Data Integrity Scan
+TaskPath : \Microsoft\Windows\Data Integrity Scan\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Data Integrity Scan for Crash Recovery
+TaskPath : \Microsoft\Windows\Data Integrity Scan\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ScheduledDefrag
+TaskPath : \Microsoft\Windows\Defrag\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Device
+TaskPath : \Microsoft\Windows\Device Information\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Device User
+TaskPath : \Microsoft\Windows\Device Information\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Driver Recovery on Reboot
+TaskPath : \Microsoft\Windows\Device Setup\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RecommendedTroubleshootingScanner
+TaskPath : \Microsoft\Windows\Diagnosis\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Scheduled
+TaskPath : \Microsoft\Windows\Diagnosis\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : UnexpectedCodepath
+TaskPath : \Microsoft\Windows\Diagnosis\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : DirectXDatabaseUpdater
+TaskPath : \Microsoft\Windows\DirectX\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : DXGIAdapterCache
+TaskPath : \Microsoft\Windows\DirectX\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : SilentCleanup
+TaskPath : \Microsoft\Windows\DiskCleanup\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Microsoft-Windows-DiskDiagnosticDataCollector
+TaskPath : \Microsoft\Windows\DiskDiagnostic\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Microsoft-Windows-DiskDiagnosticResolver
+TaskPath : \Microsoft\Windows\DiskDiagnostic\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Diagnostics
+TaskPath : \Microsoft\Windows\DiskFootprint\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : StorageSense
+TaskPath : \Microsoft\Windows\DiskFootprint\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : dusmtask
+TaskPath : \Microsoft\Windows\DUSM\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : EDP App Launch Task
+TaskPath : \Microsoft\Windows\EDP\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : EDP Auth Task
+TaskPath : \Microsoft\Windows\EDP\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : EDP Inaccessible Credentials Task
+TaskPath : \Microsoft\Windows\EDP\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : StorageCardEncryption Task
+TaskPath : \Microsoft\Windows\EDP\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ExploitGuard MDM policy Refresh
+TaskPath : \Microsoft\Windows\ExploitGuard\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : DmClient
+TaskPath : \Microsoft\Windows\Feedback\Siuf\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : DmClientOnScenarioDownload
+TaskPath : \Microsoft\Windows\Feedback\Siuf\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Property Definition Sync
+TaskPath : \Microsoft\Windows\File Classification Infrastructure\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : File History (maintenance mode)
+TaskPath : \Microsoft\Windows\FileHistory\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : BootstrapUsageDataReporting
+TaskPath : \Microsoft\Windows\Flighting\FeatureConfig\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : GovernedFeatureUsageProcessing
+TaskPath : \Microsoft\Windows\Flighting\FeatureConfig\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ReconcileConfigs
+TaskPath : \Microsoft\Windows\Flighting\FeatureConfig\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ReconcileFeatures
+TaskPath : \Microsoft\Windows\Flighting\FeatureConfig\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : UsageDataFlushing
+TaskPath : \Microsoft\Windows\Flighting\FeatureConfig\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : UsageDataReceiver
+TaskPath : \Microsoft\Windows\Flighting\FeatureConfig\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : UsageDataReporting
+TaskPath : \Microsoft\Windows\Flighting\FeatureConfig\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RefreshCache
+TaskPath : \Microsoft\Windows\Flighting\OneSettings\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Monitoring
+TaskPath : \Microsoft\Windows\Hotpatch\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : InputSettingsRestoreDataAvailable
+TaskPath : \Microsoft\Windows\input\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : LocalUserSyncDataAvailable
+TaskPath : \Microsoft\Windows\input\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : MouseSyncDataAvailable
+TaskPath : \Microsoft\Windows\input\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : PenSyncDataAvailable
+TaskPath : \Microsoft\Windows\input\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RemoteMouseSyncDataAvailable
+TaskPath : \Microsoft\Windows\input\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RemotePenSyncDataAvailable
+TaskPath : \Microsoft\Windows\input\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RemoteTouchpadSyncDataAvailable
+TaskPath : \Microsoft\Windows\input\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : syncpensettings
+TaskPath : \Microsoft\Windows\input\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : TouchpadSyncDataAvailable
+TaskPath : \Microsoft\Windows\input\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RestoreDevice
+TaskPath : \Microsoft\Windows\InstallService\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ScanForUpdates
+TaskPath : \Microsoft\Windows\InstallService\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ScanForUpdatesAsUser
+TaskPath : \Microsoft\Windows\InstallService\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : WakeUpAndContinueUpdates
+TaskPath : \Microsoft\Windows\InstallService\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : WakeUpAndScanForUpdates
+TaskPath : \Microsoft\Windows\InstallService\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Synchronize Language Settings
+TaskPath : \Microsoft\Windows\International\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : La57Cleanup
+TaskPath : \Microsoft\Windows\Kernel\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Installation
+TaskPath : \Microsoft\Windows\LanguageComponentsInstaller\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ReconcileLanguageResources
+TaskPath : \Microsoft\Windows\LanguageComponentsInstaller\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : WindowsActionDialog
+TaskPath : \Microsoft\Windows\Location\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : WinSAT
+TaskPath : \Microsoft\Windows\Maintenance\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : DetectHardwareChange
+TaskPath : \Microsoft\Windows\Management\Autopilot\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RemediateHardwareChange
+TaskPath : \Microsoft\Windows\Management\Autopilot\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Cellular
+TaskPath : \Microsoft\Windows\Management\Provisioning\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Logon
+TaskPath : \Microsoft\Windows\Management\Provisioning\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : MdmDiagnosticsCleanup
+TaskPath : \Microsoft\Windows\Management\Provisioning\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Retry
+TaskPath : \Microsoft\Windows\Management\Provisioning\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : RunOnReboot
+TaskPath : \Microsoft\Windows\Management\Provisioning\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : MapsToastTask
+TaskPath : \Microsoft\Windows\Maps\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : MapsUpdateTask
+TaskPath : \Microsoft\Windows\Maps\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : AutomaticOfflineMemoryDiagnostic
+TaskPath : \Microsoft\Windows\MemoryDiagnostic\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ProcessMemoryDiagnosticEvents
+TaskPath : \Microsoft\Windows\MemoryDiagnostic\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RunFullMemoryDiagnostic
+TaskPath : \Microsoft\Windows\MemoryDiagnostic\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : LPRemove
+TaskPath : \Microsoft\Windows\MUI\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : SystemSoundsService
+TaskPath : \Microsoft\Windows\Multimedia\
+State    : Running
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : NcsiIdentifyUserProxies
+TaskPath : \Microsoft\Windows\Network Connectivity Status Indicator\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : WiFiTask
+TaskPath : \Microsoft\Windows\NlaSvc\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Background Synchronization
+TaskPath : \Microsoft\Windows\Offline Files\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Logon Synchronization
+TaskPath : \Microsoft\Windows\Offline Files\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : PCR Prediction Framework Firmware Update Task
+TaskPath : \Microsoft\Windows\PCRPF\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : RequestTrace
+TaskPath : \Microsoft\Windows\PerformanceTrace\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : WhesvcToast
+TaskPath : \Microsoft\Windows\PerformanceTrace\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Device Install Group Policy
+TaskPath : \Microsoft\Windows\Plug and Play\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Device Install Reboot Required
+TaskPath : \Microsoft\Windows\Plug and Play\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Sysprep Generalize Drivers
+TaskPath : \Microsoft\Windows\Plug and Play\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : AnalyzeSystem
+TaskPath : \Microsoft\Windows\Power Efficiency Diagnostics\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : EduPrintProv
+TaskPath : \Microsoft\Windows\Printing\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : PrinterCleanupTask
+TaskPath : \Microsoft\Windows\Printing\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : PrintJobCleanupTask
+TaskPath : \Microsoft\Windows\Printing\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : VerifyWinRE
+TaskPath : \Microsoft\Windows\RecoveryEnvironment\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Initialization
+TaskPath : \Microsoft\Windows\ReFsDedupSvc\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : RegIdleBackup
+TaskPath : \Microsoft\Windows\Registry\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : OOBEFodSetup
+TaskPath : \Microsoft\Windows\Servicing\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : StartComponentCleanup
+TaskPath : \Microsoft\Windows\Servicing\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : PITRTask
+TaskPath : \Microsoft\Windows\Setup\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Account Cleanup
+TaskPath : \Microsoft\Windows\SharedPC\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : CreateObjectTask
+TaskPath : \Microsoft\Windows\Shell\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : FamilySafetyMonitor
+TaskPath : \Microsoft\Windows\Shell\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : FamilySafetyRefreshTask
+TaskPath : \Microsoft\Windows\Shell\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : IndexerAutomaticMaintenance
+TaskPath : \Microsoft\Windows\Shell\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ThemesSyncedImageDownload
+TaskPath : \Microsoft\Windows\Shell\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : UpdateUserPictureTask
+TaskPath : \Microsoft\Windows\Shell\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : UpdateUserPictureTaskContained
+TaskPath : \Microsoft\Windows\Shell\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : SvcRestartTaskLogon
+TaskPath : \Microsoft\Windows\SoftwareProtectionPlatform\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : SpaceAgentTask
+TaskPath : \Microsoft\Windows\SpacePort\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : SpaceManagerTask
+TaskPath : \Microsoft\Windows\SpacePort\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : MaintenanceTasks
+TaskPath : \Microsoft\Windows\StateRepository\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Storage Tiers Management Initialization
+TaskPath : \Microsoft\Windows\Storage Tiers Management\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Storage Tiers Optimization
+TaskPath : \Microsoft\Windows\Storage Tiers Management\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : EnableLicenseAcquisition
+TaskPath : \Microsoft\Windows\Subscription\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : LicenseAcquisition
+TaskPath : \Microsoft\Windows\Subscription\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : PowerGridForecastTask
+TaskPath : \Microsoft\Windows\Sustainability\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : SustainabilityTelemetry
+TaskPath : \Microsoft\Windows\Sustainability\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : HybridDriveCachePrepopulate
+TaskPath : \Microsoft\Windows\Sysmain\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : HybridDriveCacheRebalance
+TaskPath : \Microsoft\Windows\Sysmain\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ResPriStaticDbSync
+TaskPath : \Microsoft\Windows\Sysmain\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : WsSwapAssessmentTask
+TaskPath : \Microsoft\Windows\Sysmain\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : SR
+TaskPath : \Microsoft\Windows\SystemRestore\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Interactive
+TaskPath : \Microsoft\Windows\Task Manager\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : MsCtfMonitor
+TaskPath : \Microsoft\Windows\TextServicesFramework\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : ForceSynchronizeTime
+TaskPath : \Microsoft\Windows\Time Synchronization\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : SynchronizeTime
+TaskPath : \Microsoft\Windows\Time Synchronization\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : SynchronizeTimeZone
+TaskPath : \Microsoft\Windows\Time Zone\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : UPnPHostConfig
+TaskPath : \Microsoft\Windows\UPnP\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Usb-Notifications
+TaskPath : \Microsoft\Windows\USB\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : WiFiTask
+TaskPath : \Microsoft\Windows\WCM\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : ResolutionHost
+TaskPath : \Microsoft\Windows\WDI\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : QueueReporting
+TaskPath : \Microsoft\Windows\Windows Error Reporting\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : BfeOnServiceStartTypeChange
+TaskPath : \Microsoft\Windows\Windows Filtering Platform\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : UpdateLibrary
+TaskPath : \Microsoft\Windows\Windows Media Sharing\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Calibration Loader
+TaskPath : \Microsoft\Windows\WindowsColorSystem\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Scheduled Start
+TaskPath : \Microsoft\Windows\WindowsUpdate\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : CacheTask
+TaskPath : \Microsoft\Windows\Wininet\
+State    : Running
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : CDSSync
+TaskPath : \Microsoft\Windows\WlanSvc\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : MoProfileManagement
+TaskPath : \Microsoft\Windows\WlanSvc\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Work Folders Logon Synchronization
+TaskPath : \Microsoft\Windows\Work Folders\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Work Folders Maintenance Work
+TaskPath : \Microsoft\Windows\Work Folders\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Automatic-Device-Join
+TaskPath : \Microsoft\Windows\Workplace Join\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : Device-Sync
+TaskPath : \Microsoft\Windows\Workplace Join\
+State    : Disabled
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : Recovery-Check
+TaskPath : \Microsoft\Windows\Workplace Join\
+State    : Disabled
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : NotificationTask
+TaskPath : \Microsoft\Windows\WwanSvc\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+
+TaskName : OobeDiscovery
+TaskPath : \Microsoft\Windows\WwanSvc\
+State    : Ready
+Actions  : {MSFT_TaskComHandlerAction}
+
+TaskName : XblGameSaveTask
+TaskPath : \Microsoft\XblGameSave\
+State    : Ready
+Actions  : {MSFT_TaskExecAction}
+

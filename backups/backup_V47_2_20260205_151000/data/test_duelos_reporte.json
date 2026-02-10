@@ -1,0 +1,147 @@
+{
+  "fecha": "2026-02-04T12:32:59.615429",
+  "total_duelos": 6,
+  "correctos": 2,
+  "incorrectos": 4,
+  "confiabilidad": 33.33333333333333,
+  "duelos": [
+    {
+      "timestamp": 1770204779.60791,
+      "datetime": "2026-02-04T12:32:59.607914",
+      "parametro": "punto_rocio",
+      "formula_a": {
+        "nombre": "hardy_temperatura_rocio_c",
+        "nivel": "ELITE",
+        "resultado": 0.95
+      },
+      "formula_b": {
+        "nombre": "punto_rocio_wexler",
+        "nivel": "ESTÁNDAR",
+        "resultado": 0.85
+      },
+      "datos_entrada": {
+        "temperatura": 12.777777777777779,
+        "humedad": 77.0,
+        "presion": 1010.13
+      },
+      "ganador": "hardy_temperatura_rocio_c",
+      "diferencia": 0.09999999999999998,
+      "razon": "Score: 0.9500 > 0.8500"
+    },
+    {
+      "timestamp": 1770204779.607944,
+      "datetime": "2026-02-04T12:32:59.607945",
+      "parametro": "presion_vapor",
+      "formula_a": {
+        "nombre": "presion_vapor_iapws",
+        "nivel": "PROFESIONAL",
+        "resultado": 0.85
+      },
+      "formula_b": {
+        "nombre": "hardy_e_pa",
+        "nivel": "ELITE",
+        "resultado": 0.85
+      },
+      "datos_entrada": {
+        "temperatura": 12.777777777777779,
+        "humedad": 77.0,
+        "presion": 1010.13
+      },
+      "ganador": "presion_vapor_iapws",
+      "diferencia": 0.0,
+      "razon": "Score: 0.8500 > 0.8500"
+    },
+    {
+      "timestamp": 1770204779.607961,
+      "datetime": "2026-02-04T12:32:59.607961",
+      "parametro": "sensacion_termica",
+      "formula_a": {
+        "nombre": "indice_utci",
+        "nivel": "ELITE",
+        "resultado": 0.92
+      },
+      "formula_b": {
+        "nombre": "indice_steadman_apparent_temperature",
+        "nivel": "ESTÁNDAR",
+        "resultado": 0.82
+      },
+      "datos_entrada": {
+        "temperatura": 12.777777777777779,
+        "humedad": 77.0,
+        "presion": 1010.13
+      },
+      "ganador": "indice_utci",
+      "diferencia": 0.10000000000000009,
+      "razon": "Score: 0.9200 > 0.8200"
+    },
+    {
+      "timestamp": 1770204779.607974,
+      "datetime": "2026-02-04T12:32:59.607975",
+      "parametro": "evapotranspiracion",
+      "formula_a": {
+        "nombre": "et0_penman_fao56",
+        "nivel": "PROFESIONAL",
+        "resultado": 0.85
+      },
+      "formula_b": {
+        "nombre": "et0_asce_standardized",
+        "nivel": "ELITE",
+        "resultado": 0.85
+      },
+      "datos_entrada": {
+        "temperatura": 12.777777777777779,
+        "humedad": 77.0,
+        "presion": 1010.13
+      },
+      "ganador": "et0_penman_fao56",
+      "diferencia": 0.0,
+      "razon": "Score: 0.8500 > 0.8500"
+    },
+    {
+      "timestamp": 1770204779.607987,
+      "datetime": "2026-02-04T12:32:59.607988",
+      "parametro": "densidad_aire",
+      "formula_a": {
+        "nombre": "densidad_aire_ideal",
+        "nivel": "ESTÁNDAR",
+        "resultado": 0.85
+      },
+      "formula_b": {
+        "nombre": "omm_densidad_temperatura_virtual",
+        "nivel": "ELITE",
+        "resultado": 0.85
+      },
+      "datos_entrada": {
+        "temperatura": 12.777777777777779,
+        "humedad": 77.0,
+        "presion": 1010.13
+      },
+      "ganador": "densidad_aire_ideal",
+      "diferencia": 0.0,
+      "razon": "Score: 0.8500 > 0.8500"
+    },
+    {
+      "timestamp": 1770204779.607999,
+      "datetime": "2026-02-04T12:32:59.608000",
+      "parametro": "radiacion_solar_teorica",
+      "formula_a": {
+        "nombre": "radiacion_ineichen",
+        "nivel": "PROFESIONAL",
+        "resultado": 0.85
+      },
+      "formula_b": {
+        "nombre": "rest2_irradiancia_global_horizontal",
+        "nivel": "ELITE",
+        "resultado": 0.85
+      },
+      "datos_entrada": {
+        "temperatura": 12.777777777777779,
+        "humedad": 77.0,
+        "presion": 1010.13
+      },
+      "ganador": "radiacion_ineichen",
+      "diferencia": 0.0,
+      "razon": "Score: 0.8500 > 0.8500"
+    }
+  ]
+}

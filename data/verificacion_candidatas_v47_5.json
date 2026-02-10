@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-02-05T17:54:59.916197",
+  "verificacion_completa": true,
+  "comparaciones": {
+    "sensacion_termica": {
+      "mejor_propia": {
+        "nombre": "UTCI (V46.0 Stoelinga-Warner fusion)",
+        "archivo": "elite_physics.py",
+        "score": 88.5
+      },
+      "externas": [
+        {
+          "nombre": "UTCI v4.02 (Fiala et al. 2012)",
+          "parametro": "sensacion_termica",
+          "score": 92.5
+        },
+        {
+          "nombre": "RealFeel (Steadman/TWC)",
+          "parametro": "sensacion_termica",
+          "score": 89.3
+        },
+        {
+          "nombre": "Apparent Temperature (Steadman)",
+          "parametro": "sensacion_termica",
+          "score": 85.7
+        }
+      ]
+    },
+    "radiacion_balance": {
+      "mejor_propia": {
+        "nombre": "Prata Radiación Nocturna",
+        "archivo": "deardorff_v47_0_prata_integration.py",
+        "score": 89.2
+      },
+      "externas": [
+        {
+          "nombre": "MRT + Tg (ISO 7726)",
+          "parametro": "radiacion_balance",
+          "score": 91.8
+        }
+      ]
+    },
+    "estres_termico": {
+      "mejor_propia": {
+        "nombre": "Índice de Calor (HI)",
+        "archivo": "environmental_indices.py",
+        "score": 83.7
+      },
+      "externas": []
+    }
+  },
+  "veredicto": "PARCIALMENTE CORRECTO - Algunas candidatas necesitan reemplazo",
+  "correcciones": [
+    {
+      "tipo": "CANDIDATA DÉBIL",
+      "externa": "Apparent Temperature (Steadman)",
+      "vs_propia": "UTCI (V46.0 Stoelinga-Warner fusion)",
+      "diferencia": -2.799999999999997
+    }
+  ]
+}

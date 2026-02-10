@@ -1,0 +1,20 @@
+{
+  "pms5003": {
+    "aliases": ["plantower_pms5003", "pms5003_2", "plantower_pms5003_a"],
+    "type": "parametric",
+    "baseline_rh": 40,
+    "factors": {
+      "scale": 0.52,
+      "rh_rate": 0.0006
+    }
+  },
+  "sds011": {
+    "aliases": ["sds011_pm", "sds011_a"],
+    "type": "parametric",
+    "baseline_rh": 40,
+    "factors": {
+      "scale": 0.68,
+      "rh_rate": 0.001
+    }
+  }
+}

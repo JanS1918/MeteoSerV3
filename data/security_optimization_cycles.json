@@ -1,0 +1,1660 @@
+{
+  "ciclos": [
+    {
+      "timestamp": 1770225708.0098615,
+      "cycle_num": 1,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 6.771087646484375e-05
+    },
+    {
+      "timestamp": 1770382321.2805414,
+      "cycle_num": 2,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0010766983032226562
+    },
+    {
+      "timestamp": 1770382890.1154659,
+      "cycle_num": 3,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0014646053314208984
+    },
+    {
+      "timestamp": 1770382955.331447,
+      "cycle_num": 4,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012049674987792969
+    },
+    {
+      "timestamp": 1770383555.3341358,
+      "cycle_num": 5,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012183189392089844
+    },
+    {
+      "timestamp": 1770384116.9062166,
+      "cycle_num": 6,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001108407974243164
+    },
+    {
+      "timestamp": 1770385904.0978706,
+      "cycle_num": 7,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001207113265991211
+    },
+    {
+      "timestamp": 1770386216.486576,
+      "cycle_num": 8,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.00110626220703125
+    },
+    {
+      "timestamp": 1770386501.0155122,
+      "cycle_num": 9,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0009336471557617188
+    },
+    {
+      "timestamp": 1770386614.0770197,
+      "cycle_num": 10,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0010807514190673828
+    },
+    {
+      "timestamp": 1770387214.4977365,
+      "cycle_num": 11,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011675357818603516
+    },
+    {
+      "timestamp": 1770387752.079119,
+      "cycle_num": 12,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013051033020019531
+    },
+    {
+      "timestamp": 1770388352.0961082,
+      "cycle_num": 13,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003997802734375
+    },
+    {
+      "timestamp": 1770388952.1120446,
+      "cycle_num": 14,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003540515899658203
+    },
+    {
+      "timestamp": 1770389552.120469,
+      "cycle_num": 15,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.004149436950683594
+    },
+    {
+      "timestamp": 1770389860.269938,
+      "cycle_num": 16,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001378774642944336
+    },
+    {
+      "timestamp": 1770389904.3398566,
+      "cycle_num": 17,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0009419918060302734
+    },
+    {
+      "timestamp": 1770389974.2484796,
+      "cycle_num": 18,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001046895980834961
+    },
+    {
+      "timestamp": 1770390082.4266903,
+      "cycle_num": 19,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0010037422180175781
+    },
+    {
+      "timestamp": 1770390521.8619025,
+      "cycle_num": 20,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0010960102081298828
+    },
+    {
+      "timestamp": 1770391121.8695354,
+      "cycle_num": 21,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0015244483947753906
+    },
+    {
+      "timestamp": 1770391721.8774638,
+      "cycle_num": 22,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003418445587158203
+    },
+    {
+      "timestamp": 1770392321.892738,
+      "cycle_num": 23,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0032608509063720703
+    },
+    {
+      "timestamp": 1770392921.9056804,
+      "cycle_num": 24,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0016214847564697266
+    },
+    {
+      "timestamp": 1770393521.918266,
+      "cycle_num": 25,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012683868408203125
+    },
+    {
+      "timestamp": 1770394121.9370387,
+      "cycle_num": 26,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0031652450561523438
+    },
+    {
+      "timestamp": 1770394721.9553263,
+      "cycle_num": 27,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0033364295959472656
+    },
+    {
+      "timestamp": 1770395321.9707804,
+      "cycle_num": 28,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003329753875732422
+    },
+    {
+      "timestamp": 1770395921.988179,
+      "cycle_num": 29,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0028705596923828125
+    },
+    {
+      "timestamp": 1770396522.0036805,
+      "cycle_num": 30,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003368854522705078
+    },
+    {
+      "timestamp": 1770397122.0126894,
+      "cycle_num": 31,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0019059181213378906
+    },
+    {
+      "timestamp": 1770397722.0334105,
+      "cycle_num": 32,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0033652782440185547
+    },
+    {
+      "timestamp": 1770398322.045223,
+      "cycle_num": 33,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013108253479003906
+    },
+    {
+      "timestamp": 1770398922.0779626,
+      "cycle_num": 34,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0034897327423095703
+    },
+    {
+      "timestamp": 1770399522.0952785,
+      "cycle_num": 35,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0031554698944091797
+    },
+    {
+      "timestamp": 1770400122.1069727,
+      "cycle_num": 36,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003343820571899414
+    },
+    {
+      "timestamp": 1770400722.1235337,
+      "cycle_num": 37,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003386974334716797
+    },
+    {
+      "timestamp": 1770401322.1386724,
+      "cycle_num": 38,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0022382736206054688
+    },
+    {
+      "timestamp": 1770401922.1475875,
+      "cycle_num": 39,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.006026506423950195
+    },
+    {
+      "timestamp": 1770402522.1664019,
+      "cycle_num": 40,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0017333030700683594
+    },
+    {
+      "timestamp": 1770403122.1800275,
+      "cycle_num": 41,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002647876739501953
+    },
+    {
+      "timestamp": 1770403722.1953638,
+      "cycle_num": 42,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012848377227783203
+    },
+    {
+      "timestamp": 1770404322.2035415,
+      "cycle_num": 43,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0017924308776855469
+    },
+    {
+      "timestamp": 1770404922.2116268,
+      "cycle_num": 44,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0029134750366210938
+    },
+    {
+      "timestamp": 1770405522.220623,
+      "cycle_num": 45,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0037348270416259766
+    },
+    {
+      "timestamp": 1770405794.4384108,
+      "cycle_num": 46,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012247562408447266
+    },
+    {
+      "timestamp": 1770405955.2153356,
+      "cycle_num": 47,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011568069458007812
+    },
+    {
+      "timestamp": 1770406555.2212017,
+      "cycle_num": 48,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011317729949951172
+    },
+    {
+      "timestamp": 1770407155.2294047,
+      "cycle_num": 49,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012102127075195312
+    },
+    {
+      "timestamp": 1770407755.2601316,
+      "cycle_num": 50,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011792182922363281
+    },
+    {
+      "timestamp": 1770408355.270449,
+      "cycle_num": 51,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0014300346374511719
+    },
+    {
+      "timestamp": 1770408955.2790632,
+      "cycle_num": 52,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011811256408691406
+    },
+    {
+      "timestamp": 1770409555.2865098,
+      "cycle_num": 53,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0014119148254394531
+    },
+    {
+      "timestamp": 1770410155.2944446,
+      "cycle_num": 54,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013210773468017578
+    },
+    {
+      "timestamp": 1770410755.3063383,
+      "cycle_num": 55,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.004674434661865234
+    },
+    {
+      "timestamp": 1770411355.327884,
+      "cycle_num": 56,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0036482810974121094
+    },
+    {
+      "timestamp": 1770411955.3493917,
+      "cycle_num": 57,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0032799243927001953
+    },
+    {
+      "timestamp": 1770412555.359781,
+      "cycle_num": 58,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.004515409469604492
+    },
+    {
+      "timestamp": 1770413155.3692672,
+      "cycle_num": 59,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0020112991333007812
+    },
+    {
+      "timestamp": 1770413755.3858862,
+      "cycle_num": 60,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001332998275756836
+    },
+    {
+      "timestamp": 1770414355.3997676,
+      "cycle_num": 61,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.004666805267333984
+    },
+    {
+      "timestamp": 1770414955.4338715,
+      "cycle_num": 62,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.004042863845825195
+    },
+    {
+      "timestamp": 1770415555.4500368,
+      "cycle_num": 63,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.004561424255371094
+    },
+    {
+      "timestamp": 1770416155.473523,
+      "cycle_num": 64,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.00437164306640625
+    },
+    {
+      "timestamp": 1770416755.4832609,
+      "cycle_num": 65,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.004704475402832031
+    },
+    {
+      "timestamp": 1770417355.4925742,
+      "cycle_num": 66,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001142263412475586
+    },
+    {
+      "timestamp": 1770417955.499199,
+      "cycle_num": 67,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.004071950912475586
+    },
+    {
+      "timestamp": 1770418555.512315,
+      "cycle_num": 68,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003816366195678711
+    },
+    {
+      "timestamp": 1770419155.5358741,
+      "cycle_num": 69,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003801584243774414
+    },
+    {
+      "timestamp": 1770419755.5434363,
+      "cycle_num": 70,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013668537139892578
+    },
+    {
+      "timestamp": 1770420355.5501592,
+      "cycle_num": 71,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001352071762084961
+    },
+    {
+      "timestamp": 1770420955.5567055,
+      "cycle_num": 72,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013165473937988281
+    },
+    {
+      "timestamp": 1770421555.5649796,
+      "cycle_num": 73,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0014252662658691406
+    },
+    {
+      "timestamp": 1770422155.5717306,
+      "cycle_num": 74,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011944770812988281
+    },
+    {
+      "timestamp": 1770422755.5786462,
+      "cycle_num": 75,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0015559196472167969
+    },
+    {
+      "timestamp": 1770472185.0950582,
+      "cycle_num": 76,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 4.482269287109375e-05
+    },
+    {
+      "timestamp": 1770472282.9716094,
+      "cycle_num": 77,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 5.125999450683594e-05
+    },
+    {
+      "timestamp": 1770472376.1622632,
+      "cycle_num": 78,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 2.5033950805664062e-05
+    },
+    {
+      "timestamp": 1770472561.7309458,
+      "cycle_num": 79,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 2.6702880859375e-05
+    },
+    {
+      "timestamp": 1770472602.8006966,
+      "cycle_num": 80,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 2.47955322265625e-05
+    },
+    {
+      "timestamp": 1770472646.0336683,
+      "cycle_num": 81,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 3.147125244140625e-05
+    },
+    {
+      "timestamp": 1770472759.4866054,
+      "cycle_num": 82,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 2.9325485229492188e-05
+    },
+    {
+      "timestamp": 1770540817.9493532,
+      "cycle_num": 83,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012774467468261719
+    },
+    {
+      "timestamp": 1770540890.7697344,
+      "cycle_num": 84,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012359619140625
+    },
+    {
+      "timestamp": 1770541490.7776294,
+      "cycle_num": 85,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011944770812988281
+    },
+    {
+      "timestamp": 1770542090.803892,
+      "cycle_num": 86,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001966238021850586
+    },
+    {
+      "timestamp": 1770542693.0324721,
+      "cycle_num": 87,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012769699096679688
+    },
+    {
+      "timestamp": 1770543418.7354503,
+      "cycle_num": 88,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013790130615234375
+    },
+    {
+      "timestamp": 1770544018.750827,
+      "cycle_num": 89,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011823177337646484
+    },
+    {
+      "timestamp": 1770544618.75726,
+      "cycle_num": 90,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0018343925476074219
+    },
+    {
+      "timestamp": 1770545218.772057,
+      "cycle_num": 91,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013282299041748047
+    },
+    {
+      "timestamp": 1770545818.776519,
+      "cycle_num": 92,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0017752647399902344
+    },
+    {
+      "timestamp": 1770546418.7932436,
+      "cycle_num": 93,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0038022994995117188
+    },
+    {
+      "timestamp": 1770547018.8066568,
+      "cycle_num": 94,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0015997886657714844
+    },
+    {
+      "timestamp": 1770578256.8852057,
+      "cycle_num": 95,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0009908676147460938
+    },
+    {
+      "timestamp": 1770578875.7038012,
+      "cycle_num": 96,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002290487289428711
+    },
+    {
+      "timestamp": 1770579475.718595,
+      "cycle_num": 97,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0017943382263183594
+    },
+    {
+      "timestamp": 1770580075.7249534,
+      "cycle_num": 98,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002208709716796875
+    },
+    {
+      "timestamp": 1770580245.1286597,
+      "cycle_num": 99,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011518001556396484
+    },
+    {
+      "timestamp": 1770580496.9697235,
+      "cycle_num": 100,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0015530586242675781
+    },
+    {
+      "timestamp": 1770581096.9820664,
+      "cycle_num": 101,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0017008781433105469
+    },
+    {
+      "timestamp": 1770581696.9968927,
+      "cycle_num": 102,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.00225067138671875
+    },
+    {
+      "timestamp": 1770582297.016683,
+      "cycle_num": 103,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0036923885345458984
+    },
+    {
+      "timestamp": 1770582897.0287366,
+      "cycle_num": 104,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0056858062744140625
+    },
+    {
+      "timestamp": 1770583497.0646362,
+      "cycle_num": 105,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003954410552978516
+    },
+    {
+      "timestamp": 1770584097.088084,
+      "cycle_num": 106,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.005056142807006836
+    },
+    {
+      "timestamp": 1770584697.1117003,
+      "cycle_num": 107,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.00406193733215332
+    },
+    {
+      "timestamp": 1770585297.1309536,
+      "cycle_num": 108,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002173900604248047
+    },
+    {
+      "timestamp": 1770585897.1383817,
+      "cycle_num": 109,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0020186901092529297
+    },
+    {
+      "timestamp": 1770586497.146572,
+      "cycle_num": 110,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0030913352966308594
+    },
+    {
+      "timestamp": 1770589221.7385576,
+      "cycle_num": 111,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.1434004306793213
+    },
+    {
+      "timestamp": 1770589821.8745685,
+      "cycle_num": 112,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0036644935607910156
+    },
+    {
+      "timestamp": 1770590425.9482002,
+      "cycle_num": 113,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0024106502532958984
+    },
+    {
+      "timestamp": 1770591030.8387196,
+      "cycle_num": 114,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0014820098876953125
+    },
+    {
+      "timestamp": 1770591631.889975,
+      "cycle_num": 115,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011782646179199219
+    },
+    {
+      "timestamp": 1770592252.2809315,
+      "cycle_num": 116,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011107921600341797
+    },
+    {
+      "timestamp": 1770592852.2873695,
+      "cycle_num": 117,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0018718242645263672
+    },
+    {
+      "timestamp": 1770593452.2919908,
+      "cycle_num": 118,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0010912418365478516
+    },
+    {
+      "timestamp": 1770638974.2792597,
+      "cycle_num": 119,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011417865753173828
+    },
+    {
+      "timestamp": 1770639278.2001476,
+      "cycle_num": 120,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001058816909790039
+    },
+    {
+      "timestamp": 1770639595.7408626,
+      "cycle_num": 121,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011322498321533203
+    },
+    {
+      "timestamp": 1770639845.8492773,
+      "cycle_num": 122,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012667179107666016
+    },
+    {
+      "timestamp": 1770640223.6326046,
+      "cycle_num": 123,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0009086132049560547
+    },
+    {
+      "timestamp": 1770640825.9383395,
+      "cycle_num": 124,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001257181167602539
+    },
+    {
+      "timestamp": 1770641426.2371862,
+      "cycle_num": 125,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011188983917236328
+    },
+    {
+      "timestamp": 1770723856.9109461,
+      "cycle_num": 126,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0008313655853271484
+    },
+    {
+      "timestamp": 1770724456.9193718,
+      "cycle_num": 127,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0015628337860107422
+    },
+    {
+      "timestamp": 1770725056.933273,
+      "cycle_num": 128,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0008563995361328125
+    },
+    {
+      "timestamp": 1770725583.1025317,
+      "cycle_num": 129,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001367807388305664
+    },
+    {
+      "timestamp": 1770726183.1072292,
+      "cycle_num": 130,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012416839599609375
+    },
+    {
+      "timestamp": 1770726783.1136777,
+      "cycle_num": 131,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012731552124023438
+    },
+    {
+      "timestamp": 1770727383.119854,
+      "cycle_num": 132,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0015490055084228516
+    },
+    {
+      "timestamp": 1770727983.1317835,
+      "cycle_num": 133,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.00490880012512207
+    },
+    {
+      "timestamp": 1770728583.144981,
+      "cycle_num": 134,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0014264583587646484
+    },
+    {
+      "timestamp": 1770729183.156172,
+      "cycle_num": 135,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.005105495452880859
+    },
+    {
+      "timestamp": 1770729783.1704118,
+      "cycle_num": 136,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013048648834228516
+    },
+    {
+      "timestamp": 1770730383.1859748,
+      "cycle_num": 137,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013041496276855469
+    },
+    {
+      "timestamp": 1770730983.2065651,
+      "cycle_num": 138,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.006773710250854492
+    },
+    {
+      "timestamp": 1770731583.2454865,
+      "cycle_num": 139,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011112689971923828
+    },
+    {
+      "timestamp": 1770732183.2609499,
+      "cycle_num": 140,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012199878692626953
+    },
+    {
+      "timestamp": 1770732783.2920327,
+      "cycle_num": 141,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0010094642639160156
+    },
+    {
+      "timestamp": 1770733383.3074968,
+      "cycle_num": 142,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001100778579711914
+    },
+    {
+      "timestamp": 1770733983.339319,
+      "cycle_num": 143,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0013382434844970703
+    },
+    {
+      "timestamp": 1770734583.3545825,
+      "cycle_num": 144,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0009944438934326172
+    },
+    {
+      "timestamp": 1770734748.8732207,
+      "cycle_num": 145,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012443065643310547
+    },
+    {
+      "timestamp": 1770735349.4607155,
+      "cycle_num": 146,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012471675872802734
+    },
+    {
+      "timestamp": 1770735949.4661243,
+      "cycle_num": 147,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0017197132110595703
+    },
+    {
+      "timestamp": 1770736400.3385403,
+      "cycle_num": 148,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001222372055053711
+    },
+    {
+      "timestamp": 1770737000.3437262,
+      "cycle_num": 149,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011515617370605469
+    },
+    {
+      "timestamp": 1770737600.3564768,
+      "cycle_num": 150,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0010445117950439453
+    },
+    {
+      "timestamp": 1770738200.3714972,
+      "cycle_num": 151,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012319087982177734
+    },
+    {
+      "timestamp": 1770738800.3811078,
+      "cycle_num": 152,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011131763458251953
+    },
+    {
+      "timestamp": 1770739013.0846858,
+      "cycle_num": 153,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012247562408447266
+    },
+    {
+      "timestamp": 1770739554.2526817,
+      "cycle_num": 154,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002246379852294922
+    },
+    {
+      "timestamp": 1770739758.6251254,
+      "cycle_num": 155,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002009868621826172
+    },
+    {
+      "timestamp": 1770739963.1773305,
+      "cycle_num": 156,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001035451889038086
+    },
+    {
+      "timestamp": 1770740235.8460693,
+      "cycle_num": 157,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011212825775146484
+    },
+    {
+      "timestamp": 1770740477.773974,
+      "cycle_num": 158,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011577606201171875
+    },
+    {
+      "timestamp": 1770740630.2858224,
+      "cycle_num": 159,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011150836944580078
+    },
+    {
+      "timestamp": 1770740848.4292521,
+      "cycle_num": 160,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012865066528320312
+    },
+    {
+      "timestamp": 1770741076.73436,
+      "cycle_num": 161,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012700557708740234
+    },
+    {
+      "timestamp": 1770741677.2007143,
+      "cycle_num": 162,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001214742660522461
+    },
+    {
+      "timestamp": 1770742277.2051358,
+      "cycle_num": 163,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0010912418365478516
+    },
+    {
+      "timestamp": 1770742878.3918383,
+      "cycle_num": 164,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011029243469238281
+    },
+    {
+      "timestamp": 1770743478.4022357,
+      "cycle_num": 165,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001596689224243164
+    },
+    {
+      "timestamp": 1770744078.4191082,
+      "cycle_num": 166,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0015418529510498047
+    },
+    {
+      "timestamp": 1770744239.2335827,
+      "cycle_num": 167,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0011913776397705078
+    },
+    {
+      "timestamp": 1770744839.2556381,
+      "cycle_num": 168,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.010827779769897461
+    },
+    {
+      "timestamp": 1770744875.458118,
+      "cycle_num": 169,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0020399093627929688
+    },
+    {
+      "timestamp": 1770745263.8425598,
+      "cycle_num": 170,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0012247562408447266
+    },
+    {
+      "timestamp": 1770745471.9923363,
+      "cycle_num": 171,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0003266334533691406
+    },
+    {
+      "timestamp": 1770745595.779906,
+      "cycle_num": 172,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0003228187561035156
+    },
+    {
+      "timestamp": 1770746167.2506328,
+      "cycle_num": 173,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0003848075866699219
+    },
+    {
+      "timestamp": 1770746423.645842,
+      "cycle_num": 174,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0004048347473144531
+    },
+    {
+      "timestamp": 1770746547.9682734,
+      "cycle_num": 175,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.00032210350036621094
+    },
+    {
+      "timestamp": 1770747147.9711466,
+      "cycle_num": 176,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0007739067077636719
+    },
+    {
+      "timestamp": 1770747747.9817507,
+      "cycle_num": 177,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0005071163177490234
+    },
+    {
+      "timestamp": 1770748349.0087552,
+      "cycle_num": 178,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0005552768707275391
+    },
+    {
+      "timestamp": 1770748949.0138795,
+      "cycle_num": 179,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0007233619689941406
+    },
+    {
+      "timestamp": 1770749549.0243053,
+      "cycle_num": 180,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.00046896934509277344
+    },
+    {
+      "timestamp": 1770750149.0311906,
+      "cycle_num": 181,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001165628433227539
+    },
+    {
+      "timestamp": 1770750601.114021,
+      "cycle_num": 182,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.00048422813415527344
+    },
+    {
+      "timestamp": 1770750654.8350492,
+      "cycle_num": 183,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0003790855407714844
+    },
+    {
+      "timestamp": 1770750712.329029,
+      "cycle_num": 184,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.000579833984375
+    },
+    {
+      "timestamp": 1770751312.3342514,
+      "cycle_num": 185,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0005261898040771484
+    },
+    {
+      "timestamp": 1770753125.9692256,
+      "cycle_num": 186,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0038909912109375
+    },
+    {
+      "timestamp": 1770753728.208483,
+      "cycle_num": 187,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002161741256713867
+    },
+    {
+      "timestamp": 1770754328.2265458,
+      "cycle_num": 188,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0022661685943603516
+    },
+    {
+      "timestamp": 1770754928.2455404,
+      "cycle_num": 189,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.006654024124145508
+    },
+    {
+      "timestamp": 1770755528.2583425,
+      "cycle_num": 190,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0017228126525878906
+    },
+    {
+      "timestamp": 1770756131.4895205,
+      "cycle_num": 191,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002342700958251953
+    },
+    {
+      "timestamp": 1770756731.5094538,
+      "cycle_num": 192,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.005884885787963867
+    },
+    {
+      "timestamp": 1770757331.5316658,
+      "cycle_num": 193,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002263784408569336
+    },
+    {
+      "timestamp": 1770757931.5394545,
+      "cycle_num": 194,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0015435218811035156
+    },
+    {
+      "timestamp": 1770758531.5566192,
+      "cycle_num": 195,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0018863677978515625
+    },
+    {
+      "timestamp": 1770759131.5712192,
+      "cycle_num": 196,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001903533935546875
+    },
+    {
+      "timestamp": 1770759734.6587338,
+      "cycle_num": 197,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0017826557159423828
+    },
+    {
+      "timestamp": 1770760334.6710854,
+      "cycle_num": 198,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.005933523178100586
+    },
+    {
+      "timestamp": 1770760934.6885574,
+      "cycle_num": 199,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0022182464599609375
+    },
+    {
+      "timestamp": 1770761534.710635,
+      "cycle_num": 200,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.002372264862060547
+    },
+    {
+      "timestamp": 1770762141.5895982,
+      "cycle_num": 201,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.003417491912841797
+    },
+    {
+      "timestamp": 1770762741.6049662,
+      "cycle_num": 202,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0019435882568359375
+    },
+    {
+      "timestamp": 1770763341.61879,
+      "cycle_num": 203,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.001608133316040039
+    },
+    {
+      "timestamp": 1770763941.6399784,
+      "cycle_num": 204,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0021255016326904297
+    },
+    {
+      "timestamp": 1770764541.6598413,
+      "cycle_num": 205,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0029535293579101562
+    },
+    {
+      "timestamp": 1770765141.6692252,
+      "cycle_num": 206,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0023479461669921875
+    },
+    {
+      "timestamp": 1770765741.6907496,
+      "cycle_num": 207,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.0019838809967041016
+    }
+  ]
+}

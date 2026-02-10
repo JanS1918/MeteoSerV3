@@ -1,0 +1,241 @@
+[2026-02-03 18:37:30,324] INFO: 
+================================================================================
+[2026-02-03 18:37:30,325] INFO: AUDITORIA TOTAL AUTOMATICA - INICIO
+[2026-02-03 18:37:30,325] INFO: Timestamp: 2026-02-03T18:37:30.323948
+[2026-02-03 18:37:30,325] INFO: ================================================================================
+[2026-02-03 18:37:30,325] INFO: ================================================================================
+[2026-02-03 18:37:30,326] INFO: FASE 1: BACKUP INICIAL
+[2026-02-03 18:37:30,326] INFO: ================================================================================
+[2026-02-03 18:37:32,298] INFO: 
+================================================================================
+[2026-02-03 18:37:32,298] INFO: FASE 2: AUDITORIA DE SINTAXIS PYTHON
+[2026-02-03 18:37:32,298] INFO: ================================================================================
+[2026-02-03 18:37:35,153] INFO: 
+================================================================================
+[2026-02-03 18:37:35,153] INFO: FASE 3: AUDITORIA DE IMPORTS
+[2026-02-03 18:37:35,153] INFO: ================================================================================
+[2026-02-03 18:37:35,405] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:35,523] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:35,638] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:35,754] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:35,856] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:35,958] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:36,073] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:36,188] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:36,304] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:36,407] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:36,523] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:36,639] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:36,754] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:36,873] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:36,987] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:37,090] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:37,204] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:37,223] INFO: 
+================================================================================
+[2026-02-03 18:37:37,224] INFO: FASE 4: VERIFICACION DE MEMORIA EPISODICA
+[2026-02-03 18:37:37,224] INFO: ================================================================================
+[2026-02-03 18:37:37,247] INFO:   - weather_patterns: 1 registros
+[2026-02-03 18:37:37,248] INFO:   - anomaly_episodes: 0 registros
+[2026-02-03 18:37:37,248] INFO:   - physics_signatures: 0 registros
+[2026-02-03 18:37:37,248] INFO:   - sensor_behaviors: 0 registros
+[2026-02-03 18:37:37,251] INFO: 
+================================================================================
+[2026-02-03 18:37:37,251] INFO: FASE 5: TEST DE SCRIPTS DE PATRULLA
+[2026-02-03 18:37:37,252] INFO: ================================================================================
+[2026-02-03 18:37:37,269] INFO: 
+================================================================================
+[2026-02-03 18:37:37,269] INFO: FASE 6: VALIDACION DE INTEGRIDAD DE DATOS
+[2026-02-03 18:37:37,269] INFO: ================================================================================
+[2026-02-03 18:37:37,285] INFO: 
+================================================================================
+[2026-02-03 18:37:37,286] INFO: FASE 7: AUTO-CORRECCION DE ERRORES
+[2026-02-03 18:37:37,286] INFO: ================================================================================
+[2026-02-03 18:37:37,286] INFO: Errores encontrados: 1
+[2026-02-03 18:37:37,289] INFO:   Detalles: {'archivo': 'meteoser_ia\\block_d.py', 'linea': 211, 'error': 'expected an indented block after function definition on line 209 (block_d.py, line 211)'}
+[2026-02-03 18:37:37,292] INFO: 
+================================================================================
+[2026-02-03 18:37:37,293] INFO: FASE 8: BACKUP FINAL Y REPORTE
+[2026-02-03 18:37:37,293] INFO: ================================================================================
+[2026-02-03 18:37:37,293] INFO: ================================================================================
+[2026-02-03 18:37:37,294] INFO: FASE 1: BACKUP INICIAL
+[2026-02-03 18:37:37,294] INFO: ================================================================================
+[2026-02-03 18:37:37,318] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:37,423] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:37,538] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:37,661] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:37,788] ERROR: Silent except at 134 - revisar contexto
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\bus\bus_async_writer.py", line 122, in _procesar_cola
+    clave, valor = self.cola.get(timeout=0.1)
+                   ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+[2026-02-03 18:37:37,834] INFO: 
+================================================================================
+[2026-02-03 18:37:37,834] INFO: RESUMEN DE AUDITORIA TOTAL
+[2026-02-03 18:37:37,834] INFO: ================================================================================
+[2026-02-03 18:37:37,835] INFO: Archivos Python analizados: 8522
+[2026-02-03 18:37:37,835] INFO:   - OK: 319
+[2026-02-03 18:37:37,835] INFO:   - Errores: 1
+[2026-02-03 18:37:37,836] INFO: Imports verificados: 6
+[2026-02-03 18:37:37,836] INFO:   - Faltantes: 0
+[2026-02-03 18:37:37,838] INFO: Tests ejecutados: 2
+[2026-02-03 18:37:37,838] INFO:   - OK: 2
+[2026-02-03 18:37:37,842] INFO:   - Fallidos: 0
+[2026-02-03 18:37:37,844] INFO: 
+Errores encontrados: 1
+[2026-02-03 18:37:37,845] INFO: Correcciones aplicadas: 1
+[2026-02-03 18:37:37,845] INFO: Backup final: C:\Users\kioko\Desktop\MeteoSerV3\backups\audit_backup_20260203_183730
+[2026-02-03 18:37:37,847] INFO: ================================================================================
+[2026-02-03 18:37:37,848] INFO: 
+================================================================================
+[2026-02-03 18:37:37,861] INFO: ================================================================================

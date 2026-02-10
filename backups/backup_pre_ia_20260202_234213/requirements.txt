@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+jinja2
+pyserial
+bleak
+zeroconf
+paho-mqtt
+feedparser
+pyttsx3
+httpx
+requests
+iapws

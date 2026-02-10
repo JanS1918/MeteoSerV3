@@ -1,0 +1,14 @@
+{
+  "total_subfactores": 1136,
+  "funcionales": 1064,
+  "no_funcionales": 72,
+  "no_implementados_list": [
+    "año",
+    "dias_helada_acumulados_año",
+    "emis ividad_cuerpo_humano",
+    "emis ividad_cuerpo_negro",
+    "es_año_bisiesto",
+    "utci_categoria_estrés"
+  ],
+  "solo_en_backups_count": 66
+}

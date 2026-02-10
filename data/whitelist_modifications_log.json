@@ -1,0 +1,166 @@
+{
+  "modifications": [
+    {
+      "timestamp": 1770225708.0048325,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770225708.0062032,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    },
+    {
+      "timestamp": 1770426874.4999452,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770426874.5009215,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    },
+    {
+      "timestamp": 1770472185.0898886,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770472185.091247,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    },
+    {
+      "timestamp": 1770472282.966538,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770472282.9679139,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    },
+    {
+      "timestamp": 1770472376.1588216,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770472376.1598082,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    },
+    {
+      "timestamp": 1770472561.7266283,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770472561.7282727,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    },
+    {
+      "timestamp": 1770472602.7967534,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770472602.7979743,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    },
+    {
+      "timestamp": 1770472646.02907,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770472646.0302446,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    },
+    {
+      "timestamp": 1770472759.4812744,
+      "parameter": "temperatura",
+      "old_value": "25",
+      "new_value": "30",
+      "modifier": "unknown",
+      "status": "BLOCKED",
+      "reason": "Par\u00e1metro sagrado protegido"
+    },
+    {
+      "timestamp": 1770472759.482906,
+      "parameter": "custom_param",
+      "old_value": "None",
+      "new_value": "100",
+      "modifier": "unknown",
+      "status": "ALLOWED",
+      "reason": "Par\u00e1metro no es sagrado"
+    }
+  ]
+}

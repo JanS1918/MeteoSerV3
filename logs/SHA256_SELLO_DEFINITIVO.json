@@ -1,0 +1,74 @@
+{
+  "timestamp_generacion": "2026-02-05T10:22:15.690980",
+  "ubicacion_sellada": "Argentona, Barcelona, España",
+  "coordenadas": {
+    "latitud_exacta": 41.553267,
+    "longitud_exacta": 2.396845,
+    "altitud_m": 118.0
+  },
+  "gravedad_sellada": {
+    "valor_m_s2": 9.80272394,
+    "formula": "Somigliana-Helmert con corrección Helmert 2do orden",
+    "precisión": "11 decimales",
+    "fuente": "PhysicsEngine2026"
+  },
+  "componentes_criticos": [
+    {
+      "nombre": "Configuración de Estación",
+      "ruta": "data\\config_estacion.json",
+      "sha256": "d54c8e5d30ebbeaaa6550d050f7133d3f5981f183401985a236cb511e029abbd",
+      "tamanio_bytes": 2577,
+      "estado": "OK"
+    },
+    {
+      "nombre": "Ubicación Última (LocationEngine)",
+      "ruta": "data\\last_location.json",
+      "sha256": "33b880f79e57195c46106aa4d4132039a9d281a780e9dffee08f46e41991bb95",
+      "tamanio_bytes": 69,
+      "estado": "OK"
+    },
+    {
+      "nombre": "Motor de Física 2026 (Somigliana-Helmert)",
+      "ruta": "core\\indices\\physics_engine_2026.py",
+      "sha256": "d14783d10cb32c5be55b9a1b556339a809211da0b5e6ec6a1b7d57fbf89fb563",
+      "tamanio_bytes": 20537,
+      "estado": "OK"
+    },
+    {
+      "nombre": "ViewModel (Precisión 8 Decimales)",
+      "ruta": "app\\ui\\viewmodel.py",
+      "sha256": "b5b7f721fd8de3beef47fbd23351011aa41ac9861a8e6402b65c0b9a8e5cc637",
+      "tamanio_bytes": 18774,
+      "estado": "OK"
+    },
+    {
+      "nombre": "API Endpoints (Validación de Ubicación)",
+      "ruta": "app\\ui\\api_endpoints.py",
+      "sha256": "28d342071a92ae58e7c1e038cec35c6be56370e062d1dbb3555c1d9a3fa89812",
+      "tamanio_bytes": 24304,
+      "estado": "OK"
+    },
+    {
+      "nombre": "Bus Expander (Publicación de Gravedad Dinámica)",
+      "ruta": "core\\system\\bus_expander.py",
+      "sha256": "6192aa95edefc46e8c885932831c55187984ce73835d827b2ecb959688853d94",
+      "tamanio_bytes": 394205,
+      "estado": "OK"
+    },
+    {
+      "nombre": "Location Engine (Persistencia de Ubicación)",
+      "ruta": "core\\location\\location_engine.py",
+      "sha256": "21ff6c6fb0256b3fe87016d8941c12db5eaeb95c8da9446b17e7741fb4ccd2a6",
+      "tamanio_bytes": 7772,
+      "estado": "OK"
+    },
+    {
+      "nombre": "Main ASGI (Inicialización e Inyección)",
+      "ruta": "main_asgi.py",
+      "sha256": "4d13842a3f3f679868663ba9c4dcfa78fb70db59e4a17c0da99cc8ea706ba77e",
+      "tamanio_bytes": 182975,
+      "estado": "OK"
+    }
+  ],
+  "sha256_de_este_sello": "1bcfc553f51deae4235c0b9662b251665cd1b554417952ca6140671d8e1408fd"
+}

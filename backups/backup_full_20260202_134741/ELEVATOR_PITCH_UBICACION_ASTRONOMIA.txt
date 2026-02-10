@@ -1,0 +1,62 @@
+# ⚡ ELEVATOR PITCH - Ubicación & Astronomía Perdidas
+
+## EN 60 SEGUNDOS
+
+**Problema:** 3 motores del sistema (Luz Natural, Ritmo Circadiano, Nocturno) están **completamente rotos** porque en una refactorización se perdió código de ubicación y cálculos astronómicos.
+
+**Síntomas:**
+- Motor Luz Natural no recomienda abrir/cerrar cortinas
+- Motor Ritmo Circadiano recomienda dormir a medianoche
+- Motor Nocturno no calcula "buena noche para telescopio"
+- Física de Vector #26 no valida anomalías de radiación
+
+**Causa:** 260 líneas de `main_asgi.py` (backup) con:
+- ✗ Detección jerárquica de ubicación
+- ✗ Cálculo de radiación solar teórica
+- ✗ Lógica híbrida día/noche con sensores
+- ✗ Índices de cielo nocturno
+
+...se pasaron PARCIALMENTE a `core/arcos_solares.py` y `app/ui/viewmodel.py` pero falta:
+- ❌ Radiación teórica (crítica)
+- ❌ Lógica híbrida (crítica)
+- ❌ Índices de cielo (media)
+
+**Impacto:** Usuarios ven recomendaciones incorrectas/ausentes
+
+**Solución:** Restaurar 3 funciones (~80 líneas de código)
+
+**Tiempo:** 3 horas de ingeniería
+
+**Código:** Todo está documentado en pseudocódigo (listo para copiar)
+
+---
+
+## DECISIÓN RECOMENDADA
+
+### ✅ HACER
+**Razones:**
+- Solo 3 horas de trabajo
+- 3 motores se restauran
+- Física correcta para Vector #26
+- Cero riesgo (código probado en backup)
+
+### Línea de Acción:
+1. Dev: Copia pseudocódigo → Codifica (1.5 h)
+2. Tests: Valida (30 min)
+3. PR: Merge & Deploy (30 min)
+
+---
+
+## DOCUMENTOS
+
+| Necesitas... | Lee... | Tiempo |
+|---|---|---|
+| Entender el problema | `RESUMEN_UBICACION_ASTRONOMIA_PERDIDAS.md` | 5 min |
+| Decidir si hacer | `ANALISIS_FINAL_UBICACION.md` | 10 min |
+| Ver pseudocódigo | `PSEUDOCODIGO_RESTAURACION_UBICACION.md` | 30 min |
+| Plan de ejecución | `CHECKLIST_RESTAURACION_UBICACION.md` | 15 min |
+| Todo junto | `INDICE_DOCUMENTACION_UBICACION.md` | 2 min |
+
+---
+
+**Conclusión:** Restaurar. Factible. Necesario. Decidir YA. ✅

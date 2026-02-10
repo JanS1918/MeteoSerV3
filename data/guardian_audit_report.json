@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-02-05T18:31:54.164004",
+  "puede_continuar_guardian": false,
+  "n_problemas_críticos": 1,
+  "n_advertencias": 0,
+  "problemas": [
+    {
+      "tipo": "FANTASMA",
+      "función": "rest2_gueymard_srtm",
+      "parámetro": "radiacion_solar",
+      "nivel": "ELITE",
+      "severidad": "CRÍTICA"
+    }
+  ],
+  "advertencias": []
+}

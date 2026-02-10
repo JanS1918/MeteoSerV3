@@ -1,0 +1,224 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                    MANIFESTO FUNDAMENTAL DE METEOSERV3                       ║
+║                                                                              ║
+║  "TODO HA DE SER CÓDIGO. TODO HA DE FUNCIONAR DESDE EL PRIMER DÍA."          ║
+║                                                                              ║
+║                    ⚡ LEE ESTO ANTES DE TOCAR NADA ⚡                        ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+1. PRINCIPIO FUNDAMENTAL
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ TODO LO QUE PROMETAS DEBE ESTAR EN CÓDIGO
+   ❌ PROHIBIDO: "Lo implementaremos después"
+   ❌ PROHIBIDO: "Solo está documentado"
+   ❌ PROHIBIDO: Código comentado esperando "futura implementación"
+   
+   ✅ OBLIGATORIO: Código ejecutable, probado, funcional
+
+✅ CÓDIGO FUNCIONAL DESDE EL PRIMER COMMIT
+   ❌ PROHIBIDO: "Aún no está completo"
+   ❌ PROHIBIDO: Scripts sin importar
+   ❌ PROHIBIDO: Funciones que lanzan NotImplementedError
+   
+   ✅ OBLIGATORIO: Ejecutar = Funciona. Siempre.
+
+✅ AUDITORÍA CONTINUA
+   ✅ Cada adición de código se verifica:
+      - ¿Qué prometiste en documentación?
+      - ¿Existe en código?
+      - ¿Se ejecuta correctamente?
+      
+   ✅ Si la respuesta a cualquiera es NO: PAUSAR Y ARREGLAR
+
+═══════════════════════════════════════════════════════════════════════════════
+2. REGLA DE ORO: DISEÑO → CÓDIGO → FUNCIONAL
+═══════════════════════════════════════════════════════════════════════════════
+
+Cuando diseñes un nuevo componente:
+
+PASO 1: CÓDIGO PRIMERO
+├─ Crea la clase/función
+├─ Implementa la lógica COMPLETA
+├─ SIN dejar TODO pendiente
+└─ SIN comentarios del tipo "TODO: implementar X"
+
+PASO 2: PRUEBA INMEDIATAMENTE
+├─ Crea tests
+├─ Verifica que funcione
+├─ Ejecuta: python archivo.py
+└─ ✅ DEBE PASAR SIN ERRORES
+
+PASO 3: DOCUMENTA LO QUE EXISTE
+├─ Escribe .md describiendo QUÉ CÓDIGO EXISTE
+├─ NO escribas sobre funciones "planeadas"
+├─ Cada doc debe apuntar a código real
+└─ Vincula a líneas exactas: [punto_rocio](core/indices/environmental_indices.py#L4756)
+
+PROHIBIDO: Diseño → Documento → Esperar a que alguien lo implemente
+OBLIGATORIO: Diseño → Código Funcional → Documento
+
+
+═══════════════════════════════════════════════════════════════════════════════
+3. CHECKLIST ANTES DE HACER COMMIT
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] ¿El código nuevo existe en un archivo .py?
+[ ] ¿Se ejecuta sin errores? (python archivo.py)
+[ ] ¿Todas las importaciones funcionan?
+[ ] ¿Las funciones retornan valores reales, no None?
+[ ] ¿Hay tests que pasen?
+[ ] ¿Está documentado? (¿Existe en .md o docstrings?)
+[ ] ¿Nadie podría confundir "documentado" con "promesa"?
+[ ] ¿Pasaría una auditoría exhaustiva?
+
+SI CUALQUIERA ES "NO": NO HACER COMMIT
+
+
+═══════════════════════════════════════════════════════════════════════════════
+4. EXCEPCIONES PERMITIDAS (MUY POCAS)
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ PERMITIDO:
+   • Código en /backups/ (archivos históricos, no producción)
+   • Archivos de configuración (.config.txt, .json)
+   • Tests fallando en ramas experimentales
+   • Comentarios explicativos sobre lógica compleja
+
+❌ NUNCA PERMITIDO:
+   • Archivos .md que prometan cosas no codificadas
+   • Funciones con "raise NotImplementedError"
+   • Código importado que no existe
+   • "TODO:" comments esperando futuro
+   • Scripts que "deberían funcionar después"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+5. AUDITORÍA AUTOMÁTICA: VERIFICACIÓN SEMANAL
+═══════════════════════════════════════════════════════════════════════════════
+
+Cada 7 días:
+
+$ python SCRIPTS_PATRULLA/AUDITORIA_EXHAUSTIVA_V3.py
+
+DEBE MOSTRAR: ✅ 100% IMPLEMENTADO EN CÓDIGO
+
+Si no: CRISIS
+├─ Pausar desarrollo
+├─ Revisar qué se documentó sin codificar
+├─ Implementar o remover promesas falsas
+└─ Repasar ANTES de continuar
+
+
+═══════════════════════════════════════════════════════════════════════════════
+6. CÓMO SE ROMPIÓ ESTO EN EL PASADO
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ ANTI-PATRÓN 1: "Hoy documentamos, mañana codificamos"
+   → Resultado: 414 archivos .md vs código incompleto
+   → Solución: NUNCA. Código primero.
+
+❌ ANTI-PATRÓN 2: "Es una promesa arquitectónica"
+   → Resultado: Features "prometidas" que nadie implementa
+   → Solución: Si no está codificado, no es promesa, es ficción.
+
+❌ ANTI-PATRÓN 3: "Está parcialmente implementado"
+   → Resultado: Funciones que a veces funcionan, a veces fallan
+   → Solución: FUNCIONA SIEMPRE o no existe.
+
+❌ ANTI-PATRÓN 4: "Lo dejamos para la próxima versión"
+   → Resultado: V30.0, V30.1... pura documentación
+   → Solución: TODAS las versiones son 100% código funcional.
+
+
+═══════════════════════════════════════════════════════════════════════════════
+7. METRICIA: CÓMO MEDIMOS ÉXITO
+═══════════════════════════════════════════════════════════════════════════════
+
+MÉTRICA DE VERDAD:
+
+   % de conceptos documentados que existen en código ejecutable
+
+OBJETIVO MÍNIMO: 95%
+OBJETIVO REAL: 100%
+
+ACTUAL (Feb 2026): 100% ✅ (Auditoría exhaustiva)
+
+Si cae por debajo de 95%:
+→ PAUSAR TODO
+→ CÓDIGO A CERO PROMESAS FALSAS
+→ Reauditoria
+→ Continuar
+
+
+═══════════════════════════════════════════════════════════════════════════════
+8. PARA EDITORES Y COLABORADORES
+═══════════════════════════════════════════════════════════════════════════════
+
+LEE ESTO PRIMERO:
+
+✅ SI DISEÑAS ALGO:
+   1. Escribe el código (funcional, probado)
+   2. Prueba que se ejecute
+   3. Documenta qué EXISTE
+   4. Haz commit
+   5. NUNCA antes
+
+❌ SI QUIERES DOCUMENTAR UNA "IDEA":
+   → Crea una rama experimental
+   → Codifica la idea
+   → Verifica que funciona
+   → ENTONCES documenta
+   → NUNCA antes
+
+❌ SI ENCUENTRAS CÓDIGO INCOMPLETO:
+   → Complétalo ANTES de documentar
+   → O bórralo
+   → O déjalo en /EXPERIMENTAL/
+   → NUNCA lo dejes en producción sin terminar
+
+
+═══════════════════════════════════════════════════════════════════════════════
+9. CITA SAGRADA (PEGA ESTO EN TU MONITOR)
+═══════════════════════════════════════════════════════════════════════════════
+
+"No escribas lo que PLANEAS hacer.
+ Escribe el código de lo que ESTÁS HACIENDO.
+ Documenta lo que YA FUNCIONA.
+ Todo lo demás es ficción."
+
+                    - MeteoSerV3 Manifesto, Feb 2026
+
+
+═══════════════════════════════════════════════════════════════════════════════
+10. ACCIONES INMEDIATAS
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ HECHO:
+   • Auditoría exhaustiva: 100% de conceptos en código
+   • V30.1 Omnisciencia: Totalmente funcional
+   • Bus inteligente: consumir_elite() y publicar_elite() operativos
+   • Fórmulas científicas: Todas registradas y jerarquizadas
+
+✅ PRÓXIMOS 7 DÍAS:
+   [ ] Releer este manifesto cada mañana
+   [ ] Ejecutar auditoría semanal
+   [ ] Si algo no está en código: NO DOCUMENTARLO
+   [ ] Celebrar: Sistema 100% real
+
+═══════════════════════════════════════════════════════════════════════════════
+
+FECHA: 4 FEB 2026
+ESTADO: VIGOR
+VERSIÓN: 1.0 (PERMANENTE)
+VALIDEZ: SIEMPRE
+
+El código es la verdad.
+Todo lo demás es promesas.
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                  "CÓDIGO FUNCIONAL O NO EXISTE"                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝

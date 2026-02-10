@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeteoSer V3 - Panel Profesional</title>
+    <link rel="stylesheet" href="/static/css/puzzle.css">
+</head>
+<body>
+    <!-- Canvas de fondo para animaciones meteorológicas -->
+    <canvas id="canvas-animaciones"></canvas>
+
+    <!-- Contenedor principal -->
+    <div class="meteoser-container">
+        <!-- Panel Superior (info general + coordenadas) -->
+        <div class="panel-superior" id="panel-superior">
+            <div class="info-ubicacion">
+                <span id="ubicacion-texto">Cargando ubicación...</span>
+                <span id="coordenadas" class="coordenadas">—</span>
+            </div>
+            <div class="info-estado">
+                <span id="estado-sistema">Sistema iniciando...</span>
+                <span id="hora-actualizacion">—</span>
+            </div>
+        </div>
+
+        <!-- Área central (valores principales en cajones) -->
+        <div class="area-central" id="area-central">
+            <div class="cajones-container" id="cajones-container">
+                <!-- Los 5 cajones se generarán dinámicamente aquí -->
+            </div>
+        </div>
+
+        <!-- Sidebar lateral (5 cajones desplegables) -->
+        <div class="sidebar-cajones" id="sidebar-cajones">
+            <!-- Los 5 cajones laterales se generarán aquí con click para expandir -->
+        </div>
+
+        <!-- Modal para submenús y detalles -->
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="modal-content" id="modal-content">
+                <button class="modal-close" id="modal-close">✕</button>
+                <div class="modal-body" id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/puzzle.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,187 @@
+════════════════════════════════════════════════════════════════════════════════
+DIAGRAMA VISUAL: PROBLEMA DE GRAVEDAD - DESCONEXIÓN BUS-MÓDULOS
+════════════════════════════════════════════════════════════════════════════════
+
+ESCENARIO ACTUAL (ROTO):
+═════════════════════════════════════════════════════════════════════════════════
+
+                          🔧 PHYSICS ENGINE 2026
+                          ✅ Somigliana-Helmert
+                             g = 9.80272394 m/s²
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │    BUS (El Correo) │
+                         └─────────────────────┘
+                                    │
+                  ┌─────────────────┼─────────────────┐
+                  │                                   │
+                  ▼ ✅ PUBLICA                        │
+           [gravedad_dinamica]                       │
+            = 9.80272394 m/s²                        │
+                                        LEE        NO LEE ❌
+                                         │                │
+    ┌────────────────────┬──────────────┤      ┌────────┴────────────────┐
+    │                    │              │      │                         │
+    ▼ ✅               ▼ ✅           ▼ ❌   ▼ ❌                       │
+ bus_expander    bus_expander    6 Módulos    ISA_CALC (9.81)        │
+  LEE y USA        (otros)      HARDCODED     ENV_INDICES (9.80665)  │
+                                                ATMOS_PROFILER (9.81)  │
+                              ┌────────────────→ADVANCED_PREDICT (9.81)│
+                              │                 ADVANCED_PHYSICS (9.81) │
+                              │                 PHYSICS_NUMBA (9.80665) │
+                              └─────────────────────────────────────────┘
+
+
+RESULTADO: 
+───────────
+Valor correcto (9.80272394) EXISTE en el Bus ✅
+Pero 6 módulos lo IGNORAN y usan valores VIEJOS ❌
+
+
+COMPARACIÓN DE GRAVEDAD EN CÁLCULOS:
+═════════════════════════════════════════════════════════════════════════════════
+
+Módulo                          Actualmente Usa    Debería Usar    Error
+────────────────────────────────────────────────────────────────────────────
+isa_calculator                  9.81               9.80272394      -0.00728 m/s²
+atmospheric_profiler            9.81               9.80272394      -0.00728 m/s²
+advanced_predictive_indices     9.81               9.80272394      -0.00728 m/s²
+advanced_physics_models (CAPE)  9.81               9.80272394      -0.00728 m/s²
+environmental_indices           9.80665 (ISA)      9.80272394      +0.00393 m/s²
+physics_numba                   9.80665 (ISA)      9.80272394      +0.00393 m/s²
+
+
+IMPACTO DE ERRORES EN CÁLCULOS:
+═════════════════════════════════════════════════════════════════════════════════
+
+CÁLCULO: CAPE (Convective Available Potential Energy)
+────────────────────────────────────────────────────
+Formula: CAPE = g × ∫(T_entorno - T_parcela) / T_parcela dz
+
+Con g = 9.81:
+  CAPE = 1500 J/kg (VALOR INCORRECTO)
+
+Con g = 9.80272394:
+  CAPE = 1496 J/kg (VALOR CORRECTO)
+
+Diferencia: +4 J/kg = +0.27% ERROR
+Impacto: Predicción de severe weather off en 0.27%
+
+───────────────────────────────────────────────────────────────
+
+CÁLCULO: Presión ISA (ISA = International Standard Atmosphere)
+──────────────────────────────────────────────────────────────
+Formula: P(h) = P₀ × (1 - L×h / T₀) ^ (-g×M / R×L)
+
+A 1000m altitud:
+  Con g = 9.81:        P = 898.5 hPa (INCORRECTO)
+  Con g = 9.80272394:  P = 898.8 hPa (CORRECTO)
+  
+Diferencia: 0.3 hPa = 0.03% ERROR
+
+───────────────────────────────────────────────────────────────
+
+CÁLCULO: Número de Richardson (estabilidad atmosférica)
+──────────────────────────────────────────────────────
+Formula: Ri = (g / T) × (ΔT / Δz) / (ΔU / Δz)²
+
+Con g = 9.81:
+  Ri = 0.125 (INCORRECTO)
+
+Con g = 9.80272394:
+  Ri = 0.1247 (CORRECTO)
+
+Diferencia: 0.024% ERROR
+
+
+PROBLEMA DE COORDENADAS - 4 FALLBACKS DIFERENTES:
+═════════════════════════════════════════════════════════════════════════════════
+
+Main Program:
+┌─ main_asgi.py (línea 1831)
+│  ├─ latitud = 41.5507      ❌ (debería ser 41.55326700)
+│  └─ longitud = -2.397      ❌ (negativa, debería ser +2.39684500)
+│
+├─ ecowitt_receiver.py (línea 830)
+│  ├─ lat = 41.5507          ❌ (debería ser 41.55326700)
+│  └─ lon = -2.397           ❌ (negativa, debería ser +2.39684500)
+│
+├─ advanced_physics_models.py (línea 270)
+│  └─ latitud = 41.5513      ❌ (debería ser 41.55326700)
+│
+└─ bus_expander.py (línea 560)
+   └─ lat = 41.55            ❌ (debería ser 41.55326700)
+
+PROBLEMA: Si un módulo falla, usa FALLBACK diferente
+          → Cálculos con coordenadas INCONSISTENTES
+
+
+PRESIÓN NIVEL MAR - 3 MÉTODOS DIFERENTES:
+═════════════════════════════════════════════════════════════════════════════════
+
+┌─ Método 1: bus_expander.py línea 543 (CORRECTO)
+│  Cálculo: P = P_est × exp(g × h / (R_especifico × T))
+│  Usa: gravedad_dinamica del Bus ✅
+│  Result: Presión dinámica, precisa
+│
+├─ Método 2: bus_expander.py línea 4691 (INCORRECTO)
+│  Cálculo: P = 1013.25 hPa (constant)
+│  Usa: Hardcoded ISA
+│  Result: Presión estática, siempre igual
+│
+└─ Método 3: bus_expander.py línea 4967 (INCORRECTO)
+   Cálculo: isa_presion_nivel_mar = 1013.25 hPa (duplicate)
+   Usa: Hardcoded ISA
+   Result: Duplicado innecesario
+
+
+SOLUCIÓN VISUAL:
+═════════════════════════════════════════════════════════════════════════════════
+
+DESPUÉS DE APLICAR FIX:
+
+                          🔧 PHYSICS ENGINE 2026
+                          ✅ Somigliana-Helmert
+                             g = 9.80272394 m/s²
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │    BUS (El Correo) │
+                         └─────────────────────┘
+                                    │
+                                    ▼
+                         [gravedad_dinamica]
+                          = 9.80272394 m/s²
+                                    │
+        ┌───────────────────────────┼───────────────────────────┐
+        │                           │                           │
+        ▼ ✅               ▼ ✅   ▼ ✅                         │
+    bus_expander      bus_expander  6 Módulos AHORA LEE      │
+    LEE y USA         (otros)       ISA_CALC                 │
+                                    ENV_INDICES ✅ TODOS      │
+                                    ATMOS_PROFILER            │
+                                    ADVANCED_PREDICT          │
+                                    ADVANCED_PHYSICS          │
+                                    PHYSICS_NUMBA             │
+
+
+RESULTADO: 
+─────────────
+Valor correcto (9.80272394) EN Bus ✅
+Y todos 6 módulos LO LEE ✅
+
+
+════════════════════════════════════════════════════════════════════════════════
+Resumen de cambios necesarios:
+
+1. GRAVEDAD: Cambiar 11 líneas (6 módulos)
+   Patrón: g = 9.81 → g = bus.leer("gravedad_dinamica") or 9.80272394
+
+2. COORDENADAS: Crear constante y cambiar 4 ubicaciones
+   Patrón: fallback → CONSTANTES_ESTACION.FALLBACK_COORDENADAS
+
+3. PRESIÓN: Revisar y unificar 2-3 cálculos
+   Patrón: Usar siempre fórmula barométrica con gravedad dinámica
+
+════════════════════════════════════════════════════════════════════════════════

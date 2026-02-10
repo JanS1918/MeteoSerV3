@@ -1,0 +1,104 @@
+[
+  {
+    "timestamp": "2026-02-05T17:03:03.811367",
+    "archivos_modificados": [
+      {
+        "archivo": "core/monitoring/centinela_soberano.py",
+        "hash_original": "cc3129ad6ebdf65d...",
+        "hash_actual": "ea7538cce841bd88..."
+      }
+    ],
+    "archivos_borrados": [],
+    "accion": "ALERTA_MODIFICACION"
+  },
+  {
+    "timestamp": "2026-02-05T17:41:01.637344",
+    "archivos_modificados": [
+      {
+        "archivo": "core/learning/feedback_learning_v472.py",
+        "hash_original": "481bf8b241addd3d...",
+        "hash_actual": "d2f562b8d5587121..."
+      },
+      {
+        "archivo": "core/validation/mos_clustering_validator.py",
+        "hash_original": "cf03b08839b84634...",
+        "hash_actual": "3255b3578343e505..."
+      },
+      {
+        "archivo": "core/learning/feedback_learning_auditor.py",
+        "hash_original": "7d95ff14d6a30b09...",
+        "hash_actual": "04473094ebf75208..."
+      },
+      {
+        "archivo": "core/monitoring/centinela_soberano.py",
+        "hash_original": "ea7538cce841bd88...",
+        "hash_actual": "cbe96824824f64d5..."
+      },
+      {
+        "archivo": "core/monitoring/cortafuegos_cascada.py",
+        "hash_original": "42dfaf9d61a37d73...",
+        "hash_actual": "1458208a209ecd5c..."
+      },
+      {
+        "archivo": "core/monitoring/monitor_recursos_auto_limpieza.py",
+        "hash_original": "39cfdba5fc920587...",
+        "hash_actual": "2980c64a6c5784ed..."
+      },
+      {
+        "archivo": "main_asgi.py",
+        "hash_original": "837f29003bc8a8f2...",
+        "hash_actual": "30e6f6713dda85a8..."
+      }
+    ],
+    "archivos_borrados": [],
+    "accion": "ALERTA_MODIFICACION"
+  },
+  {
+    "timestamp": "2026-02-08T02:12:26.969481",
+    "archivos_modificados": [
+      {
+        "archivo": "main_asgi.py",
+        "hash_original": "30e6f6713dda85a8...",
+        "hash_actual": "8bbb46785fd40e16..."
+      }
+    ],
+    "archivos_borrados": [],
+    "accion": "ALERTA_MODIFICACION"
+  },
+  {
+    "timestamp": "2026-02-08T02:19:39.807921",
+    "archivos_modificados": [
+      {
+        "archivo": "main_asgi.py",
+        "hash_original": "30e6f6713dda85a8...",
+        "hash_actual": "008bbe6c8e596d96..."
+      }
+    ],
+    "archivos_borrados": [],
+    "accion": "ALERTA_MODIFICACION"
+  },
+  {
+    "timestamp": "2026-02-08T02:28:47.987633",
+    "archivos_modificados": [
+      {
+        "archivo": "main_asgi.py",
+        "hash_original": "30e6f6713dda85a8...",
+        "hash_actual": "f60e97cc09758544..."
+      }
+    ],
+    "archivos_borrados": [],
+    "accion": "ALERTA_MODIFICACION"
+  },
+  {
+    "timestamp": "2026-02-08T02:30:04.943010",
+    "archivos_modificados": [
+      {
+        "archivo": "main_asgi.py",
+        "hash_original": "30e6f6713dda85a8...",
+        "hash_actual": "f60e97cc09758544..."
+      }
+    ],
+    "archivos_borrados": [],
+    "accion": "ALERTA_MODIFICACION"
+  }
+]

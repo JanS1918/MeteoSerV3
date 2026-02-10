@@ -1,0 +1,8 @@
+{
+  "temperatura_bulbo_humedo": {
+    "blocked": true,
+    "lock_threshold_percent": 0.03,
+    "reason": "Sello de Stull: proteger fórmula ELITE contra cambios menores al 3% (orden del Acorazado).",
+    "date_blocked": "2026-02-05"
+  }
+}

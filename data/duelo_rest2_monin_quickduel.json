@@ -1,0 +1,18 @@
+{
+  "rest2_quickduel": {
+    "actual_rmse": 31.9841673967784,
+    "candidata_rmse": 30.16691845480451,
+    "margin_percent": 0.056817140787952816,
+    "pvalue": 0.7711301217294434,
+    "decision": "REJECTED",
+    "razon": "Sin significancia estad\u00edstica (p=0.7711)"
+  },
+  "monin_obukhov_quickduel": {
+    "actual_rmse": NaN,
+    "candidata_rmse": NaN,
+    "margin_percent": NaN,
+    "pvalue": 0.0002328332095248814,
+    "decision": "ACCEPTED",
+    "razon": "Mejora significativa (+nan%, p=0.0002). Pasa a validaci\u00f3n de 25 capas."
+  }
+}

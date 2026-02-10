@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "intervalo_minutos": 60,
+  "parametros_prioridad": [
+    "sensacion_termica",
+    "humedad_relativa",
+    "punto_rocio",
+    "indice_calor",
+    "radiacion_solar"
+  ],
+  "minimo_score_ganadora_externa": 75.0,
+  "minimo_margen_victoria": 5.0,
+  "max_candidatas_por_parametro": 5
+}

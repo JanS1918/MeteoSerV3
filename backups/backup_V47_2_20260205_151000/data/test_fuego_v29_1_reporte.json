@@ -1,0 +1,28 @@
+{
+  "test_fuego_v29_1": {
+    "fecha": "2026-02-03T22:40:20.049433",
+    "estado": "\u2705 EXITOSO",
+    "ciclos": {
+      "solicitados": 100,
+      "completados": 100,
+      "exitosos": 100
+    },
+    "parametros": {
+      "total_publicados": 4385068,
+      "promedio_por_ciclo": 43850,
+      "colisiones_bloqueadas": 231032,
+      "deduplicaciones": 87803
+    },
+    "performance": {
+      "tiempo_total_segundos": 30.867470026016235,
+      "tiempo_promedio_ciclo_ms": 297.62346506118774,
+      "tiempo_max_ciclo_ms": 709.63454246521,
+      "throughput_promedio_params_ms": 142.06114062163513
+    },
+    "validaciones": {
+      "sin_colapso_memoria": "\u2705 S\u00cd",
+      "sin_p\u00e9rdida_datos": "\u2705 S\u00cd",
+      "colisiones_bajo_control": "\u2705 S\u00cd"
+    }
+  }
+}

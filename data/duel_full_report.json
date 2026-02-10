@@ -1,0 +1,20 @@
+[
+  {
+    "parametro": "sensacion_termica",
+    "ganador": "Universal Thermal Climate Index (ISO 14505-2)",
+    "ganador_id": "indice_utci",
+    "ganador_tipo": "jerarquia",
+    "score": 0.9494574785390286,
+    "escenarios": null,
+    "fusion_data": null
+  },
+  {
+    "parametro": "radiacion_solar",
+    "ganador": "Gueymard REST2 + SRTM Ocaso Topográfico",
+    "ganador_id": "calcular_radiacion_extraterrestre_rest2",
+    "ganador_tipo": "jerarquia",
+    "score": 0.8826340602651188,
+    "escenarios": null,
+    "fusion_data": null
+  }
+]

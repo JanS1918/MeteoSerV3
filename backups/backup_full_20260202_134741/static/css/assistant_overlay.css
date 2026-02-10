@@ -1,0 +1,42 @@
+/* Overlay flotante para el asistente MeteoSer */
+.assistant-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(24,32,40,0.82);
+  backdrop-filter: blur(8px);
+}
+.assistant-panel {
+  max-width: 900px;
+  width: 96vw;
+  max-height: 92vh;
+  min-width: 320px;
+  min-height: 220px;
+  overflow: auto;
+  border-radius: 18px;
+  background: rgba(30,40,50,0.92);
+  box-shadow: 0 8px 48px #38f2c0a0;
+  padding: 32px 24px;
+  position: relative;
+  color: #e0f7fa;
+  font-size: 1.15rem;
+}
+@media (max-width: 600px) {
+  .assistant-panel {
+    max-width: 99vw;
+    width: 99vw;
+    max-height: 99vh;
+    padding: 12px 4px;
+    font-size: 1rem;
+  }
+}
+.console-btn#close-asistente-overlay {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 210;
+}

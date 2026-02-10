@@ -1,0 +1,19 @@
+{
+  "timestamp_inicio": "2026-02-08T09:56:48.420191",
+  "ubicacion": {
+    "latitud": 41.553267,
+    "longitud": 2.396845,
+    "altitud_m": 124.0,
+    "nombre": "Argentona, Catalunya, Espa\u00f1a"
+  },
+  "datos_mqtt": [],
+  "datos_cloud": [],
+  "metadatos": {
+    "recuperado_en": "2026-02-08T09:56:50.736821",
+    "periodo_ciego_dias": 2,
+    "periodo_ciego_inicio": "2026-02-06T09:56:50.736831",
+    "periodo_ciego_fin": "2026-02-08T09:56:50.736843",
+    "total_mqtt_registros": 0,
+    "total_cloud_registros": 0
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-02-03T18:37:30.323948",
+  "duracion_segundos": 7.505074,
+  "stats": {
+    "archivos_python_total": 8522,
+    "archivos_python_ok": 319,
+    "archivos_python_error": 1,
+    "imports_verificados": 6,
+    "imports_faltantes": 0,
+    "tests_ejecutados": 2,
+    "tests_ok": 2,
+    "tests_fallidos": 0
+  },
+  "errores_encontrados": 1,
+  "correcciones_aplicadas": 1,
+  "warnings": 0,
+  "backup_final": "C:\\Users\\kioko\\Desktop\\MeteoSerV3\\backups\\audit_backup_20260203_183730",
+  "detalles_errores": [
+    {
+      "archivo": "meteoser_ia\\block_d.py",
+      "linea": 211,
+      "error": "expected an indented block after function definition on line 209 (block_d.py, line 211)"
+    }
+  ],
+  "detalles_correcciones": [
+    {
+      "error": {
+        "archivo": "meteoser_ia\\block_d.py",
+        "linea": 211,
+        "error": "expected an indented block after function definition on line 209 (block_d.py, line 211)"
+      },
+      "accion": "registrado_para_revision_manual",
+      "timestamp": "2026-02-03T18:37:37.290024"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+2026-02-05 18:57:36,377 - INFO - [LOGGING] Sistema configurado: archivo UTF-8 + consola activa
+
+================================================================================
+= AUDITOR BRUTAL DE GUARDIAN V47.5
+= Verificacion de integridad antes de activacion
+================================================================================
+
+Cargando inventario de f¾rmulas reales...
+
+================================================================================
+FASE 1: VERIFICACIËN DE EXISTENCIA F═SICA
+================================================================================
+
+[sensacion_termica]
+
+VALIDANDO CONSTITUCION FISICA DE ARGENTONA...
+  [OK] ESTACION: Coordenadas selladas
+  [OK] GRAVEDAD: 9.80272394 m/s▓ sellada
+  [OK] PRESION: F¾rmula baromÚtrica unificada
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_AUDITOR_BRUTAL.py", line 116, in validar_existencia
+    exec(f"from {m¾dulo_name} import {func_name}")
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 1, in <module>
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\indices\environmental_indices.py", line 85, in <module>
+    from core.context.contexto_maestro_global import ContextoMaestroGlobal
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\context\contexto_maestro_global.py", line 9, in <module>
+    from core.system.constants import ESTACION
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\system\constants.py", line 183, in <module>
+    validar_constitucion()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\kioko\Desktop\MeteoSerV3\core\system\constants.py", line 179, in validar_constitucion
+    print("\U0001f3c1 CONSTITUCIËN F═SICA VALIDADA - SISTEMA EN SOBERAN═A\n")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f3c1' in position 0: character maps to <undefined>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_AUDITOR_BRUTAL.py", line 413, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_AUDITOR_BRUTAL.py", line 367, in main
+    reales.validar_existencia()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\kioko\Desktop\MeteoSerV3\GUARDIAN_AUDITOR_BRUTAL.py", line 123, in validar_existencia
+    print(f"  \u26a0\ufe0f  {func_name}: ERROR importando: {type(e).__name__}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kioko\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 2-3: character maps to <undefined>

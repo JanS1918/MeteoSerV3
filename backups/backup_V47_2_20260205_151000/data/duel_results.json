@@ -1,0 +1,112 @@
+{
+  "duelos": [
+    {
+      "timestamp": 1770222884.685387,
+      "parametro": "sensacion_termica",
+      "interna_id": "sensacion_termica_v1",
+      "externa_id": "scipy_sensacion_termica_0",
+      "externa_nombre": "scipy.special.erf - Sensación Térmica",
+      "duracion_segundos": 0.002330780029296875,
+      "ganadora": "internal",
+      "score_ganadora": 33.47391163037327,
+      "score_perdedora": 33.47391163037327,
+      "margen_victoria": 0.0,
+      "detalles": {
+        "interna": {
+          "nombre": "interna",
+          "fuente": "internal",
+          "tiempo_ejecucion": 2.0600040443241595e-06,
+          "precision_mae": 1.0,
+          "precision_rmse": 1.0,
+          "precision_r2": 0.0,
+          "robustez_score": 1.0,
+          "estabilidad_score": 0.8982607753582181,
+          "score_total": 33.47391163037327
+        },
+        "externa": {
+          "nombre": "externa",
+          "fuente": "external",
+          "tiempo_ejecucion": 0.0003565999999409541,
+          "precision_mae": 1.0,
+          "precision_rmse": 1.0,
+          "precision_r2": 0.0,
+          "robustez_score": 1.0,
+          "estabilidad_score": 0.8982607753582181,
+          "score_total": 33.47391163037327
+        }
+      }
+    },
+    {
+      "timestamp": 1770222945.095398,
+      "parametro": "sensacion_termica",
+      "interna_id": "sensacion_termica_v1",
+      "externa_id": "scipy_sensacion_termica_0",
+      "externa_nombre": "scipy.special.erf - Sensación Térmica",
+      "duracion_segundos": 0.0027992725372314453,
+      "ganadora": "internal",
+      "score_ganadora": 33.47391163037327,
+      "score_perdedora": 33.47391163037327,
+      "margen_victoria": 0.0,
+      "detalles": {
+        "interna": {
+          "nombre": "interna",
+          "fuente": "internal",
+          "tiempo_ejecucion": 2.1399930119514467e-06,
+          "precision_mae": 1.0,
+          "precision_rmse": 1.0,
+          "precision_r2": 0.0,
+          "robustez_score": 1.0,
+          "estabilidad_score": 0.8982607753582181,
+          "score_total": 33.47391163037327
+        },
+        "externa": {
+          "nombre": "externa",
+          "fuente": "external",
+          "tiempo_ejecucion": 0.0004358800011686981,
+          "precision_mae": 1.0,
+          "precision_rmse": 1.0,
+          "precision_r2": 0.0,
+          "robustez_score": 1.0,
+          "estabilidad_score": 0.8982607753582181,
+          "score_total": 33.47391163037327
+        }
+      }
+    },
+    {
+      "timestamp": 1770222964.415307,
+      "parametro": "sensacion_termica",
+      "interna_id": "sensacion_termica_v1",
+      "externa_id": "scipy_sensacion_termica_0",
+      "externa_nombre": "scipy.special.erf - Sensación Térmica",
+      "duracion_segundos": 0.002367258071899414,
+      "ganadora": "internal",
+      "score_ganadora": 33.47391163037327,
+      "score_perdedora": 33.47391163037327,
+      "margen_victoria": 0.0,
+      "detalles": {
+        "interna": {
+          "nombre": "interna",
+          "fuente": "internal",
+          "tiempo_ejecucion": 1.780001912266016e-06,
+          "precision_mae": 1.0,
+          "precision_rmse": 1.0,
+          "precision_r2": 0.0,
+          "robustez_score": 1.0,
+          "estabilidad_score": 0.8982607753582181,
+          "score_total": 33.47391163037327
+        },
+        "externa": {
+          "nombre": "externa",
+          "fuente": "external",
+          "tiempo_ejecucion": 0.0003749599971342832,
+          "precision_mae": 1.0,
+          "precision_rmse": 1.0,
+          "precision_r2": 0.0,
+          "robustez_score": 1.0,
+          "estabilidad_score": 0.8982607753582181,
+          "score_total": 33.47391163037327
+        }
+      }
+    }
+  ]
+}

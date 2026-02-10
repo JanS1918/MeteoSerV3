@@ -1,0 +1,1 @@
+{"tipo": "movimiento", "entidad": "test_temperatura", "cambio": {"origen": "cajon_test_origen", "destino": "cajon_test_destino"}, "usuario": "test_automatizado", "metadata": {}, "timestamp": "2026-02-02T00:34:52.216851"}

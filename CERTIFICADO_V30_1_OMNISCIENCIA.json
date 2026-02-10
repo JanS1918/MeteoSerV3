@@ -1,0 +1,59 @@
+{
+  "fecha": "2026-02-04",
+  "parametros": {
+    "densidad_aire": {
+      "formulas": [
+        "OMM WMO Temperature Virtual (CIPM-2007)",
+        "Ideal Gas Approximation"
+      ],
+      "mejor": "ELITE",
+      "niveles": 2
+    },
+    "evapotranspiracion": {
+      "formulas": [
+        "ASCE Standardized Penman-Monteith (Standardized)",
+        "FAO-56 Penman-Monteith (Standard)"
+      ],
+      "mejor": "ELITE",
+      "niveles": 2
+    },
+    "presion_vapor": {
+      "formulas": [
+        "Hardy Vapor Pressure with Enhancement Factor",
+        "IAPWS-95 Formulation (Wagner & Pruﬂ 2002)",
+        "Hyland-Wexler NIST Polynomial"
+      ],
+      "mejor": "ELITE",
+      "niveles": 3
+    },
+    "punto_rocio": {
+      "formulas": [
+        "Hardy NIST Enhancement Factor (1998)",
+        "Wexler NIST Newton-Raphson Inverso",
+        "Magnus Simplified Approximation"
+      ],
+      "mejor": "ELITE",
+      "niveles": 3
+    },
+    "radiacion_solar_teorica": {
+      "formulas": [
+        "REST2 Clear-Sky Model (Gueymard 2008)",
+        "Ineichen-Perez Clear-Sky Model"
+      ],
+      "mejor": "ELITE",
+      "niveles": 2
+    },
+    "sensacion_termica": {
+      "formulas": [
+        "Universal Thermal Climate Index (ISO 14505-2)",
+        "Steadman Apparent Temperature (1984)",
+        "Wind Chill Temperature Index"
+      ],
+      "mejor": "ELITE",
+      "niveles": 3
+    }
+  },
+  "total_formulas": 15,
+  "total_parametros": 6,
+  "version": "V30.1"
+}

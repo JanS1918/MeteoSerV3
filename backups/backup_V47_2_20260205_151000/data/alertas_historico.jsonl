@@ -1,0 +1,2 @@
+{"timestamp": 1770203547.3956993, "datetime": "2026-02-04T12:12:27.395699", "tipo": "viento_alto", "nivel": "naranja", "valor": 35.5, "umbral": 30.0, "sensor": "windspeedmph_original", "accion": "Asegurar objetos al aire libre", "confirmada": null}
+{"timestamp": 1770207147.3956993, "datetime": "2026-02-04T13:12:27.395699", "tipo": "temperatura_minima", "nivel": "amarillo", "valor": 2.5, "umbral": 0.0, "sensor": "temperatura", "accion": "Riego preventivo para heladas", "confirmada": null}

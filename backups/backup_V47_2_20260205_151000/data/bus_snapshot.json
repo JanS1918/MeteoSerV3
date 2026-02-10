@@ -1,0 +1,326 @@
+{
+  "timestamp": "2026-02-03T08:55:48.365339",
+  "capas": {
+    "CORE": [
+      {
+        "variable": "contexto.ubicacion.latitud",
+        "valor": 45.123,
+        "tipo": "CORE",
+        "origen": "core.context.ContextoMaestro",
+        "timestamp": "2026-02-03T08:55:48.353844",
+        "confianza": 1.0,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "grados",
+        "rango_esperado": [
+          -90,
+          90
+        ],
+        "notas": "Latitud de estaci\u00f3n"
+      },
+      {
+        "variable": "contexto.ubicacion.longitud",
+        "valor": 10.456,
+        "tipo": "CORE",
+        "origen": "core.context.ContextoMaestro",
+        "timestamp": "2026-02-03T08:55:48.353899",
+        "confianza": 1.0,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "grados",
+        "rango_esperado": [
+          -180,
+          180
+        ],
+        "notas": "Longitud de estaci\u00f3n"
+      },
+      {
+        "variable": "contexto.ubicacion.altitud_sensor",
+        "valor": 115.0,
+        "tipo": "CORE",
+        "origen": "core.context.ContextoMaestro",
+        "timestamp": "2026-02-03T08:55:48.353924",
+        "confianza": 1.0,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "metros",
+        "rango_esperado": null,
+        "notas": "Altitud total del sensor"
+      },
+      {
+        "variable": "contexto.terreno.z0_calle",
+        "valor": 0.5,
+        "tipo": "CORE",
+        "origen": "core.context.ContextoMaestro",
+        "timestamp": "2026-02-03T08:55:48.353931",
+        "confianza": 1.0,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "metros",
+        "rango_esperado": null,
+        "notas": "Rugosidad aerodin\u00e1mica calle"
+      },
+      {
+        "variable": "contexto.terreno.z0_terraza",
+        "valor": 0.03,
+        "tipo": "CORE",
+        "origen": "core.context.ContextoMaestro",
+        "timestamp": "2026-02-03T08:55:48.353937",
+        "confianza": 1.0,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "metros",
+        "rango_esperado": null,
+        "notas": "Rugosidad aerodin\u00e1mica terraza"
+      },
+      {
+        "variable": "physics.densidad_aire",
+        "valor": 1.225,
+        "tipo": "CORE",
+        "origen": "core.indices.physics_engine_cached",
+        "timestamp": "2026-02-03T08:55:48.355039",
+        "confianza": 0.98,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "kg/m\u00b3",
+        "rango_esperado": [
+          0.5,
+          2.0
+        ],
+        "notas": "Calculada a partir de T, P, HR"
+      },
+      {
+        "variable": "physics.viscosidad_aire",
+        "valor": 1.81e-05,
+        "tipo": "CORE",
+        "origen": "core.indices.physics_engine_cached",
+        "timestamp": "2026-02-03T08:55:48.355074",
+        "confianza": 0.98,
+        "precondiciones": [
+          "temperatura_valida"
+        ],
+        "consumidores": [],
+        "unidad": "Pa\u00b7s",
+        "rango_esperado": null,
+        "notas": "Dependencia Sutherland"
+      },
+      {
+        "variable": "physics.velocidad_sonido",
+        "valor": 343.0,
+        "tipo": "CORE",
+        "origen": "core.indices.physics_engine_cached",
+        "timestamp": "2026-02-03T08:55:48.355088",
+        "confianza": 0.99,
+        "precondiciones": [
+          "temperatura_valida"
+        ],
+        "consumidores": [
+          "UTCI",
+          "ET0"
+        ],
+        "unidad": "m/s",
+        "rango_esperado": null,
+        "notas": ""
+      }
+    ],
+    "INTERMEDIATE": [
+      {
+        "variable": "contexto.suelo.humedad",
+        "valor": 0.25,
+        "tipo": "INTERMEDIATE",
+        "origen": "core.context.ContextoMaestro",
+        "timestamp": "2026-02-03T08:55:48.353945",
+        "confianza": 0.9,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "",
+        "rango_esperado": null,
+        "notas": "Estado del suelo: humedad"
+      },
+      {
+        "variable": "contexto.suelo.temperatura",
+        "valor": 15.0,
+        "tipo": "INTERMEDIATE",
+        "origen": "core.context.ContextoMaestro",
+        "timestamp": "2026-02-03T08:55:48.353951",
+        "confianza": 0.9,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "",
+        "rango_esperado": null,
+        "notas": "Estado del suelo: temperatura"
+      },
+      {
+        "variable": "contexto.suelo.conductividad",
+        "valor": 0.8,
+        "tipo": "INTERMEDIATE",
+        "origen": "core.context.ContextoMaestro",
+        "timestamp": "2026-02-03T08:55:48.353956",
+        "confianza": 0.9,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "",
+        "rango_esperado": null,
+        "notas": "Estado del suelo: conductividad"
+      },
+      {
+        "variable": "indices.utci_temp_equivalente",
+        "valor": 27.5,
+        "tipo": "INTERMEDIATE",
+        "origen": "core.indices.environmental_indices",
+        "timestamp": "2026-02-03T08:55:48.356259",
+        "confianza": 0.92,
+        "precondiciones": [
+          "temperatura_valida",
+          "humedad_valida",
+          "viento_valido"
+        ],
+        "consumidores": [],
+        "unidad": "\u00b0C",
+        "rango_esperado": null,
+        "notas": "C\u00e1lculo intermedio antes de validaci\u00f3n cascada"
+      },
+      {
+        "variable": "indices.et0_potencial",
+        "valor": 5.2,
+        "tipo": "INTERMEDIATE",
+        "origen": "core.indices.environmental_indices",
+        "timestamp": "2026-02-03T08:55:48.356286",
+        "confianza": 0.88,
+        "precondiciones": [
+          "radiacion_valida"
+        ],
+        "consumidores": [],
+        "unidad": "mm/d\u00eda",
+        "rango_esperado": null,
+        "notas": "ET0 antes de cascada"
+      }
+    ],
+    "DEBUG": [
+      {
+        "variable": "debug.temp_raw",
+        "valor": 20.123456789,
+        "tipo": "DEBUG",
+        "origen": "core.sensors.raw_sensor",
+        "timestamp": "2026-02-03T08:55:48.361603",
+        "confianza": 1.0,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "",
+        "rango_esperado": null,
+        "notas": "Valor sin filtro del sensor"
+      },
+      {
+        "variable": "debug.processing_time_ms",
+        "valor": 12.5,
+        "tipo": "DEBUG",
+        "origen": "core.indices.performance",
+        "timestamp": "2026-02-03T08:55:48.361630",
+        "confianza": 1.0,
+        "precondiciones": [],
+        "consumidores": [],
+        "unidad": "",
+        "rango_esperado": null,
+        "notas": ""
+      }
+    ],
+    "TIMESERIES": {
+      "temperatura_c": {
+        "valores": [
+          [
+            20.0,
+            "2026-02-03T08:55:48.357342"
+          ],
+          [
+            25.0,
+            "2026-02-03T08:55:48.357392"
+          ],
+          [
+            22.5,
+            "2026-02-03T08:55:48.357407"
+          ],
+          [
+            21.0,
+            "2026-02-03T08:55:48.357419"
+          ],
+          [
+            20.5,
+            "2026-02-03T08:55:48.357433"
+          ]
+        ],
+        "stats": {
+          "variable": "temperatura_c",
+          "muestras": 5,
+          "min": 20.0,
+          "max": 25.0,
+          "promedio": 21.8,
+          "desvio": 1.8055470085267789
+        }
+      },
+      "humedad_rh": {
+        "valores": [
+          [
+            60,
+            "2026-02-03T08:55:48.357449"
+          ],
+          [
+            65,
+            "2026-02-03T08:55:48.357475"
+          ],
+          [
+            62,
+            "2026-02-03T08:55:48.357486"
+          ],
+          [
+            58,
+            "2026-02-03T08:55:48.357499"
+          ],
+          [
+            60,
+            "2026-02-03T08:55:48.357507"
+          ]
+        ],
+        "stats": {
+          "variable": "humedad_rh",
+          "muestras": 5,
+          "min": 58,
+          "max": 65,
+          "promedio": 61.0,
+          "desvio": 2.3664319132398464
+        }
+      },
+      "presion_hpa": {
+        "valores": [
+          [
+            1015,
+            "2026-02-03T08:55:48.357514"
+          ],
+          [
+            1014.8,
+            "2026-02-03T08:55:48.357521"
+          ],
+          [
+            1015.2,
+            "2026-02-03T08:55:48.357526"
+          ],
+          [
+            1015.1,
+            "2026-02-03T08:55:48.357530"
+          ],
+          [
+            1015.0,
+            "2026-02-03T08:55:48.357535"
+          ]
+        ],
+        "stats": {
+          "variable": "presion_hpa",
+          "muestras": 5,
+          "min": 1014.8,
+          "max": 1015.2,
+          "promedio": 1015.0200000000001,
+          "desvio": 0.13266499161424616
+        }
+      }
+    }
+  }
+}

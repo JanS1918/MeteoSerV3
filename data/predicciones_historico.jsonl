@@ -1,0 +1,4 @@
+{"timestamp": 1770203547.3917284, "datetime": "2026-02-04T12:12:27.391728", "motor": "MotorPrediccionLocal", "predicciones": {"temperatura_mañana": 18.5, "humedad_mañana": 65.0, "probabilidad_lluvia": 0.25}, "confianza": 0.87, "contexto": {"zona": "interior", "metodo": "ARIMA"}}
+{"timestamp": 1770203607.3917284, "datetime": "2026-02-04T12:13:27.391728", "motor": "MotorViento", "predicciones": {"viento_mañana": 12.5}, "confianza": 0.76, "contexto": {}}
+{"timestamp": 1770117404.4424772, "datetime": "2026-02-03T12:16:44.442477", "motor": "MotorTemp", "predicciones": {"temperatura_mañana": 18.5, "humedad_mañana": 65.0}, "confianza": 0.85, "contexto": {}}
+{"timestamp": 1770117404.4424772, "datetime": "2026-02-03T12:16:44.442477", "motor": "MotorViento", "predicciones": {"viento_mañana": 12.0}, "confianza": 0.75, "contexto": {}}

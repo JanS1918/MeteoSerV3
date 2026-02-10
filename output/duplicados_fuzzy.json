@@ -1,0 +1,2023 @@
+[
+  {
+    "cluster_id": 3,
+    "members": [
+      "ach_recomendado_bano",
+      "ach_recomendado_cocina",
+      "ach_recomendado_salon"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 38,
+    "members": [
+      "alerta_calor_activa",
+      "alerta_frio_activa",
+      "alerta_polvo_activa",
+      "alerta_rachas_activa",
+      "alerta_rayos_activa"
+    ],
+    "size": 5,
+    "funcionales_count": 0,
+    "no_funcionales_count": 5,
+    "solo_backups_count": 5,
+    "recommendation": "recuperar_o_revisar_backups"
+  },
+  {
+    "cluster_id": 19,
+    "members": [
+      "alerta_calor_componente_humedad",
+      "alerta_calor_componente_uv",
+      "alerta_tormenta_componente_humedad",
+      "alerta_tormenta_componente_presion",
+      "alerta_tormenta_componente_radiacion"
+    ],
+    "size": 5,
+    "funcionales_count": 0,
+    "no_funcionales_count": 5,
+    "solo_backups_count": 5,
+    "recommendation": "recuperar_o_revisar_backups"
+  },
+  {
+    "cluster_id": 20,
+    "members": [
+      "alerta_calor_componente_temperatura",
+      "alerta_frio_componente_temperatura"
+    ],
+    "size": 2,
+    "funcionales_count": 0,
+    "no_funcionales_count": 2,
+    "solo_backups_count": 2,
+    "recommendation": "recuperar_o_revisar_backups"
+  },
+  {
+    "cluster_id": 22,
+    "members": [
+      "alerta_calor_extremo_score",
+      "alerta_frio_extremo_score"
+    ],
+    "size": 2,
+    "funcionales_count": 0,
+    "no_funcionales_count": 2,
+    "solo_backups_count": 2,
+    "recommendation": "recuperar_o_revisar_backups"
+  },
+  {
+    "cluster_id": 33,
+    "members": [
+      "alerta_frio_componente_viento",
+      "alerta_polvo_componente_pm10",
+      "alerta_polvo_componente_pm25",
+      "alerta_polvo_componente_viento"
+    ],
+    "size": 4,
+    "funcionales_count": 0,
+    "no_funcionales_count": 4,
+    "solo_backups_count": 4,
+    "recommendation": "recuperar_o_revisar_backups"
+  },
+  {
+    "cluster_id": 27,
+    "members": [
+      "alerta_helada_radiativa_activa",
+      "alerta_helada_radiativa_score"
+    ],
+    "size": 2,
+    "funcionales_count": 0,
+    "no_funcionales_count": 2,
+    "solo_backups_count": 2,
+    "recommendation": "recuperar_o_revisar_backups"
+  },
+  {
+    "cluster_id": 47,
+    "members": [
+      "altitud",
+      "latitud"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 60,
+    "members": [
+      "angulo_horario_puesta_sol",
+      "angulo_horario_puesta_sol_deg"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 65,
+    "members": [
+      "aod_angstrom_310nm",
+      "aod_angstrom_500nm"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 76,
+    "members": [
+      "ashrae55_limite_inferior_80",
+      "ashrae55_limite_superior_80"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 80,
+    "members": [
+      "auto_discovery_modules_scanned",
+      "auto_discovery_motores_escaneados"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 94,
+    "members": [
+      "beaufort_10_temporal_muy_fuerte",
+      "beaufort_9_temporal_fuerte"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 98,
+    "members": [
+      "beaufort_2_brisa_muy_debil",
+      "beaufort_3_brisa_debil"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 102,
+    "members": [
+      "beaufort_5_brisa_fresca",
+      "beaufort_6_brisa_fuerte"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 106,
+    "members": [
+      "bias_temperatura",
+      "isa_temperatura",
+      "mae_temperatura",
+      "mse_temperatura",
+      "rmse_temperatura",
+      "z_score_temperatura"
+    ],
+    "size": 6,
+    "funcionales_count": 6,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 114,
+    "members": [
+      "brunt_coef_a",
+      "brunt_coef_b"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 126,
+    "members": [
+      "calor_especifico_agua",
+      "calor_especifico_vapor"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 128,
+    "members": [
+      "calor_especifico_aire_seco",
+      "calor_especifico_dinamico",
+      "calor_especifico_hielo"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 134,
+    "members": [
+      "calor_latente_vaporizacion",
+      "calor_latente_vaporizacion_0c"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 152,
+    "members": [
+      "categoria_estres_calor",
+      "categoria_estres_ganado"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 626,
+    "members": [
+      "categoria_historica_temperatura",
+      "maximo_historico_temperatura",
+      "media_historica_temperatura",
+      "minimo_historico_temperatura",
+      "rango_historico_temperatura"
+    ],
+    "size": 5,
+    "funcionales_count": 5,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 181,
+    "members": [
+      "coeficiente_angstrom_alpha",
+      "coeficiente_angstrom_beta"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 193,
+    "members": [
+      "coherencia_general_sensores",
+      "coherencia_sensores"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 195,
+    "members": [
+      "condensacion_alto",
+      "condensacion_bajo",
+      "condensacion_muy_alto"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 210,
+    "members": [
+      "confort_calor_extremo",
+      "confort_frio_extremo"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 212,
+    "members": [
+      "confort_fresco",
+      "confort_frio"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 222,
+    "members": [
+      "constante_boltzmann",
+      "constante_stefan_boltzmann",
+      "constante_stefan_boltzmann_si"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 227,
+    "members": [
+      "constante_solar",
+      "constante_solar_fao56",
+      "constante_solar_fao56_wm2",
+      "constante_solar_gsc",
+      "constante_solar_w_m2"
+    ],
+    "size": 5,
+    "funcionales_count": 5,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 240,
+    "members": [
+      "declinacion_solar",
+      "declinacion_solar_deg",
+      "declinacion_solar_grados",
+      "declinacion_solar_rad",
+      "declinacion_solar_simple"
+    ],
+    "size": 5,
+    "funcionales_count": 3,
+    "no_funcionales_count": 2,
+    "solo_backups_count": 2,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 260,
+    "members": [
+      "depresion_muy_nublado",
+      "depresion_poco_nublado"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 265,
+    "members": [
+      "desviacion_estandar_temperatura",
+      "desviacion_patron_temperatura"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 291,
+    "members": [
+      "distancia_tierra_sol",
+      "factor_distancia_tierra_sol"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 297,
+    "members": [
+      "elevacion_solar",
+      "seno_elevacion_solar"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 300,
+    "members": [
+      "elite_muro_valor_maximo",
+      "elite_muro_valor_minimo"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 303,
+    "members": [
+      "emis ividad_cuerpo_humano",
+      "emis ividad_cuerpo_negro"
+    ],
+    "size": 2,
+    "funcionales_count": 0,
+    "no_funcionales_count": 2,
+    "solo_backups_count": 0,
+    "recommendation": "recuperar_o_revisar_backups"
+  },
+  {
+    "cluster_id": 311,
+    "members": [
+      "entalpia_aire_humedo",
+      "entalpia_aire_humedo_total"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 322,
+    "members": [
+      "escenario_optimista_temp",
+      "escenario_pesimista_temp"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 334,
+    "members": [
+      "et0_muy_alto",
+      "et0_muy_bajo"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 336,
+    "members": [
+      "et0_soil_shuttleworth",
+      "et0_total_shuttleworth"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 349,
+    "members": [
+      "evapotranspiracion_potencial_et0",
+      "evapotranspiracion_real_etr"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 351,
+    "members": [
+      "excentricidad_orbita",
+      "excentricidad_orbita_tierra",
+      "factor_excentricidad_orbital"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 357,
+    "members": [
+      "factor_capacidad_eolica",
+      "factor_capacidad_fotovoltaica"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 362,
+    "members": [
+      "factor_correccion_vapor",
+      "factor_correccion_vapor_humedo"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 364,
+    "members": [
+      "factor_crecimiento_higroscopico_aerosol",
+      "factor_crecimiento_higroscopico_f_RH"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 371,
+    "members": [
+      "factor_gravedad_altitud",
+      "factor_gravedad_latitud"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 373,
+    "members": [
+      "factor_hpa_a_pa",
+      "factor_pa_a_atm",
+      "factor_pa_a_kpa"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 378,
+    "members": [
+      "factor_kmh_a_ms",
+      "factor_m_a_km",
+      "factor_mm_a_m",
+      "factor_mph_a_kmh",
+      "factor_ms_a_kmh"
+    ],
+    "size": 5,
+    "funcionales_count": 5,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 394,
+    "members": [
+      "fanger_fcl",
+      "fanger_hc",
+      "fanger_icl"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 410,
+    "members": [
+      "fraccion_nitrogeno",
+      "fraccion_oxigeno"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 418,
+    "members": [
+      "fried_r0_muy_pobre",
+      "fried_r0_pobre"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 422,
+    "members": [
+      "gab_hormigon",
+      "gab_hormigon_a",
+      "gab_hormigon_b",
+      "gab_hormigon_c"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 426,
+    "members": [
+      "gab_ladrillo",
+      "gab_ladrillo_a",
+      "gab_ladrillo_b",
+      "gab_ladrillo_c"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 430,
+    "members": [
+      "gab_madera",
+      "gab_madera_a",
+      "gab_madera_b",
+      "gab_madera_c"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 434,
+    "members": [
+      "gab_yeso",
+      "gab_yeso_a",
+      "gab_yeso_b",
+      "gab_yeso_c"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 448,
+    "members": [
+      "gradiente_adiabatico_seco",
+      "gradiente_adiabatico_seco_teorico",
+      "gradiente_termico_adiabatico_humedo",
+      "gradiente_termico_adiabatico_seco"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 452,
+    "members": [
+      "grados_dia_calefaccion_hdd_acumulado",
+      "grados_dia_calefaccion_hdd_dia",
+      "grados_dia_refrigeracion_cdd_acumulado",
+      "grados_dia_refrigeracion_cdd_dia"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 460,
+    "members": [
+      "heat_index_componente_hr",
+      "heat_index_componente_temp"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 464,
+    "members": [
+      "helada_punto_rocio_riesgo_alto",
+      "helada_punto_rocio_riesgo_bajo",
+      "helada_punto_rocio_riesgo_moderado",
+      "helada_punto_rocio_riesgo_muy_alto"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 473,
+    "members": [
+      "hora_temperatura_maxima",
+      "hora_temperatura_minima"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 477,
+    "members": [
+      "humedad_absoluta",
+      "humedad_absoluta_max",
+      "humedad_suelo_absoluta"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 481,
+    "members": [
+      "humedad_aire_humedo",
+      "humedad_aire_muy_seco",
+      "humedad_aire_seco"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 483,
+    "members": [
+      "humedad_confort_max",
+      "humedad_confort_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 489,
+    "members": [
+      "humedad_especifica",
+      "humedad_especifica_aprox",
+      "humedad_especifica_critica",
+      "humedad_especifica_q"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 492,
+    "members": [
+      "humedad_relativa_max",
+      "humedad_relativa_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 501,
+    "members": [
+      "hyland_wexler_c1",
+      "hyland_wexler_c2",
+      "hyland_wexler_c3",
+      "hyland_wexler_c4",
+      "hyland_wexler_c5",
+      "hyland_wexler_c6"
+    ],
+    "size": 6,
+    "funcionales_count": 6,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 507,
+    "members": [
+      "iapws_n1",
+      "iapws_n2",
+      "iapws_n3",
+      "iapws_n4"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 520,
+    "members": [
+      "indice_humedad_0_1",
+      "indice_sequedad_0_1"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 574,
+    "members": [
+      "indice_visibilidad",
+      "limite_estabilidad",
+      "limite_visibilidad"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 529,
+    "members": [
+      "inercia_termica",
+      "score_inercia_termica"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 538,
+    "members": [
+      "inversion_termica_detectada",
+      "inversion_termica_pct"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 540,
+    "members": [
+      "isa_altitud",
+      "isa_latitud"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 547,
+    "members": [
+      "isa_presion_nivel_mar",
+      "presion_nivel_mar"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 549,
+    "members": [
+      "isa_temperatura_nivel_mar",
+      "temperatura_nivel_mar_isa"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 552,
+    "members": [
+      "k_index_categoria",
+      "lifted_index_categoria"
+    ],
+    "size": 2,
+    "funcionales_count": 1,
+    "no_funcionales_count": 1,
+    "solo_backups_count": 1,
+    "recommendation": "mantener_activa_y_recuperar_otros"
+  },
+  {
+    "cluster_id": 553,
+    "members": [
+      "k_index_sin_tormentas",
+      "k_index_tormenta"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 555,
+    "members": [
+      "k_index_tormenta_muy_probable",
+      "k_index_tormenta_posible"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 563,
+    "members": [
+      "latitud_radianes",
+      "longitud_radianes"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 569,
+    "members": [
+      "lifted_index_estable",
+      "lifted_index_inestable",
+      "lifted_index_muy_inestable"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 573,
+    "members": [
+      "limite_energia",
+      "limite_generico"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 576,
+    "members": [
+      "limite_humedad_max",
+      "limite_humedad_min",
+      "tope_humedad_max",
+      "tope_humedad_min"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 580,
+    "members": [
+      "limite_zeta_max",
+      "limite_zeta_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 582,
+    "members": [
+      "lluvia_fuerte",
+      "lluvia_muy_fuerte"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 583,
+    "members": [
+      "lluvia_ligera",
+      "lluvia_muy_ligera"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 597,
+    "members": [
+      "longitud_rugosidad_bosque",
+      "longitud_rugosidad_cesped",
+      "longitud_rugosidad_urbano"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 606,
+    "members": [
+      "manifiesto_num_predicciones",
+      "manifiesto_predicciones_count",
+      "manifiesto_predicciones_version"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 611,
+    "members": [
+      "manifiesto_verificado",
+      "manifiesto_version"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 621,
+    "members": [
+      "masa_molar_agua",
+      "masa_molar_vapor",
+      "masa_molar_vapor_agua",
+      "masa_molar_vapor_laplace"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 619,
+    "members": [
+      "masa_molar_aire_seco",
+      "masa_molar_aire_seco_laplace"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 628,
+    "members": [
+      "media_movil_30dias_temperatura",
+      "media_movil_7dias_temperatura"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 649,
+    "members": [
+      "moho_vtt_alto_riesgo",
+      "moho_vtt_sin_riesgo"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 659,
+    "members": [
+      "monin_obukhov_L",
+      "monin_obukhov_cp",
+      "monin_obukhov_g",
+      "monin_obukhov_kappa",
+      "monin_obukhov_u_star",
+      "monin_obukhov_z0",
+      "monin_obukhov_zeta"
+    ],
+    "size": 7,
+    "funcionales_count": 7,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 677,
+    "members": [
+      "offset_c_a_k",
+      "offset_f_a_c"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 688,
+    "members": [
+      "ozono_variacion_A",
+      "ozono_variacion_B",
+      "ozono_variacion_C"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 698,
+    "members": [
+      "pasquill_clase_a_muy_inestable",
+      "pasquill_clase_b_inestable",
+      "pasquill_clase_d_neutral",
+      "pasquill_clase_e_estable",
+      "pasquill_clase_f_muy_estable"
+    ],
+    "size": 5,
+    "funcionales_count": 5,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 704,
+    "members": [
+      "pasquill_sigma_y_a",
+      "pasquill_sigma_z_a"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 709,
+    "members": [
+      "percentil_10_temperatura",
+      "percentil_25_temperatura",
+      "percentil_50_temperatura_mediana",
+      "percentil_75_temperatura",
+      "percentil_90_temperatura",
+      "percentil_95_temperatura",
+      "percentil_99_temperatura",
+      "percentil_actual_temperatura",
+      "precision_actual_temperatura",
+      "precision_nominal_temperatura"
+    ],
+    "size": 10,
+    "funcionales_count": 10,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 719,
+    "members": [
+      "perdida_calor_radiacion",
+      "perdida_calor_sudoracion"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 720,
+    "members": [
+      "perdida_calor_respiracion_latente",
+      "perdida_calor_respiracion_sensible"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 732,
+    "members": [
+      "pm10_excelente",
+      "pm25_excelente"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 733,
+    "members": [
+      "pm10_moderada",
+      "pm25_moderada"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 734,
+    "members": [
+      "pm10_muy_pobre",
+      "pm10_pobre",
+      "pm25_muy_pobre",
+      "pm25_pobre"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 745,
+    "members": [
+      "pmv_caluroso",
+      "pmv_muy_caluroso"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 760,
+    "members": [
+      "ppd_fanger",
+      "ppd_fanger_pct"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 771,
+    "members": [
+      "presion_record_alto",
+      "presion_record_bajo"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 773,
+    "members": [
+      "presion_referencia_psicrometria",
+      "temp_referencia_psicrometria"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 779,
+    "members": [
+      "probabilidad_lluvia_continua_proxima_6h",
+      "probabilidad_lluvia_proxima_24h"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 788,
+    "members": [
+      "radiacion_extraterrestre",
+      "radiacion_extraterrestre_wm2"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 791,
+    "members": [
+      "radiacion_neta_onda_corta",
+      "radiacion_neta_onda_larga"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 814,
+    "members": [
+      "resistencia_aerodinamica",
+      "resistencia_aerodinamica_ra"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 821,
+    "members": [
+      "richardson_estabilidad",
+      "richardson_estable",
+      "richardson_inestable",
+      "richardson_muy_inestable",
+      "richardson_neutral"
+    ],
+    "size": 5,
+    "funcionales_count": 5,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 833,
+    "members": [
+      "riesgo_moho",
+      "riesgo_moho_activo",
+      "riesgo_moho_pct",
+      "vtt_riesgo_moho"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 848,
+    "members": [
+      "ruido_muy_silencioso",
+      "ruido_silencio_absoluto",
+      "ruido_silencioso"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 851,
+    "members": [
+      "salud_edificio_buena",
+      "salud_edificio_mala",
+      "salud_edificio_muy_buena",
+      "salud_edificio_pobre"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 856,
+    "members": [
+      "saturacion_vapor_elite",
+      "saturacion_vapor_elite_hpa"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 868,
+    "members": [
+      "sequia_componente_hr",
+      "sequia_componente_temp",
+      "sequia_componente_vpd"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 873,
+    "members": [
+      "stefan_boltzmann_fao56",
+      "stefan_boltzmann_si"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 883,
+    "members": [
+      "temp_500hpa_c",
+      "temp_700hpa_c",
+      "temp_850hpa_c"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 887,
+    "members": [
+      "temp_adiabatica_1000m",
+      "temp_adiabatica_2000m"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 889,
+    "members": [
+      "temp_maxima_superficie_tierra",
+      "temp_minima_superficie_tierra"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 903,
+    "members": [
+      "temperatura_maxima_dia",
+      "temperatura_minima_dia"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 907,
+    "members": [
+      "temperatura_operativa",
+      "temperatura_operativa_ashrae"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 913,
+    "members": [
+      "temperatura_raw",
+      "temperatura_virtual",
+      "temperatura_virtual_laplace"
+    ],
+    "size": 3,
+    "funcionales_count": 2,
+    "no_funcionales_count": 1,
+    "solo_backups_count": 1,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 918,
+    "members": [
+      "temperatura_virtual_correccion",
+      "temperatura_virtual_corregida"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 921,
+    "members": [
+      "tendencia_humedad_1h",
+      "tendencia_humedad_3h",
+      "tendencia_humedad_suelo"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 924,
+    "members": [
+      "tendencia_presion",
+      "tendencia_presion_1h",
+      "tendencia_presion_3h"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 928,
+    "members": [
+      "tendencia_temperatura_1h",
+      "tendencia_temperatura_3h"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 944,
+    "members": [
+      "tope_cape_max",
+      "tope_cape_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 946,
+    "members": [
+      "tope_energia_max",
+      "tope_energia_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 948,
+    "members": [
+      "tope_estabilidad_max",
+      "tope_estabilidad_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 952,
+    "members": [
+      "tope_indice_generico_max",
+      "tope_indice_generico_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 954,
+    "members": [
+      "tope_presion_max",
+      "tope_presion_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 956,
+    "members": [
+      "tope_radiacion_max",
+      "tope_radiacion_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 958,
+    "members": [
+      "tope_temperatura_max",
+      "tope_temperatura_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 960,
+    "members": [
+      "tope_viento_max",
+      "tope_viento_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 962,
+    "members": [
+      "tope_zeta_max",
+      "tope_zeta_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 969,
+    "members": [
+      "turbidez_linke_aire_limpio",
+      "turbidez_linke_aire_puro"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 974,
+    "members": [
+      "umbral_calor_extremo",
+      "umbral_frio_extremo"
+    ],
+    "size": 2,
+    "funcionales_count": 0,
+    "no_funcionales_count": 2,
+    "solo_backups_count": 2,
+    "recommendation": "recuperar_o_revisar_backups"
+  },
+  {
+    "cluster_id": 984,
+    "members": [
+      "utci_delta_radiante_max",
+      "utci_delta_radiante_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 986,
+    "members": [
+      "utci_estres_calor_extremo",
+      "utci_estres_calor_fuerte",
+      "utci_estres_calor_muy_fuerte",
+      "utci_estres_frio_extremo",
+      "utci_estres_frio_fuerte",
+      "utci_estres_frio_muy_fuerte"
+    ],
+    "size": 6,
+    "funcionales_count": 6,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 988,
+    "members": [
+      "utci_estres_calor_moderado",
+      "utci_estres_frio_moderado"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 996,
+    "members": [
+      "utci_temp_max",
+      "utci_temp_min",
+      "utci_vp_max",
+      "utci_vp_min"
+    ],
+    "size": 4,
+    "funcionales_count": 4,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 998,
+    "members": [
+      "utci_viento_max",
+      "utci_viento_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1009,
+    "members": [
+      "velocidad_corte_entrada",
+      "velocidad_corte_salida"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1012,
+    "members": [
+      "velocidad_friccion",
+      "velocidad_friccion_ustar"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1027,
+    "members": [
+      "ventilacion_ideal_co2",
+      "ventilacion_ideal_temp"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1037,
+    "members": [
+      "viento_huracan_cat1",
+      "viento_huracan_cat5"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1045,
+    "members": [
+      "virial_b11_coef",
+      "virial_b12_coef",
+      "virial_b22_coef"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1050,
+    "members": [
+      "visibilidad_buena",
+      "visibilidad_muy_buena",
+      "visibilidad_pobre"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1056,
+    "members": [
+      "visibilidad_km",
+      "visibilidad_m"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1077,
+    "members": [
+      "wbgt_estres_alto",
+      "wbgt_estres_bajo"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1082,
+    "members": [
+      "wbgt_liljegren",
+      "wbgt_liljegren_c"
+    ],
+    "size": 2,
+    "funcionales_count": 0,
+    "no_funcionales_count": 2,
+    "solo_backups_count": 2,
+    "recommendation": "recuperar_o_revisar_backups"
+  },
+  {
+    "cluster_id": 1084,
+    "members": [
+      "wbgt_peso_ta_outdoor",
+      "wbgt_peso_tg_indoor",
+      "wbgt_peso_tg_outdoor",
+      "wbgt_peso_tnwb_indoor",
+      "wbgt_peso_tnwb_outdoor"
+    ],
+    "size": 5,
+    "funcionales_count": 3,
+    "no_funcionales_count": 2,
+    "solo_backups_count": 2,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1094,
+    "members": [
+      "wexler_coef_g0_agua",
+      "wexler_coef_g1_agua",
+      "wexler_coef_g2_agua",
+      "wexler_coef_g3_agua",
+      "wexler_coef_g4_agua",
+      "wexler_coef_g5_agua",
+      "wexler_coef_g6_agua",
+      "wexler_coef_g7_agua",
+      "wexler_g0_agua",
+      "wexler_g1_agua",
+      "wexler_g2_agua",
+      "wexler_g3_agua",
+      "wexler_g4_agua",
+      "wexler_g5_agua",
+      "wexler_g6_agua",
+      "wexler_g7_agua"
+    ],
+    "size": 16,
+    "funcionales_count": 16,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1095,
+    "members": [
+      "wexler_coef_g0_hielo",
+      "wexler_coef_g1_hielo"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1114,
+    "members": [
+      "wexler_k0_hielo",
+      "wexler_k1_hielo",
+      "wexler_k2_hielo",
+      "wexler_k3_hielo",
+      "wexler_k4_hielo",
+      "wexler_k5_hielo"
+    ],
+    "size": 6,
+    "funcionales_count": 6,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1121,
+    "members": [
+      "wexler_rango_validez_max",
+      "wexler_rango_validez_min"
+    ],
+    "size": 2,
+    "funcionales_count": 2,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  },
+  {
+    "cluster_id": 1126,
+    "members": [
+      "windchill_componente_interaccion",
+      "windchill_componente_temp",
+      "windchill_componente_viento"
+    ],
+    "size": 3,
+    "funcionales_count": 3,
+    "no_funcionales_count": 0,
+    "solo_backups_count": 0,
+    "recommendation": "fusionar_activas"
+  }
+]

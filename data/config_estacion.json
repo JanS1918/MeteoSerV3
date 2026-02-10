@@ -1,0 +1,97 @@
+{
+  "estacion": {
+    "nombre": "Argentona_V3",
+    "descripcion": "Estación meteorológica en Argentona, Barcelona, España"
+  },
+  "ubicacion": {
+    "latitud_grados": 41.553267,
+    "longitud_grados": 2.396845,
+    "altitud_suelo_m": 105.0,
+    "altitud_sensor_m": 124.0,
+    "altura_sensor_sobre_suelo_m": 13.0,
+    "direccion_postal": "Calle Narcís Monturiol 36, Argentona, Barcelona, España",
+    "zona_horaria": "Europe/Madrid",
+    "proyeccion_utm": "EPSG:32631"
+  },
+  "terreno": {
+    "z0_calle_m": 0.5,
+    "z0_terraza_m": 0.03,
+    "tipo_suelo": "limo",
+    "tipo_terreno": "zona urbana costanera",
+    "vegetacion_dominante": "urbana",
+    "cobertura_suelo": {
+      "asfalto": 0.40,
+      "hormigon": 0.30,
+      "vegetacion": 0.20,
+      "agua": 0.10
+    }
+  },
+  "sensores": {
+    "presion_fallback_hpa": "AUTO",
+    "presion_fallback_altitiud_base_m": 96.0,
+    "ewma_alpha_default": 0.5,
+    "intervalo_lectura_s": 60,
+    "timeout_sensor_s": 300
+  },
+  "suelo": {
+    "humedad_fraccion_default": 0.25,
+    "temperatura_c_default": 15.0,
+    "conductividad_w_mk_default": 0.8,
+    "albedo_default": 0.23,
+    "emisividad_default": 0.95
+  },
+  "astronomia": {
+    "calcular_dinamicamente": true,
+    "elevacion_solar_default_grados": 45.0,
+    "actualizacion_cada_s": 300
+  },
+  "modelo_fisico": {
+    "z0_m": 0.1,
+    "z_medicion_m": 2.0,
+    "L_monin_obukhov_default_m": 50.0,
+    "C_h": 0.0013,
+    "rho_aire_kg_m3_default": 1.225,
+    "cp_aire_jkgk_default": 1005.0,
+    "z0h_base_m": 0.1,
+    "nubosidad_default_pct": 50.0,
+    "cn2_base": 1e-13,
+    "cn2_min": 1e-15,
+    "cn2_temp_ref_c": 10.0,
+    "cn2_wind_offset_ms": 1.0,
+    "wavelength_nm": 550.0,
+    "temp_condensacion_offset_k": 5.0,
+    "presion_parcial_factor": 0.1,
+    "humedad_especifica_critica_factor": 0.01
+  },
+  "validacion": {
+    "enabled": true,
+    "rango_temperatura_c": [-99, 99],
+    "rango_presion_hpa": [800, 1100],
+    "rango_humedad_pct": [0, 100],
+    "rango_viento_ms": [0, 50],
+    "deteccion_outliers_enabled": true,
+    "outlier_iqr_multiplicador": 1.5
+  },
+  "cache": {
+    "enabled": true,
+    "ttl_constantes_s": 60,
+    "ttl_indices_s": 300
+  },
+  "logs": {
+    "nivel": "INFO",
+    "archivo": "logs/meteoser.log",
+    "max_size_mb": 50,
+    "backup_count": 5
+  },
+  "integraciones": {
+    "ecowitt_hp2550a": {
+      "enabled": true,
+      "timeout_s": 300,
+      "reintentos": 3
+    },
+    "srtm": {
+      "enabled": true,
+      "cache_altitud": true
+    }
+  }
+}

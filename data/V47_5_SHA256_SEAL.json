@@ -1,0 +1,19 @@
+{
+  "version": "V47.5 PATRULLA SOBERANA",
+  "fecha": "2026-02-05T16:41:08.804671",
+  "archivos_total": 745,
+  "archivos_python": 500,
+  "archivos_markdown": 245,
+  "lineas_codigo_total": 210745,
+  "bytes_total": 8183495,
+  "sha256_seal": "f7c4ca45c9a0b29dc84f990d0aaae66d51fa9bcbad98440e9770212db08b290e",
+  "componentes_criticos": {
+    "guardian_25_capas": "GUARDIAN_25_CAPAS_V47_5.py",
+    "capa_22_cortafuegos": "core/monitoring/cortafuegos_cascada.py",
+    "capa_23_recursos": "core/monitoring/monitor_recursos_auto_limpieza.py",
+    "capa_24_integridad": "core/security/integridad_codigo_sha256.py",
+    "capa_25_sanitizacion": "core/security/sanitizacion_datos_externos.py",
+    "fusion_engine": "core/monitoring/formula_fusion_engine.py",
+    "duel_engine": "core/monitoring/formula_duel_engine.py"
+  }
+}

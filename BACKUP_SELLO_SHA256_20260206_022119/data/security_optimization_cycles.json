@@ -1,0 +1,12 @@
+{
+  "ciclos": [
+    {
+      "timestamp": 1770426874.5038712,
+      "cycle_num": 1,
+      "vulnerabilities_discovered": 0,
+      "vulnerabilities_validated": 0,
+      "security_duels_won": 0,
+      "duration_seconds": 2.47955322265625e-05
+    }
+  ]
+}

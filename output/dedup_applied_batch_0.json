@@ -1,0 +1,14 @@
+{
+  "batch_index": 0,
+  "batch_size": 20,
+  "groups_applied": 3,
+  "changed_files": [
+    "main_asgi.py",
+    "test_presion_quick.py",
+    "app\\ui\\router.py",
+    "core\\indices\\environmental_indices.py",
+    "core\\integration\\ecowitt_receiver.py",
+    "core\\system\\bus_expander.py",
+    "core\\system\\bus_expander_V13_BACKUP_20260202_180608.py"
+  ]
+}

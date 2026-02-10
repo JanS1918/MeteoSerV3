@@ -1,0 +1,486 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   METEOSER V3 - DISEÑO PROFESIONAL Y COLORIDO
+   ══════════════════════════════════════════════════════════════════════════ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* ═══ CANVAS DE ANIMACIONES METEOROLÓGICAS (FONDO) ═══ */
+#canvas-animaciones {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+/* ═══ CONTENEDOR PRINCIPAL ═══ */
+.meteoser-container {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    grid-template-rows: 60px 1fr;
+    gap: 12px;
+    padding: 12px;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* ═══ PANEL SUPERIOR ═══ */
+.panel-superior {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+
+.info-ubicacion {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#ubicacion-texto {
+    font-size: 1.1em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.coordenadas {
+    font-size: 0.85em;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.info-estado {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+}
+
+#estado-sistema {
+    font-size: 0.95em;
+}
+
+#hora-actualizacion {
+    font-size: 0.8em;
+    opacity: 0.85;
+}
+
+/* ═══ ÁREA CENTRAL (CAJONES PRINCIPALES) ═══ */
+.area-central {
+    grid-column: 1;
+    grid-row: 2;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.cajones-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+/* ═══ CAJON INDIVIDUAL ═══ */
+.cajon {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    padding: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.cajon:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.cajon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
+}
+
+.cajon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    color: white;
+}
+
+.cajon-titulo {
+    font-size: 1.3em;
+    font-weight: 700;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.cajon-icono {
+    font-size: 1.8em;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.cajon-portada {
+    background: rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 12px;
+    backdrop-filter: blur(8px);
+    margin-bottom: 12px;
+}
+
+.portada-indice {
+    color: white;
+    font-size: 0.95em;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    padding: 6px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.15);
+    transition: background 0.2s;
+}
+
+.portada-indice:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.portada-indice-nombre {
+    font-weight: 600;
+}
+
+.portada-indice-valor {
+    font-weight: 700;
+    font-size: 1.05em;
+}
+
+.cajon-valores {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.valor-item {
+    background: rgba(255,255,255,0.25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+}
+
+.valor-item:hover {
+    background: rgba(255,255,255,0.4);
+    transform: translateX(4px);
+}
+
+.valor-nombre {
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.valor-dato {
+    font-size: 1.1em;
+    font-weight: 700;
+}
+
+/* ═══ SIDEBAR LATERAL (5 CAJONES COLAPSABLES) ═══ */
+.sidebar-cajones {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.sidebar-cajon {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: white;
+    position: relative;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.sidebar-cajon:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+}
+
+.sidebar-cajon.expandido {
+    min-height: 200px;
+    background: linear-gradient(135deg, #fee140 0%, #fa709a 100%);
+}
+
+.sidebar-titulo {
+    font-size: 1.1em;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-bottom: 8px;
+}
+
+.sidebar-icono {
+    font-size: 2em;
+    margin-bottom: 6px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.sidebar-contenido {
+    display: none;
+    margin-top: 12px;
+    width: 100%;
+}
+
+.sidebar-cajon.expandido .sidebar-contenido {
+    display: block;
+}
+
+.sidebar-valor {
+    background: rgba(255,255,255,0.3);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 6px;
+    font-size: 0.85em;
+    backdrop-filter: blur(4px);
+}
+
+/* ═══ MODAL PARA SUBMENÚS ═══ */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.activo {
+    display: flex;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    position: relative;
+    color: white;
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 1.8em;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.modal-close:hover {
+    background: rgba(255,255,255,0.4);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    margin-top: 20px;
+}
+
+.submenu-item {
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(6px);
+}
+
+.submenu-item-nombre {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.submenu-item-valor {
+    font-size: 1.3em;
+    font-weight: 800;
+}
+
+/* ═══ GRADIENTES VARIADOS PARA CAJONES ═══ */
+.cajon:nth-child(5n+1) {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.cajon:nth-child(5n+2) {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.cajon:nth-child(5n+3) {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.cajon:nth-child(5n+4) {
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+}
+
+.cajon:nth-child(5n+5) {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+/* ═══ SCROLLBAR PERSONALIZADA ═══ */
+.area-central::-webkit-scrollbar,
+.sidebar-cajones::-webkit-scrollbar,
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.area-central::-webkit-scrollbar-track,
+.sidebar-cajones::-webkit-scrollbar-track,
+.modal-content::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+.area-central::-webkit-scrollbar-thumb,
+.sidebar-cajones::-webkit-scrollbar-thumb,
+.modal-content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.4);
+    border-radius: 10px;
+}
+
+.area-central::-webkit-scrollbar-thumb:hover,
+.sidebar-cajones::-webkit-scrollbar-thumb:hover,
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.6);
+}
+
+/* ═══ ANIMACIONES ═══ */
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cajon {
+    animation: aparecer 0.5s ease-out backwards;
+}
+
+.cajon:nth-child(1) { animation-delay: 0.05s; }
+.cajon:nth-child(2) { animation-delay: 0.1s; }
+.cajon:nth-child(3) { animation-delay: 0.15s; }
+.cajon:nth-child(4) { animation-delay: 0.2s; }
+.cajon:nth-child(5) { animation-delay: 0.25s; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 1024px) {
+    .meteoser-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 60px 1fr 200px;
+    }
+    
+    .sidebar-cajones {
+        grid-column: 1;
+        grid-row: 3;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+    
+    .sidebar-cajon {
+        min-width: 150px;
+    }
+    
+    .cajones-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .cajones-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .panel-superior {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    .info-estado {
+        text-align: center;
+    }
+}
+
+/* ═══ UTILIDADES ═══ */
+.oculto {
+    display: none !important;
+}
+
+.cargando {
+    opacity: 0.6;
+    pointer-events: none;
+}
+

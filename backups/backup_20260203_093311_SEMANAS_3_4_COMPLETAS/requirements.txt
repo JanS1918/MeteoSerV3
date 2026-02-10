@@ -1,0 +1,25 @@
+fastapi
+uvicorn
+jinja2
+pyserial
+bleak
+zeroconf
+paho-mqtt
+feedparser
+pyttsx3
+httpx
+requests
+iapws
+
+# SEMANA 1: Predicción LSTM
+tensorflow>=2.13.0
+keras>=2.13.0
+
+# SEMANA 2: Compilación Numba
+numba>=0.57.0
+
+# SEMANA 3: Auto-calibración
+scikit-learn>=1.3.0
+
+# SEMANA 4: Persistencia InfluxDB
+influxdb-client>=1.38.0

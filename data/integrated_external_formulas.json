@@ -1,0 +1,118 @@
+{
+  "registros": [
+    {
+      "parametro": "sensacion_termica",
+      "externa_id": "scipy_sensacion_termica_0",
+      "externa_nombre": "scipy.special.erf - Sensación Térmica",
+      "wrapper_id": "external_sensacion_termica_scipy_sensacion_termica_0",
+      "wrapper_path": "C:\\Users\\kioko\\Desktop\\MeteoSerV3\\core\\monitoring\\external_wrappers\\external_sensacion_termica_scipy_sensacion_termica_0.py",
+      "externa_ref": "scipy.special.erf",
+      "inputs": [
+        "temperatura"
+      ],
+      "score_duelo": 85.5,
+      "timestamp_integracion": 1770472286.678238,
+      "metadata": {
+        "margen_victoria": 12.3,
+        "ciclo": 1,
+        "fuente": "scipy"
+      },
+      "status": "integrated"
+    },
+    {
+      "parametro": "sensacion_termica",
+      "externa_id": "scipy_sensacion_termica_0",
+      "externa_nombre": "scipy.special.erf - Sensación Térmica",
+      "wrapper_id": "external_sensacion_termica_scipy_sensacion_termica_0",
+      "wrapper_path": "C:\\Users\\kioko\\Desktop\\MeteoSerV3\\core\\monitoring\\external_wrappers\\external_sensacion_termica_scipy_sensacion_termica_0.py",
+      "externa_ref": "scipy.special.erf",
+      "inputs": [
+        "temperatura"
+      ],
+      "score_duelo": 85.5,
+      "timestamp_integracion": 1770472380.040862,
+      "metadata": {
+        "margen_victoria": 12.3,
+        "ciclo": 1,
+        "fuente": "scipy"
+      },
+      "status": "integrated"
+    },
+    {
+      "parametro": "sensacion_termica",
+      "externa_id": "scipy_sensacion_termica_0",
+      "externa_nombre": "scipy.special.erf - Sensación Térmica",
+      "wrapper_id": "external_sensacion_termica_scipy_sensacion_termica_0",
+      "wrapper_path": "C:\\Users\\kioko\\Desktop\\MeteoSerV3\\core\\monitoring\\external_wrappers\\external_sensacion_termica_scipy_sensacion_termica_0.py",
+      "externa_ref": "scipy.special.erf",
+      "inputs": [
+        "temperatura"
+      ],
+      "score_duelo": 85.5,
+      "timestamp_integracion": 1770472565.505796,
+      "metadata": {
+        "margen_victoria": 12.3,
+        "ciclo": 1,
+        "fuente": "scipy"
+      },
+      "status": "integrated"
+    },
+    {
+      "parametro": "sensacion_termica",
+      "externa_id": "scipy_sensacion_termica_0",
+      "externa_nombre": "scipy.special.erf - Sensación Térmica",
+      "wrapper_id": "external_sensacion_termica_scipy_sensacion_termica_0",
+      "wrapper_path": "C:\\Users\\kioko\\Desktop\\MeteoSerV3\\core\\monitoring\\external_wrappers\\external_sensacion_termica_scipy_sensacion_termica_0.py",
+      "externa_ref": "scipy.special.erf",
+      "inputs": [
+        "temperatura"
+      ],
+      "score_duelo": 85.5,
+      "timestamp_integracion": 1770472606.532903,
+      "metadata": {
+        "margen_victoria": 12.3,
+        "ciclo": 1,
+        "fuente": "scipy"
+      },
+      "status": "integrated"
+    },
+    {
+      "parametro": "sensacion_termica",
+      "externa_id": "scipy_sensacion_termica_0",
+      "externa_nombre": "scipy.special.erf - Sensación Térmica",
+      "wrapper_id": "external_sensacion_termica_scipy_sensacion_termica_0",
+      "wrapper_path": "C:\\Users\\kioko\\Desktop\\MeteoSerV3\\core\\monitoring\\external_wrappers\\external_sensacion_termica_scipy_sensacion_termica_0.py",
+      "externa_ref": "scipy.special.erf",
+      "inputs": [
+        "temperatura"
+      ],
+      "score_duelo": 85.5,
+      "timestamp_integracion": 1770472649.843127,
+      "metadata": {
+        "margen_victoria": 12.3,
+        "ciclo": 1,
+        "fuente": "scipy"
+      },
+      "status": "integrated"
+    },
+    {
+      "parametro": "sensacion_termica",
+      "externa_id": "scipy_sensacion_termica_0",
+      "externa_nombre": "scipy.special.erf - Sensación Térmica",
+      "wrapper_id": "external_sensacion_termica_scipy_sensacion_termica_0",
+      "wrapper_path": "C:\\Users\\kioko\\Desktop\\MeteoSerV3\\core\\monitoring\\external_wrappers\\external_sensacion_termica_scipy_sensacion_termica_0.py",
+      "externa_ref": "scipy.special.erf",
+      "inputs": [
+        "temperatura"
+      ],
+      "score_duelo": 85.5,
+      "timestamp_integracion": 1770472763.808057,
+      "metadata": {
+        "margen_victoria": 12.3,
+        "ciclo": 1,
+        "fuente": "scipy"
+      },
+      "status": "integrated"
+    }
+  ]
+}

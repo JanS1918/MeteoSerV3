@@ -1,0 +1,2 @@
+{"timestamp": 1770203547.4026377, "datetime": "2026-02-04T12:12:27.402638", "sensor": "UTCI", "valor": 19.3, "unidad": "°C", "formula_nivel": "ELITE", "datos_usados": {"temperatura": 12.78, "humedad": 77, "presion": 1010, "viento": 4.0}}
+{"timestamp": 1770203847.4026377, "datetime": "2026-02-04T12:17:27.402638", "sensor": "punto_rocio", "valor": 8.55, "unidad": "°C", "formula_nivel": "ELITE", "datos_usados": {"temperatura": 12.78, "humedad": 77, "presion": 1010}}

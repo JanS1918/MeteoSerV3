@@ -1,0 +1,80 @@
+{
+  "params": {
+    "cielo_observable_nocturno": {
+      "base_nub": 0.5,
+      "base_transp": 0.5,
+      "penal_niebla": 0.4,
+      "penal_emp": 0.2,
+      "penal_seeing": 0.2,
+      "penal_luna": {"20": 0.0, "50": 0.1, "80": 0.25, "100": 0.4}
+    }
+  },
+  "overrides": {}
+  ,"physics_safe": {
+    "comentario": "🛡️ CLAMPS DE EXTINCIÓN - Rango Total de la Física | Aplicados SOLO en capa de salida",
+    "limits": {
+      "temperatura": 99,
+      "presion_max": 1099,
+      "presion_min": 799,
+      "estabilidad": 49,
+      "energia": 1999,
+      "viento": 399,
+      "generico": 999,
+      "cape": 4999,
+      "zeta_max": 49,
+      "zeta_min": -49,
+      "visibility": 999,
+      "humedad_max": 100,
+      "humedad_min": 0,
+      "calma_absoluta": 0,
+      "utci_max": 99,
+      "utci_min": -99,
+      "wbgt_max": 49,
+      "uv_max": 49,
+      "uv_min": 0,
+      "co2_max": 9999,
+      "co2_min": 199,
+      "delta_t_max": 499,
+      "delta_t_min": -499
+    },
+    "ranges": {
+      "temperatura": [-99, 99],
+      "presion": [799, 1099],
+      "humedad": [0, 100],
+      "humedad_relativa": [0, 100],
+      "utci": [-99, 99],
+      "wbgt": [0, 49],
+      "uv": [0, 49],
+      "co2": [199, 9999],
+      "viento": [0, 399],
+      "zeta": [-49, 49],
+      "delta_t": [-499, 499],
+      "albedo": [0, 1],
+      "emisividad": [0, 1],
+      "coseno_solar": [-1, 1]
+    },
+    "index_types": {
+      "estabilidad": ["richardson", "monin", "obukhov", "scorer", "l2", "zeta"],
+      "energia": ["radiacion", "rad", "et0", "evapo", "evapotrans", "calor", "flux", "energia"],
+      "viento": ["viento", "wind", "racha", "gust"],
+      "cape": ["cape", "tormenta", "conveccion"],
+      "temperatura": ["temperatura", "temp", "temperature"],
+      "presion": ["presion", "pressure", "barometro"],
+      "utci": ["utci", "confort"],
+      "co2": ["co2", "dioxido"]
+    },
+    "isa_defaults": {
+      "presion": 1013.25,
+      "presion_atmosferica": 1013.25,
+      "pressure": 1013.25
+    },
+    "exempt_paths": ["metadata", "context_time", "timestamp", "epoch"],
+    "escudo_seguridad": {
+      "comentario": "Mapeo de accion ante divisor cero segun tipo de indice",
+      "estabilidad": "saturacion_tope",
+      "flujos": "resultado_cero",
+      "sensores": "resultado_real"
+    },
+    "filosofia": "⚛️ SOBERANÍA DE CÁLCULO: Motores internos sin clamps (precisión infinita). Clamps SOLO en sanitizar_json."
+  }
+}

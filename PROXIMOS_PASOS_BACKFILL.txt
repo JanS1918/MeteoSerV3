@@ -1,0 +1,214 @@
+════════════════════════════════════════════════════════════════════════════════
+PRÓXIMOS PASOS - INTEGRACIÓN DE DATOS RECUPERADOS EN DEARDORFF V46.5
+════════════════════════════════════════════════════════════════════════════════
+
+STATUS: Datos recuperados ✅ | Sistema corriendo ✅ | Listo para backfill →
+
+────────────────────────────────────────────────────────────────────────────────
+PASO 1: VERIFICAR DATOS DISPONIBLES
+────────────────────────────────────
+
+python -c "
+from core.integration.data_recovery import cargar_datos_recuperados
+r = cargar_datos_recuperados('data/datos_recuperados_20260205_115613.json')
+print(f'✓ Sensores: {len(r[\"sensores\"])}')
+print(f'✓ Eventos: {len(r[\"eventos\"])}')
+print(f'✓ Período: {r[\"periodo\"]}')
+"
+
+
+────────────────────────────────────────────────────────────────────────────────
+PASO 2: USAR DATOS PARA BACKFILL DE DEARDORFF V46.5
+────────────────────────────────────────────────────────────────────────────────
+
+from core.integration.data_recovery import cargar_datos_recuperados
+from core.models.deardorff_v46_5 import ModeloDeardorff
+
+# Cargar datos recuperados
+resultado = cargar_datos_recuperados('data/datos_recuperados_20260205_115613.json')
+sensores = resultado['sensores']
+
+# Inicializar modelo
+modelo = ModeloDeardorff()
+
+# Backfill con datos históricos
+for sensor in sensores:
+    ts = sensor.get('timestamp')
+    t = sensor.get('temperatura')
+    hr = sensor.get('humedad')
+    
+    if all([ts, t, hr]):
+        # Calcular T_min con correcciones
+        t_min = modelo.estimar_temperatura_minima(t, hr)
+        print(f"{ts}: T={t}°C, HR={hr}% → T_min={t_min}°C")
+
+
+────────────────────────────────────────────────────────────────────────────────
+PASO 3: RELLENAR ÍNDICES DEL PERÍODO CIEGO
+────────────────────────────────────────────────────────────────────────────────
+
+from core.integration.data_recovery import cargar_datos_recuperados
+from core.system.system_manager import SystemManager
+
+resultado = cargar_datos_recuperados('data/datos_recuperados_20260205_115613.json')
+system = SystemManager()
+
+# Publicar cada evento en el bus
+for evento in resultado['eventos']:
+    system.bus.publicar("sensor.historico.backfill", evento)
+    
+print(f"✓ {len(resultado['eventos'])} eventos publicados para backfill")
+
+
+────────────────────────────────────────────────────────────────────────────────
+PASO 4: VALIDAR INTEGRACIÓN
+────────────────────────────────────────────────────────────────────────────────
+
+# Verificar que los datos se integraron
+estado = system.obtener_estado_completo()
+print(f"Estado de sensores: {estado.get('sensores', {})}")
+print(f"Último evento: {estado.get('ultimo_evento', {})}")
+
+
+────────────────────────────────────────────────────────────────────────────────
+PASO 5: ANALIZAR RESULTADOS DEL BACKFILL (OPCIONAL)
+────────────────────────────────────────────────────────────────────────────────
+
+# Si disponible, comparar con datos observados reales
+import json
+
+# Cargar datos integrados
+with open('data/sensores_integrados_recuperados_20260205_115837.json') as f:
+    sensores_integrados = json.load(f)
+
+# Analizar
+print("ANÁLISIS DE DATOS INTEGRADOS:")
+print(f"Total registros: {len(sensores_integrados)}")
+
+if sensores_integrados:
+    primer = sensores_integrados[0]
+    print(f"Primer registro: {primer}")
+
+
+════════════════════════════════════════════════════════════════════════════════
+ESTRUCTURA DE ARCHIVOS DISPONIBLES
+════════════════════════════════════════════════════════════════════════════════
+
+data/
+├── datos_recuperados_20260205_115613.json          ← Consolidado principal
+│   └─ 8.7K líneas, 65 archivos, 27 registros sensor
+│
+├── sensores_integrados_recuperados_20260205_115837.json   ← Sensores extractados
+│   └─ Formato optimizado para integración
+│
+├── MANIFIESTO_RECUPERACIÓN_20260205_115613.txt     ← Registro de recuperación
+├── RESUMEN_RECUPERACION_FASE2.txt                  ← Resumen ejecutivo
+└── OPERACION_RECUPERACION_COMPLETADA.txt           ← Este documento
+
+
+════════════════════════════════════════════════════════════════════════════════
+DETALLES TÉCNICOS - CAMPOS DISPONIBLES EN SENSORES
+════════════════════════════════════════════════════════════════════════════════
+
+Cada registro de sensor contiene:
+  • timestamp/ts: Fecha/hora de la lectura
+  • temperatura: Temperatura en °C
+  • humedad: Humedad relativa en %
+  • presión: Presión atmosférica en hPa
+  • velocidad_viento: Velocidad en m/s
+  • radiación: Radiación solar en W/m²
+  • uv_index: Índice UV
+  • [otros campos según configuración específica]
+
+Los datos están validados y listos para usar directamente en:
+  → Modelos Deardorff V46.5 (T_min, T_max)
+  → Cálculos de evapotranspiración
+  → Índices ambientales
+  → Análisis de tendencias
+
+
+════════════════════════════════════════════════════════════════════════════════
+SI NECESITAS DATOS DEL CLOUD ECOWITT (OPCIONAL)
+════════════════════════════════════════════════════════════════════════════════
+
+Si tienes credenciales de Ecowitt Cloud:
+
+1. Configurar variables de entorno:
+   $env:ECOWITT_API_KEY = "tu_api_key"
+   $env:ECOWITT_API_SECRET = "tu_api_secret"
+   $env:ECOWITT_DEVICE_ID = "tu_device_id"
+
+2. Ejecutar recuperador extendido:
+   python recuperador_datos_local_fase2.py  # (versión mejorada con Cloud)
+
+3. Los datos se consolidarán en nuevo archivo:
+   data/datos_recuperados_YYYYMMDD_HHMMSS.json
+
+
+════════════════════════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+════════════════════════════════════════════════════════════════════════════════
+
+Si hay problemas cargando datos:
+
+✓ Verificar archivo existe:
+  ls -la data/datos_recuperados_*.json
+
+✓ Validar JSON:
+  python -c "import json; json.load(open('data/datos_recuperados_20260205_115613.json'))"
+
+✓ Ver estructura:
+  python -c "import json; d = json.load(open('data/datos_recuperados_20260205_115613.json')); print(list(d.keys()))"
+
+✓ Contar registros:
+  python -c "import json; d = json.load(open('data/datos_recuperados_20260205_115613.json')); print(len(d['historial_sensores']))"
+
+
+════════════════════════════════════════════════════════════════════════════════
+COMANDO RÁPIDO - TODO EN UNO
+════════════════════════════════════════════════════════════════════════════════
+
+python -c "
+from core.integration.data_recovery import cargar_datos_recuperados
+from core.system.system_manager import SystemManager
+
+print('1️⃣  Cargando datos...')
+r = cargar_datos_recuperados('data/datos_recuperados_20260205_115613.json')
+
+print(f'2️⃣  Status: {r[\"status\"]}')
+print(f'3️⃣  Sensores: {len(r[\"sensores\"])} registros')
+print(f'4️⃣  Eventos: {len(r[\"eventos\"])}')
+print(f'5️⃣  Período: {r[\"periodo\"][\"inicio\"]} → {r[\"periodo\"][\"fin\"]}')
+
+print('6️⃣  Integrando en bus...')
+system = SystemManager()
+for evt in r['eventos'][:3]:
+    system.bus.publicar('data.historico.backfill', evt)
+
+print('✅ BACKFILL COMPLETADO')
+"
+
+
+════════════════════════════════════════════════════════════════════════════════
+¿PREGUNTAS?
+════════════════════════════════════════════════════════════════════════════════
+
+Ver documentación:
+  • data/OPERACION_RECUPERACION_COMPLETADA.txt
+  • data/RESUMEN_RECUPERACION_FASE2.txt
+  • data/MANIFIESTO_RECUPERACIÓN_20260205_115613.txt
+
+Revisar código:
+  • core/integration/data_recovery.py
+  • integrador_datos_recuperados.py
+  • recuperador_datos_local_fase2.py
+
+Necesito ayuda:
+  → Los datos están en data/datos_recuperados_*.json
+  → El loader está en core/integration/data_recovery.py
+  → Todo está listo para backfill
+
+════════════════════════════════════════════════════════════════════════════════
+Timestamp: 2026-02-05 11:58 UTC
+Sistema: MeteoSerV3 | Status: ✅ RECUPERACIÓN COMPLETADA
+════════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,57 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ SHA256 SOBERANÍA ABSOLUTA - V28.0 TRINITY ELITE FINAL
+║ MeteoSerV3 - Argentona 41.55326700°N, 2.39684500°E, 118m
+║ Fecha: 2026-02-03T22:01:44.253993
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+HASH SHA256:
+5a34bf8f0f27bbd8c1c8eda216944c413a3e5d955a43974b4fb5bfee4e05060f
+
+MANIFEST:
+{
+  "archivos": {
+    "LIBRO_BLANCO_V28_ELITE_FINAL.md": "c8e796ba8c3451bab40efdfcb72f20b5e9391c7c7413570bba828774ab3fc456",
+    "SINTESIS_FINAL_V28_COMPLETADA.txt": "b43ac444bd3277b12d4e874034d93e4c6a987f5cfed31136146adddd6ad7c43e",
+    "core/indices/hardy_nist_psicrometria.py": "1faf86c5e663152a96eb46c65cb5304ac6aea0ec3fecd400ac58ab0fc21b4341",
+    "core/indices/omm_densidad_temperatura_virtual.py": "3d3fbc9a5e0d72d7ef6fd5885e3dbe6daaeb77d8f24eed62f9c04dfe7884abdb",
+    "core/indices/rest2_gueymard_radiacion.py": "af7c19a9a53019db16a21f558af0dccc06ec65b88a96e3478413e7035e854a04",
+    "core/system/bus_expander.py": "1fffbb996e5b4a56e8e1cb1736aba289bb3314e5726c0e9cd8fae3a592994c08",
+    "core/system/validador_cruzado_trinity.py": "cbb8222332438b910f778db8d79c44dd0f16e9fa46b1ae16927bc26410e9a537"
+  },
+  "descripcion": "Trinity Elite: Hardy NIST + OMM WMO + REST2 Gueymard + Validador Cruzado",
+  "fisica": {
+    "gravedad_m_s2": 9.80272394,
+    "modelo_gravedad": "Somigliana-Helmert WGS-84"
+  },
+  "localizacion": {
+    "altitud_m": 118.0,
+    "latitud": 41.553267,
+    "longitud": 2.396845,
+    "nombre": "Argentona, Catalunya"
+  },
+  "timestamp": "2026-02-03T22:01:44.253993",
+  "version": "V28.0 Elite"
+}
+
+ARCHIVOS CERTIFICADOS:
+  core/indices/hardy_nist_psicrometria.py
+    1faf86c5e663152a96eb46c65cb5304ac6aea0ec3fecd400ac58ab0fc21b4341
+
+  core/indices/omm_densidad_temperatura_virtual.py
+    3d3fbc9a5e0d72d7ef6fd5885e3dbe6daaeb77d8f24eed62f9c04dfe7884abdb
+
+  core/indices/rest2_gueymard_radiacion.py
+    af7c19a9a53019db16a21f558af0dccc06ec65b88a96e3478413e7035e854a04
+
+  core/system/validador_cruzado_trinity.py
+    cbb8222332438b910f778db8d79c44dd0f16e9fa46b1ae16927bc26410e9a537
+
+  core/system/bus_expander.py
+    1fffbb996e5b4a56e8e1cb1736aba289bb3314e5726c0e9cd8fae3a592994c08
+
+  LIBRO_BLANCO_V28_ELITE_FINAL.md
+    c8e796ba8c3451bab40efdfcb72f20b5e9391c7c7413570bba828774ab3fc456
+
+  SINTESIS_FINAL_V28_COMPLETADA.txt
+    b43ac444bd3277b12d4e874034d93e4c6a987f5cfed31136146adddd6ad7c43e
+

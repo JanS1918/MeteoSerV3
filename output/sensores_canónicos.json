@@ -1,0 +1,208 @@
+{
+  "temperatura": [
+    "temp",
+    "t",
+    "temperature",
+    "temp_c",
+    "celsius"
+  ],
+  "temperatura_aparente": [
+    "apparent_temp",
+    "sensible_temp",
+    "feel"
+  ],
+  "humedad": [
+    "hr",
+    "rh",
+    "relative_humidity",
+    "humidity",
+    "humedad_relativa",
+    "humidity_%",
+    "humidityout",
+    "humidity_out",
+    "humout",
+    "hum_out",
+    "outhumidity",
+    "outdoorhumidity",
+    "humidityoutdoor",
+    "humiout"
+  ],
+  "humedad_absoluta": [
+    "vapor_density",
+    "absolute_humidity"
+  ],
+  "presion": [
+    "pressure",
+    "pres",
+    "presion_atm",
+    "presion_barometrica",
+    "hpa",
+    "mbar"
+  ],
+  "radiacion": [
+    "rad",
+    "radiacion_solar",
+    "solar_radiation",
+    "rad_w_m2",
+    "sw_in"
+  ],
+  "radiacion_neta": [
+    "net_radiation",
+    "rn",
+    "rad_neta"
+  ],
+  "radiacion_infrarroja": [
+    "ir",
+    "infrared_radiation",
+    "lw_in"
+  ],
+  "uv": [
+    "uv_index",
+    "uvi",
+    "indice_uv",
+    "uv_intensity"
+  ],
+  "uvb": [
+    "ultraviolet_b",
+    "uvb_radiation"
+  ],
+  "viento": [
+    "wind_speed",
+    "velocidad_viento",
+    "ws",
+    "wind_vel",
+    "viento_vel"
+  ],
+  "viento_direccion": [
+    "wind_direction",
+    "wind_dir",
+    "dir_viento",
+    "wd",
+    "bearing"
+  ],
+  "viento_ráfaga": [
+    "wind_gust",
+    "wind_max",
+    "gust_speed",
+    "rafaga"
+  ],
+  "lluvia": [
+    "rain",
+    "precipitation",
+    "precip",
+    "precip_rate",
+    "rain_rate",
+    "rainfall"
+  ],
+  "lluvia_acumulada": [
+    "rain_total",
+    "cumulative_rain",
+    "total_precip"
+  ],
+  "punto_rocio": [
+    "dew_point",
+    "td",
+    "dew_temp",
+    "dewpoint"
+  ],
+  "visibilidad": [
+    "visibility",
+    "vis",
+    "alcance_visual"
+  ],
+  "pm25": [
+    "pm_2_5",
+    "pm2.5",
+    "pm_2.5",
+    "pm25_concentration"
+  ],
+  "pm10": [
+    "pm_10",
+    "pm10_concentration"
+  ],
+  "pm_generica": [
+    "pm_generic",
+    "pm_general",
+    "pm_otros"
+  ],
+  "aqi": [
+    "air_quality_index",
+    "indice_calidad_aire"
+  ],
+  "sismografo": [
+    "seismic",
+    "earthquake",
+    "sismo",
+    "seism",
+    "accelerometer"
+  ],
+  "aceleracion": [
+    "acceleration",
+    "accel",
+    "aceleracion_sismo"
+  ],
+  "geomagnetico": [
+    "geomagnetic",
+    "magnetic_field",
+    "magnetometer"
+  ],
+  "campo_magnetico": [
+    "magnetic_field_intensity",
+    "bfield"
+  ],
+  "sensacion_calor": [
+    "heat_index",
+    "hi",
+    "indice_calor_aparente",
+    "indice_calor"
+  ],
+  "sensacion_frio": [
+    "wind_chill",
+    "wc",
+    "chill_factor",
+    "sensacion_termica",
+    "sensacion_frio"
+  ],
+  "humedad_bulbo_humedo": [
+    "wet_bulb",
+    "bulbo_humedo",
+    "bulbo_wet"
+  ],
+  "potencial_evapotranspiracion": [
+    "pet",
+    "evapotranspiration",
+    "et"
+  ],
+  "vapor_pressure": [
+    "pressure_vapor",
+    "vapor_p",
+    "e"
+  ],
+  "saturation_vapor_pressure": [
+    "presion_vapor_saturacion",
+    "es"
+  ],
+  "vpd": [
+    "vapor_pressure_deficit",
+    "deficit_presion_vapor"
+  ],
+  "velocidad_friccion": [
+    "friction_velocity",
+    "u_star",
+    "u*"
+  ],
+  "longitud_monin_obukhov": [
+    "monin_obukhov_length",
+    "L_mo",
+    "L_ob"
+  ],
+  "estabilidad_atmosferica": [
+    "atmospheric_stability",
+    "clase_estabilidad"
+  ],
+  "altura_capa_mezcla": [
+    "mixing_height",
+    "h_mix",
+    "boundary_layer_height"
+  ]
+}

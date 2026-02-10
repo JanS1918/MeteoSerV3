@@ -1,0 +1,27 @@
+{
+  "import_error": {
+    "pattern": "ModuleNotFoundError: No module named '(\\w+)'",
+    "action": "install_package",
+    "description": "Instala paquete Python faltante"
+  },
+  "permission_error": {
+    "pattern": "PermissionError.*",
+    "action": "fix_permissions",
+    "description": "Corrige permisos de archivos/directorios"
+  },
+  "connection_timeout": {
+    "pattern": "(TimeoutError|ConnectionError|requests\\.exceptions\\.Timeout)",
+    "action": "retry_connection",
+    "description": "Reintenta conexión con backoff exponencial"
+  },
+  "file_not_found": {
+    "pattern": "FileNotFoundError.*'([^']+)'",
+    "action": "create_missing_file",
+    "description": "Crea archivo/directorio faltante"
+  },
+  "memory_error": {
+    "pattern": "MemoryError",
+    "action": "clear_cache",
+    "description": "Libera memoria cachés"
+  }
+}

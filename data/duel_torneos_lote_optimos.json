@@ -1,0 +1,21 @@
+# Fórmulas y modelos óptimos para sensores virtuales y predicciones (auditoría 2026-02-07)
+
+| Parámetro                | Mejor fórmula/modelo/combinación | Referencia principal | Justificación técnica |
+|--------------------------|----------------------------------|----------------------|----------------------|
+| Sensación térmica        | UTCI v4.02 (Fiala)               | Fiala et al. (2012)  | Modelo fisiológico, estándar OMS/WMO |
+| Punto de rocío           | Magnus-Tetens refinada           | Alduchov & Eskridge (1996) | Precisión <0.1°C, validado WMO/NIST |
+| Radiación solar          | Bird & Hulstrom (1981) / Gueymard (2008) | Bird & Hulstrom, Gueymard | Modelado físico, atenuación atmosférica |
+| WBGT                     | Liljegren et al. (2008)          | Liljegren et al. (2008) | Estimación virtual, validado ISO/OSHA |
+| Humedad relativa         | Magnus-Tetens refinada + presión de vapor | Alduchov & Eskridge (1996) | Preciso para sensores virtuales |
+| Viento                   | Anemómetro ultrasónico clase 1 (ISO 17713-1) | ISO 17713-1:2007 | Medición directa, estándar mundial |
+| Presión                  | Sensor barométrico clase meteorológica | WMO No. 8 | Precisión <0.1 hPa, validado WMO/NIST |
+| Calidad del aire         | CMAQ/CAMS (modelos de dispersión) | US EPA, CMAQ | Predicción regional, validación internacional |
+| Radiación UV             | TEMIS/OMI (satélite) / radiómetro clase A | ISO 17166:2019, TEMIS | Estimación satelital, estándar OMS/WMO |
+| Lluvia/precipitación     | Radar Doppler / NASA GPM / pluviómetro clase A | WMO No. 8, NASA GPM | Cobertura espacial, validación internacional |
+| Visibilidad              | Modelo Bucholtz / Kneizys / MODTRAN | Bucholtz, Kneizys | Modelado físico, predicción virtual |
+| Predicción meteorológica | ECMWF ERA5 / GFS / ICON / WRF    | ECMWF, NOAA, DWD | Modelos globales/regionales, benchmarks internacionales |
+
+## Notas
+- Todos los modelos/fórmulas listados son los más precisos y robustos disponibles para sensores virtuales y predicciones, según la literatura y organismos internacionales.
+- Referencias completas y justificación técnica disponibles bajo demanda.
+- Si ya tienes implementado alguno de estos, solo te propondré algo superior si aparece en la literatura.

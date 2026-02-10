@@ -1,0 +1,64 @@
+{
+  "ciclos": [
+    {
+      "timestamp": 1770222884.694832,
+      "ciclo_num": 1,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 10,
+      "duelos_ejecutados": 0,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.010352134704589844,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "status": "sin_candidatas"
+        },
+        {
+          "parametro": "humedad_relativa",
+          "status": "sin_candidatas"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222945.10582,
+      "ciclo_num": 2,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 10,
+      "duelos_ejecutados": 0,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.01685333251953125,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "status": "sin_candidatas"
+        },
+        {
+          "parametro": "humedad_relativa",
+          "status": "sin_candidatas"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222964.435745,
+      "ciclo_num": 3,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 10,
+      "duelos_ejecutados": 0,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.013951301574707031,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "status": "sin_candidatas"
+        },
+        {
+          "parametro": "humedad_relativa",
+          "status": "sin_candidatas"
+        }
+      ]
+    }
+  ]
+}

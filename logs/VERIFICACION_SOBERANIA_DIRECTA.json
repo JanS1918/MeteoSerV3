@@ -1,0 +1,29 @@
+{
+  "timestamp": "1770145906.606393",
+  "verificaciones": {
+    "panel_superior": {
+      "estado": "OK",
+      "latitud": "41.55326700",
+      "longitud": "2.39684500"
+    },
+    "location_engine": {
+      "estado": "OK",
+      "latitud": 41.553267,
+      "longitud": 2.396845,
+      "altitud": 118.0
+    },
+    "gravedad_somigliana": {
+      "estado": "WARN",
+      "gravedad_calculada": 9.802723344757892,
+      "gravedad_sellada": 9.80272394,
+      "diferencia": 5.952421080479553e-07
+    },
+    "config_estacion": {
+      "estado": "OK",
+      "latitud": 41.553267,
+      "longitud": 2.396845,
+      "altitud": 118.0,
+      "direccion": "Calle Narcís Monturiol 36, Argentona, Barcelona, España"
+    }
+  }
+}

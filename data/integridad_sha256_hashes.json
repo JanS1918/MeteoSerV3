@@ -1,0 +1,12 @@
+{
+  "core/learning/feedback_learning_v472.py": "d2f562b8d55871212fa73b2d2a24d51d6497557862c13298248f440b4cf25a64",
+  "core/validation/mos_clustering_validator.py": "3255b3578343e505c9150176ff8985840ddc91ea6db6886ffe5085618e0bc4a1",
+  "core/learning/feedback_learning_auditor.py": "04473094ebf752086ae9a19b88e9baf800c8528eaa606b3a4712e4c3139c004a",
+  "core/monitoring/centinela_soberano.py": "cbe96824824f64d5db2ccb0a25ba0ab998d417d0e44a16b5d85bc82d67a8584f",
+  "core/monitoring/cortafuegos_cascada.py": "1458208a209ecd5ccc70e86d9359bd41a8ccfaee71e0c4874d637c1d3f835b8f",
+  "core/monitoring/monitor_recursos_auto_limpieza.py": "2980c64a6c5784ed61e0202d422ca6a10f5b488233ac6a7ea84fb5afaa835280",
+  "main.py": "20dc99b96f08a951c13835ff0a7253a3092816f363c81e21fe662e63a4b7c9f3",
+  "main_asgi.py": "f60e97cc097585440fb77e4e77ea86aa7037066991c0ced32950c5277eb0d465",
+  "self_mod_engine.py": "b1a7a9e3ecb21270d2f1b102c45e44bb5c0e584e8431010e124e6e103ef3c7dc",
+  "evolution_engine.py": "8bd576cd1f112c823cff73efdc747f6a18f3c76cb384d234a3aed47d93b576e8"
+}

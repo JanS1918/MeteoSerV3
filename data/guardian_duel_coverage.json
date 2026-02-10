@@ -1,0 +1,45 @@
+{
+  "timestamp": 1770518965.9647362,
+  "parametros_total": 2,
+  "formulas_total": 5,
+  "formulas_ok": 0,
+  "formulas_sin_datos": 1,
+  "formulas_sin_funcion": 0,
+  "formulas_error": 2,
+  "candidatas_total": 0,
+  "candidatas_ok": 0,
+  "candidatas_sin_datos": 0,
+  "candidatas_sin_funcion": 0,
+  "candidatas_error": 0,
+  "fusiones_total": 0,
+  "fusiones_ok": 0,
+  "fusiones_sin_datos": 0,
+  "fusiones_sin_funcion": 0,
+  "fusiones_error": 0,
+  "detalles": [
+    {
+      "parametro": "radiacion_solar",
+      "formulas": {
+        "total": 1,
+        "faltan": [
+          {
+            "id": "calcular_radiacion_extraterrestre_rest2",
+            "razon": "sin_datos"
+          },
+          {
+            "id": "calcular_radiacion_extraterrestre_rest2",
+            "razon": "sin_score"
+          }
+        ]
+      },
+      "candidatas": {
+        "total": 0,
+        "faltan": []
+      },
+      "fusiones": {
+        "total": 0,
+        "faltan": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "ciclos": [
+    {
+      "timestamp": 1770222884.694832,
+      "ciclo_num": 1,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 10,
+      "duelos_ejecutados": 0,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.010352134704589844,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "status": "sin_candidatas"
+        },
+        {
+          "parametro": "humedad_relativa",
+          "status": "sin_candidatas"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222945.10582,
+      "ciclo_num": 2,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 10,
+      "duelos_ejecutados": 0,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.01685333251953125,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "status": "sin_candidatas"
+        },
+        {
+          "parametro": "humedad_relativa",
+          "status": "sin_candidatas"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222964.435745,
+      "ciclo_num": 3,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 10,
+      "duelos_ejecutados": 0,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.013951301574707031,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "status": "sin_candidatas"
+        },
+        {
+          "parametro": "humedad_relativa",
+          "status": "sin_candidatas"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770472286.685608,
+      "ciclo_num": 4,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 8,
+      "duelos_ejecutados": 2,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.016009807586669922,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "candidata": "scipy.stats.norm - Normal distribution",
+          "status": "perdio_duelo",
+          "score": 0.0
+        },
+        {
+          "parametro": "humedad_relativa",
+          "candidata": "scipy.special.erf - Error function",
+          "status": "perdio_duelo",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp": 1770472380.047354,
+      "ciclo_num": 5,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 8,
+      "duelos_ejecutados": 2,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.026809215545654297,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "candidata": "scipy.stats.norm - Normal distribution",
+          "status": "perdio_duelo",
+          "score": 0.0
+        },
+        {
+          "parametro": "humedad_relativa",
+          "candidata": "scipy.special.erf - Error function",
+          "status": "perdio_duelo",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp": 1770472565.513391,
+      "ciclo_num": 6,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 8,
+      "duelos_ejecutados": 2,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.022063732147216797,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "candidata": "scipy.stats.norm - Normal distribution",
+          "status": "perdio_duelo",
+          "score": 0.0
+        },
+        {
+          "parametro": "humedad_relativa",
+          "candidata": "scipy.special.erf - Error function",
+          "status": "perdio_duelo",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp": 1770472606.540422,
+      "ciclo_num": 7,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 8,
+      "duelos_ejecutados": 2,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.022210121154785156,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "candidata": "scipy.stats.norm - Normal distribution",
+          "status": "perdio_duelo",
+          "score": 0.0
+        },
+        {
+          "parametro": "humedad_relativa",
+          "candidata": "scipy.special.erf - Error function",
+          "status": "perdio_duelo",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp": 1770472649.850529,
+      "ciclo_num": 8,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 8,
+      "duelos_ejecutados": 2,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.016541004180908203,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "candidata": "scipy.stats.norm - Normal distribution",
+          "status": "perdio_duelo",
+          "score": 0.0
+        },
+        {
+          "parametro": "humedad_relativa",
+          "candidata": "scipy.special.erf - Error function",
+          "status": "perdio_duelo",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp": 1770472763.816118,
+      "ciclo_num": 9,
+      "parametros_procesados": 2,
+      "candidatas_descubiertas": 8,
+      "duelos_ejecutados": 2,
+      "ganadoras_externas": 0,
+      "integraciones_exitosas": 0,
+      "duracion_segundos": 0.017647504806518555,
+      "detalles": [
+        {
+          "parametro": "sensacion_termica",
+          "candidata": "scipy.stats.norm - Normal distribution",
+          "status": "perdio_duelo",
+          "score": 0.0
+        },
+        {
+          "parametro": "humedad_relativa",
+          "candidata": "scipy.special.erf - Error function",
+          "status": "perdio_duelo",
+          "score": 0.0
+        }
+      ]
+    }
+  ]
+}

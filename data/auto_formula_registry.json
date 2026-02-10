@@ -1,0 +1,3033 @@
+{
+  "timestamp": "2026-02-07T17:31:44.655501",
+  "parameters": {
+    "cape": [
+      {
+        "nombre_tecnico": "calcular_cape",
+        "nombre_legible": "calcular_cape",
+        "modulo": "core.indices.advanced_predictive_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_c",
+          "temperatura_rocio_c",
+          "presion_hpa",
+          "altura_m"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_cape",
+        "nombre_legible": "calcular_cape",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_c",
+          "temperatura_rocio_c",
+          "presion_hpa",
+          "altura_m"
+        ]
+      }
+    ],
+    "alerta_polvo": [
+      {
+        "nombre_tecnico": "indice_alerta_polvo",
+        "nombre_legible": "indice_alerta_polvo",
+        "modulo": "core.indices.advanced_predictive_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "pm25_ugm3",
+          "pm10_ugm3",
+          "viento_ms",
+          "humedad_rel",
+          "temperatura_c",
+          "altura_mezcla_m"
+        ]
+      },
+      {
+        "nombre_tecnico": "indice_alerta_polvo",
+        "nombre_legible": "indice_alerta_polvo",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "pm25_ugm3",
+          "pm10_ugm3",
+          "viento_ms",
+          "humedad_rel",
+          "temperatura_c",
+          "altura_mezcla_m"
+        ]
+      }
+    ],
+    "alerta_tormenta": [
+      {
+        "nombre_tecnico": "indice_alerta_tormenta",
+        "nombre_legible": "indice_alerta_tormenta",
+        "modulo": "core.indices.advanced_predictive_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_c",
+          "temperatura_rocio_c",
+          "presion_hpa",
+          "tendencia_presion_hpa_h",
+          "rayos_km",
+          "temp_850_c",
+          "temp_700_c",
+          "temp_500_c"
+        ]
+      },
+      {
+        "nombre_tecnico": "indice_alerta_tormenta",
+        "nombre_legible": "indice_alerta_tormenta",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_c",
+          "temperatura_rocio_c",
+          "presion_hpa",
+          "tendencia_presion_hpa_h",
+          "rayos_km",
+          "temp_850_c",
+          "temp_700_c",
+          "temp_500_c"
+        ]
+      }
+    ],
+    "temp_running_mean": [
+      {
+        "nombre_tecnico": "calcular_temp_running_mean",
+        "nombre_legible": "calcular_temp_running_mean",
+        "modulo": "core.indices.ashrae55_adaptive_vtt",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperaturas_diarias",
+          "pesos_exponenciales"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_temp_running_mean",
+        "nombre_legible": "calcular_temp_running_mean",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperaturas_diarias",
+          "pesos_exponenciales"
+        ]
+      }
+    ],
+    "humedad_critica_moho_vtt": [
+      {
+        "nombre_tecnico": "humedad_critica_moho_vtt",
+        "nombre_legible": "humedad_critica_moho_vtt",
+        "modulo": "core.indices.ashrae55_adaptive_vtt",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "clase_sensibilidad"
+        ]
+      }
+    ],
+    "moho_vtt": [
+      {
+        "nombre_tecnico": "indice_moho_vtt",
+        "nombre_legible": "indice_moho_vtt",
+        "modulo": "core.indices.ashrae55_adaptive_vtt",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "hr_pct",
+          "duracion_exposicion_dias",
+          "clase_sensibilidad"
+        ]
+      },
+      {
+        "nombre_tecnico": "indice_moho_vtt",
+        "nombre_legible": "indice_moho_vtt",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "hr_pct",
+          "duracion_exposicion_dias",
+          "clase_sensibilidad"
+        ]
+      }
+    ],
+    "temperatura_confort_ashrae55_adaptativo": [
+      {
+        "nombre_tecnico": "temperatura_confort_ashrae55_adaptativo",
+        "nombre_legible": "temperatura_confort_ashrae55_adaptativo",
+        "modulo": "core.indices.ashrae55_adaptive_vtt",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_media_exterior_running_c",
+          "categoria"
+        ]
+      }
+    ],
+    "temperatura_operativa": [
+      {
+        "nombre_tecnico": "temperatura_operativa",
+        "nombre_legible": "temperatura_operativa",
+        "modulo": "core.indices.ashrae55_adaptive_vtt",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_aire_c",
+          "temp_radiante_media_c",
+          "velocidad_aire_ms"
+        ]
+      }
+    ],
+    "scorer": [
+      {
+        "nombre_tecnico": "indice_scorer",
+        "nombre_legible": "indice_scorer",
+        "modulo": "core.indices.atmospheric_profiler",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_superficie_c",
+          "temp_altura_c",
+          "viento_superficie_ms",
+          "viento_altura_ms",
+          "altura_m"
+        ]
+      },
+      {
+        "nombre_tecnico": "indice_scorer",
+        "nombre_legible": "indice_scorer",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_superficie_c",
+          "temp_altura_c",
+          "viento_superficie_ms",
+          "viento_altura_ms",
+          "altura_m"
+        ]
+      }
+    ],
+    "temperatura_adiabática_seca": [
+      {
+        "nombre_tecnico": "temperatura_adiabática_seca",
+        "nombre_legible": "temperatura_adiabática_seca",
+        "modulo": "core.indices.atmospheric_profiler",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_superficie_c",
+          "altura_m"
+        ]
+      }
+    ],
+    "viento_ley_hellman": [
+      {
+        "nombre_tecnico": "viento_ley_hellman",
+        "nombre_legible": "viento_ley_hellman",
+        "modulo": "core.indices.atmospheric_profiler",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "viento_superficie_ms",
+          "altura_superficie_m",
+          "altura_objetivo_m",
+          "alpha"
+        ]
+      }
+    ],
+    "temperatura_minima_deardorff": [
+      {
+        "nombre_tecnico": "calcular_temperatura_minima_deardorff",
+        "nombre_legible": "calcular_temperatura_minima_deardorff",
+        "modulo": "core.indices.deardorff_force_restore",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_actual_c",
+          "temperatura_suelo_profundo_c",
+          "radiacion_neta_wm2",
+          "viento_ms",
+          "humedad_relativa",
+          "flujo_calor_latente_wm2",
+          "tipo_suelo",
+          "horas_hasta_amanecer",
+          "lluvia_ultimas_24h_mm"
+        ]
+      }
+    ],
+    "temperatura_minima_desde_sensores": [
+      {
+        "nombre_tecnico": "temperatura_minima_desde_sensores",
+        "nombre_legible": "temperatura_minima_desde_sensores",
+        "modulo": "core.indices.deardorff_force_restore",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_c",
+          "humedad_relativa",
+          "viento_ms",
+          "radiacion_neta_wm2",
+          "horas_hasta_amanecer",
+          "lluvia_ultimas_24h_mm"
+        ]
+      }
+    ],
+    "temperatura_minima_deardorff_v46_5": [
+      {
+        "nombre_tecnico": "calcular_temperatura_minima_deardorff_v46_5",
+        "nombre_legible": "calcular_temperatura_minima_deardorff_v46_5",
+        "modulo": "core.indices.deardorff_microclima_v46_5_argentona",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_actual_c",
+          "temperatura_suelo_profundo_c",
+          "radiacion_neta_wm2",
+          "viento_ms",
+          "humedad_relativa",
+          "humedad_profunda_maceta_percent",
+          "tipo_suelo",
+          "horas_hasta_amanecer",
+          "lluvia_ultimas_24h_mm",
+          "aplicar_correccion_bosque",
+          "filtro_humedad"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_temperatura_minima_deardorff_v46_5",
+        "nombre_legible": "calcular_temperatura_minima_deardorff_v46_5",
+        "modulo": "core.indices.deardorff_v46_5_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_actual_c",
+          "temperatura_suelo_profundo_c",
+          "radiacion_neta_wm2",
+          "viento_ms",
+          "humedad_relativa",
+          "humedad_profunda_maceta_percent",
+          "tipo_suelo",
+          "horas_hasta_amanecer",
+          "lluvia_ultimas_24h_mm",
+          "aplicar_correccion_bosque",
+          "filtro_humedad"
+        ]
+      }
+    ],
+    "temperatura_minima_v46_5_final": [
+      {
+        "nombre_tecnico": "calcular_temperatura_minima_v46_5_final",
+        "nombre_legible": "calcular_temperatura_minima_v46_5_final",
+        "modulo": "core.indices.deardorff_v46_5_final_sentencia",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_actual_c",
+          "temperatura_suelo_profundo_c",
+          "radiacion_neta_wm2",
+          "viento_ms",
+          "humedad_relativa",
+          "humedad_profunda_maceta_percent",
+          "tipo_suelo",
+          "horas_hasta_amanecer",
+          "lluvia_ultimas_24h_mm",
+          "aplicar_correccion_bosque",
+          "ocaso_topografico_horas"
+        ]
+      }
+    ],
+    "filtrar_humedad_maceta": [
+      {
+        "nombre_tecnico": "filtrar_humedad_maceta",
+        "nombre_legible": "filtrar_humedad_maceta",
+        "modulo": "core.indices.deardorff_v46_5_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "humedad_raw_percent"
+        ]
+      }
+    ],
+    "get_temperatura_minima": [
+      {
+        "nombre_tecnico": "get_temperatura_minima",
+        "nombre_legible": "get_temperatura_minima",
+        "modulo": "core.indices.deardorff_v46_5_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_actual",
+          "hr",
+          "viento",
+          "radiacion_neta",
+          "humedad_maceta",
+          "horas_hasta_amanecer",
+          "lluvia_24h",
+          "tipo_suelo"
+        ]
+      }
+    ],
+    "temperatura_minima_v46_8_soberania": [
+      {
+        "nombre_tecnico": "calcular_temperatura_minima_v46_8_soberania",
+        "nombre_legible": "calcular_temperatura_minima_v46_8_soberania",
+        "modulo": "core.indices.deardorff_v46_7_terraza_final",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_inicial_c",
+          "humedad_suelo_rc",
+          "radiacion_neta_wm2",
+          "viento_ms",
+          "humedad_relativa_pct",
+          "horas_a_salida_sol",
+          "ocaso_topografico_horas",
+          "radiacion_integrada_dia_mjm2",
+          "T_cielo_efectiva_k",
+          "altitud_m"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_temperatura_minima_v46_8_soberania",
+        "nombre_legible": "calcular_temperatura_minima_v46_8_soberania",
+        "modulo": "core.indices.deardorff_v47_0_prata_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_inicial_c",
+          "humedad_suelo_rc",
+          "radiacion_neta_wm2",
+          "viento_ms",
+          "humedad_relativa_pct",
+          "horas_a_salida_sol",
+          "ocaso_topografico_horas",
+          "radiacion_integrada_dia_mjm2",
+          "T_cielo_efectiva_k",
+          "altitud_m"
+        ]
+      }
+    ],
+    "emissividad_cielo_prata": [
+      {
+        "nombre_tecnico": "calcular_emissividad_cielo_prata",
+        "nombre_legible": "calcular_emissividad_cielo_prata",
+        "modulo": "core.indices.deardorff_v47_0_prata_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_k",
+          "e_vapor_pa",
+          "nubosidad_fraccion"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_emissividad_cielo_prata",
+        "nombre_legible": "calcular_emissividad_cielo_prata",
+        "modulo": "core.indices.radiacion_lw_prata",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_k",
+          "e_vapor_pa",
+          "nubosidad_fraccion"
+        ]
+      }
+    ],
+    "radiacion_solar": [
+      {
+        "nombre_tecnico": "calcular_radiacion_lw_descendente_prata",
+        "nombre_legible": "calcular_radiacion_lw_descendente_prata",
+        "modulo": "core.indices.deardorff_v47_0_prata_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_k",
+          "e_vapor_pa",
+          "nubosidad_fraccion"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_lw_prata_1996",
+        "nombre_legible": "calcular_lw_prata_1996",
+        "modulo": "core.indices.radiacion_lw_prata",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_c",
+          "RH_pct",
+          "P_hpa"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_radiacion_lw_descendente_prata",
+        "nombre_legible": "calcular_radiacion_lw_descendente_prata",
+        "modulo": "core.indices.radiacion_lw_prata",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_k",
+          "e_vapor_pa",
+          "nubosidad_fraccion"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_radiacion_lw_descendente_prata_vectorizado",
+        "nombre_legible": "calcular_radiacion_lw_descendente_prata_vectorizado",
+        "modulo": "core.indices.radiacion_lw_prata",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_k",
+          "e_vapor_pa",
+          "nubosidad_fraccion"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_lw_prata_1996",
+        "nombre_legible": "calcular_lw_prata_1996",
+        "modulo": "core.indices.radiacion_lw_wrapper",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_c",
+          "RH_pct",
+          "P_hpa"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_radiacion_extraterrestre_rest2",
+        "nombre_legible": "calcular_radiacion_extraterrestre_rest2",
+        "modulo": "core.indices.rest2_gueymard_radiacion",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "fecha",
+          "latitud_deg",
+          "longitud_deg",
+          "altitud_m",
+          "uso_horario",
+          "presion_relativa_hpa",
+          "humedad_relativa_pct",
+          "elevacion_spa_nrel",
+          "azimut_spa_nrel"
+        ]
+      }
+    ],
+    "t_cielo_prata_v47": [
+      {
+        "nombre_tecnico": "calcular_t_cielo_prata_v47",
+        "nombre_legible": "calcular_t_cielo_prata_v47",
+        "modulo": "core.indices.deardorff_v47_0_prata_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_c",
+          "RH_pct",
+          "presion_hpa",
+          "nubosidad_fraccion"
+        ]
+      }
+    ],
+    "temperatura_cielo_efectiva_prata": [
+      {
+        "nombre_tecnico": "calcular_temperatura_cielo_efectiva_prata",
+        "nombre_legible": "calcular_temperatura_cielo_efectiva_prata",
+        "modulo": "core.indices.deardorff_v47_0_prata_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_k",
+          "e_vapor_pa",
+          "nubosidad_fraccion"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_temperatura_cielo_efectiva_prata",
+        "nombre_legible": "calcular_temperatura_cielo_efectiva_prata",
+        "modulo": "core.indices.radiacion_lw_prata",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_k",
+          "e_vapor_pa",
+          "nubosidad_fraccion"
+        ]
+      }
+    ],
+    "humedad_suelo": [
+      {
+        "nombre_tecnico": "filtrar_humedad_suelo",
+        "nombre_legible": "filtrar_humedad_suelo",
+        "modulo": "core.indices.deardorff_v47_0_prata_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "humedad_raw_percent"
+        ]
+      }
+    ],
+    "get_temperatura_minima_v47_0": [
+      {
+        "nombre_tecnico": "get_temperatura_minima_v47_0",
+        "nombre_legible": "get_temperatura_minima_v47_0",
+        "modulo": "core.indices.deardorff_v47_0_prata_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_actual",
+          "humedad_relativa",
+          "viento_ms",
+          "presion_hpa",
+          "humedad_suelo_wh51_raw",
+          "radiacion_integrada_dia_mjm2",
+          "horas_hasta_amanecer",
+          "horas_desde_ocaso",
+          "nubosidad_fraccion"
+        ]
+      }
+    ],
+    "cielo_observable_nocturno": [
+      {
+        "nombre_tecnico": "_calcular_cielo_observable_nocturno",
+        "nombre_legible": "_calcular_cielo_observable_nocturno",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "nub",
+          "transp",
+          "niebla",
+          "emp",
+          "seeing",
+          "fase_lunar",
+          "params"
+        ]
+      }
+    ],
+    "fried_r0": [
+      {
+        "nombre_tecnico": "_calcular_fried_r0",
+        "nombre_legible": "_calcular_fried_r0",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "seeing_indice",
+          "lambda_nm"
+        ]
+      }
+    ],
+    "hash_manifiesto": [
+      {
+        "nombre_tecnico": "_calcular_hash_manifiesto",
+        "nombre_legible": "_calcular_hash_manifiesto",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "manifiesto"
+        ]
+      }
+    ],
+    "nubosidad": [
+      {
+        "nombre_tecnico": "_calcular_nubosidad_estimada",
+        "nombre_legible": "_calcular_nubosidad_estimada",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp",
+          "dew",
+          "rh",
+          "viento",
+          "rad_real",
+          "rad_teorica",
+          "temp_esperada_nocturna",
+          "es_dia",
+          "presion_hpa",
+          "dia_ano"
+        ]
+      },
+      {
+        "nombre_tecnico": "_calcular_nubosidad_nocturna",
+        "nombre_legible": "_calcular_nubosidad_nocturna",
+        "modulo": "core.indices.nubosidad_liu_jordan_kasten",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_aire_c",
+          "temp_rocio_c",
+          "humedad_relativa_pct",
+          "elevacion_lunar_deg",
+          "iluminacion_lunar_pct"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_nubosidad_liu_jordan_kasten",
+        "nombre_legible": "calcular_nubosidad_liu_jordan_kasten",
+        "modulo": "core.indices.nubosidad_liu_jordan_kasten",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "radiacion_medida_w_m2",
+          "radiacion_extraterrestre_w_m2",
+          "elevacion_solar_deg",
+          "temp_aire_c",
+          "temp_rocio_c",
+          "humedad_relativa_pct",
+          "presion_hpa",
+          "dia_ano",
+          "elevacion_lunar_deg",
+          "iluminacion_lunar_pct"
+        ]
+      }
+    ],
+    "qnet_brunt_monteith": [
+      {
+        "nombre_tecnico": "_calcular_qnet_brunt_monteith",
+        "nombre_legible": "_calcular_qnet_brunt_monteith",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "nubosidad_pct"
+        ]
+      }
+    ],
+    "riesgo_empaniamiento_optica": [
+      {
+        "nombre_tecnico": "_calcular_riesgo_empaniamiento_optica",
+        "nombre_legible": "_calcular_riesgo_empaniamiento_optica",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp",
+          "dew",
+          "rh",
+          "viento"
+        ]
+      }
+    ],
+    "seeing_termico_basico": [
+      {
+        "nombre_tecnico": "_calcular_seeing_termico_basico",
+        "nombre_legible": "_calcular_seeing_termico_basico",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "var_t_5min",
+          "viento"
+        ]
+      }
+    ],
+    "transparencia_atmosferica": [
+      {
+        "nombre_tecnico": "_calcular_transparencia_atmosferica",
+        "nombre_legible": "_calcular_transparencia_atmosferica",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "rh",
+          "temp",
+          "dew",
+          "nub",
+          "rad_real",
+          "rad_teorica",
+          "es_dia"
+        ]
+      }
+    ],
+    "ventana_observacion_nocturna": [
+      {
+        "nombre_tecnico": "_calcular_ventana_observacion_nocturna",
+        "nombre_legible": "_calcular_ventana_observacion_nocturna",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "cielo",
+          "duracion_noche"
+        ]
+      }
+    ],
+    "clasificar_indice_cielo": [
+      {
+        "nombre_tecnico": "_clasificar_indice_cielo",
+        "nombre_legible": "_clasificar_indice_cielo",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "valor"
+        ]
+      }
+    ],
+    "cetreria": [
+      {
+        "nombre_tecnico": "calcular_cetreria",
+        "nombre_legible": "calcular_cetreria",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "data"
+        ]
+      }
+    ],
+    "indice_con_metadata": [
+      {
+        "nombre_tecnico": "calcular_indice_con_metadata",
+        "nombre_legible": "calcular_indice_con_metadata",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "nombre_indice",
+          "funcion_calculo",
+          "parametros",
+          "parametros_requeridos"
+        ]
+      }
+    ],
+    "presion_vapor": [
+      {
+        "nombre_tecnico": "calcular_saturacion_vapor_con_fallback",
+        "nombre_legible": "calcular_saturacion_vapor_con_fallback",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "presion_pa"
+        ]
+      },
+      {
+        "nombre_tecnico": "presion_vapor_iapws_mejorada",
+        "nombre_legible": "presion_vapor_iapws_mejorada",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_rel",
+          "presion_pa"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_presion_vapor_real_hardy",
+        "nombre_legible": "calcular_presion_vapor_real_hardy",
+        "modulo": "core.indices.hardy_nist_psicrometria",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa_pct",
+          "presion_pa"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_presion_vapor_saturado_wexler",
+        "nombre_legible": "calcular_presion_vapor_saturado_wexler",
+        "modulo": "core.indices.hardy_nist_psicrometria",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c"
+        ]
+      },
+      {
+        "nombre_tecnico": "presion_vapor_actual_puro",
+        "nombre_legible": "presion_vapor_actual_puro",
+        "modulo": "core.indices.physics_numba",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_celsius",
+          "HR_pct"
+        ]
+      },
+      {
+        "nombre_tecnico": "presion_vapor_saturacion_puro",
+        "nombre_legible": "presion_vapor_saturacion_puro",
+        "modulo": "core.indices.physics_numba",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_celsius"
+        ]
+      }
+    ],
+    "sensacion_termica": [
+      {
+        "nombre_tecnico": "calcular_viento_utci_calle",
+        "nombre_legible": "calcular_viento_utci_calle",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "viento_sensor",
+          "altura_sensor"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_viento_utci_terraza",
+        "nombre_legible": "calcular_viento_utci_terraza",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "viento_sensor",
+          "altura_sensor"
+        ]
+      },
+      {
+        "nombre_tecnico": "indice_steadman_apparent_temperature",
+        "nombre_legible": "indice_steadman_apparent_temperature",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "viento_m_s",
+          "contexto"
+        ]
+      },
+      {
+        "nombre_tecnico": "indice_utci",
+        "nombre_legible": "indice_utci",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "viento_m_s",
+          "rad_w_m2",
+          "contexto"
+        ]
+      },
+      {
+        "nombre_tecnico": "indice_wbgt",
+        "nombre_legible": "indice_wbgt",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "radiacion",
+          "viento_kmh",
+          "lat",
+          "lon",
+          "alt",
+          "dt"
+        ]
+      },
+      {
+        "nombre_tecnico": "utci_v4_02_fiala_completo",
+        "nombre_legible": "utci_v4_02_fiala_completo",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "t_a",
+          "rh",
+          "v",
+          "tmrt",
+          "pa"
+        ]
+      },
+      {
+        "nombre_tecnico": "wbgt_liljegren_completo",
+        "nombre_legible": "wbgt_liljegren_completo",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "t_a",
+          "rh",
+          "v",
+          "rad",
+          "pa"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_heat_index_rotstayn_1994",
+        "nombre_legible": "calcular_heat_index_rotstayn_1994",
+        "modulo": "core.indices.soluciones_auditoría_v49",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_humidex_mastertom_1979",
+        "nombre_legible": "calcular_humidex_mastertom_1979",
+        "modulo": "core.indices.soluciones_auditoría_v49",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_wind_chill_steadman_1971",
+        "nombre_legible": "calcular_wind_chill_steadman_1971",
+        "modulo": "core.indices.soluciones_auditoría_v49",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "viento_ms"
+        ]
+      },
+      {
+        "nombre_tecnico": "utci_iterative",
+        "nombre_legible": "utci_iterative",
+        "modulo": "core.indices.utci_polynomial",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "ta",
+          "tmrt",
+          "va",
+          "rh",
+          "turbulencia_info",
+          "rayleigh_info",
+          "presion_pa"
+        ]
+      },
+      {
+        "nombre_tecnico": "utci_polynomial",
+        "nombre_legible": "utci_polynomial",
+        "modulo": "core.indices.utci_polynomial",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "ta",
+          "tmrt",
+          "va",
+          "vp",
+          "turbulencia_info",
+          "rayleigh_info"
+        ]
+      },
+      {
+        "nombre_tecnico": "_calcular_utci_polinomio_base",
+        "nombre_legible": "_calcular_utci_polinomio_base",
+        "modulo": "core.indices.utci_v2_blazejczyk",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "Ta",
+          "va",
+          "D_Tmrt",
+          "Pa"
+        ]
+      },
+      {
+        "nombre_tecnico": "utci_v2_blazejczyk",
+        "nombre_legible": "utci_v2_blazejczyk",
+        "modulo": "core.indices.utci_v2_blazejczyk",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_c",
+          "T_mrt_c",
+          "v_wind_m_s",
+          "RH_pct",
+          "presion_hpa"
+        ]
+      },
+      {
+        "nombre_tecnico": "aplicar_utci_v2",
+        "nombre_legible": "aplicar_utci_v2",
+        "modulo": "core.indices.utci_v2_wrapper",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_c",
+          "tmrt_c",
+          "viento_ms",
+          "humedad_relativa",
+          "presion_hpa"
+        ]
+      },
+      {
+        "nombre_tecnico": "utci_v2_blazejczyk",
+        "nombre_legible": "utci_v2_blazejczyk",
+        "modulo": "core.indices.utci_v2_wrapper",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_c",
+          "T_mrt_c",
+          "v_wind_m_s",
+          "RH_pct",
+          "presion_hpa"
+        ]
+      }
+    ],
+    "densidad_aire": [
+      {
+        "nombre_tecnico": "densidad_aire_ideal",
+        "nombre_legible": "densidad_aire_ideal",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "presion"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_densidad_componentes",
+        "nombre_legible": "calcular_densidad_componentes",
+        "modulo": "core.indices.omm_densidad_temperatura_virtual",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "presion_pa",
+          "presion_vapor_pa"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_densidad_omm",
+        "nombre_legible": "calcular_densidad_omm",
+        "modulo": "core.indices.omm_densidad_temperatura_virtual",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "presion_pa",
+          "humedad_relativa_pct",
+          "presion_vapor_pa",
+          "relacion_mezcla_g_kg"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_densidad_omm_completo",
+        "nombre_legible": "calcular_densidad_omm_completo",
+        "modulo": "core.indices.omm_densidad_temperatura_virtual",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "presion_pa",
+          "presion_vapor_pa",
+          "relacion_mezcla_g_kg",
+          "humedad_relativa_pct"
+        ]
+      },
+      {
+        "nombre_tecnico": "omm_densidad_temperatura_virtual",
+        "nombre_legible": "omm_densidad_temperatura_virtual",
+        "modulo": "core.indices.omm_densidad_temperatura_virtual",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "presion",
+          "humedad_relativa_pct"
+        ]
+      },
+      {
+        "nombre_tecnico": "omm_densidad_temperatura_virtual",
+        "nombre_legible": "omm_densidad_temperatura_virtual",
+        "modulo": "core.indices.omm_wmo_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "presion",
+          "humedad_relativa_pct"
+        ]
+      },
+      {
+        "nombre_tecnico": "densidad_aire_puro",
+        "nombre_legible": "densidad_aire_puro",
+        "modulo": "core.indices.physics_numba",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_celsius",
+          "P_hpa",
+          "HR_pct"
+        ]
+      },
+      {
+        "nombre_tecnico": "densidad_aire_vectorizado",
+        "nombre_legible": "densidad_aire_vectorizado",
+        "modulo": "core.indices.physics_numba",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_array",
+          "P_array",
+          "HR_array"
+        ]
+      }
+    ],
+    "evapotranspiracion": [
+      {
+        "nombre_tecnico": "evapotranspiracion_penman_monteith",
+        "nombre_legible": "evapotranspiracion_penman_monteith",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "radiacion",
+          "viento",
+          "hora_solar",
+          "elevacion_solar",
+          "presion_kpa"
+        ]
+      },
+      {
+        "nombre_tecnico": "evapotranspiracion_penman_monteith_wright",
+        "nombre_legible": "evapotranspiracion_penman_monteith_wright",
+        "modulo": "core.indices.et_nocturna_wright",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa",
+          "radiacion_w_m2",
+          "viento_m_s",
+          "presion_kpa",
+          "hora_solar",
+          "elevacion_solar_deg",
+          "albedo",
+          "latitud",
+          "dia_año"
+        ]
+      },
+      {
+        "nombre_tecnico": "evapotranspiracion_wright_nocturna",
+        "nombre_legible": "evapotranspiracion_wright_nocturna",
+        "modulo": "core.indices.et_nocturna_wright",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "et0_base",
+          "hora_solar",
+          "elevacion_solar_deg",
+          "transicion_suave"
+        ]
+      },
+      {
+        "nombre_tecnico": "evapotranspiracion_wright_nocturna",
+        "nombre_legible": "evapotranspiracion_wright_nocturna",
+        "modulo": "core.indices.et_wright_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "et0_base",
+          "hora_solar",
+          "elevacion_solar_deg",
+          "transicion_suave"
+        ]
+      }
+    ],
+    "aire_cargado": [
+      {
+        "nombre_tecnico": "indice_aire_cargado",
+        "nombre_legible": "indice_aire_cargado",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "co2",
+          "tiempo_sin_ventilar_h"
+        ]
+      }
+    ],
+    "aire_enrarecido": [
+      {
+        "nombre_tecnico": "indice_aire_enrarecido",
+        "nombre_legible": "indice_aire_enrarecido",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "co2",
+          "pm25"
+        ]
+      }
+    ],
+    "aire_pegajoso": [
+      {
+        "nombre_tecnico": "indice_aire_pegajoso",
+        "nombre_legible": "indice_aire_pegajoso",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "humedad",
+          "ot"
+        ]
+      }
+    ],
+    "aire_seco": [
+      {
+        "nombre_tecnico": "indice_aire_seco",
+        "nombre_legible": "indice_aire_seco",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "humedad"
+        ]
+      }
+    ],
+    "alerta_calor_extremo": [
+      {
+        "nombre_tecnico": "indice_alerta_calor_extremo",
+        "nombre_legible": "indice_alerta_calor_extremo",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp",
+          "uv",
+          "humedad",
+          "contexto"
+        ]
+      }
+    ],
+    "alerta_frio_extremo": [
+      {
+        "nombre_tecnico": "indice_alerta_frio_extremo",
+        "nombre_legible": "indice_alerta_frio_extremo",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp",
+          "viento",
+          "humedad",
+          "contexto"
+        ]
+      }
+    ],
+    "aqi_pm25": [
+      {
+        "nombre_tecnico": "indice_aqi_pm25",
+        "nombre_legible": "indice_aqi_pm25",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "pm25_ugm3"
+        ]
+      }
+    ],
+    "bochorno_real": [
+      {
+        "nombre_tecnico": "indice_bochorno_real",
+        "nombre_legible": "indice_bochorno_real",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "ot",
+          "humedad"
+        ]
+      }
+    ],
+    "bulbo_humedo_c": [
+      {
+        "nombre_tecnico": "indice_bulbo_humedo_c",
+        "nombre_legible": "indice_bulbo_humedo_c",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "contexto"
+        ]
+      }
+    ],
+    "condensacion_oculta_armarios": [
+      {
+        "nombre_tecnico": "indice_condensacion_oculta_armarios",
+        "nombre_legible": "indice_condensacion_oculta_armarios",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "irsh",
+          "irin",
+          "ersf",
+          "historial_nocturno"
+        ]
+      }
+    ],
+    "confort_general": [
+      {
+        "nombre_tecnico": "indice_confort_general",
+        "nombre_legible": "indice_confort_general",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "ot",
+          "humedad",
+          "co2"
+        ]
+      }
+    ],
+    "confort_nocturno": [
+      {
+        "nombre_tecnico": "indice_confort_nocturno",
+        "nombre_legible": "indice_confort_nocturno",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "ot",
+          "ruido",
+          "luz"
+        ]
+      }
+    ],
+    "deshidratacion_ambiental": [
+      {
+        "nombre_tecnico": "indice_deshidratacion_ambiental",
+        "nombre_legible": "indice_deshidratacion_ambiental",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "humedad",
+          "tiempo_h"
+        ]
+      }
+    ],
+    "entalpia_aire": [
+      {
+        "nombre_tecnico": "indice_entalpia_kjkg",
+        "nombre_legible": "indice_entalpia_kjkg",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "presion_kpa",
+          "lat",
+          "lon",
+          "alt",
+          "dt"
+        ]
+      }
+    ],
+    "estabilidad_termica_futura": [
+      {
+        "nombre_tecnico": "indice_estabilidad_termica_futura",
+        "nombre_legible": "indice_estabilidad_termica_futura",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "estabilidad_actual",
+          "ireav",
+          "delta_t_in_out",
+          "viento_ext",
+          "estabilidad_termica"
+        ]
+      }
+    ],
+    "frio_incomodo": [
+      {
+        "nombre_tecnico": "indice_frio_incomodo",
+        "nombre_legible": "indice_frio_incomodo",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "ot"
+        ]
+      }
+    ],
+    "humedad_absoluta": [
+      {
+        "nombre_tecnico": "indice_humedad_absoluta_gm3",
+        "nombre_legible": "indice_humedad_absoluta_gm3",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "lat",
+          "lon",
+          "alt",
+          "dt"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_humedad_absoluta",
+        "nombre_legible": "calcular_humedad_absoluta",
+        "modulo": "core.indices.soluciones_auditoría_v49",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa",
+          "presion_pa"
+        ]
+      }
+    ],
+    "pmv_ppd_circadiano": [
+      {
+        "nombre_tecnico": "indice_pmv_ppd_circadiano",
+        "nombre_legible": "indice_pmv_ppd_circadiano",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "viento_kmh",
+          "contexto"
+        ]
+      }
+    ],
+    "pmv_ppd_simple": [
+      {
+        "nombre_tecnico": "indice_pmv_ppd_simple",
+        "nombre_legible": "indice_pmv_ppd_simple",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "viento_m_s"
+        ]
+      }
+    ],
+    "renovacion_efectiva_aire": [
+      {
+        "nombre_tecnico": "indice_renovacion_efectiva_aire",
+        "nombre_legible": "indice_renovacion_efectiva_aire",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "co2",
+          "pm25",
+          "irin",
+          "irae",
+          "actividad_humana"
+        ]
+      }
+    ],
+    "riesgo_condensacion_ventanas": [
+      {
+        "nombre_tecnico": "indice_riesgo_condensacion_ventanas",
+        "nombre_legible": "indice_riesgo_condensacion_ventanas",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "t_int",
+          "hr_int",
+          "t_ext"
+        ]
+      }
+    ],
+    "riesgo_helada_local": [
+      {
+        "nombre_tecnico": "indice_riesgo_helada_local",
+        "nombre_legible": "indice_riesgo_helada_local",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "punto_rocio",
+          "t_ext",
+          "radiacion_nocturna",
+          "viento",
+          "contexto"
+        ]
+      }
+    ],
+    "riesgo_micro_lluvias": [
+      {
+        "nombre_tecnico": "indice_riesgo_micro_lluvias",
+        "nombre_legible": "indice_riesgo_micro_lluvias",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "hr_ext",
+          "irll_base",
+          "cambio_viento",
+          "presion_tendencia"
+        ]
+      }
+    ],
+    "riesgo_moho": [
+      {
+        "nombre_tecnico": "indice_riesgo_moho",
+        "nombre_legible": "indice_riesgo_moho",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "humedad",
+          "tiempo_hr_alta_h",
+          "temperatura"
+        ]
+      }
+    ],
+    "riesgo_olor_cerrado": [
+      {
+        "nombre_tecnico": "indice_riesgo_olor_cerrado",
+        "nombre_legible": "indice_riesgo_olor_cerrado",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "humedad",
+          "tiempo_sin_ventilar_h"
+        ]
+      }
+    ],
+    "ritmo_circadiano_ambiental": [
+      {
+        "nombre_tecnico": "indice_ritmo_circadiano_ambiental",
+        "nombre_legible": "indice_ritmo_circadiano_ambiental",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "ot",
+          "luz",
+          "ruido",
+          "estabilidad_termica",
+          "irin"
+        ]
+      }
+    ],
+    "salud_edificio": [
+      {
+        "nombre_tecnico": "indice_salud_edificio",
+        "nombre_legible": "indice_salud_edificio",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "humedad_media",
+          "tiempo_hr_alta_h",
+          "condensacion_eventos"
+        ]
+      }
+    ],
+    "ventilacion_ideal": [
+      {
+        "nombre_tecnico": "indice_ventilacion_ideal",
+        "nombre_legible": "indice_ventilacion_ideal",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "co2",
+          "humedad",
+          "ot"
+        ]
+      }
+    ],
+    "vpd": [
+      {
+        "nombre_tecnico": "indice_vpd_kpa",
+        "nombre_legible": "indice_vpd_kpa",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "presion_kpa",
+          "contexto"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_vpd",
+        "nombre_legible": "calcular_vpd",
+        "modulo": "core.indices.soluciones_auditoría_v49",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa"
+        ]
+      }
+    ],
+    "viento_logaritmico": [
+      {
+        "nombre_tecnico": "viento_logaritmico",
+        "nombre_legible": "viento_logaritmico",
+        "modulo": "core.indices.environmental_indices",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "viento_ref",
+          "h_sensor",
+          "h_objetivo",
+          "z0"
+        ]
+      }
+    ],
+    "factor_resistencia_nocturna_wright": [
+      {
+        "nombre_tecnico": "calcular_factor_resistencia_nocturna_wright",
+        "nombre_legible": "calcular_factor_resistencia_nocturna_wright",
+        "modulo": "core.indices.et_nocturna_wright",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "hora_solar",
+          "elevacion_solar_deg",
+          "transicion_suave"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_factor_resistencia_nocturna_wright",
+        "nombre_legible": "calcular_factor_resistencia_nocturna_wright",
+        "modulo": "core.indices.et_wright_integration",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "hora_solar",
+          "elevacion_solar_deg",
+          "transicion_suave"
+        ]
+      }
+    ],
+    "pmv_ppd": [
+      {
+        "nombre_tecnico": "calcular_pmv_ppd",
+        "nombre_legible": "calcular_pmv_ppd",
+        "modulo": "core.indices.fanger_pmv_ppd",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "ta",
+          "rh",
+          "vel",
+          "radiacion_solar",
+          "met",
+          "clo",
+          "wme",
+          "nubosidad",
+          "elevacion_solar",
+          "usar_mrt_dinamica"
+        ]
+      }
+    ],
+    "humedad_pared_activa": [
+      {
+        "nombre_tecnico": "humedad_pared_activa",
+        "nombre_legible": "humedad_pared_activa",
+        "modulo": "core.indices.gab_sorption",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "hr_ambiente",
+          "temp_ambiente",
+          "parametros_pared",
+          "statistical_brain"
+        ]
+      }
+    ],
+    "enhancement_factor": [
+      {
+        "nombre_tecnico": "calcular_enhancement_factor",
+        "nombre_legible": "calcular_enhancement_factor",
+        "modulo": "core.indices.hardy_nist_psicrometria",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "presion_pa"
+        ]
+      }
+    ],
+    "propiedades_hardy_completo": [
+      {
+        "nombre_tecnico": "calcular_propiedades_hardy_completo",
+        "nombre_legible": "calcular_propiedades_hardy_completo",
+        "modulo": "core.indices.hardy_nist_psicrometria",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa_pct",
+          "presion_pa"
+        ]
+      }
+    ],
+    "relacion_mezcla": [
+      {
+        "nombre_tecnico": "calcular_relacion_mezcla",
+        "nombre_legible": "calcular_relacion_mezcla",
+        "modulo": "core.indices.hardy_nist_psicrometria",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa_pct",
+          "presion_pa"
+        ]
+      }
+    ],
+    "punto_rocio": [
+      {
+        "nombre_tecnico": "calcular_temperatura_rocio_hardy",
+        "nombre_legible": "calcular_temperatura_rocio_hardy",
+        "modulo": "core.indices.hardy_nist_psicrometria",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa_pct",
+          "presion_pa",
+          "max_iter",
+          "tolerancia"
+        ]
+      },
+      {
+        "nombre_tecnico": "hardy_temperatura_rocio_c",
+        "nombre_legible": "hardy_temperatura_rocio_c",
+        "modulo": "core.indices.hardy_nist_psicrometria",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa_pct",
+          "presion"
+        ]
+      },
+      {
+        "nombre_tecnico": "temperatura_punto_rocio_numba",
+        "nombre_legible": "temperatura_punto_rocio_numba",
+        "modulo": "core.indices.physics_numba",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_celsius",
+          "HR_pct"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_punto_rocio_magnus",
+        "nombre_legible": "calcular_punto_rocio_magnus",
+        "modulo": "core.indices.soluciones_auditoría_v49",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa"
+        ]
+      },
+      {
+        "nombre_tecnico": "_calcular_punto_rocio_magnus",
+        "nombre_legible": "_calcular_punto_rocio_magnus",
+        "modulo": "core.indices.temperatura_radiante_dinamica",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_aire_c",
+          "humedad_relativa_pct"
+        ]
+      }
+    ],
+    "hidrometeoros": [
+      {
+        "nombre_tecnico": "calcular_hidrometeoros",
+        "nombre_legible": "calcular_hidrometeoros",
+        "modulo": "core.indices.microphysics_thompson_kessler",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "presion_hpa",
+          "lluvia_rate_mm_h",
+          "tau_h"
+        ]
+      }
+    ],
+    "hidrometeoros_vectorizado": [
+      {
+        "nombre_tecnico": "calcular_hidrometeoros_vectorizado",
+        "nombre_legible": "calcular_hidrometeoros_vectorizado",
+        "modulo": "core.indices.microphysics_thompson_vectorized",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad",
+          "presion_hpa",
+          "lluvia_rate_mm_h",
+          "tau_h",
+          "temperatura_c",
+          "humedad_relativa",
+          "presion"
+        ]
+      }
+    ],
+    "masa_aire_kasten_young": [
+      {
+        "nombre_tecnico": "calcular_masa_aire_kasten_young",
+        "nombre_legible": "calcular_masa_aire_kasten_young",
+        "modulo": "core.indices.nubosidad_liu_jordan_kasten",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "elevacion_solar_deg"
+        ]
+      },
+      {
+        "nombre_tecnico": "calcular_masa_aire_kasten_young",
+        "nombre_legible": "calcular_masa_aire_kasten_young",
+        "modulo": "core.indices.rest2_gueymard_radiacion",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "elevacion_solar_deg"
+        ]
+      }
+    ],
+    "presion_aire_seco": [
+      {
+        "nombre_tecnico": "calcular_presion_aire_seco",
+        "nombre_legible": "calcular_presion_aire_seco",
+        "modulo": "core.indices.omm_densidad_temperatura_virtual",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "presion_total_pa",
+          "presion_vapor_pa"
+        ]
+      }
+    ],
+    "temperatura_virtual": [
+      {
+        "nombre_tecnico": "calcular_temperatura_virtual",
+        "nombre_legible": "calcular_temperatura_virtual",
+        "modulo": "core.indices.omm_densidad_temperatura_virtual",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "relacion_mezcla_g_kg"
+        ]
+      }
+    ],
+    "escala_logaritmica_viento_numba": [
+      {
+        "nombre_tecnico": "escala_logaritmica_viento_numba",
+        "nombre_legible": "escala_logaritmica_viento_numba",
+        "modulo": "core.indices.physics_numba",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "z",
+          "z0",
+          "u_star"
+        ]
+      }
+    ],
+    "emissividad_cielo_prata_vectorizado": [
+      {
+        "nombre_tecnico": "calcular_emissividad_cielo_prata_vectorizado",
+        "nombre_legible": "calcular_emissividad_cielo_prata_vectorizado",
+        "modulo": "core.indices.radiacion_lw_prata",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_air_k",
+          "e_vapor_pa",
+          "nubosidad_fraccion"
+        ]
+      }
+    ],
+    "enfriamiento_radiativo_neto_prata": [
+      {
+        "nombre_tecnico": "calcular_enfriamiento_radiativo_neto_prata",
+        "nombre_legible": "calcular_enfriamiento_radiativo_neto_prata",
+        "modulo": "core.indices.radiacion_lw_prata",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "T_surface_k",
+          "T_air_k",
+          "e_vapor_pa",
+          "nubosidad_fraccion",
+          "emisividad_superficie"
+        ]
+      }
+    ],
+    "angulo_horario": [
+      {
+        "nombre_tecnico": "calcular_angulo_horario",
+        "nombre_legible": "calcular_angulo_horario",
+        "modulo": "core.indices.rest2_gueymard_radiacion",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "tsv"
+        ]
+      }
+    ],
+    "angulo_zenital": [
+      {
+        "nombre_tecnico": "calcular_angulo_zenital",
+        "nombre_legible": "calcular_angulo_zenital",
+        "modulo": "core.indices.rest2_gueymard_radiacion",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "latitud_deg",
+          "declinacion_deg",
+          "angulo_horario_deg"
+        ]
+      }
+    ],
+    "declinacion_solar": [
+      {
+        "nombre_tecnico": "calcular_declinacion_solar",
+        "nombre_legible": "calcular_declinacion_solar",
+        "modulo": "core.indices.rest2_gueymard_radiacion",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "fecha"
+        ]
+      }
+    ],
+    "ecuacion_del_tiempo": [
+      {
+        "nombre_tecnico": "calcular_ecuacion_del_tiempo",
+        "nombre_legible": "calcular_ecuacion_del_tiempo",
+        "modulo": "core.indices.rest2_gueymard_radiacion",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "fecha"
+        ]
+      }
+    ],
+    "elevacion_solar": [
+      {
+        "nombre_tecnico": "calcular_elevacion_solar",
+        "nombre_legible": "calcular_elevacion_solar",
+        "modulo": "core.indices.rest2_gueymard_radiacion",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "theta_z_deg"
+        ]
+      }
+    ],
+    "factor_excentricidad_orbital": [
+      {
+        "nombre_tecnico": "calcular_factor_excentricidad_orbital",
+        "nombre_legible": "calcular_factor_excentricidad_orbital",
+        "modulo": "core.indices.rest2_gueymard_radiacion",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "fecha"
+        ]
+      }
+    ],
+    "tiempo_solar_verdadero": [
+      {
+        "nombre_tecnico": "calcular_tiempo_solar_verdadero",
+        "nombre_legible": "calcular_tiempo_solar_verdadero",
+        "modulo": "core.indices.rest2_gueymard_radiacion",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "fecha",
+          "longitud_deg",
+          "uso_horario"
+        ]
+      }
+    ],
+    "temperatura_aparente_profesional": [
+      {
+        "nombre_tecnico": "temperatura_aparente_profesional",
+        "nombre_legible": "temperatura_aparente_profesional",
+        "modulo": "core.indices.soluciones_auditoría_v49",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_c",
+          "humedad_relativa",
+          "viento_ms",
+          "radiacion_w_m2"
+        ]
+      }
+    ],
+    "visibilidad_stoelinga_warner": [
+      {
+        "nombre_tecnico": "calcular_visibilidad_stoelinga_warner",
+        "nombre_legible": "calcular_visibilidad_stoelinga_warner",
+        "modulo": "core.indices.stoelinga_warner_fog",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_c",
+          "humedad_relativa",
+          "qr",
+          "qc",
+          "qi",
+          "presion_hpa",
+          "pm25"
+        ]
+      }
+    ],
+    "probabilidad_lluvia_sundqvist": [
+      {
+        "nombre_tecnico": "calcular_probabilidad_lluvia_sundqvist",
+        "nombre_legible": "calcular_probabilidad_lluvia_sundqvist",
+        "modulo": "core.indices.sundqvist_precipitation",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_c",
+          "humedad_relativa",
+          "presion_hpa",
+          "qc",
+          "qr",
+          "tendencia_presion_hpa_h",
+          "radiacion_neta_wm2"
+        ]
+      }
+    ],
+    "temperatura_cielo_swinbank": [
+      {
+        "nombre_tecnico": "calcular_temperatura_cielo_swinbank",
+        "nombre_legible": "calcular_temperatura_cielo_swinbank",
+        "modulo": "core.indices.temperatura_radiante_dinamica",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_aire_c",
+          "nubosidad_pct"
+        ]
+      }
+    ],
+    "temperatura_cielo_vdi3787": [
+      {
+        "nombre_tecnico": "calcular_temperatura_cielo_vdi3787",
+        "nombre_legible": "calcular_temperatura_cielo_vdi3787",
+        "modulo": "core.indices.temperatura_radiante_dinamica",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_aire_c",
+          "nubosidad_pct",
+          "temp_rocio_c",
+          "humedad_relativa_pct"
+        ]
+      }
+    ],
+    "temperatura_radiante_media": [
+      {
+        "nombre_tecnico": "calcular_temperatura_radiante_media",
+        "nombre_legible": "calcular_temperatura_radiante_media",
+        "modulo": "core.indices.temperatura_radiante_dinamica",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_aire_c",
+          "radiacion_solar_w_m2",
+          "nubosidad_pct",
+          "albedo_entorno",
+          "velocidad_viento_ms",
+          "elevacion_solar_deg",
+          "temp_suelo_c",
+          "humedad_relativa_pct",
+          "temp_rocio_c",
+          "temp_suelo_prev_c",
+          "inercia_suelo_h",
+          "delta_t_h",
+          "emisividad_suelo"
+        ]
+      }
+    ],
+    "temperatura_suelo_acoplada": [
+      {
+        "nombre_tecnico": "calcular_temperatura_suelo_acoplada",
+        "nombre_legible": "calcular_temperatura_suelo_acoplada",
+        "modulo": "core.indices.temperatura_radiante_dinamica",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temp_aire_c",
+          "radiacion_solar_w_m2",
+          "albedo_entorno",
+          "velocidad_viento_ms",
+          "temp_suelo_prev_c",
+          "inercia_suelo_h",
+          "delta_t_h",
+          "emisividad_suelo",
+          "temp_cielo_k"
+        ]
+      }
+    ],
+    "tau_rayleigh_dinamico": [
+      {
+        "nombre_tecnico": "calcular_tau_rayleigh_dinamico",
+        "nombre_legible": "calcular_tau_rayleigh_dinamico",
+        "modulo": "core.indices.uv_angstrom_dinamico",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "presion_hpa",
+          "temperatura_k",
+          "longitud_onda_nm",
+          "humedad_fraccion"
+        ]
+      }
+    ],
+    "severidad_tormenta_vgp_brn": [
+      {
+        "nombre_tecnico": "calcular_severidad_tormenta_vgp_brn",
+        "nombre_legible": "calcular_severidad_tormenta_vgp_brn",
+        "modulo": "core.indices.vgp_brn_storms",
+        "referencia": "discovered",
+        "precision": "unknown",
+        "velocidad": 5,
+        "rango_validez": [
+          null,
+          null
+        ],
+        "requisitos_datos": [
+          "temperatura_c",
+          "humedad_relativa",
+          "presion_hpa",
+          "viento_ms",
+          "viento_dir_deg",
+          "cape_jkg",
+          "lcl_m",
+          "cizalladura_0_6km_ms"
+        ]
+      }
+    ]
+  },
+  "counts": {
+    "parameters": 101,
+    "formulas": 156,
+    "unmapped": 0
+  },
+  "unmapped": []
+}

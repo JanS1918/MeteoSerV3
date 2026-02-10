@@ -1,0 +1,37 @@
+{
+  "estado": "BLOQUEADO",
+  "activado_en": "2026-02-04T17:52:00Z",
+  "razon": "AUDITORÍA FORENSE CRÍTICA - Inyección de función matemática inválida (scipy.special.erf) como 'mejora' de sensacion_termica",
+  "medidas": {
+    "descubrimiento": "BLOQUEADO",
+    "validacion": "BLOQUEADO",
+    "duelo": "BLOQUEADO",
+    "integracion": "BLOQUEADO",
+    "ciclos_automaticos": "DETENIDOS"
+  },
+  "problema_detectado": {
+    "formula_problematica": "scipy.special.erf",
+    "parametro_afectado": "sensacion_termica",
+    "razon_rechazo": "Función error (erf) retorna -1 a 1; no es válida para sensación térmica en °C que debería estar entre -50 a 60",
+    "score_false": "85.5/100 (basado en métricas ejecutables, no validez científica)",
+    "ubicacion": "core/monitoring/external_wrappers/external_sensacion_termica_scipy_sensacion_termica_0.py",
+    "severidad": "CRÍTICO"
+  },
+  "instrucciones": [
+    "1. NO ejecutar formula_discovery_system.py",
+    "2. NO ejecutar run_continuous_optimization.py",
+    "3. NO ejecutar test_formula_discovery_system.py",
+    "4. LEER: data/REPORTE_AUDITORIA_CRITICA.txt",
+    "5. VERIFICAR: data/integrated_external_formulas.json",
+    "6. ELIMINAR: core/monitoring/external_wrappers/external_sensacion_termica_scipy_sensacion_termica_0.py",
+    "7. RESTAURAR: sensacion_termica como fuente única de cálculo",
+    "8. IMPLEMENTAR: Validadores de seguridad (ver REPORTE_AUDITORIA_CRITICA.txt)",
+    "9. REQUERIR: Revisión manual + expert approval antes de integrar nuevas fórmulas",
+    "10. DESBLOQUEAR: Solo cuando se completen todas las mitigaciones"
+  ],
+  "contacto": {
+    "admin": "administrador@meteoser.local",
+    "security": "security@meteoser.local",
+    "nivel_escalada": "INMEDIATO"
+  }
+}

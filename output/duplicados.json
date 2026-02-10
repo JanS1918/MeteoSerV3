@@ -1,0 +1,625 @@
+{
+  "actividad_rayos_proxima": {
+    "name": "actividad_rayos_proxima",
+    "exact_norm_matches": [
+      "actividad_rayos_proxima"
+    ],
+    "close_matches": []
+  },
+  "alerta_calor_activa": {
+    "name": "alerta_calor_activa",
+    "exact_norm_matches": [
+      "alerta_calor_activa"
+    ],
+    "close_matches": [
+      "alerta_frio_activa",
+      "alerta_rayos_activa",
+      "alerta_polvo_activa",
+      "alerta_tormenta_activa"
+    ]
+  },
+  "alerta_calor_componente_humedad": {
+    "name": "alerta_calor_componente_humedad",
+    "exact_norm_matches": [
+      "alerta_calor_componente_humedad"
+    ],
+    "close_matches": [
+      "alerta_calor_componente_uv",
+      "alerta_tormenta_componente_humedad",
+      "alerta_calor_componente_temperatura"
+    ]
+  },
+  "alerta_calor_componente_temperatura": {
+    "name": "alerta_calor_componente_temperatura",
+    "exact_norm_matches": [
+      "alerta_calor_componente_temperatura"
+    ],
+    "close_matches": [
+      "alerta_frio_componente_temperatura",
+      "alerta_calor_componente_uv",
+      "alerta_calor_componente_humedad"
+    ]
+  },
+  "alerta_calor_componente_uv": {
+    "name": "alerta_calor_componente_uv",
+    "exact_norm_matches": [
+      "alerta_calor_componente_uv"
+    ],
+    "close_matches": [
+      "alerta_calor_componente_humedad",
+      "alerta_calor_componente_temperatura"
+    ]
+  },
+  "alerta_calor_extremo_score": {
+    "name": "alerta_calor_extremo_score",
+    "exact_norm_matches": [
+      "alerta_calor_extremo_score"
+    ],
+    "close_matches": [
+      "alerta_frio_extremo_score"
+    ]
+  },
+  "alerta_frio_activa": {
+    "name": "alerta_frio_activa",
+    "exact_norm_matches": [
+      "alerta_frio_activa"
+    ],
+    "close_matches": [
+      "alerta_rayos_activa",
+      "alerta_polvo_activa",
+      "alerta_calor_activa",
+      "alerta_rachas_activa",
+      "alerta_niebla_activa"
+    ]
+  },
+  "alerta_frio_componente_temperatura": {
+    "name": "alerta_frio_componente_temperatura",
+    "exact_norm_matches": [
+      "alerta_frio_componente_temperatura"
+    ],
+    "close_matches": [
+      "alerta_calor_componente_temperatura",
+      "alerta_frio_componente_viento"
+    ]
+  },
+  "alerta_frio_componente_viento": {
+    "name": "alerta_frio_componente_viento",
+    "exact_norm_matches": [
+      "alerta_frio_componente_viento"
+    ],
+    "close_matches": [
+      "alerta_polvo_componente_viento"
+    ]
+  },
+  "alerta_frio_extremo_score": {
+    "name": "alerta_frio_extremo_score",
+    "exact_norm_matches": [
+      "alerta_frio_extremo_score"
+    ],
+    "close_matches": [
+      "alerta_calor_extremo_score"
+    ]
+  },
+  "alerta_helada_radiativa_activa": {
+    "name": "alerta_helada_radiativa_activa",
+    "exact_norm_matches": [
+      "alerta_helada_radiativa_activa"
+    ],
+    "close_matches": [
+      "alerta_helada_radiativa_score"
+    ]
+  },
+  "alerta_helada_radiativa_score": {
+    "name": "alerta_helada_radiativa_score",
+    "exact_norm_matches": [
+      "alerta_helada_radiativa_score"
+    ],
+    "close_matches": [
+      "alerta_helada_radiativa_activa"
+    ]
+  },
+  "alerta_niebla_activa": {
+    "name": "alerta_niebla_activa",
+    "exact_norm_matches": [
+      "alerta_niebla_activa"
+    ],
+    "close_matches": [
+      "alerta_frio_activa"
+    ]
+  },
+  "alerta_niebla_diferencial_td": {
+    "name": "alerta_niebla_diferencial_td",
+    "exact_norm_matches": [
+      "alerta_niebla_diferencial_td"
+    ],
+    "close_matches": []
+  },
+  "alerta_niebla_score": {
+    "name": "alerta_niebla_score",
+    "exact_norm_matches": [
+      "alerta_niebla_score"
+    ],
+    "close_matches": []
+  },
+  "alerta_polvo_activa": {
+    "name": "alerta_polvo_activa",
+    "exact_norm_matches": [
+      "alerta_polvo_activa"
+    ],
+    "close_matches": [
+      "alerta_calor_activa",
+      "alerta_frio_activa",
+      "alerta_rayos_activa"
+    ]
+  },
+  "alerta_polvo_componente_pm10": {
+    "name": "alerta_polvo_componente_pm10",
+    "exact_norm_matches": [
+      "alerta_polvo_componente_pm10"
+    ],
+    "close_matches": [
+      "alerta_polvo_componente_pm25",
+      "alerta_polvo_componente_viento"
+    ]
+  },
+  "alerta_polvo_componente_pm25": {
+    "name": "alerta_polvo_componente_pm25",
+    "exact_norm_matches": [
+      "alerta_polvo_componente_pm25"
+    ],
+    "close_matches": [
+      "alerta_polvo_componente_pm10",
+      "alerta_polvo_componente_viento"
+    ]
+  },
+  "alerta_polvo_componente_viento": {
+    "name": "alerta_polvo_componente_viento",
+    "exact_norm_matches": [
+      "alerta_polvo_componente_viento"
+    ],
+    "close_matches": [
+      "alerta_frio_componente_viento",
+      "alerta_polvo_componente_pm25",
+      "alerta_polvo_componente_pm10",
+      "alerta_calor_componente_uv"
+    ]
+  },
+  "alerta_polvo_score": {
+    "name": "alerta_polvo_score",
+    "exact_norm_matches": [
+      "alerta_polvo_score"
+    ],
+    "close_matches": [
+      "alerta_polvo_draxler_score"
+    ]
+  },
+  "alerta_rachas_activa": {
+    "name": "alerta_rachas_activa",
+    "exact_norm_matches": [
+      "alerta_rachas_activa"
+    ],
+    "close_matches": [
+      "alerta_rayos_activa",
+      "alerta_calor_activa",
+      "alerta_frio_activa"
+    ]
+  },
+  "alerta_rachas_peligrosas_score": {
+    "name": "alerta_rachas_peligrosas_score",
+    "exact_norm_matches": [
+      "alerta_rachas_peligrosas_score"
+    ],
+    "close_matches": []
+  },
+  "alerta_rayos_activa": {
+    "name": "alerta_rayos_activa",
+    "exact_norm_matches": [
+      "alerta_rayos_activa"
+    ],
+    "close_matches": [
+      "alerta_rachas_activa",
+      "alerta_frio_activa",
+      "alerta_calor_activa",
+      "alerta_polvo_activa"
+    ]
+  },
+  "alerta_rayos_score": {
+    "name": "alerta_rayos_score",
+    "exact_norm_matches": [
+      "alerta_rayos_score"
+    ],
+    "close_matches": []
+  },
+  "alerta_tormenta_componente_humedad": {
+    "name": "alerta_tormenta_componente_humedad",
+    "exact_norm_matches": [
+      "alerta_tormenta_componente_humedad"
+    ],
+    "close_matches": [
+      "alerta_calor_componente_humedad",
+      "alerta_tormenta_componente_radiacion",
+      "alerta_tormenta_componente_presion"
+    ]
+  },
+  "alerta_tormenta_componente_presion": {
+    "name": "alerta_tormenta_componente_presion",
+    "exact_norm_matches": [
+      "alerta_tormenta_componente_presion"
+    ],
+    "close_matches": [
+      "alerta_tormenta_componente_radiacion",
+      "alerta_tormenta_componente_humedad"
+    ]
+  },
+  "alerta_tormenta_componente_radiacion": {
+    "name": "alerta_tormenta_componente_radiacion",
+    "exact_norm_matches": [
+      "alerta_tormenta_componente_radiacion"
+    ],
+    "close_matches": [
+      "alerta_tormenta_componente_presion",
+      "alerta_tormenta_componente_humedad"
+    ]
+  },
+  "angulo_horario_amanecer": {
+    "name": "angulo_horario_amanecer",
+    "exact_norm_matches": [
+      "angulo_horario_amanecer"
+    ],
+    "close_matches": [
+      "angulo_horario_solar"
+    ]
+  },
+  "angulo_horario_solar": {
+    "name": "angulo_horario_solar",
+    "exact_norm_matches": [
+      "angulo_horario_solar"
+    ],
+    "close_matches": [
+      "angulo_horario_puesta_sol",
+      "angulo_horario_amanecer"
+    ]
+  },
+  "ascension_recta_solar": {
+    "name": "ascension_recta_solar",
+    "exact_norm_matches": [
+      "ascension_recta_solar"
+    ],
+    "close_matches": []
+  },
+  "año": {
+    "name": "año",
+    "exact_norm_matches": [
+      "año"
+    ],
+    "close_matches": []
+  },
+  "declinacion_solar": {
+    "name": "declinacion_solar",
+    "exact_norm_matches": [
+      "declinacion_solar"
+    ],
+    "close_matches": [
+      "declinacion_solar_rad",
+      "declinacion_solar_deg",
+      "declinacion_solar_simple",
+      "declinacion_solar_grados",
+      "elevacion_solar"
+    ]
+  },
+  "declinacion_solar_simple": {
+    "name": "declinacion_solar_simple",
+    "exact_norm_matches": [
+      "declinacion_solar_simple"
+    ],
+    "close_matches": [
+      "declinacion_solar_deg",
+      "declinacion_solar",
+      "declinacion_solar_rad",
+      "declinacion_solar_grados"
+    ]
+  },
+  "delta_t_atomico": {
+    "name": "delta_t_atomico",
+    "exact_norm_matches": [
+      "delta_t_atomico"
+    ],
+    "close_matches": []
+  },
+  "dias_desde_luna_nueva": {
+    "name": "dias_desde_luna_nueva",
+    "exact_norm_matches": [
+      "dias_desde_luna_nueva"
+    ],
+    "close_matches": []
+  },
+  "dias_helada_acumulados_año": {
+    "name": "dias_helada_acumulados_año",
+    "exact_norm_matches": [
+      "dias_helada_acumulados_año"
+    ],
+    "close_matches": []
+  },
+  "diferencia_presion_altitud": {
+    "name": "diferencia_presion_altitud",
+    "exact_norm_matches": [
+      "diferencia_presion_altitud"
+    ],
+    "close_matches": []
+  },
+  "elevacion_solar_estimada": {
+    "name": "elevacion_solar_estimada",
+    "exact_norm_matches": [
+      "elevacion_solar_estimada"
+    ],
+    "close_matches": []
+  },
+  "emis ividad_cuerpo_humano": {
+    "name": "emis ividad_cuerpo_humano",
+    "exact_norm_matches": [
+      "emis ividad_cuerpo_humano"
+    ],
+    "close_matches": [
+      "emis ividad_cuerpo_negro"
+    ]
+  },
+  "emis ividad_cuerpo_negro": {
+    "name": "emis ividad_cuerpo_negro",
+    "exact_norm_matches": [
+      "emis ividad_cuerpo_negro"
+    ],
+    "close_matches": [
+      "emis ividad_cuerpo_humano"
+    ]
+  },
+  "es_año_bisiesto": {
+    "name": "es_año_bisiesto",
+    "exact_norm_matches": [
+      "es_año_bisiesto"
+    ],
+    "close_matches": []
+  },
+  "exponente_barometrico": {
+    "name": "exponente_barometrico",
+    "exact_norm_matches": [
+      "exponente_barometrico"
+    ],
+    "close_matches": []
+  },
+  "factor_multiplicador_presion": {
+    "name": "factor_multiplicador_presion",
+    "exact_norm_matches": [
+      "factor_multiplicador_presion"
+    ],
+    "close_matches": []
+  },
+  "k_index": {
+    "name": "k_index",
+    "exact_norm_matches": [
+      "k_index"
+    ],
+    "close_matches": []
+  },
+  "k_index_categoria": {
+    "name": "k_index_categoria",
+    "exact_norm_matches": [
+      "k_index_categoria"
+    ],
+    "close_matches": [
+      "lifted_index_categoria"
+    ]
+  },
+  "presion_critica_agua": {
+    "name": "presion_critica_agua",
+    "exact_norm_matches": [
+      "presion_critica_agua"
+    ],
+    "close_matches": []
+  },
+  "presion_nivel_mar_calculada": {
+    "name": "presion_nivel_mar_calculada",
+    "exact_norm_matches": [
+      "presion_nivel_mar_calculada"
+    ],
+    "close_matches": []
+  },
+  "refraccion_atmosferica": {
+    "name": "refraccion_atmosferica",
+    "exact_norm_matches": [
+      "refraccion_atmosferica"
+    ],
+    "close_matches": []
+  },
+  "richardson_number": {
+    "name": "richardson_number",
+    "exact_norm_matches": [
+      "richardson_number"
+    ],
+    "close_matches": [
+      "richardson_neutral",
+      "richardson_Ri"
+    ]
+  },
+  "tau_wagner": {
+    "name": "tau_wagner",
+    "exact_norm_matches": [
+      "tau_wagner"
+    ],
+    "close_matches": []
+  },
+  "temperatura_critica_agua": {
+    "name": "temperatura_critica_agua",
+    "exact_norm_matches": [
+      "temperatura_critica_agua"
+    ],
+    "close_matches": []
+  },
+  "temperatura_virtual_laplace": {
+    "name": "temperatura_virtual_laplace",
+    "exact_norm_matches": [
+      "temperatura_virtual_laplace"
+    ],
+    "close_matches": [
+      "temperatura_virtual",
+      "temperatura_virtual_corregida"
+    ]
+  },
+  "umbral_alerta_tormenta": {
+    "name": "umbral_alerta_tormenta",
+    "exact_norm_matches": [
+      "umbral_alerta_tormenta"
+    ],
+    "close_matches": []
+  },
+  "umbral_calor": {
+    "name": "umbral_calor",
+    "exact_norm_matches": [
+      "umbral_calor"
+    ],
+    "close_matches": []
+  },
+  "umbral_calor_extremo": {
+    "name": "umbral_calor_extremo",
+    "exact_norm_matches": [
+      "umbral_calor_extremo"
+    ],
+    "close_matches": [
+      "umbral_frio_extremo"
+    ]
+  },
+  "umbral_frio": {
+    "name": "umbral_frio",
+    "exact_norm_matches": [
+      "umbral_frio"
+    ],
+    "close_matches": []
+  },
+  "umbral_frio_extremo": {
+    "name": "umbral_frio_extremo",
+    "exact_norm_matches": [
+      "umbral_frio_extremo"
+    ],
+    "close_matches": [
+      "umbral_calor_extremo"
+    ]
+  },
+  "umbral_helada": {
+    "name": "umbral_helada",
+    "exact_norm_matches": [
+      "umbral_helada"
+    ],
+    "close_matches": []
+  },
+  "umbral_presion_baja": {
+    "name": "umbral_presion_baja",
+    "exact_norm_matches": [
+      "umbral_presion_baja"
+    ],
+    "close_matches": []
+  },
+  "umbral_rachas_peligrosas": {
+    "name": "umbral_rachas_peligrosas",
+    "exact_norm_matches": [
+      "umbral_rachas_peligrosas"
+    ],
+    "close_matches": []
+  },
+  "utci_categoria_estrés": {
+    "name": "utci_categoria_estrés",
+    "exact_norm_matches": [
+      "utci_categoria_estrés"
+    ],
+    "close_matches": []
+  },
+  "velocidad_rachas_detectada": {
+    "name": "velocidad_rachas_detectada",
+    "exact_norm_matches": [
+      "velocidad_rachas_detectada"
+    ],
+    "close_matches": []
+  },
+  "wbgt_absorptivity_globe": {
+    "name": "wbgt_absorptivity_globe",
+    "exact_norm_matches": [
+      "wbgt_absorptivity_globe"
+    ],
+    "close_matches": []
+  },
+  "wbgt_diameter_wick": {
+    "name": "wbgt_diameter_wick",
+    "exact_norm_matches": [
+      "wbgt_diameter_wick"
+    ],
+    "close_matches": []
+  },
+  "wbgt_emis_globe": {
+    "name": "wbgt_emis_globe",
+    "exact_norm_matches": [
+      "wbgt_emis_globe"
+    ],
+    "close_matches": []
+  },
+  "wbgt_emis_wick": {
+    "name": "wbgt_emis_wick",
+    "exact_norm_matches": [
+      "wbgt_emis_wick"
+    ],
+    "close_matches": []
+  },
+  "wbgt_liljegren": {
+    "name": "wbgt_liljegren",
+    "exact_norm_matches": [
+      "wbgt_liljegren"
+    ],
+    "close_matches": [
+      "wbgt_liljegren_c"
+    ]
+  },
+  "wbgt_liljegren_c": {
+    "name": "wbgt_liljegren_c",
+    "exact_norm_matches": [
+      "wbgt_liljegren_c"
+    ],
+    "close_matches": [
+      "wbgt_liljegren"
+    ]
+  },
+  "wbgt_peso_tg_indoor": {
+    "name": "wbgt_peso_tg_indoor",
+    "exact_norm_matches": [
+      "wbgt_peso_tg_indoor"
+    ],
+    "close_matches": [
+      "wbgt_peso_tnwb_indoor",
+      "wbgt_peso_tg_outdoor",
+      "wbgt_peso_ta_outdoor",
+      "wbgt_peso_tnwb_outdoor"
+    ]
+  },
+  "wbgt_peso_tnwb_indoor": {
+    "name": "wbgt_peso_tnwb_indoor",
+    "exact_norm_matches": [
+      "wbgt_peso_tnwb_indoor"
+    ],
+    "close_matches": [
+      "wbgt_peso_tg_indoor",
+      "wbgt_peso_tnwb_outdoor",
+      "wbgt_peso_tg_outdoor",
+      "wbgt_peso_ta_outdoor"
+    ]
+  },
+  "wbgt_sigma_stefan_boltzmann": {
+    "name": "wbgt_sigma_stefan_boltzmann",
+    "exact_norm_matches": [
+      "wbgt_sigma_stefan_boltzmann"
+    ],
+    "close_matches": []
+  },
+  "wbgt_ta_component": {
+    "name": "wbgt_ta_component",
+    "exact_norm_matches": [
+      "wbgt_ta_component"
+    ],
+    "close_matches": []
+  }
+}
