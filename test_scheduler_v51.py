@@ -291,10 +291,10 @@ def test_scheduler_v51():
     print("="*80)
     
     if tests_pasados == tests_totales:
-        print("\n✓✓✓ TODOS LOS TESTS PASARON ✓✓✓\n")
+        print("\n[OK] [OK] [OK] TODOS LOS TESTS PASARON [OK] [OK] [OK]\n")
         return True
     else:
-        print(f"\n✗ {tests_totales - tests_pasados} tests fallaron\n")
+        print(f"\n[FAIL] {tests_totales - tests_pasados} tests fallaron\n")
         return False
 
 if __name__ == "__main__":

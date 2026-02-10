@@ -18,6 +18,12 @@ except ImportError:
     except ImportError:
         BusEstadoGlobal = None
 
+try:
+    from core.scheduler.integrador_prediction_engine_v51 import obtener_integrador_prediction_engine
+except ImportError:
+    def obtener_integrador_prediction_engine():
+        return None
+
 logger = logging.getLogger(__name__)
 
 class CalculadorIndicesAutomatico:
@@ -39,6 +45,7 @@ class CalculadorIndicesAutomatico:
         self.thread = None
         self.bus = None
         self.alerta_lluvia = None  # Se inicializa después que el bus
+        self.integrador_prediccion = None  # Se inicializa si available
         logger.info(f"[SCHEDULER] Calculador de Índices inicializado (intervalo={intervalo_segundos}s)")
     
     def iniciar(self):
@@ -60,6 +67,18 @@ class CalculadorIndicesAutomatico:
         except Exception as e:
             logger.warning(f"[SCHEDULER] No se pudo inicializar AlertaLluviaInminente: {e}")
             self.alerta_lluvia = None
+        
+        # Inicializar integrador de prediction_engine (Opción 3)
+        try:
+            integrador = obtener_integrador_prediction_engine()
+            if integrador and integrador.disponible:
+                self.integrador_prediccion = integrador
+                logger.info("[SCHEDULER] Integrador prediction_engine disponible")
+            else:
+                self.integrador_prediccion = None
+        except Exception as e:
+            logger.debug(f"[SCHEDULER] Prediction_engine no disponible: {e}")
+            self.integrador_prediccion = None
         
         self.activo = True
         self.thread = threading.Thread(target=self._loop_calculo, daemon=True)
@@ -293,6 +312,32 @@ class CalculadorIndicesAutomatico:
                 
             except Exception as e:
                 logger.debug(f"[SCHEDULER] Error en alerta lluvia: {e}")
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # PREDICTION ENGINE (OPCIÓN 3: Predicciones LSTM si disponibles)
+        # ═══════════════════════════════════════════════════════════════════════
+        
+        if self.integrador_prediccion and self.integrador_prediccion.disponible:
+            try:
+                # Ejecutar predicciones disponibles
+                predicciones = self.integrador_prediccion.ejecutar_predicciones()
+                
+                if predicciones:
+                    # Publicar resumen de predicciones
+                    self.bus.publicar(
+                        clave="predicciones_lstm_automaticas",
+                        valor=predicciones,
+                        fuente="scheduler_v51_prediction_engine",
+                        metadatos={
+                            "modelos": len(predicciones),
+                            "arquitectura": "V51_PREDICTION_ENGINE_V3"
+                        }
+                    )
+                    
+                    logger.debug(f"[SCHEDULER] Predicciones LSTM: {len(predicciones)} modelos ejecutados")
+                
+            except Exception as e:
+                logger.debug(f"[SCHEDULER] Error en prediction_engine: {e}")
         
         # ═══════════════════════════════════════════════════════════════════════
         # PUBLICAR RESUMEN COMPLETO
