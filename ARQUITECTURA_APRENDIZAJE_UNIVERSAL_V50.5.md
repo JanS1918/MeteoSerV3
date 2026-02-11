@@ -602,6 +602,517 @@ Contexto insuficiente:
   Siempre incluir: hora, estación, estado solar, etc.
 
 
+─────────────────────────────────────────────────────────────────────────────────────
+ANÁLISIS INTEGRAL DEL SISTEMA METEOSER V3 (ESTADO ACTUAL)
+═════════════════════════════════════════════════════════════════════════════════════
+
+Fecha Análisis: 11 de febrero de 2026
+Status: 30/30 Steps Completados - Producción Ready
+
+
+I. VISIÓN GENERAL DE LA ARQUITECTURA
+═════════════════════════════════════
+
+MeteoSer V3 es un sistema multinivel de procesamiento meteorológico que:
+
+┌─────────────────────────────────────────────────────────┐
+│ NIVEL 0: INGESTA DE DATOS                               │
+├─────────────────────────────────────────────────────────┤
+│ • Sensores físicos (Ecowitt WH31, WS2080, etc.)         │
+│ • Sensores virtuales (calculados en tiempo real)        │
+│ • MQTT local y Cloud (Ecowitt)                          │
+│ • Recuperación automática de gaps (Always-On)           │
+│ • Validación cross-source (físico + virtual)            │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│ NIVEL 1: NORMALIZACIÓN Y ENRIQUECIMIENTO                │
+├─────────────────────────────────────────────────────────┤
+│ • Parsers por sensor tipo (WH31, WS2080, etc.)          │
+│ • Validación de rangos y formatos                      │
+│ • Enriquecimiento con metadatos (timestamp, fuente)    │
+│ • Deduplicación de datos                                │
+│ • Rate limiting y throttling                            │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│ NIVEL 2: CÁLCULO DE ÍNDICES                             │
+├─────────────────────────────────────────────────────────┤
+│ 35+ módulos en core/indices/:                           │
+│ • Básicos: Temp, Humedad, Presión, Viento              │
+│ • Térmicos: WBGT, Sensación Térmica, ET                │
+│ • Radiación: Piranómetro, UV Index, Radiación Solar    │
+│ • Meteorológicos: Rocío, Niebla, Riesgo Lluvia         │
+│ • Astronómicos: Posición Solar, Lunar, Cielo Nocturno  │
+│ • Ambientales: Calidad Aire, Contaminación             │
+│ • Especializados: Cetrería, Riego, Salud               │
+│ Estrategia: Físico como primario, Virtual como respaldo│
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│ NIVEL 3: MOTORES ESPECIALIZADOS                         │
+├─────────────────────────────────────────────────────────┤
+│ 15+ motores en core/motors/:                            │
+│ • MotorAmbiental: Análisis ambiental integral           │
+│ • MotorConfort: Evaluación de confort                   │
+│ • MotorEdificio: Diagnóstico de edificios               │
+│ • MotorMetereológico: Cálculos complejos                │
+│ • MotorRecomendaciones: Síntesis de recomendaciones    │
+│ • MotorAutoMejora: Mejora automática                    │
+│ • MotorSubmenu: Detalle de información                  │
+│ • MotorImpresión: Generación de reportes                │
+│ • MotorCalendario: Programación automática              │
+│ Estrategia: Composición de índices, lógica compleja    │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│ NIVEL 4: PREDICCIÓN Y APRENDIZAJE                       │
+├─────────────────────────────────────────────────────────┤
+│ • Ciclo de aprendizaje continuo (GestorCicloAprendizaje)│
+│ • Predicción con ML (PredictionEngine)                  │
+│ • Corrección automática de sesgos (Framework Aprendizaje)
+│ • Recomendaciones unificadas (UnifiedRecommendationEngine)
+│ • Auto-mejora progresiva (AutoImprovementEngine)        │
+│ Estrategia: Datos → Predicción → Observación → Mejora  │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│ NIVEL 5: ALERTAS Y AUTOMATIZACIÓN                       │
+├─────────────────────────────────────────────────────────┤
+│ • Sistema de alertas multicanal (correo, SMS, webhook)  │
+│ • Umbrales dinámicos según contexto                     │
+│ • Escalamiento automático de alertas                    │
+│ • Notificaciones personalizadas por tenant              │
+│ • Webhooks seguros (HMAC signing, retry logic)          │
+│ Estrategia: Basadas en índices + predicción + contexto  │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│ NIVEL 6: EXPOSICIÓN (API + WebSocket)                   │
+├─────────────────────────────────────────────────────────┤
+│ • REST API moderna (FastAPI)                            │
+│ • 50+ endpoints por categoría                           │
+│ • WebSocket para datos en vivo (5 canales)              │
+│ • Rate limiting por tenant/IP                           │
+│ • Autenticación y autorización granular                 │
+│ • Versionado de API                                     │
+│ Estrategia: Acceso seguro, eficiente y escalable        │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│ NIVEL 7: PERSISTENCIA Y RECUPERACIÓN                    │
+├─────────────────────────────────────────────────────────┤
+│ • Almacenamiento local (JSON) con rotación             │
+│ • Recuperación automática de gaps (Always-On)           │
+│ • Multi-fuente: Local Archive + MQTT + Cloud            │
+│ • Deduplicación inteligente                             │
+│ • Compresión y archivado automático                     │
+│ Estrategia: CERO pérdida de datos, recuperación rápida │
+└─────────────────────────────────────────────────────────┘
+
+
+II. FLUJOS PRINCIPALES DEL SISTEMA
+───────────────────────────────────
+
+FLUJO 1: Ingesta de Sensor Físico
+──────────────────────────────────
+1. Sensor Ecowitt → HTTP POST a /webhook/ecowitt
+2. Validación de firma HMAC
+3. Parseo de payload (temp, humedad, presión, viento, lluvia)
+4. Normalización a formato interno
+5. Almacenamiento en histórico
+6. Publicación en Bus (event stream)
+7. Cálculo de índices derivados (WBGT, rocío, etc.)
+8. Evaluación de alertas
+9. Generación de notificaciones si aplica
+
+FLUJO 2: Cálculo de Índices Complejos
+──────────────────────────────────────
+1. GET /api/v1/indices/wbgt?temp=28&hr=60&viento=2&radiacion=500
+2. Coordinador de aprendizaje detecta: ¿existe sensor físico WN38?
+   - SI: usar dato físico como primario
+   - NO: usar cálculo virtual (T+HR+Radiación+Viento)
+3. Aplicar factor de aprendizaje si existe (ej: ×0.96 si se detectó sesgo)
+4. Retornar: valor + confianza + metadata
+5. Registrar predicción en ciclo aprendizaje para análisis posterior
+
+FLUJO 3: Predicción y Recomendación
+────────────────────────────────────
+1. Obtener todos los índices actuales
+2. Motor de predicción: evalúa tendencias de últimas N horas
+3. Motor de recomendación unificado: sintetiza en lenguaje natural
+   - "Hace frío, ponte abrigo" / "Riesgo de tormenta, cuidado"
+4. Retornar recomendación + confianza + motivo
+5. Publicar en WebSocket para clientes en tiempo real
+
+FLUJO 4: Recuperación Automática (Always-On Integration)
+─────────────────────────────────────────────────────────
+Cuando el servidor reinicia:
+1. Detecta gap de tiempo entre último registro y ahora
+2. Recupera datos de:
+   - Archivo local si existe
+   - MQTT local (si queue está activo)
+   - Cloud Ecowitt (registros históricos)
+3. Procesa gap como si servidor hubiera estado activo
+4. Actualiza índices e histórico
+5. Detecta si hubo alertas que debieron haberse triggerado
+6. Notifica usuario de eventos perdidos
+
+
+III. MÓDULOS CLAVE Y SUS RESPONSABILIDADES
+────────────────────────────────────────────
+
+MÓDULOS DE INGESTA:
+  ├─ core/integration/integrador_always_on.py → Recuperación automática
+  ├─ core/sensors/sensor_data_bridge.py → Normalización de datos
+  └─ core/validacion/validador_datos.py → Validación cross-sensor
+
+MÓDULOS DE ÍNDICES (35+ en core/indices/):
+  ├─ environmental_indices.py → Base (Temp, HR, Presión)
+  ├─ deardorff.py → WBGT y estrés térmico
+  ├─ astronomia_indices.py → Posición solar/lunar
+  ├─ radiacion.py → Radiación solar y UV
+  ├─ prediccion_lluvia.py → Riesgo de precipitación
+  └─ ... 30 módulos más especializados
+
+MÓDULOS DE PREDICCIÓN:
+  ├─ core/learning/prediction_engine.py → Modelos ML
+  ├─ core/learning/coordinador_aprendizaje.py → Gestión de ciclo
+  ├─ core/learning/framework_aprendizaje_universal.py → Corrección de sesgos
+  └─ ciclo_aprendizaje.py → Ejecución periódica
+
+MÓDULOS DE RECOMENDACIÓN:
+  ├─ core/recommendations/unified_recommendation_engine.py → Síntesis
+  ├─ core/recommendations/analisis_dominio.py → Análisis por área
+  └─ core/system/recommendation_summarizer.py → Resumen global
+
+MÓDULOS DE MOTOR:
+  ├─ core/motors/motors_api.py → Endpoints de motores
+  ├─ core/motors/motor_ambiental.py → Análisis ambiental
+  ├─ core/motors/motor_confort.py → Evaluación confort
+  └─ ... 12 motores especializados más
+
+MÓDULOS DE INFRAESTRUCTURA:
+  ├─ core/cache/cache_distribuida.py → Cache Redis + fallback LRU
+  ├─ core/seguridad/limitador_tasa.py → Rate limiting
+  ├─ core/seguridad/circuit_breaker.py → Protección anti-cascada
+  ├─ core/seguridad/registrador_audit.py → Auditoría
+  ├─ core/monitoreo/metricas_prometheus.py → Observabilidad
+  ├─ core/almacenamiento/compresor_datos.py → Compresión
+  └─ core/recuperacion/gestor_failover.py → Alta disponibilidad
+
+
+IV. CÓMO SE PROCESAN LOS DATOS
+───────────────────────────────
+
+Ruta Típica de un Dato de Sensor:
+
+1. LLEGADA
+   └─ Sensor Ecowitt envía HTTP POST con payload JSON
+      {
+        "barom": 1013.25,
+        "tempinf": 28.5,
+        "humidityin": 65,
+        "tempout": 25.0,
+        "humidityout": 70,
+        "windspeed": 2.5,
+        "solarradiation": 480,
+        ...
+      }
+
+2. VALIDACIÓN
+   └─ Verificación de HMAC signature (SI Step 30 está activo)
+   └─ Validación de rangos (temp -50 a 150°C, HR 0-100%, etc.)
+   └─ Normalización de unidades
+
+3. ENRIQUECIMIENTO
+   └─ Agregar timestamp UTC
+   └─ Agregar identificador de fuente
+   └─ Agregar coordenadas geográficas
+   └─ Agregar información de contexto (hora del día, estación, etc.)
+
+4. DEDUPLICACIÓN
+   └─ Calcular hash SHA-256 del payload
+   └─ Comparar con últimos N registros
+   └─ Descartar si es duplicado
+
+5. ALMACENAMIENTO
+   └─ Guardar en histórico local (rotación cada 24h)
+   └─ Mantener en memoria para índices recientes
+   └─ Si hay archivo de recuperación, actualizar
+
+6. PUBLICACIÓN
+   └─ Publicar evento en Bus interno
+   └─ Suscriptores: Índices, ML, Alertas, WebSocket
+
+7. CÁLCULO DE ÍNDICES PRIMARIOS
+   └─ WBGT (si hay datos de radiación solar)
+   └─ Rocío y condensación
+   └─ Sensación térmica
+   └─ ET (Evapotranspiración)
+   └─ ... 30+ índices más
+
+8. DERIVACIÓN (SENSORES VIRTUALES)
+   └─ A partir de T+HR: Calcular déficit de humedad
+   └─ A partir de radiación+nubosidad: Estimar nubosidad real
+   └─ A partir de temp+hora: Estimar temperatura esperada
+   └─ Crear "sensores virtuales" de interpolación geográfica
+
+9. EVALUACIÓN DE ALERTAS
+   └─ ¿T > umbral_calor_extremo? → Alerta
+   └─ ¿HR > 80% + lluvia + temp > 15°C? → Riesgo fúngico
+   └─ ¿Horas_sin_lluvia > 14 + HR < 40%? → Riego urgente
+   └─ ... Decenas de reglas
+
+10. NOTIFICACIÓN
+    └─ Si alerta nuevaVy no en "quiet hours" → Enviar:
+       └─ Telegram
+       └─ Discord
+       └─ Slack
+       └─ Email
+       └─ Webhook personalizado
+       └─ WebSocket en vivo
+
+
+V. LÓGICA DE PREDICCIÓN Y ALERTAS
+──────────────────────────────────
+
+PREDICCIÓN:
+──────────
+El sistema predice eventos a 24/48 horas usando:
+
+1. MODELOS ESTADÍSTICOS
+   └─ Análisis de tendencias históricas
+   └─ Descomposición estacional (patrón diario, semanal, anual)
+   └─ Autocorrelación de serie temporal
+
+2. MODELOS ML
+   └─ ARIMA para series temporales
+   └─ Random Forest para patrones complejos
+   └─ Clustering para "días similares"
+   └─ Redes neuronales para composición de múltiples variables
+
+3. CONTEXTO ASTRONÓMICO
+   └─ Hora de salida/puesta del sol → ajusta previsión radiación
+   └─ Fase lunar → correlaciona con patrones atmosféricos
+   └─ Estación del año → ajusta umbrales
+
+4. HISTÓRICO LOCAL
+   └─ Últimas 90 días de datos reales
+   └─ Aprende patrones locales (ej: inversión de temperatura)
+   └─ Detecta sesgos sistemáticos por hora del día
+
+RESULTADO:
+└─ Predicción de: Precipitación, Temperatura, Humedad, Viento, WBGT, Alertas
+
+CONFIANZA:
+└─ Calculada dinámicamente según:
+   └─ Cantidad de datos históricos disponibles
+   └─ Precisión del modelo en ese tipo de condición
+   └─ Variabilidad de condiciones (mayor variabilidad = menor confianza)
+   └─ Estación del año (primavera = baja confianza, invierno = alta)
+
+
+ALERTAS:
+────────
+Sistema de alertas multicapa:
+
+CAPA 1: Umbral Simple (Hoy)
+  └─ T > 40°C → Calor extremo
+  └─ T < -10°C → Frío extremo
+  └─ Lluvia > 50mm/h → Tormenta intensa
+  └─ Viento > 80 km/h → Vendaval
+  └─ HR > 95% + T > 20°C → Riesgo hongos
+
+CAPA 2: Patrón Temporal (Últimas 24h)
+  └─ Lluvia acumulada > 100mm → Inundación
+  └─ HR > 80% durante > 12 horas → Estrés hídrico
+  └─ T creciente en 6horas → Cambio rápido
+
+CAPA 3: Predicción (Próximas 24-48h)
+  └─ Predicción de tormenta severa
+  └─ Predicción de ola de calor
+  └─ Predicción de período seco
+
+CAPA 4: Contexto Local (Geografía + Historia)
+  └─ En esta ubicación, T > 45°C es raro → alerta temprana
+  └─ En invierno, nieve > 5cm → alerta de tráfico
+  └─ En verano, radiación UV > 11 → alerta salud
+
+PERSONALIZACIÓN:
+└─ Cada tenant puede: Ajustar umbrales, silenciar alertas, priorizar canales
+└─ Sistema aprende preferencias del usuario
+
+
+VI. API Y ENDPOINTS PRINCIPALES
+────────────────────────────────
+
+INGESTA:
+  POST /webhook/ecowitt → Recibe datos de sensores
+
+ÍNDICES:
+  GET /api/v1/indices/todos → Todos los índices actuales
+  GET /api/v1/indices/wbgt → WBGT específico
+  GET /api/v1/indices/rocio → Punto de rocío
+  GET /api/v1/indices/evapotranspiracion → ET
+  ... 40+ endpoints más
+
+PREDICCIÓN:
+  GET /api/v1/prediccion/24h → Predicción para próximas 24h
+  GET /api/v1/prediccion/precipitacion → Riesgo lluvia
+
+RECOMENDACIONES:
+  GET /api/v1/recomendaciones/general → Síntesis general
+  GET /api/v1/recomendaciones/riego → Para riego
+  GET /api/v1/recomendaciones/deportes → Para deportes
+  ... Decenas más
+
+MOTORES:
+  POST /api/v1/motor/ambiental → Análisis ambiental
+  POST /api/v1/motor/confort → Evaluación confort
+  POST /api/v1/motor/edificio → Diagnóstico edificio
+  ... 15 motores
+
+ALERTAS:
+  GET /api/v1/alertas/activas → Alertas vigentes
+  GET /api/v1/alertas/historico → Historial 90 días
+  POST /api/v1/alertas/config → Configurar alertas
+
+SALUD:
+  GET /health → Status del sistema
+  GET /metrics → Métricas Prometheus
+
+
+VII. ALMACENAMIENTO Y RECUPERACIÓN
+───────────────────────────────────
+
+TIPOS DE DATOS:
+  └─ Registros de sensores: JSON líneal, rotación diaria
+  └─ Índices: En memoria + cache Redis
+  └─ Predicciones: Registro temporal con timestamp
+  └─ Observaciones: Tabla de verdad para ML
+  └─ Configuración: JSON por tenant
+  └─ Alertas: Histórico con log de acciones
+
+ESTRATEGIA ALWAYS-ON:
+  └─ Si servidor cae, sensores siguen grabando en MQTT local
+  └─ Al reiniciar, recuperador automático:
+     └─ Detecta gap de tiempo
+     └─ Descarga de MQTT local
+     └─ Descarga de Cloud Ecowitt (si disponible)
+     └─ Integra gap como si nunca hubiera caído
+  └─ Resultado: CERO pérdida de datos
+
+COMPRESIÓN Y ARCHIVADO:
+  └─ Archivos > 7 días automáticamente gzipped
+  └─ Archivos > 90 días movidos a almacenamiento frío
+  └─ Mantiene índice en memoria para búsquedas rápidas
+
+
+VIII. SEGURIDAD, VALIDACIÓN Y MONITOREO
+────────────────────────────────────────
+
+AUTENTICACIÓN:
+  └─ JWT tokens con expiración configurable
+  └─ OAuth2 opcional para usuarios
+  └─ API keys por tenant
+
+AUTORIZACIÓN:
+  └─ RBAC: Admin, Operador, Lector, Invitado
+  └─ Granularidad: Por endpoint, por índice, por tenant
+
+VALIDACIÓN:
+  └─ Validación de esquema JSON en toda entrada
+  └─ Prevención de inyección SQL (uso de ORM/prepared statements)
+  └─ Rate limiting: 1000 req/min por IP, 5000 req/min por tenant
+  └─ Circuit breaker para endpoints lentos
+
+AUDITORÍA:
+  └─ Log de acceso a toda modificación
+  └─ Quién (user), Qué (acción), Cuándo (timestamp), Dónde (IP)
+  └─ Retención de 90 días
+  └─ Encriptación en tránsito (HTTPS)
+  └─ Encriptación en reposo (AES-Fernet para datos sensibles)
+
+MONITOREO:
+  └─ Prometheus metrics para:
+     └─ Latencia de endpoints (p50, p95, p99)
+     └─ Tasa de errores por endpoint
+     └─ Uso de CPU/memoria
+     └─ Conexiones activas
+  └─ Alertas automáticas si métricas salen de rango
+
+
+IX. INTEGRACIÓN FÍSICA/VIRTUAL
+───────────────────────────────
+
+ESTRATEGIA ACTUAL (Pre-nuevos sensores):
+  └─ Sensores físicos: WH31 (Temp/Humedad), WS2080 (Viento), WH45 (Lluvia)
+  └─ Sensores virtuales: REST2 (Radiación), Cálculos derivados (WBGT, Rocío)
+
+LÓGICA DE SELECCIÓN:
+  └─ if datos_fisicos_disponibles:
+       usar dato físico como primario
+       usar virtual como respaldo
+  └─ else:
+       usar virtual como principal
+       asumir confianza menor
+
+VALIDACIÓN CRUZADA:
+  └─ Comparar físico vs virtual
+  └─ Si diferencia > umbral → alertar de anomalía
+  └─ Registrar discrepancia para análisis
+
+EJEMPLO PRÁCTICO (WBGT):
+  └─ Entrada: Temperatura física (28°C) + Humedad física (65%)
+                + Radiación virtual (REST2: 500 W/m²)
+  └─ Cálculo: WBGT = función(28, 65, Viento físico, 500)
+  └─ Retorno: WBGT = 32.5°C, Confianza = 95%
+              (alta porque 2 de 3 variables son físicas)
+
+
+X. PREPARACIÓN PARA NUEVOS SENSORES
+───────────────────────────────────
+
+PRÓXIMO PASO: Integración de WN38, WH46D, WH55, WN34D, WN36, WN35
+
+ESTRATEGIA SIN SIMULADORES (Solo código robusto):
+
+1. MODELADO DE DATOS (Ya comenzado)
+   └─ Definir estructura para cada sensor
+   └─ Mapper: Formato Ecowitt → Formato interno
+
+2. PARSERS Y VALIDADORES
+   └─ WN38 (Globo Negro): Rango 0-80°C
+   └─ WH46D (7-en-1): CO₂ (0-5000ppm), PM (0-999 µg/m³)
+   └─ WH55 (Fugas): Detección binaria + continuidad
+   └─ WN34D (Bulbo Húmedo): Rango -10 a 60°C
+   └─ WN36 (Piscina): Rango -10 a 60°C
+   └─ WN35 (Humedad Foliar): 0-1000 (unidades arbitrarias)
+
+3. ENDPOINTS Y LÓGICA DE INGESTIÓN
+   └─ Las estructuras actuales ya soportan nuevos tipos
+   └─ Solo agregar mappers específicos
+   └─ Código condicional: if tieneWN38:... else:...
+
+4. ÍNDICES DEPENDIENTES
+   └─ WBGT mejora: if tieneWN38 usar físico, else usar virtual
+   └─ Humedad foliar solo si WN35 existe
+   └─ Calidad aire solo si WH46D existe
+
+5. TESTS Y VALIDACIÓN
+   └─ Tests unitarios para cada nuevo sensor
+   └─ Tests de integración: físico + virtual juntos
+   └─ Simulación de fallos para validar fallbacks
+
+
 CONCLUSIÓN
 ═════════════════════════════════════════════════════════════════════════════════════
 
