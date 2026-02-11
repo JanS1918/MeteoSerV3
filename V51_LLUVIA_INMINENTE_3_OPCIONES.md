@@ -14,8 +14,21 @@ Se han implementado y validado **3 opciones no excluyentes** para integrar predi
 
 ## 1. OPCIÓN 1: Alerta de Lluvia Inminente en Scheduler 5-min
 
-### Archivo Principal
-[core/prediction/alerta_lluvia_inminente_v51.py](core/prediction/alerta_lluvia_inminente_v51.py)
+### Archivos Principales
+
+**Cálculos Centralizados:**
+- 📊 [core/indices/lluvia_inminente_indices.py](core/indices/lluvia_inminente_indices.py) - Funciones maestras de cálculo
+  - `calcular_derivada_regresion_lineal()` - Método de regresión para derivadas
+  - `calcular_derivada_ghi_w_m2_s()` - Derivada de radiación
+  - `calcular_derivada_humedad_pct_min()` - Derivada de humedad
+  - `calcular_derivada_presion_hpa_min()` - Derivada de presión
+  - `calcular_indice_lluvia_inminente_v51()` - Índice compuesto de lluvia
+
+**Integración en Scheduler:**
+- 🔄 [core/scheduler/calculador_indices_automatico.py](core/scheduler/calculador_indices_automatico.py) - L285-409
+  
+**Módulo Antiguo (mantener para compatibilidad):**
+- ⚙️ [core/prediction/alerta_lluvia_inminente_v51.py](core/prediction/alerta_lluvia_inminente_v51.py)
 
 ### Características Principales
 
@@ -28,10 +41,11 @@ Se han implementado y validado **3 opciones no excluyentes** para integrar predi
 - `temperatura`: Temperatura del aire
 - `dt_solar`: Diferencia sol/sombra (°C)
 
-**Salidas (Bus):**
-- `alerta_lluvia_inminente_score`: Puntuación 0-100
-- `alerta_lluvia_componentes`: Desglose detallado de componentes
-- `alerta_lluvia_inminente_eta`: Estimación 10-20 minutos
+**Salidas (Bus) - ENTERA + DESCOMPUESTA:**
+- `alerta_lluvia_inminente_score`: Puntuación final 0-100
+- Componentes individuales publicados por separado (ver ARQUITECTURA_BUS_ENTERA_DESCOMPUESTA.md)
+- `alerta_lluvia_eta_minutos`: Estimación 10-20 minutos
+- `alerta_lluvia_confianza`: Confianza 0-1
 
 ### Componentes Evaluados
 
@@ -70,8 +84,17 @@ if self.alerta_lluvia and self.bus:
 
 ## 2. OPCIÓN 2: Scheduler Rápido de Derivadas (1-2 minutos)
 
-### Archivo Principal
-[core/scheduler/calculador_derivadas_rapidas_v51.py](core/scheduler/calculador_derivadas_rapidas_v51.py)
+### Archivos Principales
+
+**Cálculos Centralizados:**
+- 📊 [core/indices/lluvia_inminente_indices.py](core/indices/lluvia_inminente_indices.py)
+  - `calcular_derivada_regresion_lineal()` - Método central
+  - `calcular_derivada_ghi_w_m2_s()` - Derivada radiación
+  - `calcular_derivada_humedad_pct_min()` - Derivada humedad
+  - `calcular_derivada_presion_hpa_min()` - Derivada presión
+
+**Integración Scheduler:**
+- 🔄 [core/scheduler/calculador_derivadas_rapidas_v51.py](core/scheduler/calculador_derivadas_rapidas_v51.py)
 
 ### Características Principales
 
@@ -359,11 +382,14 @@ deriv.iniciar()
 
 ## Conclusión
 
-Se ha logrado una **arquitectura modular y robusta** para predicción de lluvia inminente con:
-- 3 enfoques complementarios (no excluyentes)
-- Cada uno con validación independiente
-- Integración seamless con scheduler automático
-- Degradación elegante si componentes no disponibles
-- 100% de tests pasando
+Se ha logrado una **arquitectura modular, robusta y centralizada** para predicción de lluvia inminente con:
+
+✅ **Cálculos Centralizados:** Todo en `core/indices/lluvia_inminente_indices.py`
+✅ **Bus ENTERA + DESCOMPUESTA:** Score compuesto + componentes individuales  
+✅ **3 enfoques complementarios:** Integrables sin dependencias mutuas
+✅ **100% Validación:** 24/24 tests pasando (11 scheduler + 13 derivadas)
+✅ **Documentación Completa:** ARQUITECTURA_BUS_ENTERA_DESCOMPUESTA.md
+✅ **Degradación Elegante:** Funciona aunque falten componentes opcionales
 
 **Estado: PRODUCCIÓN-LISTO** ✅
+
