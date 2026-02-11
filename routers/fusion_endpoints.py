@@ -379,14 +379,29 @@ async def get_dashboard_data(request: Request):
         # Si elevación solar < 10°, diferencia > 2°C seria anómala
         delta_t_absoluto = abs(wh65_temp - wh31_temp)
         
-        # Obtener elevación solar para contexto
+        # Obtener elevación solar para contexto (desde bus, con fallback)
+        elevacion_solar = 45  # Fallback: asumir mediodía despejado
         try:
-            from core.indices.radiacion_hibrida import PiranometroHibrido
-            pir = PiranometroHibrido()
-            pos_solar = pir.calcular_posicion_solar(dt_now.now())
-            elevacion_solar = pos_solar.get("elevacion_deg", 0)
-        except:
-            elevacion_solar = 45  # Asumir mediodía despejado
+            from core.system.bus import obtener_bus
+            bus = obtener_bus()
+            if bus:
+                elevacion_solar_bus = bus.leer("elevacion_solar_deg")
+                if elevacion_solar_bus is not None:
+                    elevacion_solar = float(elevacion_solar_bus)
+                else:
+                    # Fallback: calcular localmente
+                    from core.indices.radiacion_hibrida import PiranometroHibrido
+                    pir = PiranometroHibrido()
+                    pos_solar = pir.calcular_posicion_solar(dt_now.now())
+                    elevacion_solar = pos_solar.get("elevacion_deg", 0)
+            else:
+                # Sin bus: calcular localmente
+                from core.indices.radiacion_hibrida import PiranometroHibrido
+                pir = PiranometroHibrido()
+                pos_solar = pir.calcular_posicion_solar(dt_now.now())
+                elevacion_solar = pos_solar.get("elevacion_deg", 0)
+        except Exception as e:
+            logger.debug(f"[fusion_endpoints] Error leyendo elevación del bus, usando fallback: {e}")
         
         # Umbral dinámico de anomalía según elevación solar
         if elevacion_solar > 30:

@@ -66,6 +66,50 @@ def _obtener_orografia(lat: float, lon: float) -> Optional[Dict[str, Any]]:
         logging.exception("Error calculando orografía")
         return None
 
+
+def _obtener_datos_astronomicos_bus(bus=None) -> Dict[str, Any]:
+    """
+    Obtiene datos astronómicos directamente del bus.
+    Reemplaza recálculos de posición solar con lecturas del bus.
+    
+    Returns:
+        Dict con: elevacion_solar, arco_solar, elevacion_lunar, arco_lunar, etc.
+    """
+    if bus is None:
+        try:
+            from core.system.bus import obtener_bus
+            bus = obtener_bus()
+        except Exception:
+            bus = None
+    
+    if not bus:
+        return {}
+    
+    try:
+        datos_astro = bus.get("astronomia", {})
+        if not datos_astro:
+            # Fallback: intentar obtener valores individuales
+            return {
+                'elevacion_solar': bus.leer("elevacion_solar") if hasattr(bus, 'leer') else bus.get("elevacion_solar"),
+                'arco_solar': bus.leer("arco_solar") if hasattr(bus, 'leer') else bus.get("arco_solar"),
+                'elevacion_lunar': bus.leer("arco_lunar_elevacion_deg") if hasattr(bus, 'leer') else bus.get("arco_lunar_elevacion_deg"),
+                'azimut_solar': bus.leer("azimut_solar") if hasattr(bus, 'leer') else bus.get("azimut_solar"),
+                'azimut_lunar': bus.leer("arco_lunar_azimuth_deg") if hasattr(bus, 'leer') else bus.get("arco_lunar_azimuth_deg"),
+            }
+        return {
+            'elevacion_solar': datos_astro.get('arco_solar_elevacion_deg'),
+            'arco_solar': datos_astro.get('arco_solar'),
+            'elevacion_lunar': datos_astro.get('arco_lunar_elevacion_deg'),
+            'azimut_solar': datos_astro.get('azimut_solar'),
+            'azimut_lunar': datos_astro.get('arco_lunar_azimuth_deg'),
+            'fase_lunar': datos_astro.get('fase_lunar'),
+            'iluminacion_lunar': datos_astro.get('iluminacion_lunar'),
+        }
+    except Exception:
+        logging.debug("No se pudieron obtener datos astronómicos del bus")
+        return {}
+
+
 def _normalizar_key(valor: str) -> str:
     return str(valor).strip().lower().replace(" ", "_")
 
@@ -348,8 +392,20 @@ def _calcular_radiacion_extraterrestre(contexto: Dict[str, Any]) -> Optional[Dic
     orografia = contexto.get('orografia') if isinstance(contexto, dict) else None
     perfil_horizonte = orografia.get("perfil_horizonte") if isinstance(orografia, dict) else None
 
-    datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
-    elevacion_solar = datos_sol.get('elevacion_solar_deg')
+    # CAMBIO CRÍTICO: Obtener elevacion_solar del bus, no recalcular
+    try:
+        from core.system.bus import obtener_bus
+        bus = obtener_bus()
+        datos_astro = bus.get("astronomia", {}) if bus else {}
+        elevacion_solar = datos_astro.get('arco_solar_elevacion_deg')
+    except Exception:
+        elevacion_solar = None
+    
+    # Fallback: recalcular solo si no está en el bus
+    if elevacion_solar is None:
+        datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
+        elevacion_solar = datos_sol.get('elevacion_solar_deg')
+    
     if elevacion_solar is None:
         return None
 
@@ -721,7 +777,19 @@ def _obtener_uv_contexto(contexto: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     )
     rad_val = radiacion_sel.get('valor') if radiacion_sel else None
 
-    elevacion = contexto.get('elevacion_solar', {}).get('sol', {}).get('elevacion_solar_deg')
+    # Obtener elevación solar del bus, no del contexto directo
+    try:
+        from core.system.bus import obtener_bus
+        bus = obtener_bus()
+        datos_astro = bus.get("astronomia", {}) if bus else {}
+        elevacion = datos_astro.get('arco_solar_elevacion_deg')
+    except Exception:
+        elevacion = None
+    
+    if elevacion is None:
+        # Fallback al contexto si no hay bus
+        elevacion = contexto.get('elevacion_solar', {}).get('sol', {}).get('elevacion_solar_deg')
+    
     if rad_val is None or elevacion is None:
         return None
 
@@ -773,13 +841,25 @@ def _obtener_uv_contexto(contexto: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 def _es_noche(contexto: Dict[str, Any]) -> bool:
     try:
-        from core.arcos_solares import calcular_posicion_sol
-        lat = contexto.get('ubicacion', {}).get('latitud', ESTACION.LATITUD)
-        lon = contexto.get('ubicacion', {}).get('longitud', ESTACION.LONGITUD)
-        orografia = contexto.get('orografia') if isinstance(contexto, dict) else None
-        perfil_horizonte = orografia.get("perfil_horizonte") if isinstance(orografia, dict) else None
-        datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
-        elevacion_solar = datos_sol.get('elevacion_solar_deg')
+        # Obtener elevacion_solar del bus primero
+        try:
+            from core.system.bus import obtener_bus
+            bus = obtener_bus()
+            datos_astro = bus.get("astronomia", {}) if bus else {}
+            elevacion_solar = datos_astro.get('arco_solar_elevacion_deg')
+        except Exception:
+            elevacion_solar = None
+        
+        # Fallback: recalcular si no está en el bus
+        if elevacion_solar is None:
+            from core.arcos_solares import calcular_posicion_sol
+            lat = contexto.get('ubicacion', {}).get('latitud', ESTACION.LATITUD)
+            lon = contexto.get('ubicacion', {}).get('longitud', ESTACION.LONGITUD)
+            orografia = contexto.get('orografia') if isinstance(contexto, dict) else None
+            perfil_horizonte = orografia.get("perfil_horizonte") if isinstance(orografia, dict) else None
+            datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
+            elevacion_solar = datos_sol.get('elevacion_solar_deg')
+        
         return elevacion_solar is not None and elevacion_solar <= 0
     except Exception:
         logging.exception("Error calculando condición nocturna")
@@ -1569,13 +1649,24 @@ def generar_grupos_desde_sistema(contexto: Dict[str, Any]) -> List[GrupoValores]
         elevacion_le = None
         if rad_le_base is not None and temp_c is not None and humedad_pct is not None:
             try:
-                from core.arcos_solares import calcular_posicion_sol
-                lat = contexto.get('ubicacion', {}).get('latitud', ESTACION.LATITUD)
-                lon = contexto.get('ubicacion', {}).get('longitud', ESTACION.LONGITUD)
-                orografia = contexto.get('orografia') if isinstance(contexto, dict) else None
-                perfil_horizonte = orografia.get("perfil_horizonte") if isinstance(orografia, dict) else None
-                datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
-                elevacion_le = datos_sol.get('elevacion_solar_deg')
+                # Obtener elevacion_solar del bus primero
+                try:
+                    from core.system.bus import obtener_bus
+                    bus = obtener_bus()
+                    datos_astro = bus.get("astronomia", {}) if bus else {}
+                    elevacion_le = datos_astro.get('arco_solar_elevacion_deg')
+                except Exception:
+                    elevacion_le = None
+                
+                # Fallback: recalcular si no está en el bus
+                if elevacion_le is None:
+                    from core.arcos_solares import calcular_posicion_sol
+                    lat = contexto.get('ubicacion', {}).get('latitud', ESTACION.LATITUD)
+                    lon = contexto.get('ubicacion', {}).get('longitud', ESTACION.LONGITUD)
+                    orografia = contexto.get('orografia') if isinstance(contexto, dict) else None
+                    perfil_horizonte = orografia.get("perfil_horizonte") if isinstance(orografia, dict) else None
+                    datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
+                    elevacion_le = datos_sol.get('elevacion_solar_deg')
             except Exception:
                 elevacion_le = None
 
@@ -2453,8 +2544,22 @@ def generar_grupos_desde_sistema(contexto: Dict[str, Any]) -> List[GrupoValores]
             orografia = contexto.get('orografia') if isinstance(contexto, dict) else None
             perfil_horizonte = orografia.get("perfil_horizonte") if isinstance(orografia, dict) else None
             
-            datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
-            elevacion_solar = datos_sol.get('elevacion_solar_deg', 0)
+            # CAMBIO CRÍTICO: Obtener elevacion_solar del bus, no recalcular
+            try:
+                from core.system.bus import obtener_bus
+                bus = obtener_bus()
+                datos_astro = bus.get("astronomia", {}) if bus else {}
+                elevacion_solar = datos_astro.get('arco_solar_elevacion_deg', 0)
+            except Exception:
+                elevacion_solar = 0
+            
+            # Fallback: recalcular si no está en el bus
+            if elevacion_solar == 0:
+                try:
+                    datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
+                    elevacion_solar = datos_sol.get('elevacion_solar_deg', 0)
+                except Exception:
+                    elevacion_solar = 0
             
             # Obtener datos atmosféricos
             presion_sel = _seleccionar_sensor_mejor(sensores, ['presion', 'pressure', 'baro', 'baromabs'], contexto, 'presion')
@@ -2557,13 +2662,24 @@ def generar_grupos_desde_sistema(contexto: Dict[str, Any]) -> List[GrupoValores]
         rad_base = _float_or_none(radiacion_sel.get('valor') if radiacion_sel else None)
         if rad_base is not None and temp_c is not None and humedad_pct is not None:
             try:
-                from core.arcos_solares import calcular_posicion_sol
-                lat = contexto.get('ubicacion', {}).get('latitud', ESTACION.LATITUD)
-                lon = contexto.get('ubicacion', {}).get('longitud', ESTACION.LONGITUD)
-                orografia = contexto.get('orografia') if isinstance(contexto, dict) else None
-                perfil_horizonte = orografia.get("perfil_horizonte") if isinstance(orografia, dict) else None
-                datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
-                elevacion_tmrt = datos_sol.get('elevacion_solar_deg', 0.0)
+                # Obtener elevacion_solar del bus primero
+                try:
+                    from core.system.bus import obtener_bus
+                    bus = obtener_bus()
+                    datos_astro = bus.get("astronomia", {}) if bus else {}
+                    elevacion_tmrt = datos_astro.get('arco_solar_elevacion_deg', 0.0)
+                except Exception:
+                    elevacion_tmrt = 0.0
+                
+                # Fallback: recalcular si no está en el bus
+                if elevacion_tmrt == 0.0:
+                    from core.arcos_solares import calcular_posicion_sol
+                    lat = contexto.get('ubicacion', {}).get('latitud', ESTACION.LATITUD)
+                    lon = contexto.get('ubicacion', {}).get('longitud', ESTACION.LONGITUD)
+                    orografia = contexto.get('orografia') if isinstance(contexto, dict) else None
+                    perfil_horizonte = orografia.get("perfil_horizonte") if isinstance(orografia, dict) else None
+                    datos_sol = calcular_posicion_sol(lat, lon, datetime.now(), perfil_horizonte=perfil_horizonte)
+                    elevacion_tmrt = datos_sol.get('elevacion_solar_deg', 0.0)
             except Exception:
                 elevacion_tmrt = 0.0
 

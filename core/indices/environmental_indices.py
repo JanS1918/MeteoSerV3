@@ -2929,7 +2929,7 @@ def _calcular_fried_r0(seeing_indice: float | None, lambda_nm: float = 550.0) ->
 
 def _calcular_nubosidad_estimada(temp: float | None, dew: float | None, rh: float | None, viento: float | None,
                                  rad_real: float | None, rad_teorica: float | None, temp_esperada_nocturna: float | None,
-                                 es_dia: bool, presion_hpa: float | None = None, dia_ano: int | None = None) -> float | None:
+                                 es_dia: bool, bus: dict, presion_hpa: float | None = None, dia_ano: int | None = None) -> float | None:
     """
     MEJORA V28.0: Modelo físico Liu & Jordan + Kasten (reemplaza empírico).
     
@@ -2938,21 +2938,33 @@ def _calcular_nubosidad_estimada(temp: float | None, dew: float | None, rh: floa
     """
     if temp is None or dew is None or rh is None:
         return None
-    
+
+    # Acceso a sensores y datos astronómicos desde el bus
+    sensores = bus.get("sensores", {})
+    datos_astro = bus.get("astronomia", {})
+    # Elevación lunar y solar
+    elevacion_lunar = datos_astro.get("arco_lunar_elevacion_deg", sensores.get("arco_lunar_elevacion_deg"))
+    iluminacion_lunar = datos_astro.get("iluminacion_lunar", sensores.get("iluminacion_lunar"))
+    elevacion_solar = datos_astro.get("arco_solar_elevacion_deg", sensores.get("arco_solar_elevacion_deg", 45.0))
+    # Presión barométrica corregida
+    if presion_hpa is None:
+        presion_hpa = sensores.get("presion_barometrica")
+    if presion_hpa is not None:
+        try:
+            presion_hpa = float(presion_hpa)
+        except Exception:
+            presion_hpa = None
+    # Día del año
+    if dia_ano is None:
+        dia_ano = datetime.datetime.utcnow().timetuple().tm_yday
+
     # [FAST] V42.0: Nubosidad física total (Liu & Jordan + Kasten) sin heurísticas locales
     # ⚛️ V43.0: Validación lunar nocturna con arco lunar Meeus
-    if not es_dia or rad_real is None or not rad_teorica or rad_teorica <= 50:
-        # Modo nocturno o sin radiación solar
-        # Intentar validación lunar
-        try:
-            from core.indices.nubosidad_liu_jordan_kasten import calcular_nubosidad_liu_jordan_kasten
-            
-            # Obtener arco lunar desde bus (si está disponible)
-            elevacion_lunar = sensores.get("arco_lunar_elevacion_deg", None)
-            iluminacion_lunar = sensores.get("iluminacion_lunar", None)
-            
-            if elevacion_lunar is not None and iluminacion_lunar is not None:
-                # V43.0: Nubosidad nocturna con validación lunar
+    try:
+        from core.indices.nubosidad_liu_jordan_kasten import calcular_nubosidad_liu_jordan_kasten
+        if not es_dia or rad_real is None or not rad_teorica or rad_teorica <= 50:
+            # Modo nocturno o sin radiación solar
+            if elevacion_lunar is not None and iluminacion_lunar is not None and presion_hpa is not None:
                 resultado_nub = calcular_nubosidad_liu_jordan_kasten(
                     radiacion_medida_w_m2=0.0,
                     radiacion_extraterrestre_w_m2=0.0,
@@ -2960,34 +2972,17 @@ def _calcular_nubosidad_estimada(temp: float | None, dew: float | None, rh: floa
                     temp_aire_c=temp,
                     temp_rocio_c=dew,
                     humedad_relativa_pct=rh,
-                    presion_hpa=self._require_sensor("presion_barometrica", sensores.get("presion_barometrica")) / 100.0,
-                    dia_ano=datetime.datetime.utcnow().timetuple().tm_yday,
+                    presion_hpa=presion_hpa / 100.0 if presion_hpa else None,
+                    dia_ano=dia_ano,
                     elevacion_lunar_deg=elevacion_lunar,
                     iluminacion_lunar_pct=iluminacion_lunar
                 )
                 return resultado_nub["nubosidad"]
-        except Exception:
-            pass
-        
-        return None
-
-    try:
-        from core.indices.nubosidad_liu_jordan_kasten import calcular_nubosidad_liu_jordan_kasten
-
-        elevacion_solar = 45.0
-        if rad_teorica > 0:
-            elevacion_solar = max(5, min(90, math.degrees(math.asin(min(1.0, rad_teorica / 1367.0)))))
-
+            return None
+        # Modo diurno
         if presion_hpa is None:
             import logging
             logging.warning("[Nubosidad] Sensor presión desconectado")
-        if dia_ano is None:
-            dia_ano = datetime.datetime.utcnow().timetuple().tm_yday
-        
-        # Obtener arco lunar para validación nocturna (si está disponible)
-        elevacion_lunar = sensores.get("arco_lunar_elevacion_deg", None)
-        iluminacion_lunar = sensores.get("iluminacion_lunar", None)
-
         resultado_nub = calcular_nubosidad_liu_jordan_kasten(
             radiacion_medida_w_m2=rad_real,
             radiacion_extraterrestre_w_m2=rad_teorica,
@@ -3000,7 +2995,6 @@ def _calcular_nubosidad_estimada(temp: float | None, dew: float | None, rh: floa
             elevacion_lunar_deg=elevacion_lunar,      # V43.0
             iluminacion_lunar_pct=iluminacion_lunar   # V43.0
         )
-
         return resultado_nub["nubosidad"]
     except Exception:
         return None
@@ -4386,6 +4380,7 @@ class EnvironmentalIndices:
             rad_teor_val,
             temp_esperada_nocturna,
             es_dia,
+            bus=self._bus if self._bus else {},
             presion_hpa=presion_val,
             dia_ano=dia_ano,
         )
@@ -6197,9 +6192,10 @@ class EnvironmentalIndices:
         # Intentar usar sensor UV directo si está disponible
         uv = self._get_sensor("uv")
         try:
-            uv_val = float(uv["valor"])
-            if uv_val > 0:
-                return {"valor": uv_val, "estimado": False, "explicacion": "Sensor UV directo (WH65/HP2550A)"}
+            if uv is not None and uv.get("valor") is not None:
+                uv_val = float(uv["valor"])
+                if uv_val > 0:
+                    return {"valor": uv_val, "estimado": False, "explicacion": "Sensor UV directo (WH65/HP2550A)"}
         except (TypeError, ValueError):
             logging.exception("Silent except at 4628 - revisar contexto")
         
@@ -6713,6 +6709,11 @@ class EnvironmentalIndices:
         bus = obtener_bus()
         lat = bus.obtener_valor("contexto.ubicacion.latitud")
         lon = bus.obtener_valor("contexto.ubicacion.longitud")
+        # Fallback a ESTACION si no hay valor en bus
+        if lat is None:
+            lat = ESTACION.LATITUD
+        if lon is None:
+            lon = ESTACION.LONGITUD
         alt_srtm = bus.obtener_valor("orografia_altitud_centro_m")
         alt = bus.obtener_valor("contexto.ubicacion.altitud_sensor")
         if alt is None and alt_srtm is not None:
@@ -7311,8 +7312,11 @@ class EnvironmentalIndices:
                 rad = 0
             viento_sensor = viento["valor"]
             h_objetivo = 1.1
-            viento_calle_corr = viento_logaritmico(viento_sensor, h_sensor=13.0, h_objetivo=h_objetivo, z0=contexto.z0_calle)
-            viento_sensor_corr = viento_logaritmico(viento_sensor, h_sensor=2.0, h_objetivo=h_objetivo, z0=contexto.z0_terraza)
+            # Obtener z0 con fallback si no están definidos en contexto
+            z0_calle = getattr(contexto, 'z0_calle', 0.05) if contexto else 0.05
+            z0_terraza = getattr(contexto, 'z0_terraza', 0.03) if contexto else 0.03
+            viento_calle_corr = viento_logaritmico(viento_sensor, h_sensor=13.0, h_objetivo=h_objetivo, z0=z0_calle)
+            viento_sensor_corr = viento_logaritmico(viento_sensor, h_sensor=2.0, h_objetivo=h_objetivo, z0=z0_terraza)
             
             # Obtener WH31 si está disponible (para fusión adaptativa en confort)
             temp_wh31 = None
@@ -7721,14 +7725,7 @@ class EnvironmentalIndices:
                 except Exception as e:
                     logger.debug(f"[WBGT] No se pudieron obtener sensores WH31: {e}")
                 
-                wbgt: float = indice_wbgt(t, h, r, v, lat=lat_ctx, lon=lon_ctx, alt=alt_ctx, dt=dt_ctx, temp_wh31=temp_wh31, hum_wh31=hum_wh31)
-                indices["wbgt"] = {
-                    "valor": round(wbgt, 2),
-                    "estimado": estimado,
-                    "confianza": self._confianza(estimado, fiable=True),
-                    "explicacion": "WBGT (Stull unificado)" if temp_wh31 is None else "WBGT (Stull + fusión WH65/WH31)",
-                    "fusionado": temp_wh31 is not None
-                }
+                # ANTES DE USAR lat_ctx, lon_ctx, etc., necesito inicializarlos
                 lat_ctx = None
                 lon_ctx = None
                 alt_ctx = None
@@ -7754,6 +7751,15 @@ class EnvironmentalIndices:
                     alt_ctx = 0.0
                 if dt_ctx is None:
                     dt_ctx = datetime.datetime.now(timezone.utc)
+                
+                wbgt: float = indice_wbgt(t, h, r, v, lat=lat_ctx, lon=lon_ctx, alt=alt_ctx, dt=dt_ctx, temp_wh31=temp_wh31, hum_wh31=hum_wh31)
+                indices["wbgt"] = {
+                    "valor": round(wbgt, 2),
+                    "estimado": estimado,
+                    "confianza": self._confianza(estimado, fiable=True),
+                    "explicacion": "WBGT (Stull unificado)" if temp_wh31 is None else "WBGT (Stull + fusión WH65/WH31)",
+                    "fusionado": temp_wh31 is not None
+                }
 
                 abs_h: float = indice_humedad_absoluta_gm3(t, h, lat_ctx, lon_ctx, alt_ctx, dt_ctx)
                 indices["humedad_absoluta"] = {

@@ -199,20 +199,36 @@ def calcular_posicion_sol(
     
     elevacion_solar = None
     azimut_solar = None
+    
+    # ⚛️ BUS-FIRST: Intentar obtener del bus
     try:
-        from core.indices.astronomia_recursiva import AstronomiaRecursiva
-        altitud_val = altitud_m if altitud_m is not None else 0.0
-        astro = AstronomiaRecursiva(lat, lon, altitud_val)
-        fecha_utc = fecha if fecha.tzinfo else fecha.replace(tzinfo=timezone.utc)
-        presion_val = presion_hpa if presion_hpa is not None else 1013.25
-        temp_val = temperatura_c if temperatura_c is not None else 15.0
-        humedad_val = (humedad_rel / 100.0) if humedad_rel is not None and humedad_rel > 1 else (humedad_rel if humedad_rel is not None else 0.5)
-        resultado = astro.calcular_posicion_solar_nrel_spa(fecha_utc, presion_val, temp_val, humedad_val)
-        elevacion_solar = resultado.get("elevacion_aparente_deg")
-        azimut_solar = resultado.get("azimut_deg")
+        from core.system.bus import obtener_bus
+        bus = obtener_bus()
+        if bus:
+            elevacion_solar_bus = bus.leer("elevacion_solar_deg")
+            azimut_solar_bus = bus.leer("azimut_solar_deg")
+            if elevacion_solar_bus is not None and azimut_solar_bus is not None:
+                elevacion_solar = float(elevacion_solar_bus)
+                azimut_solar = float(azimut_solar_bus)
     except Exception:
-        elevacion_solar = None
-        azimut_solar = None
+        pass
+    
+    # Fallback: calcular localmente
+    if elevacion_solar is None or azimut_solar is None:
+        try:
+            from core.indices.astronomia_recursiva import AstronomiaRecursiva
+            altitud_val = altitud_m if altitud_m is not None else 0.0
+            astro = AstronomiaRecursiva(lat, lon, altitud_val)
+            fecha_utc = fecha if fecha.tzinfo else fecha.replace(tzinfo=timezone.utc)
+            presion_val = presion_hpa if presion_hpa is not None else 1013.25
+            temp_val = temperatura_c if temperatura_c is not None else 15.0
+            humedad_val = (humedad_rel / 100.0) if humedad_rel is not None and humedad_rel > 1 else (humedad_rel if humedad_rel is not None else 0.5)
+            resultado = astro.calcular_posicion_solar_nrel_spa(fecha_utc, presion_val, temp_val, humedad_val)
+            elevacion_solar = resultado.get("elevacion_aparente_deg")
+            azimut_solar = resultado.get("azimut_deg")
+        except Exception:
+            elevacion_solar = None
+            azimut_solar = None
 
     horizonte_orografico_deg = None
     sombra_orografica = False

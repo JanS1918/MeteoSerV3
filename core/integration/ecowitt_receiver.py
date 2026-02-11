@@ -955,25 +955,60 @@ def estado():
         hoy = datetime.now().timetuple().tm_yday
         if "elevacion_solar" not in indices:
             estimado = ("latitud" not in indices) or ("longitud" not in indices)
-            datos_sol = calcular_posicion_sol(lat, lon, datetime.now(timezone.utc))
-            elevacion = datos_sol.get("elevacion_solar_deg")
+            
+            # Intentar obtener del bus primero
+            elevacion = None
+            try:
+                from core.system.bus import obtener_bus
+                bus = obtener_bus()
+                if bus:
+                    datos_astro = bus.get("astronomia", {})
+                    elevacion = datos_astro.get("arco_solar_elevacion_deg")
+            except Exception:
+                pass
+            
+            # Fallback: calcular localmente
+            if elevacion is None:
+                datos_sol = calcular_posicion_sol(lat, lon, datetime.now(timezone.utc))
+                elevacion = datos_sol.get("elevacion_solar_deg")
+                duracion_dia_h = (datos_sol.get("duracion_dia") or 0.0) / 60.0
+            else:
+                duracion_dia_h = None  # No disponible desde bus
+            
             arco_val = None
             if elevacion is not None:
                 arco_val = max(0.0, math.sin(math.radians(elevacion)))
-            duracion_dia_h = (datos_sol.get("duracion_dia") or 0.0) / 60.0
             indices["elevacion_solar"] = {"valor": arco_val, "estimado": estimado}
-            indices["duracion_dia_h"] = {"valor": duracion_dia_h, "estimado": estimado}
+            if duracion_dia_h is not None:
+                indices["duracion_dia_h"] = {"valor": duracion_dia_h, "estimado": estimado}
             if hasattr(system, "actualizar_indice"):
                 system.actualizar_indice("elevacion_solar", arco_val)
-                system.actualizar_indice("duracion_dia_h", duracion_dia_h)
+                if duracion_dia_h is not None:
+                    system.actualizar_indice("duracion_dia_h", duracion_dia_h)
         try:
             hora_decimal = datetime.now().hour + datetime.now().minute / 60.0 + datetime.now().second / 3600.0
-            datos_sol = calcular_posicion_sol(lat, lon, datetime.now(timezone.utc))
+            
+            # Obtener elevacion_solar del bus o calcular
+            elevacion_solar_deg = None
+            try:
+                from core.system.bus import obtener_bus
+                bus = obtener_bus()
+                if bus:
+                    datos_astro = bus.get("astronomia", {})
+                    elevacion_solar_deg = datos_astro.get("arco_solar_elevacion_deg")
+            except Exception:
+                pass
+            
+            # Fallback: calcular
+            if elevacion_solar_deg is None:
+                datos_sol = calcular_posicion_sol(lat, lon, datetime.now(timezone.utc))
+                elevacion_solar_deg = datos_sol.get("elevacion_solar_deg")
+            
             rad_teorica = radiacion_teorica(
                 lat_deg=lat,
                 dia_del_ano=hoy,
                 hora_decimal=hora_decimal,
-                elevacion_solar_deg=datos_sol.get("elevacion_solar_deg"),
+                elevacion_solar_deg=elevacion_solar_deg,
             )
             indices["nubosidad"] = {"valor": rad_teorica, "estimado": True}
             if hasattr(system, "actualizar_indice"):

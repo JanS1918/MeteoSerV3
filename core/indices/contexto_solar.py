@@ -114,22 +114,40 @@ class ContextoSolar:
         else:
             fecha_hora = fecha_hora.astimezone(timezone.utc)
         
-        # Obtener posición solar
-        if self.astro:
-            try:
-                pos_solar = self.astro.calcular_posicion_solar_nrel_spa(
-                    fecha_utc=fecha_hora,
-                    presion_hpa=presion_hpa,
-                    temperatura_c=temperatura_c,
-                    humedad_fraccion=humedad_rel / 100.0
-                )
-                elevacion = pos_solar.get("elevacion_aparente_deg", 0.0)
-                azimut = pos_solar.get("azimut_deg", 0.0)
-            except Exception as e:
-                logger.warning(f"[ContextoSolar] Error calculando posición solar: {e}")
+        # ⚛️ Patrón BUS-FIRST: Intentar leer del bus
+        elevacion = None
+        azimut = None
+        try:
+            from core.system.bus import obtener_bus
+            bus = obtener_bus()
+            if bus:
+                elevacion_bus = bus.leer("elevacion_solar_deg")
+                azimut_bus = bus.leer("azimut_solar_deg")
+                if elevacion_bus is not None and azimut_bus is not None:
+                    elevacion = float(elevacion_bus)
+                    azimut = float(azimut_bus)
+                    logger.debug(f"[ContextoSolar] Datos astronómicos tomados del bus: elev={elevacion:.1f}°, azim={azimut:.1f}°")
+        except Exception as e:
+            logger.debug(f"[ContextoSolar] Error leyendo del bus: {e}")
+        
+        # Fallback: calcular localmente si no está en bus
+        if elevacion is None or azimut is None:
+            if self.astro:
+                try:
+                    pos_solar = self.astro.calcular_posicion_solar_nrel_spa(
+                        fecha_utc=fecha_hora,
+                        presion_hpa=presion_hpa,
+                        temperatura_c=temperatura_c,
+                        humedad_fraccion=humedad_rel / 100.0
+                    )
+                    elevacion = pos_solar.get("elevacion_aparente_deg", 0.0)
+                    azimut = pos_solar.get("azimut_deg", 0.0)
+                    logger.debug(f"[ContextoSolar] Datos astronómicos calculados localmente (fallback): elev={elevacion:.1f}°, azim={azimut:.1f}°")
+                except Exception as e:
+                    logger.warning(f"[ContextoSolar] Error calculando posición solar: {e}")
+                    elevacion, azimut = self._calcular_solar_fallback(fecha_hora)
+            else:
                 elevacion, azimut = self._calcular_solar_fallback(fecha_hora)
-        else:
-            elevacion, azimut = self._calcular_solar_fallback(fecha_hora)
         
         # Clasificar estado
         estado = self._clasificar_estado(elevacion)

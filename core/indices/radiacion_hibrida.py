@@ -176,6 +176,8 @@ class PiranometroHibrido:
         """
         Calcula posición solar exacta usando Spencer (1971).
         
+        Intenta obtener del bus primero (mejor), fallback a cálculo local.
+        
         Returns:
             {
                 "elevacion_deg": Elevación solar (0-90°)
@@ -185,6 +187,27 @@ class PiranometroHibrido:
                 "eot_minutos": Ecuación del tiempo
             }
         """
+        # Intentar obtener del bus primero
+        try:
+            from core.system.bus import obtener_bus
+            bus = obtener_bus()
+            if bus:
+                datos_astro = bus.get("astronomia", {})
+                elevacion = datos_astro.get("arco_solar_elevacion_deg")
+                azimut = datos_astro.get("azimut_solar")
+                if elevacion is not None:
+                    # Retornar datos del bus (limitado pero correcto)
+                    return {
+                        "elevacion_deg": float(elevacion),
+                        "azimut_deg": float(azimut) if azimut is not None else 0.0,
+                        "zenith_deg": 90.0 - float(elevacion),
+                        "am": 1.0,  # No disponible desde bus, usar default
+                        "eot_minutos": 0.0,  # No disponible desde bus
+                    }
+        except Exception:
+            pass
+        
+        # Fallback: calcular localmente (Spencer 1971)
         # Número de día del año
         n = fecha_hora.timetuple().tm_yday
         

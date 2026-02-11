@@ -97,6 +97,21 @@ async def lifespan(app_instance: FastAPI):
     except Exception as e:
         logger.warning(f"[WARNING] No se pudo ejecutar auditoría: {e}")
     
+    # [OPTIMIZATION] INICIALIZAR SISTEMA DE OPTIMIZACIÓN EXHAUSTIVO
+    try:
+        from core.engines.integration_orchestrator import initialize_optimization_system
+        orchestrator = initialize_optimization_system()
+        logger.info("[OPTIMIZATION] Sistema exhaustivo de optimización activado")
+        logger.info("[OPTIMIZATION]  - Cache virtual de índices (LRU, TTL inteligente)")
+        logger.info("[OPTIMIZATION]  - Acelerador JIT Numba (psychrometría, radiación, estabilidad)")
+        logger.info("[OPTIMIZATION]  - Eliminador de redundancia automático (deduplicador)")
+        logger.info("[OPTIMIZATION]  - Corrector automático de predicciones (drift detection)")
+        logger.info("[OPTIMIZATION]  - Mejorador de alertas (false positive elimination)")
+        app_instance.state.optimization_orchestrator = orchestrator
+    except Exception as e:
+        logger.warning(f"[OPTIMIZATION] Sistema no disponible: {e}")
+        app_instance.state.optimization_orchestrator = None
+
     # [REINICIO] INTEGRADOR ALWAYS-ON: Recuperación automática de datos del gap histórico
     try:
         from core.integration.integrador_always_on import ejecutar_integrador_automatico
@@ -772,6 +787,33 @@ async def lifespan(app_instance: FastAPI):
         except Exception as e:
             logger.warning(f"[WARNING] No se pudieron registrar endpoints de IA: {e}")
     
+    # [COHERENCE ENGINE] FASE 1 MVP - INTELIGENCIA METEOROLÓGICA DISTRIBUIDA
+    # Inicializa registro de sensores, ingestión, motor de coherencia y APIs
+    try:
+        from core.system.sensors_registry import get_registry
+        from core.system.coherence_engine import get_coherence_engine
+        
+        # Obtener singletons globales (ya inicializados en módulos)
+        sensors_registry = get_registry()
+        coherence_engine = get_coherence_engine()
+        
+        logger.info("[COHERENCE] OK - Motor de coherencia iniciado")
+        logger.info(f"[COHERENCE] - Sensores registrados: {len(sensors_registry.get_all_sensors())}")
+        logger.info("[COHERENCE] - IEAD: Solar + Viento + Térmico")
+        logger.info("[COHERENCE] - Inertia: EMA corta/larga con memoria")
+        logger.info("[COHERENCE] - SRS: Integridad, Consistencia, Novedad, Varianza")
+        logger.info("[COHERENCE] - Operación: AUTO/SEMI-AUTO/MANUAL/SAFE")
+        logger.info("[COHERENCE] - Endpoints: /api/v1/internal/state, /api/v1/state/srs, /api/v1/metrics, /api/v1/ingest/*")
+        
+        app_instance.state.sensors_registry = sensors_registry
+        app_instance.state.coherence_engine = coherence_engine
+    except Exception as e:
+        logger.warning(f"[WARNING] Coherence Engine no disponible: {e}")
+        import traceback
+        logger.warning(traceback.format_exc())
+        app_instance.state.sensors_registry = None
+        app_instance.state.coherence_engine = None
+    
     logger.info("[OK] INICIO: MeteoSerV3 listo y escuchando (100% REAL)")
     
     # ═══════════════════════════════════════════════════════════════════════════
@@ -855,6 +897,22 @@ try:
     print("[ROUTER] Diagnóstico de datos primarios cargado en /diagnostico")
 except Exception as e:
     print(f"[ROUTER] No se pudo cargar router de diagnóstico: {e}")
+
+# ROUTER COHERENCE ENGINE (FASE 1 MVP)
+try:
+    from api_coherence import initialize_coherence_api
+    coherence_router = initialize_coherence_api()
+    app.include_router(coherence_router)
+    logger.info("[ROUTER] Coherence Engine API cargada en /api/v1/")
+    logger.info("[ROUTER] - GET /api/v1/internal/state")
+    logger.info("[ROUTER] - GET /api/v1/state/srs")
+    logger.info("[ROUTER] - GET /api/v1/metrics")
+    logger.info("[ROUTER] - POST /api/v1/ingest/sensor")
+    logger.info("[ROUTER] - POST /api/v1/ingest/batch")
+    logger.info("[ROUTER] - GET /api/v1/sensors/registry")
+    logger.info("[ROUTER] - GET /api/v1/quality (NEW: Calidad consolidada)")
+except Exception as e:
+    logger.warning(f"[ROUTER] No se pudo cargar Coherence Engine API: {e}")
 
 MAX_SENSOR_FRESHNESS_SECONDS = 300
 SENSOR_SMOOTHING_ALPHA = 0.5
@@ -2631,16 +2689,29 @@ def _estado_impl():
         except Exception:
             humedad = None
 
-        datos_sol = calcular_posicion_sol(
-            latitud,
-            longitud,
-            datetime.datetime.now(datetime.timezone.utc),
-            presion_hpa=presion,
-            temperatura_c=temp_c,
-            humedad_rel=humedad,
-            altitud_m=altitud,
-        )
-        elevacion_solar_deg = datos_sol.get("elevacion_solar_deg")
+        # Intentar obtener elevacion_solar del bus primero
+        elevacion_solar_deg = None
+        try:
+            from core.system.bus import obtener_bus
+            bus = obtener_bus()
+            if bus:
+                datos_astro = bus.get("astronomia", {})
+                elevacion_solar_deg = datos_astro.get("arco_solar_elevacion_deg")
+        except Exception:
+            pass
+        
+        # Fallback: calcular localmente
+        if elevacion_solar_deg is None:
+            datos_sol = calcular_posicion_sol(
+                latitud,
+                longitud,
+                datetime.datetime.now(datetime.timezone.utc),
+                presion_hpa=presion,
+                temperatura_c=temp_c,
+                humedad_rel=humedad,
+                altitud_m=altitud,
+            )
+            elevacion_solar_deg = datos_sol.get("elevacion_solar_deg")
 
         now = datetime.datetime.now()
         ahora_min = now.hour * 60 + now.minute
