@@ -225,7 +225,9 @@ def indice_hidrologia_sintetico(
     tasa_infiltracion: float,
     riesgo_escorrentia: float,
     spi: float,
-    estado_humedad_tendencial: float
+    estado_humedad_tendencial: float,
+    humedad_suelo_integrada: Optional[float] = None,
+    capacidad_infiltracion_compartida: Optional[float] = None
 ) -> float:
     """
     Índice sintético de HIDROLOGÍA (0-100) - SUMA PONDERADA DE 4 COMPONENTES.
@@ -239,6 +241,10 @@ def indice_hidrologia_sintetico(
     100 = condiciones hídricas ideales (buena infiltración, sin avenidas, humedad normal)
     0 = condiciones severas (avenida/sequía extrema)
     
+    CONTEXTOS INTEGRADOS:
+    - Humedad integrada: unificación con RIEGO para consistencia
+    - Capacidad infiltración compartida: coordinación con LLUVIA
+    
     Riesgo escorrentía se invierte: bajo riesgo (0) → indica suelo estable (100).
     """
     # SUMA PONDERADA de componentes
@@ -248,6 +254,14 @@ def indice_hidrologia_sintetico(
         spi * 0.25 +                            # SPI: 25%
         estado_humedad_tendencial * 0.20        # humedad: 20%
     )
+    
+    # Contexto: si capacidad infiltración es baja (<40%), penaliza riesgo de saturación
+    if capacidad_infiltracion_compartida is not None and capacidad_infiltracion_compartida < 40.0:
+        logger.debug(f"CAPACIDAD INFILTRACIÓN BAJA ({capacidad_infiltracion_compartida:.1f}%): Riesgo saturación +30%")
+        penalizacion = 1.0 - ((40.0 - capacidad_infiltracion_compartida) / 100.0)
+        score = score * penalizacion
+    
+    logger.debug(f"Hidrología: infiltr={tasa_infiltracion:.1f}, escor={riesgo_escorrentia:.1f}, spi={spi:.1f}, humedad={estado_humedad_tendencial:.1f} -> final={_clamp(score, 0, 100):.1f}")
     
     return _clamp(score, 0, 100)
 
@@ -313,11 +327,15 @@ def calcular_hidrologia_completa(data: Dict[str, Optional[float]]) -> Dict[str, 
         )
         
         # Sintético
+        humedad_integrada = data.get("humedad_suelo_integrada")
+        capacidad_infiltr = data.get("capacidad_infiltracion_compartida")
         sintetico = indice_hidrologia_sintetico(
             tasa_infiltracion=infiltr,
             riesgo_escorrentia=escor,
             spi=spi_val,
-            estado_humedad_tendencial=humedad_tend
+            estado_humedad_tendencial=humedad_tend,
+            humedad_suelo_integrada=humedad_integrada,
+            capacidad_infiltracion_compartida=capacidad_infiltr
         )
         
         resultado = {

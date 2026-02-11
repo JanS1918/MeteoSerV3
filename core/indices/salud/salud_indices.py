@@ -345,10 +345,13 @@ def indice_salud_sintetico(
     frio_extremo: float,
     helada: float,
     aire_interior: float,
-    aire_exterior: float
+    aire_exterior: float,
+    lluvia_1h: Optional[float] = None,
+    amplitud_termica: Optional[float] = None,
+    visibilidad_km: Optional[float] = None
 ) -> float:
     """
-    Índice sintético de SALUD (0-100) - SUMA PONDERADA INVERTIDA DE 6 COMPONENTES.
+    Índice sintético de SALUD (0-100) - SUMA PONDERADA INVERTIDA DE 6 COMPONENTES + CONTEXTOS.
     
     PESOS EXPLÍCITOS (como RIESGOS, se invierten):
     - uvi: 25% - Riesgo UV (lo más importante)
@@ -358,29 +361,92 @@ def indice_salud_sintetico(
     - aire_interior: 10% - Riesgo mala ventilación (INVERTIDO: 100=salud, 0=riesgo)
     - aire_exterior: 10% - Riesgo contaminación (INVERTIDO: 100=salud, 0=riesgo)
     
+    CONTEXTOS GLOBALES:
+    - lluvia_1h: Lluvia = exposición mojado = hipotermia + dolor articular
+    - amplitud_termica: Variación extrema = estrés térmico
+    - visibilidad_km: Baja visibilidad = polución/niebla = riesgo respiratorio
+    
     Lógica INVERSA:
     100 = sin riesgos (salud excelente)
     0 = múltiples riesgos críticos (salud muy pobre)
-    
-    Entradas de aire se invierten porque 100=buena salud, 0=mala.
     """
-    # SUMA PONDERADA de RIESGOS (invertidos al final)
-    riesgo_prom = (
+    if lluvia_1h is None:
+        lluvia_1h = 0.0
+    if amplitud_termica is None:
+        amplitud_termica = 50.0
+    if visibilidad_km is None:
+        visibilidad_km = 10.0
+    
+    # SUMA PONDERADA de RIESGOS base
+    riesgo_base = (
         uvi * 0.25 +                          # UV: 25%
         calor_extremo * 0.20 +                # calor: 20%
         frio_extremo * 0.20 +                 # frío: 20%
         helada * 0.15 +                       # helada: 15%
-        (100 - aire_interior) * 0.10 +        # aire interior: 10% (invertido: 100=salud, 0=riesgo)
-        (100 - aire_exterior) * 0.10          # aire exterior: 10% (invertido: 100=salud, 0=riesgo)
-    ) / 100.0
+        (100 - aire_interior) * 0.10 +        # aire interior: 10% (invertido)
+        (100 - aire_exterior) * 0.10          # aire exterior: 10% (invertido)
+    )
     
-    # Convertir riesgo promedio → índice salud
-    # Si riesgo_prom=1.0 (100% riesgo) → score=0
-    # Si riesgo_prom=0.0 (0% riesgo) → score=100
+    # ESCENARIO 1: LLUVIA (aumenta riesgo de hipotermia y dolor articular)
+    if lluvia_1h > 0.5:
+        logger.debug(f"LLUVIA ({lluvia_1h:.2f}mm): Salud COMPROMETIDA (hipotermia, dolor)")
+        
+        # Lluvia aumenta riesgo de frío (mojado = pérdida térmica)
+        frio_lluvia = _clamp(frio_extremo + (lluvia_1h / 50.0) * 30.0)  # Hasta +30%
+        
+        # Lluvia reduce aire exterior (atmósfera mojada)
+        aire_ext_lluvia = _clamp(aire_exterior * (1.0 - (lluvia_1h / 30.0)))
+        
+        # Riesgo ajustado con lluvia
+        riesgo_lluvia = (
+            uvi * 0.25 +
+            calor_extremo * 0.20 +
+            frio_lluvia * 0.20 +               # Frío AUMENTADO
+            helada * 0.15 +
+            (100 - aire_interior) * 0.10 +
+            (100 - aire_ext_lluvia) * 0.10
+        )
+        
+        score = (1.0 - (riesgo_lluvia / 100.0)) * 100.0
+        logger.debug(f"Salud con lluvia: {score:.1f}%")
+        return _clamp(score)
     
-    score = (1.0 - (riego_prom / 100.0)) * 100.0
+    # ESCENARIO 2: AMPLITUD TÉRMICA EXTREMA (variación día-noche)
+    elif amplitud_termica > 75.0:
+        logger.debug(f"AMPLITUD TÉRMICA EXTREMA ({amplitud_termica:.0f}%): Salud INESTABLE")
+        
+        # Variación extrema = estrés térmico para el cuerpo
+        penalizacion = (amplitud_termica - 75.0) / 25.0 * 20.0  # Hasta +20% riesgo
+        riesgo_ampl = _clamp(riesgo_base + penalizacion)
+        
+        score = (1.0 - (riesgo_ampl / 100.0)) * 100.0
+        logger.debug(f"Salud con amplitud térmica: {score:.1f}%")
+        return _clamp(score)
     
-    return _clamp(score, 0, 100)
+    # ESCENARIO 3: VISIBILIDAD BAJA (polución, niebla)
+    elif visibilidad_km < 3.0:
+        logger.debug(f"VISIBILIDAD BAJA ({visibilidad_km:.1f}km): Salud RESPIRATORIA AFECTADA")
+        
+        # Baja visibilidad = contaminación/niebla = riesgo respiratorio
+        aire_ext_reduced = _clamp(aire_exterior * (visibilidad_km / 10.0))
+        
+        riesgo_visib = (
+            uvi * 0.25 +
+            calor_extremo * 0.20 +
+            frio_extremo * 0.20 +
+            helada * 0.15 +
+            (100 - aire_interior) * 0.10 +
+            (100 - aire_ext_reduced) * 0.10  # Aire exterior REDUCIDO
+        )
+        
+        score = (1.0 - (riesgo_visib / 100.0)) * 100.0
+        logger.debug(f"Salud con baja visibilidad: {score:.1f}%")
+        return _clamp(score)
+    
+    # ESCENARIO 4: CONDICIONES NORMALES
+    else:
+        score = (1.0 - (riesgo_base / 100.0)) * 100.0
+        return _clamp(score)
 
 
 # ============================================================================
@@ -461,14 +527,17 @@ def calcular_salud_completa(data: Dict[str, Optional[float]]) -> Dict[str, Optio
             humedad_pct=humedad
         )
         
-        # Sintético
+        # Sintético CON CONTEXTOS GLOBALES
         sintetico = indice_salud_sintetico(
             uvi=uvi,
             calor_extremo=calor,
             frio_extremo=frio,
             helada=helada,
             aire_interior=aire_int,
-            aire_exterior=aire_ext
+            aire_exterior=aire_ext,
+            lluvia_1h=data.get("lluvia_1h"),
+            amplitud_termica=data.get("amplitud_termica_tendencial"),
+            visibilidad_km=visibilidad
         )
         
         resultado = {

@@ -246,7 +246,9 @@ def indice_riego_sintetico(
     estres_hidrico: float,
     disponibilidad: float,
     eficiencia_infiltr: float,
-    lluvia_1h: Optional[float] = None
+    lluvia_1h: Optional[float] = None,
+    probabilidad_lluvia_sundqvist: Optional[float] = None,
+    humedad_suelo_integrada: Optional[float] = None
 ) -> float:
     """
     Índice sintético de RIEGO (0-100) - SUMA PONDERADA DE 4 COMPONENTES.
@@ -260,8 +262,29 @@ def indice_riego_sintetico(
     100 = riego no necesario (agua abundante)
     0 = riego urgente (sequedad crítica)
     
-    Lluvia reciente (>0.5mm) penaliza: no es necesario riego ahora.
+    CONTEXTOS INTEGRADOS:
+    - Lluvia reciente (>0.5mm) penaliza: no es necesario riego ahora
+    - Lluvia predicha (sundqvist > 70%): NO riego anticipado
+    - Humedad integrada: contexto de disponibilidad real del suelo
     """
+    
+    # ESCENARIO 1: Lluvia predicha > 70% (Sundqvist) - NO REGAR
+    if probabilidad_lluvia_sundqvist is not None and probabilidad_lluvia_sundqvist > 70.0:
+        logger.debug(f"LLUVIA PREDICHA ({probabilidad_lluvia_sundqvist:.1f}%): NO RIEGO - Esperar precipitación")
+        
+        # Reducir necesidad de riego drásticamente
+        penalizacion_lluvia_pred = 1.0 - (probabilidad_lluvia_sundqvist / 100.0)  # 0.3 si sundqvist 70%, 0.0 si 100%
+        score = (
+            disponibilidad * 0.40 +
+            estres_hidrico * 0.30 +
+            balance_hidrico * 0.20 +
+            eficiencia_infiltr * 0.10
+        )
+        score = score * penalizacion_lluvia_pred
+        
+        logger.debug(f"Riego con lluvia predicha: {score:.1f} (penalización Sundqvist aplicada)")
+        return _clamp(score, 0, 100)
+    
     # SUMA PONDERADA base
     score = (
         disponibilidad * 0.40 +       # disponibilidad: 40%
@@ -270,10 +293,15 @@ def indice_riego_sintetico(
         eficiencia_infiltr * 0.10     # eficiencia: 10%
     )
     
-    # Penalización si lluvia en última hora (riego no necesario ahora)
+    # ESCENARIO 2: Lluvia reciente (lluvia_1h > 0.5mm) - Penalizar moderadamente
     if lluvia_1h is not None and lluvia_1h > 0.5:
         penalizacion = min(30.0, lluvia_1h * 10)  # Hasta -30 si lluvia reciente fuerte
+        logger.debug(f"LLUVIA RECIENTE ({lluvia_1h:.1f}mm): Riego penalizado en -{penalizacion:.1f}")
         score = max(score - penalizacion, 0.0)
+    
+    # ESCENARIO 3: Normal - Sin contextos especiales
+    else:
+        logger.debug(f"Riego normal: balance={balance_hidrico:.1f}, estres={estres_hidrico:.1f}, disponib={disponibilidad:.1f}")
     
     return _clamp(score, 0, 100)
 
@@ -347,12 +375,16 @@ def calcular_riego_completa(data: Dict[str, Optional[float]]) -> Dict[str, Optio
         )
         
         # Sintético
+        probabilidad_sundqvist = data.get("probabilidad_lluvia_sundqvist")
+        humedad_integrada = data.get("humedad_suelo_integrada")
         sintetico = indice_riego_sintetico(
             balance_hidrico=balance,
             estres_hidrico=estres,
             disponibilidad=disponib,
             eficiencia_infiltr=eficiencia,
-            lluvia_1h=lluvia_1h
+            lluvia_1h=lluvia_1h,
+            probabilidad_lluvia_sundqvist=probabilidad_sundqvist,
+            humedad_suelo_integrada=humedad_integrada
         )
         
         resultado = {

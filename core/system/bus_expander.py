@@ -2811,6 +2811,102 @@ class BusExpander:
             }
             
             # ═══════════════════════════════════════════════════════════════════════
+            # 0. PRE-CÓMPUTO ÍNDICES COMPARTIDOS (sin duplicación)
+            # ═══════════════════════════════════════════════════════════════════════
+            # Estos índices se usan en MÚLTIPLES dominios. Pre-computarlos UNA VEZ
+            # asegura:
+            # ✓ Cero duplicación de cálculos
+            # ✓ Consistencia total entre dominios
+            # ✓ Performance mejorado (1 cálculo vs N)
+            try:
+                from core.indices.subindices_derivados_compartidos import (
+                    comfort_universal,
+                    riesgo_termico_integrado,
+                    estabilidad_atmosferica,
+                    humedad_suelo_integrada,
+                    capacidad_infiltracion_compartida,
+                    radiacion_compuesta,
+                    contexto_lluvia_global
+                )
+                
+                logger.debug("[SHARED] Pre-computando 7 índices compartidos...")
+                
+                # 1. Confort universal (para CETRERÍA, DEPORTE, CONFORT)
+                comfort_univ = comfort_universal(
+                    temperatura=temp_c,
+                    humedad_relativa=humedad,
+                    sensacion_termica=datos_sensores.get("sensacion_termica", temp_c),
+                    velocidad_viento=viento_medio
+                )
+                datos_sensores["comfort_universal"] = comfort_univ
+                
+                # 2. Riesgo térmico integrado (para SALUD, ASTRONOMÍA)
+                riesgo_calor = self.bus.obtener("riesgo_calor_extremo") or 0.0
+                riesgo_frio = self.bus.obtener("riesgo_frio_extremo") or 0.0
+                riesgo_term = riesgo_termico_integrado(
+                    calor_extremo=riesgo_calor,
+                    frio_extremo=riesgo_frio,
+                    temperatura=temp_c
+                )
+                datos_sensores["riesgo_termico_integrado"] = riesgo_term
+                
+                # 3. Estabilidad atmosférica (para CETRERÍA, ASTRONOMÍA)
+                amplitud_term = self.bus.obtener("amplitud_termica_tendencial") or 0.0
+                estabilidad = estabilidad_atmosferica(
+                    amplitud_termica=amplitud_term,
+                    humedad_relativa=humedad
+                )
+                datos_sensores["estabilidad_atmosferica"] = estabilidad
+                datos_sensores["amplitud_termica_tendencial"] = amplitud_term  # Pass-through
+                
+                # 4. Humedad suelo integrada (para RIEGO, HIDROLOGÍA)
+                cultivo = self.system.data.get("cultivo_tipo", "general")
+                humedad_integr = humedad_suelo_integrada(
+                    cultivo_tipo=cultivo,
+                    humedad_suelo_tendencial=humedad_suelo
+                )
+                datos_sensores["humedad_suelo_integrada"] = humedad_integr
+                
+                # 5. Capacidad infiltración compartida (para LLUVIA, HIDROLOGÍA)
+                tipo_suelo = self.system.data.get("tipo_suelo", "franco")
+                pendiente = self.system.data.get("pendiente_terreno_pct", 5.0)
+                capacidad_infiltr = capacidad_infiltracion_compartida(
+                    tipo_suelo=tipo_suelo,
+                    pendiente_terreno_pct=pendiente,
+                    humedad_suelo=humedad_suelo
+                )
+                datos_sensores["capacidad_infiltracion_compartida"] = capacidad_infiltr
+                
+                # 6. Radiación compuesta (para CONFORT, SALUD, ASTRONOMÍA)
+                indice_kt = self.bus.obtener("indice_claridad_kt") or 0.5
+                indice_uvi = self.bus.obtener("indice_uvi") or 0.0
+                radiacion_comp = radiacion_compuesta(
+                    kt=indice_kt,
+                    uvi=indice_uvi
+                )
+                datos_sensores["radiacion_compuesta"] = radiacion_comp
+                
+                # 7. Contexto lluvia global (para TODOS los dominios)
+                probabilidad_sundqvist = self.bus.obtener("probabilidad_lluvia_sundqvist") or 0.0
+                contexto_lluv = contexto_lluvia_global(
+                    lluvia_1h=lluvia_1h,
+                    probabilidad_lluvia_sundqvist=probabilidad_sundqvist
+                )
+                datos_sensores["contexto_lluvia_global"] = contexto_lluv
+                datos_sensores["probabilidad_lluvia_sundqvist"] = probabilidad_sundqvist  # Pass-through
+                
+                logger.debug(
+                    f"[SHARED] ✓ 7 índices pre-computados: "
+                    f"comfort={comfort_univ:.1f}, riesgo_term={riesgo_term:.1f}, "
+                    f"estabilidad={estabilidad:.1f}, humedad_integr={humedad_integr:.1f}, "
+                    f"infiltr={capacidad_infiltr:.1f}, radiacion_comp={radiacion_comp:.1f}"
+                )
+            
+            except Exception as e_shared:
+                logger.warning(f"[WARNING] Pre-cómputo de índices compartidos parcialmente fallido: {e_shared}")
+                # Continuar sin fallar completamente
+            
+            # ═══════════════════════════════════════════════════════════════════════
             # 1. CETRERÍA ROBUSTO (5 componentes + 1 sintético)
             # ═══════════════════════════════════════════════════════════════════════
             try:

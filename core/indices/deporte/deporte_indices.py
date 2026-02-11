@@ -189,10 +189,12 @@ def indice_deporte_sintetico(
     visibilidad: float,
     viento_juego: float,
     confort_atletas: float,
-    lluvia_1h: Optional[float] = None
+    lluvia_1h: Optional[float] = None,
+    riesgo_escorrentia: Optional[float] = None,
+    amplitud_termica: Optional[float] = None
 ) -> float:
     """
-    Índice sintético deporte 0-100 - SUMA PONDERADA DE 4 COMPONENTES.
+    Índice sintético deporte 0-100 - SUMA PONDERADA DE 4 COMPONENTES + CONTEXTOS.
     
     PESOS EXPLÍCITOS:
     - adherencia_terreno: 30% - Fundamental para evitar caídas
@@ -200,12 +202,18 @@ def indice_deporte_sintetico(
     - viento_juego: 20% - Afecta trayectorias/pelotas
     - confort_atletas: 25% - Capacidad física del jugador
     
-    Lluvia afecta DIRECTAMENTE a TODOS: reduce adherencia, visibilidad, confort.
-    Con penalización exponencial si lluvia intensa.
+    CONTEXTOS:
+    - lluvia_1h: Lluvia penaliza fuerte (especialmente adherencia)
+    - riesgo_escorrentia: Terreno intransitable/embarrado
+    - amplitud_termica: Variación extrema = estrés físico
     """
     
     if lluvia_1h is None:
         lluvia_1h = 0.0
+    if riesgo_escorrentia is None:
+        riesgo_escorrentia = 0.0
+    if amplitud_termica is None:
+        amplitud_termica = 50.0
     
     # ESCENARIO 1: LLUVIA EN PROGRESO (lluvia_1h > 0.1 mm)
     if lluvia_1h > 0.1:
@@ -214,14 +222,14 @@ def indice_deporte_sintetico(
         # Lluvia afecta principalmente adherencia (terreno mojado) y confort
         adher_lluvia = _clamp(adherencia_terreno * (1.0 - (lluvia_1h / 3.0)))
         visib_lluvia = _clamp(visibilidad * (1.0 - (lluvia_1h / 5.0)))
-        viento_luvia = _clamp(viento_juego * (1.0 - (lluvia_1h / 10.0)))  # Viento no tan afectado
+        viento_lluvia = _clamp(viento_juego * (1.0 - (lluvia_1h / 10.0)))  # Viento no tan afectado
         confort_lluvia = _clamp(confort_atletas * (1.0 - (lluvia_1h / 4.0)))
         
         # SUMA PONDERADA de los 4 componentes penalizados
         indice_lluvia = _clamp(
             0.30 * adher_lluvia +      # adherencia: 30%
             0.25 * visib_lluvia +      # visibilidad: 25%
-            0.20 * viento_luvia +      # viento: 20%
+            0.20 * viento_lluvia +     # viento: 20%
             0.25 * confort_lluvia      # confort: 25%
         )
         
@@ -231,12 +239,47 @@ def indice_deporte_sintetico(
         
         logger.debug(
             f"Deporte con lluvia: adher={adher_lluvia:.1f}, visib={visib_lluvia:.1f}, "
-            f"viento={viento_luvia:.1f}, confort={confort_lluvia:.1f} -> final={indice_final:.1f}"
+            f"viento={viento_lluvia:.1f}, confort={confort_lluvia:.1f} -> final={indice_final:.1f}"
         )
         
         return _clamp(indice_final)
     
-    # ESCENARIO 2: SIN LLUVIA - SUMA PONDERADA estándar
+    # ESCENARIO 2: ESCORRENTIA EXTREMA (terreno intransitable)
+    elif riesgo_escorrentia > 75.0:
+        logger.debug(f"ESCORRENTIA EXTREMA ({riesgo_escorrentia:.0f}%): Deporte CANCELA (terreno embarrado)")
+        
+        # Terreno muy mojado/embarrado = inaplayable
+        adher_escor = _clamp(adherencia_terreno * (1.0 - ((riesgo_escorrentia - 75.0) / 25.0) * 0.9))
+        
+        indice_escor = _clamp(
+            0.30 * adher_escor +       # adherencia: MUY REDUCIDA
+            0.25 * visibilidad +       # visibilidad: normal
+            0.20 * viento_juego +      # viento: normal
+            0.25 * confort_atletas     # confort: normal
+        )
+        
+        logger.debug(f"Deporte con escorrentía: {indice_escor:.1f}%")
+        return _clamp(indice_escor)
+    
+    # ESCENARIO 3: AMPLITUD TÉRMICA EXTREMA (variación día-noche)
+    elif amplitud_termica > 75.0:
+        logger.debug(f"AMPLITUD TÉRMICA EXTREMA ({amplitud_termica:.0f}%): Deporte INESTABLE (estrés térmico)")
+        
+        # Variación extrema = cuerpo no se adapta bien
+        penalizacion_ampl = ((amplitud_termica - 75.0) / 25.0) * 0.25  # Max -25%
+        factor_ampl = 1.0 - penalizacion_ampl
+        
+        indice_ampl = _clamp(
+            0.30 * adherencia_terreno * factor_ampl +  # Todos reducidos por estrés
+            0.25 * visibilidad * factor_ampl +
+            0.20 * viento_juego * factor_ampl +
+            0.25 * confort_atletas * factor_ampl
+        )
+        
+        logger.debug(f"Deporte con amplitud térmica extrema: {indice_ampl:.1f}%")
+        return _clamp(indice_ampl)
+    
+    # ESCENARIO 4: SIN LLUVIA - SUMA PONDERADA estándar
     else:
         indice_normal = _clamp(
             0.30 * adherencia_terreno +  # adherencia: 30%
@@ -244,6 +287,13 @@ def indice_deporte_sintetico(
             0.20 * viento_juego +        # viento: 20%
             0.25 * confort_atletas       # confort: 25%
         )
+        
+        logger.debug(
+            f"Deporte sin lluvia: adher={adherencia_terreno:.1f}, visib={visibilidad:.1f}, "
+            f"viento={viento_juego:.1f}, confort={confort_atletas:.1f} -> indice={indice_normal:.1f}"
+        )
+        
+        return indice_normal
         
         logger.debug(
             f"Deporte sin lluvia: adher={adherencia_terreno:.1f}, visib={visibilidad:.1f}, "
@@ -282,7 +332,7 @@ def calcular_deporte_completa(data: Dict[str, Optional[float]]) -> Dict[str, Opt
     conf_atl = confort_atletas_robusto(temp_c, humedad, radiacion)
     
     # Índice sintético = valoración integral (lluvia incorporada)
-    indice_sint = indice_deporte_sintetico(adher_terr, visib, viento_j, conf_atl, lluvia_1h=lluvia_1h)
+    indice_sint = indice_deporte_sintetico(adher_terr, visib, viento_j, conf_atl, lluvia_1h=lluvia_1h, riesgo_escorrentia=data.get("riesgo_escorrentia"), amplitud_termica=data.get("amplitud_termica_tendencial"))
     
     return {
         "adherencia_terreno": adher_terr,

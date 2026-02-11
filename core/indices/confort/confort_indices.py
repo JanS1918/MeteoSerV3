@@ -173,7 +173,8 @@ def indice_confort_sintetico(
     humedad_ideal: float,
     indice_uvi: float,
     sensacion_termica: float,
-    lluvia_1h: Optional[float] = None
+    lluvia_1h: Optional[float] = None,
+    amplitud_termica: Optional[float] = None
 ) -> float:
     """
     Índice sintético confort 0-100 - SUMA PONDERADA DE 4 COMPONENTES.
@@ -184,15 +185,46 @@ def indice_confort_sintetico(
     - indice_uvi: 20% - Protección solar
     - sensacion_termica: 20% - Percepción real del cuerpo
     
-    Lluvia reduce confort MODERADAMENTE (menos que deporte/cetrería).
-    Con penalización exponencial muy suave si lluvia.
+    CONTEXTOS INTEGRADOS:
+    - Lluvia reduce confort MODERADAMENTE (menos que deporte/cetrería)
+    - Amplitud térmica extrema (>75%) aumenta estrés térmico (-15% confort)
     """
     
     if lluvia_1h is None:
         lluvia_1h = 0.0
+    if amplitud_termica is None:
+        amplitud_termica = 0.0
+        
+    # ESCENARIO 1: AMPLITUD TÉRMICA EXTREMA (>75%) - Estrés térmico
+    if amplitud_termica > 75.0:
+        logger.debug(f"AMPLITUD TÉRMICA EXTREMA ({amplitud_termica:.1f}%): Estrés +20%")
+        
+        # Amplitud extrema aumenta estrés, reduce componente térmica
+        temp_estres = _clamp(temperatura_ideal * 0.85)  # -15% por estrés
+        hum_estres = _clamp(humedad_ideal * 0.90)       # -10% (deshidratación)
+        uv_estres = indice_uvi  # UV no cambia
+        sent_estres = _clamp(sensacion_termica * 0.85)  # -15% (se siente peor)
+        
+        indice_estres = _clamp(
+            0.35 * temp_estres +
+            0.25 * hum_estres +
+            0.20 * uv_estres +
+            0.20 * sent_estres
+        )
+        
+        logger.debug(f"Confort con amplitud extrema: temp={temp_estres:.1f}, hum={hum_estres:.1f} -> {indice_estres:.1f}")
+        
+        # Si además lluvia, combinar penalizaciones
+        if lluvia_1h > 0.1:
+            penalizacion_lluvia = 1.0 - ((lluvia_1h / 100.0) ** 0.9)
+            indice_final = indice_estres * penalizacion_lluvia
+            logger.debug(f"Amplitud extrema + lluvia: {indice_estres:.1f} * {penalizacion_lluvia:.2f} = {indice_final:.1f}")
+            return _clamp(indice_final)
+        
+        return _clamp(indice_estres)
     
-    # ESCENARIO 1: LLUVIA EN PROGRESO (lluvia_1h > 0.1 mm)
-    if lluvia_1h > 0.1:
+    # ESCENARIO 2: LLUVIA EN PROGRESO (lluvia_1h > 0.1 mm)
+    elif lluvia_1h > 0.1:
         logger.debug(f"LLUVIA EN PROGRESO ({lluvia_1h:.2f}mm): Confort LIGERAMENTE REDUCIDO")
         
         # Lluvia reduce confort pero NO DRASTICAMENTE (es menos crítico que física)
@@ -221,7 +253,7 @@ def indice_confort_sintetico(
         
         return _clamp(indice_final)
     
-    # ESCENARIO 2: SIN LLUVIA - SUMA PONDERADA estándar
+    # ESCENARIO 3: SIN LLUVIA, SIN AMPLITUD EXTREMA - SUMA PONDERADA estándar
     else:
         indice_normal = _clamp(
             0.35 * temperatura_ideal +   # temperatura: 35%
@@ -263,8 +295,9 @@ def calcular_confort_completa(data: Dict[str, Optional[float]]) -> Dict[str, Opt
     uvi = indice_uvi_robusto(radiacion, elevacion_solar)
     sens_term = sensacion_termica_confort_robusto(temp_c, humedad, viento, radiacion)
     
-    # Índice sintético = valoración integral (lluvia incorporada)
-    indice_sint = indice_confort_sintetico(temp_ideal, hum_ideal, uvi, sens_term, lluvia_1h=lluvia_1h)
+    # Índice sintético = valoración integral (lluvia + amplitud térmica integradas)
+    amplitud_term = data.get("amplitud_termica_tendencial", 0.0)
+    indice_sint = indice_confort_sintetico(temp_ideal, hum_ideal, uvi, sens_term, lluvia_1h=lluvia_1h, amplitud_termica=amplitud_term)
     
     return {
         "temperatura_ideal": temp_ideal,

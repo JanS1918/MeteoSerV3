@@ -318,7 +318,8 @@ def indice_lluvia_sintetico(
     derivada_humedad: float = 0.0,
     dt_solar: float = 0.0,
     prob_lluvia_sundqvist: float = 0.0,
-    lluvia_1h: Optional[float] = None
+    lluvia_1h: Optional[float] = None,
+    capacidad_infiltracion_compartida: Optional[float] = None
 ) -> float:
     """
     Índice sintético lluvia = suma ponderada de 9 sub-índices.
@@ -336,6 +337,9 @@ def indice_lluvia_sintetico(
     - dt_solar: 2% - colapso diferencial temperatura
     - prob_lluvia_sundqvist: 2% - probabilidad absoluta
     
+    CONTEXTOS INTEGRADOS:
+    - Capacidad infiltración compartida: si baja (<30%), aumenta riesgo inundación
+    
     Total: 100% con máxima precisión de combined indicators
     """
     if lluvia_1h is None:
@@ -348,6 +352,12 @@ def indice_lluvia_sintetico(
     humedad_score = _clamp(abs(derivada_humedad) / 5.0 * 100.0)  # >5 %/min = 100
     dt_score = _clamp((2.0 - dt_solar) / 2.0 * 100.0) if dt_solar is not None else 0.0  # <0.5°C = 100
     
+    # Contexto: capacidad infiltración baja aumenta riesgo inundación
+    riesgo_infiltr = 0.0
+    if capacidad_infiltracion_compartida is not None and capacidad_infiltracion_compartida < 30.0:
+        logger.debug(f"CAPACIDAD INFILTRACIÓN CRÍTICA ({capacidad_infiltracion_compartida:.1f}%): +50% riesgo inundación")
+        riesgo_infiltr = (30.0 - capacidad_infiltracion_compartida) / 30.0 * 50.0  # Hasta +50
+    
     # Ajustar componentes antiguos si hay lluvia activa
     if lluvia_1h > 0.1:
         vis_penalizacion = _clamp(1.0 - (lluvia_1h / 10.0))
@@ -355,13 +365,13 @@ def indice_lluvia_sintetico(
         adher_penalizacion = _clamp(1.0 - (lluvia_1h / 5.0))
         adher_ajustada = adherencia_terreno * adher_penalizacion
         riesgo_lluvia_extra = _clamp((lluvia_1h / 50.0) ** 1.5 * 40.0)
-        riesgo_ajustado = _clamp(riesgo_inundacion + riesgo_lluvia_extra, 0, 100)
+        riesgo_ajustado = _clamp(riesgo_inundacion + riesgo_lluvia_extra + riesgo_infiltr, 0, 100)
         rayos_penalizacion = _clamp(1.0 + (lluvia_1h / 20.0))
         rayos_ajustados = _clamp(probabilidad_rayos * rayos_penalizacion, 0, 100)
     else:
         visib_ajustada = visibilidad_carretera
         adher_ajustada = adherencia_terreno
-        riesgo_ajustado = riesgo_inundacion
+        riesgo_ajustado = _clamp(riesgo_inundacion + riesgo_infiltr, 0, 100)
         rayos_ajustados = probabilidad_rayos
     
     # SUMA PONDERADA DE TODOS LOS 9 ÍNDICES
@@ -450,6 +460,7 @@ def calcular_lluvia_completa(data: Dict[str, Optional[float]]) -> Dict[str, Opti
         prob_lluvia_sundq = prob_rayos  # Fallback a rayos como proxy
     
     # ========== ÍNDICE SINTÉTICO (suma ponderada de 9) ==========
+    capacidad_infiltr = data.get("capacidad_infiltracion_compartida")
     indice_sint = indice_lluvia_sintetico(
         # Antiguos
         riesgo_inund,
@@ -462,7 +473,8 @@ def calcular_lluvia_completa(data: Dict[str, Optional[float]]) -> Dict[str, Opti
         deriv_humedad,
         dt_solar if dt_solar is not None else 2.0,
         prob_lluvia_sundq,
-        lluvia_1h=lluvia_1h
+        lluvia_1h=lluvia_1h,
+        capacidad_infiltracion_compartida=capacidad_infiltr
     )
     
     # RETORNAR: 4 antiguos + 5 nuevos + 1 sintético + compatible

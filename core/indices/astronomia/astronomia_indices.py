@@ -260,10 +260,13 @@ def indice_astronomia_sintetico(
     obs_nocturna: float,
     amplitud_termica: float,
     claridad_kt: float,
-    visibilidad_noche: float
+    visibilidad_noche: float,
+    lluvia_1h: Optional[float] = None,
+    probabilidad_lluvia_sundqvist: Optional[float] = None,
+    visibilidad_km: Optional[float] = None
 ) -> float:
     """
-    Índice sintético de ASTRONOMÍA (0-100) - SUMA PONDERADA DE 5 COMPONENTES.
+    Índice sintético de ASTRONOMÍA (0-100) - SUMA PONDERADA DE 5 COMPONENTES + CONTEXTOS.
     
     PESOS EXPLÍCITOS:
     - horas_luz: 15% - Duración del día (energía solar disponible)
@@ -272,13 +275,22 @@ def indice_astronomia_sintetico(
     - claridad_kt: 25% - Transparencia atmosférica (radiación clara)
     - visibilidad_noche: 15% - Ausencia de contaminación lumínica/nubosidad nocturna
     
-    Diferentes contextos:
-    - De día: prioriza K_t (40%) + amplitud (40%) + horas_luz (20%)
-    - De noche: prioriza obs_nocturna (50%) + visibilidad_noche (50%)
-    - Simplificado: promedio ponderado balanceado de todos 5.
+    CONTEXTOS GLOBALES:
+    - lluvia_1h: Lluvia actual penaliza FUERTE (lluvia destroza observación)
+    - probabilidad_lluvia_sundqvist: Lluvia predicha penaliza MODERADO (precaución)
+    - visibilidad_km: Polvo/niebla reduce claridad óptica
+    
+    Lógica: lluvia actual es un CANCELA (factor ~0), lluvia predicha es precaución (50%).
     """
-    # SUMA PONDERADA de los 5 componentes
-    score = (
+    if lluvia_1h is None:
+        lluvia_1h = 0.0
+    if probabilidad_lluvia_sundqvist is None:
+        probabilidad_lluvia_sundqvist = 0.0
+    if visibilidad_km is None:
+        visibilidad_km = 10.0
+    
+    # SUMA PONDERADA base de los 5 componentes
+    score_base = (
         horas_luz * 0.15 +              # horas_luz: 15%
         obs_nocturna * 0.25 +           # obs_nocturna: 25%
         amplitud_termica * 0.20 +       # amplitud: 20%
@@ -286,7 +298,73 @@ def indice_astronomia_sintetico(
         visibilidad_noche * 0.15        # visibilidad_noche: 15%
     )
     
-    return _clamp(score, 0, 100)
+    # ESCENARIO 1: LLUVIA ACTUAL (lluvia_1h > 0.5 mm)
+    if lluvia_1h > 0.5:
+        logger.debug(f"LLUVIA EN PROGRESO ({lluvia_1h:.2f}mm): Astronomía CRÍTICA")
+        
+        # Lluvia destruye observación (nubes ocultan todo)
+        penalizacion_lluvia = 1.0 - ((lluvia_1h / 50.0) ** 0.9)
+        
+        # Penalizar TODOS los componentes
+        horas_lloviendo = _clamp(horas_luz * (1.0 - (lluvia_1h / 20.0)))
+        obs_noc_lluvia = _clamp(obs_nocturna * max(0.1, 1.0 - (lluvia_1h / 5.0)))
+        ampl_lluvia = _clamp(amplitud_termica * (1.0 - (lluvia_1h / 30.0)))
+        kt_lluvia = _clamp(claridad_kt * (1.0 - (lluvia_1h / 4.0)))  # K_t muito afectado
+        visib_noc_lluvia = _clamp(visibilidad_noche * max(0.05, 1.0 - (lluvia_1h / 3.0)))
+        
+        score_lluvia = (
+            horas_lloviendo * 0.15 +
+            obs_noc_lluvia * 0.25 +
+            ampl_lluvia * 0.20 +
+            kt_lluvia * 0.25 +
+            visib_noc_lluvia * 0.15
+        )
+        
+        # OVERRIDE: Lluvia actual es prácticamente un cancela
+        score_final = score_lluvia * penalizacion_lluvia
+        
+        logger.debug(
+            f"Astronomía con lluvia: base={score_base:.1f}, con lluvia={score_final:.1f}"
+        )
+        
+        return _clamp(score_final)
+    
+    # ESCENARIO 2: LLUVIA PREDICHA (sundqvist > 70%)
+    elif probabilidad_lluvia_sundqvist > 70.0:
+        logger.debug(f"LLUVIA PREDICHA ({probabilidad_lluvia_sundqvist:.0f}%): Astronomía INCIERTA")
+        
+        # Lluvia predicha reduce confianza, pero no cancela
+        penalizacion = 1.0 - ((probabilidad_lluvia_sundqvist - 70.0) / 30.0) * 0.5  # Max -50%
+        score_final = score_base * penalizacion
+        
+        logger.debug(
+            f"Astronomía con lluvia predicha: {score_base:.1f} → {score_final:.1f}"
+        )
+        
+        return _clamp(score_final)
+    
+    # ESCENARIO 3: VISIBILIDAD REDUCIDA (polvo, niebla)
+    elif visibilidad_km < 5.0:
+        logger.debug(f"VISIBILIDAD BAJA ({visibilidad_km:.1f}km): Astronomía COMPROMETIDA")
+        
+        # Baja visibilidad = polvo/niebla = mala calidad óptica
+        factor_visib = visibilidad_km / 10.0  # 0.0-1.0
+        penalizacion = 1.0 - (1.0 - factor_visib) * 0.3  # Max -30%
+        
+        score_final = score_base * penalizacion
+        
+        logger.debug(
+            f"Astronomía con visibilidad reducida: {score_base:.1f} → {score_final:.1f}"
+        )
+        
+        return _clamp(score_final)
+    
+    # ESCENARIO 4: CONDICIONES NORMALES
+    else:
+        logger.debug(
+            f"Astronomía sin lluvia: {score_base:.1f}%"
+        )
+        return _clamp(score_base)
 
 
 # ============================================================================
@@ -357,13 +435,16 @@ def calcular_astronomia_completa(data: Dict[str, Optional[float]]) -> Dict[str, 
             indice_claridad_kt=kt
         )
         
-        # Sintético
+        # Sintético CON CONTEXTOS GLOBALES
         sintetico = indice_astronomia_sintetico(
             horas_luz=horas_luz,
             obs_nocturna=obs_noc,
             amplitud_termica=amplitud,
             claridad_kt=kt,
-            visibilidad_noche=visib_noc
+            visibilidad_noche=visib_noc,
+            lluvia_1h=data.get("lluvia_1h"),
+            probabilidad_lluvia_sundqvist=data.get("probabilidad_lluvia_sundqvist"),
+            visibilidad_km=data.get("visibilidad_km")
         )
         
         resultado = {

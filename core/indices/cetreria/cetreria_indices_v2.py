@@ -240,10 +240,11 @@ def indice_cetreria_sintetico(
     termales: float,
     barro: float,
     confort: float,
-    lluvia_1h: Optional[float] = None
+    lluvia_1h: Optional[float] = None,
+    riesgo_escorrentia: Optional[float] = None
 ) -> float:
     """
-    Índice sintético cetrería 0-100 - SUMA PONDERADA DE 5 COMPONENTES.
+    Índice sintético cetrería 0-100 - SUMA PONDERADA DE 5 COMPONENTES + CONTEXTOS.
     
     PESOS EXPLÍCITOS:
     - viento: 25% - Crucial para vuelo seguro del ave
@@ -252,11 +253,15 @@ def indice_cetreria_sintetico(
     - barro: 15% - Condición del campo para trabajo
     - confort: 20% - Bienestar térmico del ave
     
-    Lluvia afecta DIRECTAMENTE a TODOS: reduce viento, visibilidad, termales, barro, confort.
+    CONTEXTOS:
+    - lluvia_1h: Lluvia penaliza fuerte (TODOS los componentes)
+    - riesgo_escorrentia: Barro extremadamente mojado/innavegable (penaliza barro)
     """
     
     if lluvia_1h is None:
         lluvia_1h = 0.0
+    if riesgo_escorrentia is None:
+        riesgo_escorrentia = 0.0
     
     # ESCENARIO 1: LLUVIA EN PROGRESO (lluvia_1h > 0.1 mm)
     if lluvia_1h > 0.1:
@@ -274,7 +279,7 @@ def indice_cetreria_sintetico(
             0.25 * viento_lluvia +     # viento: 25%
             0.25 * visib_lluvia +      # visibilidad: 25%
             0.15 * termales_lluvia +   # termales: 15%
-            0.15 * barro_lluvia +      # barro: 15%
+            0.15 * barro_lluvia +      # barro: 15% (ya mojado)
             0.20 * confort_lluvia      # confort: 20%
         )
         
@@ -290,7 +295,25 @@ def indice_cetreria_sintetico(
         
         return _clamp_pct(indice_final)
     
-    # ESCENARIO 2: SIN LLUVIA - SUMA PONDERADA estándar
+    # ESCENARIO 2: ESCORRENTIA EXTREMA (barro muy mojado)
+    elif riesgo_escorrentia > 75.0:
+        logger.debug(f"ESCORRENTIA EXTREMA ({riesgo_escorrentia:.0f}%): Cetrería COMPROMETIDA (barro intransitable)")
+        
+        # Barro intransitable por exceso de agua
+        barro_escor = _clamp_pct(barro * (1.0 - ((riesgo_escorrentia - 75.0) / 25.0) * 0.7))
+        
+        indice_escor = _clamp_pct(
+            0.25 * viento +            # viento: normal
+            0.25 * visibilidad +       # visibilidad: normal
+            0.15 * termales +          # termales: normal
+            0.15 * barro_escor +       # barro: REDUCIDO (mojado)
+            0.20 * confort             # confort: normal
+        )
+        
+        logger.debug(f"Cetrería con escorrentía: {indice_escor:.1f}%")
+        return _clamp_pct(indice_escor)
+    
+    # ESCENARIO 3: SIN LLUVIA - SUMA PONDERADA estándar
     else:
         indice_normal = _clamp_pct(
             0.25 * viento +            # viento: 25%
@@ -346,7 +369,7 @@ def calcular_cetreria_completa(data: Dict[str, Optional[float]]) -> Dict[str, Op
     confort = confort_ave_robusto(temp_c, sensacion, radiacion, viento_med)
     
     # Índice sintético = valoración integral (lluvia incorporada en la fórmula)
-    indice_sintetico = indice_cetreria_sintetico(viento, visibilidad, termales, barro, confort, lluvia_1h=lluvia_1h)
+    indice_sintetico = indice_cetreria_sintetico(viento, visibilidad, termales, barro, confort, lluvia_1h=lluvia_1h, riesgo_escorrentia=data.get("riesgo_escorrentia"))
     
     # Sensación térmica (puede ser None)
     sens_termica = sensacion_termica_cetrera(temp_c, rh, viento_ms)
