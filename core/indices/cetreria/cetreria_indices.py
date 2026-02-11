@@ -85,224 +85,165 @@ def _clamp_pct(value: float) -> float:
 
 
 def _dewpoint_c(temp_c: float, rh: float) -> float:
-    """Punto de rocío WEXLER NIST 2026 (Motor: Diamond_Refined_v1)
-    Unificado con núcleo principal para coherencia total."""
-    from core.indices.environmental_indices import _dew_point
-    return _dew_point(temp_c, rh)
+    a, b = 17.27, 237.7
+    alpha = ((a * temp_c) / (b + temp_c)) + math.log(max(1e-6, rh) / 100.0)
+    return (b * alpha) / (a - alpha)
 
 
-# ============================================================================
-# FUNCIONES ROBUSTAS CONTRA None (NO COLAPSAN SIN SENSORES)
-# ============================================================================
+def _normalize_weights(weights: dict[str, float]) -> dict[str, float]:
+    total = sum(max(0.0, float(v)) for v in weights.values())
+    if total <= 0:
+        return weights
+    return {k: max(0.0, float(v)) / total for k, v in weights.items()}
 
-def viento_cetreria_robusto(
-    viento_medio: Optional[float],
-    rachas: Optional[float],
-    historico_fallback: float = 12.5
-) -> float:
-    """
-    Índice de viento para cetrería (0-100).
-    
-    Robusto: Si ambos sensores faltan, usa promedio histórico de Argentona.
-    Nunca retorna None.
-    
-    Variables:
-      - viento_medio: velocidad media (m/s o km/h)
-      - rachas: velocidad máxima rachas (m/s o km/h)
-      - historico_fallback: valor por defecto si ambos None (default Argentona: 12.5 km/h)
-    
-    Retorna: 0-100 (100 = condiciones ideales para cetrería)
-    """
-    # Fallback: si ambos None, usar histórico
+
+def _weighted_score(components: dict[str, Optional[float]], weights: dict[str, float], bias: float = 0.0) -> Optional[float]:
+    total_w = 0.0
+    total = 0.0
+    for k, w in weights.items():
+        v = components.get(k)
+        if v is None:
+            continue
+        total_w += w
+        total += v * w
+    if total_w <= 0:
+        return None
+    score = (total / total_w) + bias
+    return _clamp_pct(score * 100.0)
+
+
+def _get_weights(nombre: str) -> dict[str, float]:
+    custom = _load_weights().get(nombre)
+    if custom:
+        return _normalize_weights(custom)
+    return _normalize_weights(DEFAULT_WEIGHTS.get(nombre, {}))
+
+
+def _get_bias(nombre: str) -> float:
+    if not os.path.exists(WEIGHTS_PATH):
+        return 0.0
+    try:
+        with open(WEIGHTS_PATH, "r", encoding="utf-8") as f:
+            raw = json.load(f) or {}
+        info = raw.get(nombre, {}) if isinstance(raw, dict) else {}
+        bias = float(info.get("bias", 0.0)) if isinstance(info, dict) else 0.0
+        return max(-0.2, min(0.2, bias))
+    except Exception:
+        return 0.0
+
+
+def componentes_viento_cetreria(viento_medio: Optional[float], rachas: Optional[float],
+                                viento_std: Optional[float] = None) -> dict[str, Optional[float]]:
     if viento_medio is None and rachas is None:
-        v = historico_fallback
-        r = historico_fallback
-    else:
-        v = viento_medio if viento_medio is not None else rachas
-        r = rachas if rachas is not None else viento_medio
-    
-    if v is None:
-        v = historico_fallback
-    if r is None:
-        r = historico_fallback
-    
-    # Fórmula: penalizar vientos muy altos (>30 km/h medio, >40 rachas)
-    score = 100.0 * (
-        0.6 * _clamp(1.0 - (v / 30.0)) +
-        0.3 * _clamp(1.0 - (r / 40.0)) +
-        0.1 * _clamp(1.0 - (abs(r - v) / 20.0))
-    )
-    return _clamp_pct(score)
+        return {}
+    v = viento_medio if viento_medio is not None else rachas
+    r = rachas if rachas is not None else v
+    if v is None or r is None:
+        return {}
+    viento_factor = _clamp(1.0 - (v / 30.0))
+    racha_factor = _clamp(1.0 - (r / 40.0))
+    variabilidad = _clamp(1.0 - (abs(r - v) / 20.0))
+    ratio = r / max(v, 1.0)
+    turbulencia = _clamp(1.0 - max(0.0, ratio - 1.0) / 1.5)
+    var_hist = None
+    if viento_std is not None:
+        var_hist = _clamp(1.0 - (viento_std / 6.0))
+    return {
+        "viento": viento_factor,
+        "racha": racha_factor,
+        "variabilidad": variabilidad,
+        "turbulencia": turbulencia,
+        "var_hist": var_hist,
+    }
 
 
-def visibilidad_terreno_robusto(
-    temp_c: Optional[float],
-    dew_c: Optional[float],
-    rh: Optional[float],
-    nubosidad: Optional[float],
-    historico_visibility: float = 75.0
-) -> float:
-    """
-    Índice de visibilidad para cetrería (0-100).
-    Robusto contra sensores faltantes.
-    
-    Nunca retorna None.
-    """
-    # Si faltan todos los sensores, usar fallback histórico
-    if all(v is None for v in [temp_c, rh, nubosidad]):
-        return _clamp_pct(historico_visibility)
-    
-    # Usar valores o aprox
-    t = temp_c if temp_c is not None else 15.0
-    h = rh if rh is not None else 70.0
-    n = nubosidad if nubosidad is not None else 50.0
-    
-    # Calcular dew si falta
-    if dew_c is None and temp_c is not None and rh is not None:
-        try:
-            dew_c = _dewpoint_c(temp_c, rh)
-        except:
-            dew_c = t - ((100.0 - h) / 5.0)  # Aproximación burda
-    elif dew_c is None:
-        dew_c = t - 10.0
-    
-    delta_t = max(t - dew_c, 0.0)
+def componentes_visibilidad_terreno(temp_c: Optional[float], dew_c: Optional[float], rh: Optional[float],
+                                    nubosidad: Optional[float], pm25: Optional[float] = None,
+                                    lluvia_rate: Optional[float] = None) -> dict[str, Optional[float]]:
+    if temp_c is None or rh is None or nubosidad is None:
+        return {}
+    dew = dew_c if dew_c is not None else _dewpoint_c(temp_c, rh)
+    delta_t = max(temp_c - dew, 0.0)
     sat_factor = _clamp((10.0 - delta_t) / 10.0)
-    rh_factor = _clamp(h / 100.0)
-    nub_factor = 1.0 - _clamp(n / 100.0)
-    
-    score = 100.0 * (
-        0.5 * nub_factor +
-        0.3 * (1.0 - sat_factor) +
-        0.2 * (1.0 - rh_factor)
-    )
-    return _clamp_pct(score)
+    rh_factor = _clamp(rh / 100.0)
+    nub_factor = 1.0 - _clamp(nubosidad / 100.0)
+    aerosol_factor = None
+    if pm25 is not None:
+        aerosol_factor = _clamp(1.0 - (pm25 / 150.0))
+    lluvia_factor = None
+    if lluvia_rate is not None:
+        lluvia_factor = _clamp(1.0 - (lluvia_rate / 2.0))
+    return {
+        "nub": nub_factor,
+        "saturacion": 1.0 - sat_factor,
+        "humedad": 1.0 - rh_factor,
+        "aerosol": aerosol_factor,
+        "lluvia": lluvia_factor,
+    }
 
 
-def termales_probabilidad_robusto(
-    radiacion_real: Optional[float],
-    var_t_5min: Optional[float],
-    nubosidad: Optional[float],
-    viento_medio: Optional[float],
-    rh: Optional[float],
-    historico_termales: float = 45.0
-) -> float:
-    """
-    Probabilidad de térmicas para cetrería (0-100).
-    Robusto contra sensores faltantes.
-    """
-    # Si faltan más de 3 sensores, fallback
-    sensores_validos = sum([
-        radiacion_real is not None,
-        nubosidad is not None,
-        viento_medio is not None,
-        rh is not None
-    ])
-    
-    if sensores_validos < 2:
-        return _clamp_pct(historico_termales)
-    
-    rad = radiacion_real if radiacion_real is not None else 600.0
+def componentes_termales_probabilidad(radiacion_real: Optional[float], var_t_5min: Optional[float],
+                                      nubosidad: Optional[float], viento_medio: Optional[float],
+                                      rh: Optional[float], temp_c: Optional[float] = None,
+                                      dew_c: Optional[float] = None,
+                                      temp_tendencia_30m: Optional[float] = None) -> dict[str, Optional[float]]:
+    if radiacion_real is None or nubosidad is None or viento_medio is None or rh is None:
+        return {}
     var_t = var_t_5min if var_t_5min is not None else 0.0
-    nub = nubosidad if nubosidad is not None else 50.0
-    v = viento_medio if viento_medio is not None else 10.0
-    h = rh if rh is not None else 65.0
-    
-    rad_factor = _clamp(rad / 800.0)
+    rad_factor = _clamp(radiacion_real / 800.0)
     var_factor = _clamp(var_t / 0.6)
-    nub_factor = 1.0 - _clamp(nub / 100.0)
-    viento_factor = _clamp(1.0 - (v / 20.0))
-    hum_factor = _clamp(1.0 - (h / 100.0))
-    
-    score = 100.0 * (
-        0.4 * rad_factor +
-        0.2 * var_factor +
-        0.2 * nub_factor +
-        0.1 * viento_factor +
-        0.1 * hum_factor
-    )
-    return _clamp_pct(score)
+    nub_factor = 1.0 - _clamp(nubosidad / 100.0)
+    viento_factor = _clamp(1.0 - (viento_medio / 20.0))
+    hum_factor = _clamp(1.0 - (rh / 100.0))
+    sequedad_factor = None
+    if temp_c is not None and dew_c is not None:
+        delta_t = max(temp_c - dew_c, 0.0)
+        sequedad_factor = _clamp(delta_t / 12.0)
+    tendencia_factor = None
+    if temp_tendencia_30m is not None:
+        tendencia_factor = _clamp(temp_tendencia_30m / 2.0)
+    return {
+        "radiacion": rad_factor,
+        "var_termica": var_factor,
+        "nub": nub_factor,
+        "viento": viento_factor,
+        "humedad": hum_factor,
+        "sequedad": sequedad_factor,
+        "tendencia_temp": tendencia_factor,
+    }
 
 
-def barro_campo_robusto(
-    lluvia_24h: Optional[float],
-    lluvia_1h: Optional[float],
-    viento_medio: Optional[float],
-    temp_c: Optional[float],
-    dew_c: Optional[float],
-    historico_secado: float = 60.0
-) -> float:
-    """
-    Índice de barro/secado de campo para cetrería (0-100).
-    Robusto contra sensores faltantes.
-    
-    0-100: 0 = campos encharcados, 100 = terreno seco
-    """
-    if all(v is None for v in [lluvia_24h, lluvia_1h, viento_medio]):
-        return _clamp_pct(historico_secado)
-    
+def componentes_barro_campo(lluvia_24h: Optional[float], lluvia_1h: Optional[float],
+                            viento_medio: Optional[float], temp_c: Optional[float],
+                            dew_c: Optional[float], lluvia_rate: Optional[float] = None,
+                            humedad_suelo: Optional[float] = None) -> dict[str, Optional[float]]:
+    if lluvia_24h is None and lluvia_1h is None and viento_medio is None and humedad_suelo is None:
+        return {}
     lluvia_24 = lluvia_24h if lluvia_24h is not None else 0.0
     lluvia_1 = lluvia_1h if lluvia_1h is not None else 0.0
-    v = viento_medio if viento_medio is not None else 10.0
-    
-    # Estimar secado por viento y temp
+    v = viento_medio if viento_medio is not None else 0.0
     if temp_c is None or dew_c is None:
         secado_factor = _clamp(v / 20.0)
     else:
         secado_factor = _clamp((v / 20.0) + ((temp_c - dew_c) / 10.0))
-    
     lluvia_factor = _clamp(lluvia_24 / 20.0)
     reciente_factor = _clamp(lluvia_1 / 5.0)
-    
-    score = 100.0 * (
-        0.6 * (1.0 - lluvia_factor) +
-        0.3 * (1.0 - reciente_factor) +
-        0.1 * secado_factor
-    )
-    return _clamp_pct(score)
+    lluvia_rate_factor = _clamp((lluvia_rate or 0.0) / 2.0) if lluvia_rate is not None else None
+    suelo_factor = _clamp((humedad_suelo or 0.0) / 100.0) if humedad_suelo is not None else None
+    return {
+        "lluvia_24h": lluvia_factor,
+        "lluvia_1h": reciente_factor,
+        "lluvia_rate": lluvia_rate_factor,
+        "suelo": suelo_factor,
+        "secado": secado_factor,
+    }
 
 
-def confort_ave_robusto(
-    temp_c: Optional[float],
-    sensacion_termica: Optional[float],
-    radiacion_real: Optional[float],
-    viento_medio: Optional[float],
-    historico_confort: float = 70.0
-) -> float:
-    """
-    Índice de confort del ave para cetrería (0-100).
-    Robusto contra sensores faltantes.
-    
-    Ideal: 16-22°C, sin radiación excesiva, viento moderado.
-    """
+def componentes_confort_ave(temp_c: Optional[float], sensacion_termica: Optional[float],
+                            radiacion_real: Optional[float], viento_medio: Optional[float],
+                            rh: Optional[float] = None, uv: Optional[float] = None) -> dict[str, Optional[float]]:
     if temp_c is None and sensacion_termica is None:
-        return _clamp_pct(historico_confort)
-    
-    t = temp_c if temp_c is not None else sensacion_termica
-    s = sensacion_termica if sensacion_termica is not None else t
-    v = viento_medio if viento_medio is not None else 10.0
-    r = radiacion_real if radiacion_real is not None else 500.0
-    
-    if t is None:
-        t = 18.0
-    if s is None:
-        s = t
-    
-    temp_factor = _clamp(1.0 - abs(t - 18.0) / 15.0)
-    sens_factor = _clamp(1.0 - abs(s - 18.0) / 15.0)
-    rad_factor = _clamp(1.0 - (r / 900.0))
-    viento_factor = _clamp(1.0 - (v / 25.0))
-    
-    score = 100.0 * (
-        0.4 * temp_factor +
-        0.3 * sens_factor +
-        0.2 * rad_factor +
-        0.1 * viento_factor
-    )
-    return _clamp_pct(score)
-
-
-def sensacion_termica_cetrera(temp_c: Optional[float], humedad_pct: Optional[float], viento_ms: Optional[float]) -> Optional[float]:
+        return {}
     t = temp_c if temp_c is not None else sensacion_termica
     s = sensacion_termica if sensacion_termica is not None else t
     v = viento_medio if viento_medio is not None else 0.0
@@ -420,42 +361,6 @@ def indice_cetreria_final(indice_seguridad: Optional[float], viento_cet: Optiona
     return _weighted_score(componentes, pesos, bias=bias)
 
 
-def sensacion_termica_cetrera(temp_c: Optional[float], humedad_pct: Optional[float], viento_ms: Optional[float]) -> Optional[float]:
-    """
-    Estimador simple de sensación térmica para cetrería.
-    Usa aproximación tipo 'apparent temperature' (BOM-style):
-      AT = T + 0.33*e - 0.7*v - 4.0
-    donde e es presión de vapor en hPa.
-    Intentamos delegar en `saturacion_vapor_hyland_wexler` para calcular e_s.
-    """
-    if temp_c is None or humedad_pct is None:
-        return None
-    try:
-        from core.indices.environmental_indices import saturacion_vapor_hyland_wexler
-        presion_pa = saturacion_vapor_hyland_wexler(float(temp_c), 101325.0)
-        if presion_pa is None:
-            raise Exception("no es_pa")
-        e_pa = float(presion_pa) * (float(humedad_pct) / 100.0)
-        e_hpa = e_pa / 100.0
-    except Exception:
-        # Fallback sencillo si no se puede obtener Hyland-Wexler
-        try:
-            # Magnus-Tetens approx for e_s in hPa
-            a = 6.116441
-            b = 17.62391
-            c = 243.12
-            import math
-            ln_es = (b * float(temp_c)) / (c + float(temp_c))
-            es_hpa = a * math.exp(ln_es)
-            e_hpa = es_hpa * (float(humedad_pct) / 100.0)
-        except Exception:
-            return None
-
-    v = float(viento_ms) if viento_ms is not None else 0.0
-    at = float(temp_c) + 0.33 * float(e_hpa) - 0.7 * v - 4.0
-    return round(at, 1)
-
-
 def calcular_cetreria(data: Dict[str, Optional[float]]) -> Dict[str, Optional[float]]:
     viento_med = data.get("viento_medio")
     rachas = data.get("rachas")
@@ -475,11 +380,17 @@ def calcular_cetreria(data: Dict[str, Optional[float]]) -> Dict[str, Optional[fl
     uv = data.get("uv")
     viento_std_30m = data.get("viento_std_30m")
 
-    viento = viento_cetreria_robusto(viento_med, rachas)
-    visibilidad = visibilidad_terreno_robusto(temp_c, dew_c, rh, nub)
-    termales = termales_probabilidad_robusto(radiacion, var_t_5min, nub, viento_med, rh)
-    barro = barro_campo_robusto(lluvia_24h, lluvia_1h, viento_med, temp_c, dew_c)
-    confort = confort_ave_robusto(temp_c, sensacion, radiacion, viento_med)
+    viento = viento_cetreria(viento_med, rachas, viento_std=viento_std_30m)
+    visibilidad = visibilidad_terreno(temp_c, dew_c, rh, nub, pm25=pm25, lluvia_rate=lluvia_rate)
+    termales = termales_probabilidad(
+        radiacion, var_t_5min, nub, viento_med, rh,
+        temp_c=temp_c, dew_c=dew_c, temp_tendencia_30m=temp_tendencia_30m
+    )
+    barro = barro_campo(
+        lluvia_24h, lluvia_1h, viento_med, temp_c, dew_c,
+        lluvia_rate=lluvia_rate, humedad_suelo=humedad_suelo
+    )
+    confort = confort_ave(temp_c, sensacion, radiacion, viento_med, rh=rh, uv=uv)
     seguridad = indice_seguridad_vuelo(viento, visibilidad, barro, termales)
     indice_cetreria = indice_cetreria_final(seguridad, viento, visibilidad, confort)
 

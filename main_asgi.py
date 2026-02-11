@@ -1367,9 +1367,8 @@ try:
 except Exception:
     INDEX_CATALOG = {}
 
-# Crear `app` en caso de que no exista (algunas secciones del archivo definen rutas antes)
-if "app" not in globals():
-    app = FastAPI()
+# Nota: app ya está creada en línea 861 con lifespan personalizado
+# No crear duplicado aquí para mantener integridad del ciclo de vida
 
 MAX_SENSOR_FRESHNESS_SECONDS = 300
 SENSOR_SMOOTHING_ALPHA = 0.5
