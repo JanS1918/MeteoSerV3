@@ -167,6 +167,48 @@ async def lifespan(app_instance: FastAPI):
         logger.warning(f"[WARNING] Servicio de alertas no disponible: {e}")
         app_instance.state.servicio_alertas = None
 
+    # [ANÁLISIS HISTÓRICO] ANÁLISIS TEMPORAL Y TENDENCIAS (STEP 8)
+    # Procesa datos históricos para detectar patrones y predecir anomalías
+    try:
+        from core.analytics.analisis_historico import iniciar_analizador
+        contexto_analizador = iniciar_analizador()
+        logger.info("[ANALIZADOR] OK - Sistema de análisis histórico iniciado")
+        logger.info("[ANALIZADOR] - Monitorea: tendencias de alertas y WH31")
+        logger.info("[ANALIZADOR] - Almacenamiento: data/analytics/")
+        logger.info("[ANALIZADOR] - Reportes: semanal, mensual")
+        app_instance.state.analizador_historico = contexto_analizador
+    except Exception as e:
+        logger.warning(f"[WARNING] Analizador histórico no disponible: {e}")
+        app_instance.state.analizador_historico = None
+
+    # [CALCULADOR SALUD] PUNTUACIÓN INTEGRAL DEL SISTEMA (STEP 9)
+    # Calcula 0-100 scores basado en múltiples factores
+    try:
+        from core.analytics.calculador_salud import iniciar_calculador_salud
+        contexto_salud = iniciar_calculador_salud()
+        logger.info("[SALUD] OK - Calculador de puntuación de salud iniciado")
+        logger.info("[SALUD] - Factores: cobertura_audit, estabilidad_wh31, tasa_criticos, resolucion, disponibilidad")
+        logger.info("[SALUD] - Rango: 0-100 (rojo-verde)")
+        logger.info("[SALUD] - Endpoint: GET /api/v1/salud/puntuacion")
+        app_instance.state.calculador_salud = contexto_salud
+    except Exception as e:
+        logger.warning(f"[WARNING] Calculador de salud no disponible: {e}")
+        app_instance.state.calculador_salud = None
+
+    # [GESTOR TENANTS] MULTI-TENANCY & ESCALABILIDAD (STEP 10)
+    # Soporte para múltiples dominios/tenants aislados
+    try:
+        from core.analytics.gestor_tenants import iniciar_gestor_tenants
+        contexto_tenants = iniciar_gestor_tenants()
+        logger.info("[TENANTS] OK - Gestor de múltiples tenants iniciado")
+        logger.info("[TENANTS] - Aislamiento: datos, alertas, configuración")
+        logger.info("[TENANTS] - Almacenamiento: data/tenants/")
+        logger.info("[TENANTS] - Endpoints: GET /api/v1/tenants/*")
+        app_instance.state.gestor_tenants = contexto_tenants
+    except Exception as e:
+        logger.warning(f"[WARNING] Gestor de tenants no disponible: {e}")
+        app_instance.state.gestor_tenants = None
+
     mqtt_host = os.getenv("METEOSER_MQTT_HOST", "127.0.0.1")
     mqtt_tls_enabled = os.getenv("METEOSER_MQTT_TLS", "1") not in ("0", "false", "False")
     default_mqtt_port = "8883" if mqtt_tls_enabled else "1883"
