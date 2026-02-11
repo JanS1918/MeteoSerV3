@@ -244,9 +244,111 @@ def probabilidad_rayos_robusto(
 # ÍNDICE SINTÉTICO LLUVIA
 # ============================================================================
 
-def indice_lluvia_sintetico(riesgo_inundacion: float, visibilidad_carretera: float, adherencia_terreno: float, probabilidad_rayos: float, lluvia_1h: Optional[float] = None) -> float:
+def calcular_derivada_regresion_lineal(
+    historial: list,
+    factor_tiempo: float = 1.0,
+    min_puntos: int = 2
+) -> float:
+    """
+    Regresión lineal para calcular derivadas (dGHI/dt, dP/dt, dHR/dt, etc)
+    
+    Retorna: dx/dt en unidades por unidad_tiempo
+    """
+    if not historial or len(historial) < min_puntos:
+        return 0.0
+    
+    try:
+        # historial puede ser list de dicts o list de floats
+        valores = []
+        tiempos = []
+        
+        for i, item in enumerate(historial):
+            if isinstance(item, dict):
+                valores.append(float(item.get("valor", 0)))
+                tiempos.append(i)
+            else:
+                valores.append(float(item))
+                tiempos.append(i)
+        
+        if len(valores) < min_puntos:
+            return 0.0
+        
+        # Regresión mínimos cuadrados
+        n = len(valores)
+        t_mean = sum(tiempos) / n
+        v_mean = sum(valores) / n
+        
+        numerador = sum((tiempos[i] - t_mean) * (valores[i] - v_mean) for i in range(n))
+        denominador = sum((tiempos[i] - t_mean) ** 2 for i in range(n))
+        
+        if denominador == 0:
+            return 0.0
+        
+        pendiente = numerador / denominador
+        return pendiente * factor_tiempo
+    except Exception as e:
+        logger.warning(f"Error en regresión lineal: {e}")
+        return 0.0
+
+
+def derivada_ghi_w_m2_s(ghi_historial: list) -> float:
+    """Derivada radiación GHI (W/m²/min)"""
+    return calcular_derivada_regresion_lineal(ghi_historial, factor_tiempo=60.0)
+
+
+def derivada_presion_hpa_min(presion_historial: list) -> float:
+    """Derivada presión (hPa/min)"""
+    return calcular_derivada_regresion_lineal(presion_historial, factor_tiempo=60.0)
+
+
+def derivada_humedad_pct_min(humedad_historial: list) -> float:
+    """Derivada humedad relativa (%/min)"""
+    return calcular_derivada_regresion_lineal(humedad_historial, factor_tiempo=60.0)
+
+
+def indice_lluvia_sintetico(
+    # 4 componentes antiguos
+    riesgo_inundacion: float,
+    visibilidad_carretera: float,
+    adherencia_terreno: float,
+    probabilidad_rayos: float,
+    # 5 componentes nuevos (derivadas)
+    derivada_ghi: float = 0.0,
+    derivada_presion: float = 0.0,
+    derivada_humedad: float = 0.0,
+    dt_solar: float = 0.0,
+    prob_lluvia_sundqvist: float = 0.0,
+    lluvia_1h: Optional[float] = None
+) -> float:
+    """
+    Índice sintético lluvia = suma ponderada de 9 sub-índices.
+    
+    COMPONENTES ANTIGUOS (4):
+    - riesgo_inundacion: 15% - lluvia acumulada + presión
+    - visibilidad_carretera: 12% - PM2.5 + humedad + lluvia
+    - adherencia_terreno: 10% - sequedad/humedad suelo
+    - probabilidad_rayos: 13% - inestabilidad CAPE
+    
+    COMPONENTES NUEVOS (5):
+    - derivada_ghi: 20% - oscurecimiento rápido (clearing/nube)
+    - derivada_presion: 18% - caída presión (frentes)
+    - derivada_humedad: 8% - aumento rápido HR (saturación)
+    - dt_solar: 2% - colapso diferencial temperatura
+    - prob_lluvia_sundqvist: 2% - probabilidad absoluta
+    
+    Total: 100% con máxima precisión de combined indicators
+    """
     if lluvia_1h is None:
         lluvia_1h = 0.0
+    
+    # Normalizar derivadas a escala 0-100
+    # (valores absolutos necesarios para que tenga sentido el scoring)
+    ghi_score = _clamp(abs(derivada_ghi) / 200.0 * 100.0)  # >200 W/m²/min = 100
+    presion_score = _clamp(abs(derivada_presion) / 3.0 * 100.0)  # >3 hPa/min = 100
+    humedad_score = _clamp(abs(derivada_humedad) / 5.0 * 100.0)  # >5 %/min = 100
+    dt_score = _clamp((2.0 - dt_solar) / 2.0 * 100.0) if dt_solar is not None else 0.0  # <0.5°C = 100
+    
+    # Ajustar componentes antiguos si hay lluvia activa
     if lluvia_1h > 0.1:
         vis_penalizacion = _clamp(1.0 - (lluvia_1h / 10.0))
         visib_ajustada = visibilidad_carretera * vis_penalizacion
@@ -256,22 +358,50 @@ def indice_lluvia_sintetico(riesgo_inundacion: float, visibilidad_carretera: flo
         riesgo_ajustado = _clamp(riesgo_inundacion + riesgo_lluvia_extra, 0, 100)
         rayos_penalizacion = _clamp(1.0 + (lluvia_1h / 20.0))
         rayos_ajustados = _clamp(probabilidad_rayos * rayos_penalizacion, 0, 100)
-        indice_lluvia = _clamp(0.30 * (100 - riesgo_ajustado) + 0.25 * visib_ajustada + 0.25 * adher_ajustada + 0.20 * (100 - rayos_ajustados), 0, 100)
-        return indice_lluvia
     else:
-        indice_lluvia = _clamp(0.30 * (100 - riesgo_inundacion) + 0.25 * visibilidad_carretera + 0.25 * adherencia_terreno + 0.20 * (100 - probabilidad_rayos), 0, 100)
-        return indice_lluvia
+        visib_ajustada = visibilidad_carretera
+        adher_ajustada = adherencia_terreno
+        riesgo_ajustado = riesgo_inundacion
+        rayos_ajustados = probabilidad_rayos
+    
+    # SUMA PONDERADA DE TODOS LOS 9 ÍNDICES
+    indice_lluvia = _clamp(
+        0.15 * (100 - riesgo_ajustado) +      # riesgo inundación (invertido)
+        0.12 * visib_ajustada +                # visibilidad
+        0.10 * adher_ajustada +                # adherencia
+        0.13 * (100 - rayos_ajustados) +      # rayos (invertido)
+        0.20 * ghi_score +                     # derivada GHI (NUEVO)
+        0.18 * presion_score +                 # derivada presión (NUEVO)
+        0.08 * humedad_score +                 # derivada humedad (NUEVO)
+        0.02 * dt_score +                      # dt solar (NUEVO)
+        0.02 * (prob_lluvia_sundqvist * 1.0)   # sundqvist (NUEVO)
+    , 0, 100)
+    
+    return indice_lluvia
 
 
 
 def calcular_lluvia_completa(data: Dict[str, Optional[float]]) -> Dict[str, Optional[float]]:
     """
-    Calcula TODOS los índices de lluvia/riesgo.
+    Calcula TODOS los índices de lluvia: 4 antiguos + 5 nuevos + 1 sintético.
     
-    Entrada: Dict con sensores clima
-    Salida: 5 índices (4 componentes + 1 sintético)
+    COMPONENTES ANTIGUOS (4):
+    - riesgo_inundacion: lluvia acumulada + presión
+    - visibilidad_carretera: PM2.5 + humedad + lluvia
+    - adherencia_terreno: sequedad suelo
+    - probabilidad_rayos: inestabilidad convectiva
+    
+    COMPONENTES NUEVOS (5):
+    - derivada_ghi: cambio radiación luminosa
+    - derivada_presion: caída presión barométrica
+    - derivada_humedad: aumento HR
+    - dt_solar: colapso diferencial temperatura
+    - prob_lluvia_sundqvist: probabilidad microfísica
+    
+    SINTÉTICO: suma ponderada de todos (100%)
     """
     
+    # Datos básicos
     lluvia_24h = data.get("lluvia_24h")
     lluvia_72h = data.get("lluvia_72h")
     lluvia_1h = data.get("lluvia_1h")
@@ -286,20 +416,69 @@ def calcular_lluvia_completa(data: Dict[str, Optional[float]]) -> Dict[str, Opti
     if presion is not None and presion > 2000:
         presion = presion / 100.0
     
-    # Calcular índices robustos
+    # ========== COMPONENTES ANTIGUOS (4) ==========
     riesgo_inund = riesgo_inundacion_robusto(lluvia_24h, lluvia_72h, presion)
     visib_carr = visibilidad_carretera_robusto(lluvia_1h, nubosidad, humedad)
     adher_terr = adherencia_terreno_robusto(lluvia_24h, lluvia_1h, viento, temp, dew)
     prob_rayos = probabilidad_rayos_robusto(presion, temp, humedad)
     
-    # Índice sintético con lluvia actual como entrada (INTEGRAL, no simple promedio)
-    indice_sint = indice_lluvia_sintetico(riesgo_inund, visib_carr, adher_terr, prob_rayos, lluvia_1h=lluvia_1h)
+    # ========== COMPONENTES NUEVOS (5) ==========
+    # Obtener históricos si existen
+    ghi_historial = data.get("ghi_historial", [])
+    presion_historial = data.get("presion_historial", [])
+    humedad_historial = data.get("humedad_historial", [])
+    dt_solar = data.get("dt_solar", None)  # Temperatura diferencial Sun-Shade
     
+    # Calcular derivadas
+    deriv_ghi = derivada_ghi_w_m2_s(ghi_historial)
+    deriv_presion = derivada_presion_hpa_min(presion_historial)
+    deriv_humedad = derivada_humedad_pct_min(humedad_historial)
+    
+    # Probabilidad lluvia Sundqvist (usa motor prediction si existe)
+    prob_lluvia_sundq = 0.0
+    try:
+        from core.prediction.prediction_engine import obtener_motor_prediccion
+        predictor = obtener_motor_prediccion()
+        pred = predictor.predecir()
+        prob_lluvia_val = pred.get("prob_lluvia", {})
+        if isinstance(prob_lluvia_val, dict):
+            prob_lluvia_sundq = float(prob_lluvia_val.get("valor", 0.0))
+        else:
+            prob_lluvia_sundq = float(prob_lluvia_val) if prob_lluvia_val else 0.0
+    except Exception as e:
+        logger.debug(f"Sundqvist no disponible: {e}")
+        prob_lluvia_sundq = prob_rayos  # Fallback a rayos como proxy
+    
+    # ========== ÍNDICE SINTÉTICO (suma ponderada de 9) ==========
+    indice_sint = indice_lluvia_sintetico(
+        # Antiguos
+        riesgo_inund,
+        visib_carr,
+        adher_terr,
+        prob_rayos,
+        # Nuevos
+        deriv_ghi,
+        deriv_presion,
+        deriv_humedad,
+        dt_solar if dt_solar is not None else 2.0,
+        prob_lluvia_sundq,
+        lluvia_1h=lluvia_1h
+    )
+    
+    # RETORNAR: 4 antiguos + 5 nuevos + 1 sintético + compatible
     return {
+        # Antiguos
         "riesgo_inundacion": riesgo_inund,
         "visibilidad_carretera": visib_carr,
         "adherencia_terreno": adher_terr,
         "probabilidad_rayos": prob_rayos,
+        # Nuevos
+        "derivada_ghi_w_m2_min": deriv_ghi,
+        "derivada_presion_hpa_min": deriv_presion,
+        "derivada_humedad_pct_min": deriv_humedad,
+        "dt_solar_grados": dt_solar if dt_solar is not None else 0.0,
+        "probabilidad_lluvia_sundqvist": prob_lluvia_sundq,
+        # Sintético
         "indice_lluvia_sintetico": indice_sint,
         "indice_lluvia": indice_sint  # Compatibilidad
     }
