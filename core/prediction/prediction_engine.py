@@ -408,9 +408,25 @@ class PredictionEngine:
         factor = 0.8 + (avg / 100.0) * 0.4
         return max(0.7, min(1.2, factor))
 
+    def _combine_estimators(self, values: List[float], weights: Optional[List[float]] = None) -> tuple[float, float]:
+        if not values:
+            return 0.0, 0.0
+        if weights and len(weights) == len(values):
+            total_w = sum(weights)
+            if total_w > 0:
+                avg = sum(v * w for v, w in zip(values, weights)) / total_w
+            else:
+                avg = sum(values) / len(values)
+        else:
+            avg = sum(values) / len(values)
+        var = sum((v - avg) ** 2 for v in values) / max(1, len(values))
+        std = var ** 0.5
+        return max(0.0, min(100.0, avg)), max(0.0, std)
+
     def predecir(self) -> Dict[str, Any]:
         pred: Dict[str, Any] = {}
         indices: Dict[str, Any] | None = None
+        time_feats = self._time_features()
         try:
             from core.indices.environmental_indices import EnvironmentalIndices
             if not isinstance(self.system.indices, EnvironmentalIndices):

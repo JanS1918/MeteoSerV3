@@ -1,3 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# IDE / Editor
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and runtime
+logs/
+*.log
+
+# Data generated at runtime (keep only source-controlled examples)
+data/*.json
+data/*.jsonl
+
+# Secrets
+.env
+secrets.json
+
+# Ignore compiled python caches anywhere
+**/__pycache__/
+**/*.pyc
 .vscode/
 .venv/
 archive/logs/

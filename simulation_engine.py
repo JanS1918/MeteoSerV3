@@ -8,7 +8,7 @@ import math
 import time
 import json
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 # Intentamos importar componentes auxiliares si existen
 try:
@@ -41,7 +41,14 @@ class SimplePredictiveModel:
     Diseñado para simulaciones internas que alimentan decisiones.
     """
 
-    def __init__(self, name: str, weights: Dict[str, float], bias: float = 0.0, trend_alpha: float = 0.1, noise_std: float = 0.0):
+    def __init__(
+        self,
+        name: str,
+        weights: Dict[str, float],
+        bias: float = 0.0,
+        trend_alpha: float = 0.1,
+        noise_std: float = 0.0,
+    ):
         self.name = name
         self.weights = dict(weights)
         self.bias = bias
@@ -54,13 +61,16 @@ class SimplePredictiveModel:
         for k, w in self.weights.items():
             s += w * inputs.get(k, 0.0)
         # aplicar tendencia suavizada
-        trend = self.last_trend * (1.0 - self.trend_alpha) + self.trend_alpha * (s - self.last_trend)
+        trend = self.last_trend * (1.0 - self.trend_alpha) + self.trend_alpha * (
+            s - self.last_trend
+        )
         self.last_trend = trend
         # añadir ruido gaussiano simple (si noise_std > 0)
         noise = 0.0
         if self.noise_std > 0.0:
             # uso de Box-Muller simple
             import random
+
             u1 = random.random() or 1e-6
             u2 = random.random()
             z0 = math.sqrt(-2.0 * math.log(u1)) * math.cos(2.0 * math.pi * u2)
@@ -81,7 +91,12 @@ class SimulationEngine:
 
     MODELS_FILE = "simulation_models.json"
 
-    def __init__(self, base_path: str, learning_engine: Optional[LearningEngine] = None, virtual_manager: Optional[VirtualSensorManager] = None):
+    def __init__(
+        self,
+        base_path: str,
+        learning_engine: Optional[LearningEngine] = None,
+        virtual_manager: Optional[VirtualSensorManager] = None,
+    ):
         self.base_path = base_path
         self.learning_engine = learning_engine
         self.virtual_manager = virtual_manager
@@ -96,8 +111,17 @@ class SimulationEngine:
     # ------------------------------------------------------------
     # GESTIÓN DE MODELOS
     # ------------------------------------------------------------
-    def add_model(self, name: str, weights: Dict[str, float], bias: float = 0.0, trend_alpha: float = 0.1, noise_std: float = 0.0):
-        self.models[name] = SimplePredictiveModel(name, weights, bias, trend_alpha, noise_std)
+    def add_model(
+        self,
+        name: str,
+        weights: Dict[str, float],
+        bias: float = 0.0,
+        trend_alpha: float = 0.1,
+        noise_std: float = 0.0,
+    ):
+        self.models[name] = SimplePredictiveModel(
+            name, weights, bias, trend_alpha, noise_std
+        )
         self._save_models()
 
     def remove_model(self, name: str):
@@ -118,11 +142,20 @@ class SimulationEngine:
             "bias": m.bias,
             "trend_alpha": m.trend_alpha,
             "noise_std": m.noise_std,
-            "last_trend": m.last_trend
+            "last_trend": m.last_trend,
         }
 
     def _save_models(self):
-        data = {n: {"weights": m.weights, "bias": m.bias, "trend_alpha": m.trend_alpha, "noise_std": m.noise_std, "last_trend": m.last_trend} for n, m in self.models.items()}
+        data = {
+            n: {
+                "weights": m.weights,
+                "bias": m.bias,
+                "trend_alpha": m.trend_alpha,
+                "noise_std": m.noise_std,
+                "last_trend": m.last_trend,
+            }
+            for n, m in self.models.items()
+        }
         with open(self._models_path, "w") as f:
             json.dump(data, f, indent=2)
 
@@ -133,7 +166,13 @@ class SimulationEngine:
             with open(self._models_path, "r") as f:
                 data = json.load(f)
                 for n, md in data.items():
-                    m = SimplePredictiveModel(n, md.get("weights", {}), md.get("bias", 0.0), md.get("trend_alpha", 0.1), md.get("noise_std", 0.0))
+                    m = SimplePredictiveModel(
+                        n,
+                        md.get("weights", {}),
+                        md.get("bias", 0.0),
+                        md.get("trend_alpha", 0.1),
+                        md.get("noise_std", 0.0),
+                    )
                     m.last_trend = md.get("last_trend", 0.0)
                     self.models[n] = m
         except Exception as e:
@@ -143,7 +182,9 @@ class SimulationEngine:
     # ------------------------------------------------------------
     # EJECUCIÓN DE PASO DE SIMULACIÓN
     # ------------------------------------------------------------
-    def step(self, real_inputs: Dict[str, float], dt_seconds: float = 60.0) -> Dict[str, float]:
+    def step(
+        self, real_inputs: Dict[str, float], dt_seconds: float = 60.0
+    ) -> Dict[str, float]:
         """
         Ejecuta un paso de simulación:
         - combina inputs reales y virtuales (si hay virtual_manager)
@@ -262,12 +303,16 @@ class SimulationEngine:
                 weights[other] = corr / total
             # añadir modelo si no existe
             if sensor not in self.models:
-                self.add_model(sensor, weights, bias=0.0, trend_alpha=0.05, noise_std=0.0)
+                self.add_model(
+                    sensor, weights, bias=0.0, trend_alpha=0.05, noise_std=0.0
+                )
 
     # ------------------------------------------------------------
     # EXPORTAR PREDICCIONES A OTROS MÓDULOS
     # ------------------------------------------------------------
-    def export_predictions(self, predictions: Dict[str, float], target_callback: Optional[callable] = None):
+    def export_predictions(
+        self, predictions: Dict[str, float], target_callback: Optional[callable] = None
+    ):
         """
         Exporta predicciones a un callback (por ejemplo, índices o evolución).
         Si no se proporciona callback, guarda en disco como registro simple.
@@ -288,6 +333,7 @@ class SimulationEngine:
                 f.write(json.dumps(payload) + "\n")
         except Exception:
             logging.exception("Silent except at 262 - revisar contexto")
+
 
 # ============================================================
 # FIN DEL MÓDULO

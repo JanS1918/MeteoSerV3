@@ -3,10 +3,18 @@ from core.calibration.calibration_engine import build_calibration_factors, save_
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Calibración global de índices por feedback.")
+    parser = argparse.ArgumentParser(
+        description="Calibración global de índices por feedback."
+    )
     parser.add_argument("--min-muestras", type=int, default=5)
-    parser.add_argument("--solo", type=str, default=None, help="Nombre exacto a calibrar")
-    parser.add_argument("--guardar", action="store_true", help="Guardar factores en data/calibration_factors.json")
+    parser.add_argument(
+        "--solo", type=str, default=None, help="Nombre exacto a calibrar"
+    )
+    parser.add_argument(
+        "--guardar",
+        action="store_true",
+        help="Guardar factores en data/calibration_factors.json",
+    )
     args = parser.parse_args()
 
     factors = build_calibration_factors(min_muestras=args.min_muestras)

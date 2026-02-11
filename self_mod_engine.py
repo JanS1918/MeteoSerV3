@@ -128,13 +128,15 @@ class SelfModEngine:
           - dst: (para move) destino relativo
         Devuelve proposal_id.
         """
-        proposal_id = hashlib.sha1(f"{description}{time.time()}".encode()).hexdigest()[:12]
+        proposal_id = hashlib.sha1(f"{description}{time.time()}".encode()).hexdigest()[
+            :12
+        ]
         proposal = {
             "id": proposal_id,
             "description": description,
             "changes": changes,
             "status": "proposed",
-            "sandbox": self.sandbox
+            "sandbox": self.sandbox,
         }
         self._append_log({"event": "proposed", "proposal": proposal})
         return proposal_id
@@ -186,13 +188,17 @@ class SelfModEngine:
             elif action == "move":
                 dst = ch.get("dst", "")
                 full_dst = os.path.join(self.base_path, dst)
-                if not os.path.abspath(full_dst).startswith(os.path.abspath(self.base_path)):
+                if not os.path.abspath(full_dst).startswith(
+                    os.path.abspath(self.base_path)
+                ):
                     issues.append({"path": dst, "issue": "dst_outside_base"})
             else:
                 issues.append({"action": action, "issue": "unknown_action"})
         ok = len(issues) == 0
         result = {"ok": ok, "issues": issues}
-        self._append_log({"event": "validated", "proposal_id": proposal.get("id"), "result": result})
+        self._append_log(
+            {"event": "validated", "proposal_id": proposal.get("id"), "result": result}
+        )
         return result
 
     # -------------------------
@@ -221,7 +227,9 @@ class SelfModEngine:
     # -------------------------
     # Aplicar propuesta (requiere confirmación explícita)
     # -------------------------
-    def apply_proposal(self, proposal: Dict[str, Any], allow_overwrite: bool = False) -> Dict[str, Any]:
+    def apply_proposal(
+        self, proposal: Dict[str, Any], allow_overwrite: bool = False
+    ) -> Dict[str, Any]:
         """
         Aplica los cambios. Si sandbox=True, solo previsualiza y crea backups en preview.
         Devuelve resumen con resultados por cambio.
@@ -240,53 +248,117 @@ class SelfModEngine:
                 if action == "create":
                     content = ch.get("content", "")
                     if self.sandbox:
-                        results.append({"action": action, "path": path, "result": "preview_created"})
+                        results.append(
+                            {
+                                "action": action,
+                                "path": path,
+                                "result": "preview_created",
+                            }
+                        )
                     else:
                         _ensure_dir(os.path.dirname(full) or ".")
                         with open(full, "w", encoding="utf-8") as f:
                             f.write(content)
-                        results.append({"action": action, "path": path, "result": "created"})
+                        results.append(
+                            {"action": action, "path": path, "result": "created"}
+                        )
                 elif action == "update":
                     content = ch.get("content", "")
                     if self.sandbox:
-                        results.append({"action": action, "path": path, "result": "preview_updated"})
+                        results.append(
+                            {
+                                "action": action,
+                                "path": path,
+                                "result": "preview_updated",
+                            }
+                        )
                     else:
                         if not os.path.exists(full) and not allow_overwrite:
-                            results.append({"action": action, "path": path, "result": "target_missing"})
+                            results.append(
+                                {
+                                    "action": action,
+                                    "path": path,
+                                    "result": "target_missing",
+                                }
+                            )
                         else:
                             _ensure_dir(os.path.dirname(full) or ".")
                             with open(full, "w", encoding="utf-8") as f:
                                 f.write(content)
-                            results.append({"action": action, "path": path, "result": "updated"})
+                            results.append(
+                                {"action": action, "path": path, "result": "updated"}
+                            )
                 elif action == "delete":
                     if self.sandbox:
-                        results.append({"action": action, "path": path, "result": "preview_deleted"})
+                        results.append(
+                            {
+                                "action": action,
+                                "path": path,
+                                "result": "preview_deleted",
+                            }
+                        )
                     else:
                         if os.path.isdir(full):
                             shutil.rmtree(full)
                         elif os.path.exists(full):
                             os.remove(full)
-                        results.append({"action": action, "path": path, "result": "deleted"})
+                        results.append(
+                            {"action": action, "path": path, "result": "deleted"}
+                        )
                 elif action == "move":
                     dst = ch.get("dst", "")
                     full_dst = os.path.join(self.base_path, dst)
                     if self.sandbox:
-                        results.append({"action": action, "src": path, "dst": dst, "result": "preview_moved"})
+                        results.append(
+                            {
+                                "action": action,
+                                "src": path,
+                                "dst": dst,
+                                "result": "preview_moved",
+                            }
+                        )
                     else:
                         _ensure_dir(os.path.dirname(full_dst) or ".")
                         shutil.move(full, full_dst)
-                        results.append({"action": action, "src": path, "dst": dst, "result": "moved"})
+                        results.append(
+                            {
+                                "action": action,
+                                "src": path,
+                                "dst": dst,
+                                "result": "moved",
+                            }
+                        )
                 else:
-                    results.append({"action": action, "path": path, "result": "unknown_action"})
+                    results.append(
+                        {"action": action, "path": path, "result": "unknown_action"}
+                    )
             except Exception as e:
-                results.append({"action": action, "path": path, "result": "exception", "error": str(e)})
+                results.append(
+                    {
+                        "action": action,
+                        "path": path,
+                        "result": "exception",
+                        "error": str(e),
+                    }
+                )
         # registrar resultado
-        self._append_log({"event": "applied", "proposal_id": proposal.get("id"), "results": results, "sandbox": self.sandbox})
+        self._append_log(
+            {
+                "event": "applied",
+                "proposal_id": proposal.get("id"),
+                "results": results,
+                "sandbox": self.sandbox,
+            }
+        )
         # persistir versiones/log si no sandbox
         if not self.sandbox:
             self._persist_versions()
             self._persist_log()
-        return {"proposal_id": proposal.get("id"), "results": results, "sandbox": self.sandbox}
+        return {
+            "proposal_id": proposal.get("id"),
+            "results": results,
+            "sandbox": self.sandbox,
+        }
 
     # -------------------------
     # Watchdog y seguridad
@@ -371,7 +443,9 @@ class SelfModEngine:
         if not os.path.exists(backup_full):
             return {"ok": False, "reason": "backup_missing"}
         if self.sandbox:
-            self._append_log({"event": "restore_preview", "rel_path": rel_path, "ts": ts})
+            self._append_log(
+                {"event": "restore_preview", "rel_path": rel_path, "ts": ts}
+            )
             return {"ok": True, "preview": True}
         try:
             _ensure_dir(os.path.dirname(target_full) or ".")
@@ -394,6 +468,7 @@ class SelfModEngine:
         if not sandbox:
             self._persist_log()
             self._persist_versions()
+
 
 # ============================================================
 # FIN DEL MÓDULO

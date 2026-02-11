@@ -1,7 +1,79 @@
 from __future__ import annotations
 
+import json
 import math
+import os
 from typing import Dict, Optional
+
+WEIGHTS_PATH = os.path.join("data", "cetreria_calibracion.json")
+
+DEFAULT_WEIGHTS: dict[str, dict[str, float]] = {
+    "viento_cetreria": {
+        "viento": 0.40,
+        "racha": 0.20,
+        "variabilidad": 0.15,
+        "turbulencia": 0.15,
+        "var_hist": 0.10,
+    },
+    "visibilidad_terreno": {
+        "nub": 0.40,
+        "saturacion": 0.20,
+        "humedad": 0.15,
+        "aerosol": 0.15,
+        "lluvia": 0.10,
+    },
+    "termales_probabilidad": {
+        "radiacion": 0.35,
+        "var_termica": 0.15,
+        "nub": 0.15,
+        "viento": 0.10,
+        "humedad": 0.10,
+        "sequedad": 0.10,
+        "tendencia_temp": 0.05,
+    },
+    "barro_campo": {
+        "lluvia_24h": 0.45,
+        "lluvia_1h": 0.20,
+        "lluvia_rate": 0.10,
+        "suelo": 0.10,
+        "secado": 0.15,
+    },
+    "confort_ave": {
+        "temp": 0.30,
+        "sensacion": 0.25,
+        "radiacion": 0.15,
+        "viento": 0.10,
+        "humedad": 0.10,
+        "uv": 0.10,
+    },
+    "indice_seguridad_vuelo": {
+        "viento": 0.40,
+        "visibilidad": 0.30,
+        "barro": 0.20,
+        "termales": 0.10,
+    },
+    "indice_cetreria": {
+        "seguridad": 0.40,
+        "viento": 0.30,
+        "visibilidad": 0.20,
+        "confort": 0.10,
+    },
+}
+
+
+def _load_weights() -> dict[str, dict[str, float]]:
+    if not os.path.exists(WEIGHTS_PATH):
+        return {}
+    try:
+        with open(WEIGHTS_PATH, "r", encoding="utf-8") as f:
+            raw = json.load(f) or {}
+        weights = {}
+        for nombre, info in raw.items():
+            if isinstance(info, dict) and "weights" in info:
+                weights[nombre] = info.get("weights") or {}
+        return weights
+    except Exception:
+        return {}
 
 
 def _clamp(value: float, min_value: float = 0.0, max_value: float = 1.0) -> float:
@@ -239,39 +311,113 @@ def sensacion_termica_cetrera(temp_c: Optional[float], humedad_pct: Optional[flo
     sens_factor = _clamp(1.0 - abs(s - 18.0) / 15.0)
     rad_factor = _clamp(1.0 - (r / 900.0))
     viento_factor = _clamp(1.0 - (v / 25.0))
-    score = 100.0 * (
-        0.4 * temp_factor +
-        0.3 * sens_factor +
-        0.2 * rad_factor +
-        0.1 * viento_factor
+    hum_factor = None
+    if rh is not None:
+        hum_factor = _clamp(1.0 - abs(rh - 55.0) / 45.0)
+    uv_factor = None
+    if uv is not None:
+        uv_factor = _clamp(1.0 - (uv / 9.0))
+    return {
+        "temp": temp_factor,
+        "sensacion": sens_factor,
+        "radiacion": rad_factor,
+        "viento": viento_factor,
+        "humedad": hum_factor,
+        "uv": uv_factor,
+    }
+
+
+def viento_cetreria(viento_medio: Optional[float], rachas: Optional[float],
+                    viento_std: Optional[float] = None) -> Optional[float]:
+    componentes = componentes_viento_cetreria(viento_medio, rachas, viento_std=viento_std)
+    if not componentes:
+        return None
+    pesos = _get_weights("viento_cetreria")
+    bias = _get_bias("viento_cetreria")
+    return _weighted_score(componentes, pesos, bias=bias)
+
+
+def visibilidad_terreno(temp_c: Optional[float], dew_c: Optional[float], rh: Optional[float],
+                        nubosidad: Optional[float], pm25: Optional[float] = None,
+                        lluvia_rate: Optional[float] = None) -> Optional[float]:
+    componentes = componentes_visibilidad_terreno(temp_c, dew_c, rh, nubosidad, pm25, lluvia_rate)
+    if not componentes:
+        return None
+    pesos = _get_weights("visibilidad_terreno")
+    bias = _get_bias("visibilidad_terreno")
+    return _weighted_score(componentes, pesos, bias=bias)
+
+
+def termales_probabilidad(radiacion_real: Optional[float], var_t_5min: Optional[float],
+                          nubosidad: Optional[float], viento_medio: Optional[float],
+                          rh: Optional[float], temp_c: Optional[float] = None,
+                          dew_c: Optional[float] = None,
+                          temp_tendencia_30m: Optional[float] = None) -> Optional[float]:
+    componentes = componentes_termales_probabilidad(
+        radiacion_real, var_t_5min, nubosidad, viento_medio, rh,
+        temp_c=temp_c, dew_c=dew_c, temp_tendencia_30m=temp_tendencia_30m
     )
-    return _clamp_pct(score)
+    if not componentes:
+        return None
+    pesos = _get_weights("termales_probabilidad")
+    bias = _get_bias("termales_probabilidad")
+    return _weighted_score(componentes, pesos, bias=bias)
+
+
+def barro_campo(lluvia_24h: Optional[float], lluvia_1h: Optional[float],
+                viento_medio: Optional[float], temp_c: Optional[float],
+                dew_c: Optional[float], lluvia_rate: Optional[float] = None,
+                humedad_suelo: Optional[float] = None) -> Optional[float]:
+    componentes = componentes_barro_campo(
+        lluvia_24h, lluvia_1h, viento_medio, temp_c, dew_c,
+        lluvia_rate=lluvia_rate, humedad_suelo=humedad_suelo
+    )
+    if not componentes:
+        return None
+    pesos = _get_weights("barro_campo")
+    bias = _get_bias("barro_campo")
+    return _weighted_score(componentes, pesos, bias=bias)
+
+
+def confort_ave(temp_c: Optional[float], sensacion_termica: Optional[float],
+                radiacion_real: Optional[float], viento_medio: Optional[float],
+                rh: Optional[float] = None, uv: Optional[float] = None) -> Optional[float]:
+    componentes = componentes_confort_ave(temp_c, sensacion_termica, radiacion_real, viento_medio, rh, uv)
+    if not componentes:
+        return None
+    pesos = _get_weights("confort_ave")
+    bias = _get_bias("confort_ave")
+    return _weighted_score(componentes, pesos, bias=bias)
 
 
 def indice_seguridad_vuelo(viento_cet: Optional[float], visibilidad: Optional[float],
                            barro: Optional[float], termales: Optional[float]) -> Optional[float]:
     if viento_cet is None or visibilidad is None or barro is None or termales is None:
         return None
-    score = 100.0 * (
-        0.4 * (viento_cet / 100.0) +
-        0.3 * (visibilidad / 100.0) +
-        0.2 * (1.0 - barro / 100.0) +
-        0.1 * (termales / 100.0)
-    )
-    return _clamp_pct(score)
+    componentes = {
+        "viento": _clamp(viento_cet / 100.0),
+        "visibilidad": _clamp(visibilidad / 100.0),
+        "barro": _clamp(1.0 - barro / 100.0),
+        "termales": _clamp(termales / 100.0),
+    }
+    pesos = _get_weights("indice_seguridad_vuelo")
+    bias = _get_bias("indice_seguridad_vuelo")
+    return _weighted_score(componentes, pesos, bias=bias)
 
 
 def indice_cetreria_final(indice_seguridad: Optional[float], viento_cet: Optional[float],
                           visibilidad: Optional[float], confort: Optional[float]) -> Optional[float]:
     if indice_seguridad is None or viento_cet is None or visibilidad is None or confort is None:
         return None
-    score = 100.0 * (
-        0.4 * (indice_seguridad / 100.0) +
-        0.3 * (viento_cet / 100.0) +
-        0.2 * (visibilidad / 100.0) +
-        0.1 * (confort / 100.0)
-    )
-    return _clamp_pct(score)
+    componentes = {
+        "seguridad": _clamp(indice_seguridad / 100.0),
+        "viento": _clamp(viento_cet / 100.0),
+        "visibilidad": _clamp(visibilidad / 100.0),
+        "confort": _clamp(confort / 100.0),
+    }
+    pesos = _get_weights("indice_cetreria")
+    bias = _get_bias("indice_cetreria")
+    return _weighted_score(componentes, pesos, bias=bias)
 
 
 def sensacion_termica_cetrera(temp_c: Optional[float], humedad_pct: Optional[float], viento_ms: Optional[float]) -> Optional[float]:
@@ -322,6 +468,12 @@ def calcular_cetreria(data: Dict[str, Optional[float]]) -> Dict[str, Optional[fl
     lluvia_24h = data.get("lluvia_24h")
     lluvia_1h = data.get("lluvia_1h")
     sensacion = data.get("sensacion_termica")
+    pm25 = data.get("pm25")
+    lluvia_rate = data.get("lluvia_rate")
+    humedad_suelo = data.get("humedad_suelo")
+    temp_tendencia_30m = data.get("temp_tendencia_30m")
+    uv = data.get("uv")
+    viento_std_30m = data.get("viento_std_30m")
 
     viento = viento_cetreria_robusto(viento_med, rachas)
     visibilidad = visibilidad_terreno_robusto(temp_c, dew_c, rh, nub)

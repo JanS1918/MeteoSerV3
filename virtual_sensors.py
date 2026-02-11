@@ -60,7 +60,9 @@ class SensorVirtual:
             required = self.spec.get("inputs", [])
             args = {k: inputs[k] for k in required if k in inputs}
             value = fn(args, **self.spec.get("params", {}))
-            if value is None or (isinstance(value, float) and (math.isnan(value) or math.isinf(value))):
+            if value is None or (
+                isinstance(value, float) and (math.isnan(value) or math.isinf(value))
+            ):
                 return None
             self.last_value = float(value)
             self.history.append(self.last_value)
@@ -113,7 +115,9 @@ class EvaluadorDeEstimaciones:
             return 1.0
         return max(0.0, inputs_present / inputs_required)
 
-    def classify(self, history: List[float], inputs_present: int, inputs_required: int) -> str:
+    def classify(
+        self, history: List[float], inputs_present: int, inputs_required: int
+    ) -> str:
         """
         Clasifica en fuerte/moderado/débil según puntuaciones combinadas.
         """
@@ -178,7 +182,9 @@ class VirtualSensorManager:
             # evaluar y clasificar
             vs.reliability = self.evaluator.classify(vs.history, present, len(required))
             # activar si es fuerte o moderado y tiene valor
-            vs.active = (vs.reliability in (RELIABILITY_STRONG, RELIABILITY_MODERATE)) and (value is not None)
+            vs.active = (
+                vs.reliability in (RELIABILITY_STRONG, RELIABILITY_MODERATE)
+            ) and (value is not None)
             results[vid] = value
         return results
 
@@ -192,7 +198,7 @@ class VirtualSensorManager:
             "reliability": v.reliability,
             "active": v.active,
             "last_updated": v.last_updated,
-            "spec": v.spec
+            "spec": v.spec,
         }
 
     # -------------------------
@@ -218,7 +224,12 @@ class VirtualSensorManager:
     # UTILIDADES PARA ESPECIFICAR SENSORES VIRTUALES COMUNES
     # -------------------------
     @staticmethod
-    def fn_ratio(inputs: Dict[str, float], numerator: str = None, denominator: str = None, scale: float = 1.0):
+    def fn_ratio(
+        inputs: Dict[str, float],
+        numerator: str = None,
+        denominator: str = None,
+        scale: float = 1.0,
+    ):
         """
         Ejemplo de función: ratio entre dos sensores.
         numerator y denominator son claves dentro de inputs.

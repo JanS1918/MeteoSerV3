@@ -2,6 +2,7 @@
 
 Outputs files under tools/certs/ so they can be copied to C:/mosquitto/conf/certs.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -57,23 +58,28 @@ def generate_ca() -> tuple[rsa.RSAPrivateKey, x509.Certificate]:
         .not_valid_before(now - timedelta(days=1))
         .not_valid_after(now + timedelta(days=VALIDITY_DAYS))
         .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
-        .add_extension(x509.KeyUsage(
-            digital_signature=True,
-            key_encipherment=True,
-            key_cert_sign=True,
-            crl_sign=True,
-            content_commitment=False,
-            data_encipherment=False,
-            key_agreement=False,
-            encipher_only=False,
-            decipher_only=False,
-        ), critical=True)
+        .add_extension(
+            x509.KeyUsage(
+                digital_signature=True,
+                key_encipherment=True,
+                key_cert_sign=True,
+                crl_sign=True,
+                content_commitment=False,
+                data_encipherment=False,
+                key_agreement=False,
+                encipher_only=False,
+                decipher_only=False,
+            ),
+            critical=True,
+        )
         .sign(private_key=key, algorithm=hashes.SHA256())
     )
     return key, cert
 
 
-def generate_server_cert(ca_key: rsa.RSAPrivateKey, ca_cert: x509.Certificate) -> tuple[rsa.RSAPrivateKey, x509.Certificate]:
+def generate_server_cert(
+    ca_key: rsa.RSAPrivateKey, ca_cert: x509.Certificate
+) -> tuple[rsa.RSAPrivateKey, x509.Certificate]:
     key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
     subject = x509.Name(
         [

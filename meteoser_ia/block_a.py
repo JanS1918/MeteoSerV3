@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import enum
-import json
 import logging
-import random
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+
 class ExternalIntegrationMode(str, enum.Enum):
     MOCK = "mock"
     LIVE = "live"
+
 
 EXTERNAL_INTEGRATION_MODE: ExternalIntegrationMode = ExternalIntegrationMode.LIVE
 
@@ -24,6 +24,7 @@ if not logger.handlers:
     _handler.setFormatter(_formatter)
     logger.addHandler(_handler)
 logger.setLevel(logging.INFO)
+
 
 class SensorType(str, enum.Enum):
     TABLET_ACCELEROMETER = "tablet_accelerometer"
@@ -51,6 +52,7 @@ class SensorType(str, enum.Enum):
     VIRTUAL_EXTERNAL_API = "virtual_external_api"
     VIRTUAL_DERIVED = "virtual_derived"
 
+
 @dataclass
 class SensorMetadata:
     id: str
@@ -61,6 +63,7 @@ class SensorMetadata:
     is_virtual: bool
     capabilities: Dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
 class SensorReading:
     sensor_id: str
@@ -69,9 +72,11 @@ class SensorReading:
     valid: bool
     validation_errors: List[str] = field(default_factory=list)
 
+
 @dataclass
 class SensorRegistrySnapshot:
     sensors: Dict[str, SensorMetadata] = field(default_factory=dict)
+
 
 class SensorRegistry:
     def __init__(self) -> None:
@@ -97,6 +102,7 @@ class SensorRegistry:
 
     def snapshot(self) -> SensorRegistrySnapshot:
         return SensorRegistrySnapshot(sensors=dict(self._sensors))
+
 
 SENSOR_REGISTRY = SensorRegistry()
 
@@ -195,6 +201,7 @@ def detect_tablet_sensors() -> List[SensorMetadata]:
             ))
     return sensors
 
+
 def detect_ecowitt_sensors() -> List[SensorMetadata]:
     logger.info("Detectando sensores Ecowitt...")
     registry = _load_sensor_registry()
@@ -215,6 +222,7 @@ def detect_ecowitt_sensors() -> List[SensorMetadata]:
                 capabilities={"capabilities": caps, "source": "ecowitt"},
             ))
     return sensors
+
 
 
 def detect_external_devices() -> List[SensorMetadata]:
@@ -247,6 +255,7 @@ def detect_external_devices() -> List[SensorMetadata]:
     return sensors
 
 
+
 def discover_all_sensors() -> SensorRegistrySnapshot:
     logger.info("Iniciando descubrimiento global de sensores (Bloque A)...")
     discovered: List[SensorMetadata] = []
@@ -256,8 +265,11 @@ def discover_all_sensors() -> SensorRegistrySnapshot:
     for sensor in discovered:
         SENSOR_REGISTRY.register_sensor(sensor)
     snapshot = SENSOR_REGISTRY.snapshot()
-    logger.info(f"Descubrimiento completado. Sensores registrados: {len(snapshot.sensors)}")
+    logger.info(
+        f"Descubrimiento completado. Sensores registrados: {len(snapshot.sensors)}"
+    )
     return snapshot
+
 
 def read_sensor(sensor_id: str) -> Optional[SensorReading]:
     metadata = SENSOR_REGISTRY.get_sensor(sensor_id)
@@ -288,7 +300,6 @@ def read_sensor(sensor_id: str) -> Optional[SensorReading]:
         logger.debug(f"Lectura válida para sensor {metadata.id}: {values}")
 
     return reading
-
 
 
 def _read_live_values_for_sensor(metadata: SensorMetadata) -> Dict[str, Any]:
@@ -348,7 +359,10 @@ def _read_live_values_for_sensor(metadata: SensorMetadata) -> Dict[str, Any]:
 
     return values
 
-def validate_sensor_reading(metadata: SensorMetadata, values: Dict[str, Any]) -> (bool, List[str]):
+
+def validate_sensor_reading(
+    metadata: SensorMetadata, values: Dict[str, Any]
+) -> (bool, List[str]):
     errors: List[str] = []
 
     if not isinstance(values, dict):
@@ -374,6 +388,7 @@ def validate_sensor_reading(metadata: SensorMetadata, values: Dict[str, Any]) ->
             errors.append(f"Humedad fuera de rango: {hum}")
 
     return (len(errors) == 0, errors)
+
 
 def _run_smoke_test() -> None:
     logger.info("SMOKE TEST Bloque A: descubrimiento y lectura básica")
