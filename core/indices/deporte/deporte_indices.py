@@ -192,27 +192,22 @@ def indice_deporte_sintetico(
     lluvia_1h: Optional[float] = None
 ) -> float:
     """
-    Índice sintético deporte 0-100 - VALORACIÓN INTEGRAL (v2.0).
+    Índice sintético deporte 0-100 - SUMA PONDERADA DE 4 COMPONENTES.
     
-    **Cambio fundamental**: NO es un simple promedio ponderado.
-    Es una evaluación integral donde lluvia afecta DIRECTAMENTE al índice,
-    no en fusion externa.
+    PESOS EXPLÍCITOS:
+    - adherencia_terreno: 30% - Fundamental para evitar caídas
+    - visibilidad: 25% - Crítica para ver el juego
+    - viento_juego: 20% - Afecta trayectorias/pelotas
+    - confort_atletas: 25% - Capacidad física del jugador
     
-    Lógica:
-    1. Si lluvia_1h > 0.1 mm → LLUVIA EN PROGRESO
-       - Terreno mojado → adherencia muy baja (riesgo de caídas)
-       - Visibilidad reducida (lluvia + nubosidad)
-       - Confort atletas bajo (mojados, incómodos)
-       - Condiciones NO RECOMENDADAS para deporte
-    
-    2. Si lluvia_1h ≤ 0.1 mm → SIN LLUVIA
-       - Evaluación normal: 30% adherencia + 25% visib + 20% viento + 25% confort
+    Lluvia afecta DIRECTAMENTE a TODOS: reduce adherencia, visibilidad, confort.
+    Con penalización exponencial si lluvia intensa.
     """
     
     if lluvia_1h is None:
         lluvia_1h = 0.0
     
-    # ESCENARIO 1: LLUVIA EN PROGRESO
+    # ESCENARIO 1: LLUVIA EN PROGRESO (lluvia_1h > 0.1 mm)
     if lluvia_1h > 0.1:
         logger.debug(f"LLUVIA EN PROGRESO ({lluvia_1h:.2f}mm): Deporte DIFICULTA")
         
@@ -222,11 +217,12 @@ def indice_deporte_sintetico(
         viento_luvia = _clamp(viento_juego * (1.0 - (lluvia_1h / 10.0)))  # Viento no tan afectado
         confort_lluvia = _clamp(confort_atletas * (1.0 - (lluvia_1h / 4.0)))
         
+        # SUMA PONDERADA de los 4 componentes penalizados
         indice_lluvia = _clamp(
-            0.30 * adher_lluvia +
-            0.25 * visib_lluvia +
-            0.20 * viento_luvia +
-            0.25 * confort_lluvia
+            0.30 * adher_lluvia +      # adherencia: 30%
+            0.25 * visib_lluvia +      # visibilidad: 25%
+            0.20 * viento_luvia +      # viento: 20%
+            0.25 * confort_lluvia      # confort: 25%
         )
         
         # Penalización por lluvia (lluvia reduce condiciones deportivas)
@@ -240,13 +236,13 @@ def indice_deporte_sintetico(
         
         return _clamp(indice_final)
     
-    # ESCENARIO 2: SIN LLUVIA
+    # ESCENARIO 2: SIN LLUVIA - SUMA PONDERADA estándar
     else:
         indice_normal = _clamp(
-            0.30 * adherencia_terreno +
-            0.25 * visibilidad +
-            0.20 * viento_juego +
-            0.25 * confort_atletas
+            0.30 * adherencia_terreno +  # adherencia: 30%
+            0.25 * visibilidad +         # visibilidad: 25%
+            0.20 * viento_juego +        # viento: 20%
+            0.25 * confort_atletas       # confort: 25%
         )
         
         logger.debug(

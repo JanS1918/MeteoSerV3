@@ -348,46 +348,35 @@ def indice_salud_sintetico(
     aire_exterior: float
 ) -> float:
     """
-    Índice sintético de SALUD (0-100).
+    Índice sintético de SALUD (0-100) - SUMA PONDERADA INVERTIDA DE 6 COMPONENTES.
     
-    Combina todos los riesgos de salud ambiental.
+    PESOS EXPLÍCITOS (como RIESGOS, se invierten):
+    - uvi: 25% - Riesgo UV (lo más importante)
+    - calor_extremo: 20% - Riesgo de golpe de calor
+    - frio_extremo: 20% - Riesgo de hipotermia
+    - helada: 15% - Riesgo agrícola (menos crítico)
+    - aire_interior: 10% - Riesgo mala ventilación (INVERTIDO: 100=salud, 0=riesgo)
+    - aire_exterior: 10% - Riesgo contaminación (INVERTIDO: 100=salud, 0=riesgo)
     
-    100 = sin riesgos visibles
-    0 = múltiples riesgos críticos
+    Lógica INVERSA:
+    100 = sin riesgos (salud excelente)
+    0 = múltiples riesgos críticos (salud muy pobre)
     
-    Ponderación:
-    - 25% UV
-    - 20% calor extremo
-    - 20% frío extremo
-    - 15% helada (agrícola, menos crítica)
-    - 10% aire interior
-    - 10% aire exterior
-    
-    Ojo: invierte frío/calor según contexto (en invierno, frío más crítico).
+    Entradas de aire se invierten porque 100=buena salud, 0=mala.
     """
-    # Base: promedio ponderado
-    score = (
-        uvi * 0.25 +
-        calor_extremo * 0.20 +
-        frio_extremo * 0.20 +
-        helada * 0.15 +
-        aire_interior * 0.10 +
-        aire_exterior * 0.10
-    )
-    
-    # Pero invertir: si entrada es "riesgo" (alta), debe reducir "salud" (baja)
-    # Ej: calor_extremo=80 (riesgo alto) → debería bajar score
-    # Solución: score = (100 - promedio_riesgos)
-    
-    # Recalcular como: (1 - riesgo_promedio) * 100
-    riego_prom = (
-        uvi * 0.25 +
-        calor_extremo * 0.20 +
-        frio_extremo * 0.20 +
-        helada * 0.15 +
-        (100 - aire_interior) * 0.10 +  # Aire interior: invertido (100=salud, 0=riesgo)
-        (100 - aire_exterior) * 0.10
+    # SUMA PONDERADA de RIESGOS (invertidos al final)
+    riesgo_prom = (
+        uvi * 0.25 +                          # UV: 25%
+        calor_extremo * 0.20 +                # calor: 20%
+        frio_extremo * 0.20 +                 # frío: 20%
+        helada * 0.15 +                       # helada: 15%
+        (100 - aire_interior) * 0.10 +        # aire interior: 10% (invertido: 100=salud, 0=riesgo)
+        (100 - aire_exterior) * 0.10          # aire exterior: 10% (invertido: 100=salud, 0=riesgo)
     ) / 100.0
+    
+    # Convertir riesgo promedio → índice salud
+    # Si riesgo_prom=1.0 (100% riesgo) → score=0
+    # Si riesgo_prom=0.0 (0% riesgo) → score=100
     
     score = (1.0 - (riego_prom / 100.0)) * 100.0
     

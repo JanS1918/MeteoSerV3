@@ -228,24 +228,25 @@ def indice_hidrologia_sintetico(
     estado_humedad_tendencial: float
 ) -> float:
     """
-    Índice sintético de HIDROLOGÍA (0-100).
+    Índice sintético de HIDROLOGÍA (0-100) - SUMA PONDERADA DE 4 COMPONENTES.
     
-    100 = condiciones hídricas ideales (infiltración buena, sin escorrentía extrema, humedad normal)
-    0 = condiciones severas (avenida/sequía)
+    PESOS EXPLÍCITOS:
+    - tasa_infiltracion: 30% - Capacidad suelo infiltrar agua
+    - riesgo_escorrentia: 25% - Riesgo avenida (se invierte: bajo riesgo = bueno)
+    - spi: 25% - Estado pluviométrico relativo (sequía vs exceso)
+    - estado_humedad_tendencial: 20% - Humedad suelo tendencia (0=seco, 100=saturado)
     
-    Ponderación:
-    - 30% tasa_infiltración (capacidad del suelo)
-    - 25% riesgo_escorrentia (inverso: menor es mejor)
-    - 25% SPI (estado de lluvia relativo)
-    - 20% estado_humedad_tendencial (humedad del suelo)
+    100 = condiciones hídricas ideales (buena infiltración, sin avenidas, humedad normal)
+    0 = condiciones severas (avenida/sequía extrema)
     
-    Ojo: riesgo_escorrentía se invierte.
+    Riesgo escorrentía se invierte: bajo riesgo (0) → indica suelo estable (100).
     """
+    # SUMA PONDERADA de componentes
     score = (
-        tasa_infiltracion * 0.30 +
-        (100 - riesgo_escorrentia) * 0.25 +  # Invertir: bajo riesgo = bueno
-        spi * 0.25 +
-        estado_humedad_tendencial * 0.20
+        tasa_infiltracion * 0.30 +              # infiltración: 30%
+        (100 - riesgo_escorrentia) * 0.25 +     # escorrentía: 25% (invertido: bajo riesgo = bueno)
+        spi * 0.25 +                            # SPI: 25%
+        estado_humedad_tendencial * 0.20        # humedad: 20%
     )
     
     return _clamp(score, 0, 100)

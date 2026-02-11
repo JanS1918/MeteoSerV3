@@ -243,25 +243,16 @@ def indice_cetreria_sintetico(
     lluvia_1h: Optional[float] = None
 ) -> float:
     """
-    Índice sintético cetrería 0-100 - VALORACIÓN INTEGRAL (v2.0).
+    Índice sintético cetrería 0-100 - SUMA PONDERADA DE 5 COMPONENTES.
     
-    **Cambio fundamental**: NO es un simple promedio ponderado.
-    Es una evaluación integral donde lluvia afecta DIRECTAMENTE al índice,
-    no en fusion externa ("Evidentemente si llueve no será un buen día para cetrería").
+    PESOS EXPLÍCITOS:
+    - viento: 25% - Crucial para vuelo seguro del ave
+    - visibilidad: 25% - Visibilidad del terreno para cazar
+    - termales: 15% - Corrientes ascendentes para ahorrar energía
+    - barro: 15% - Condición del campo para trabajo
+    - confort: 20% - Bienestar térmico del ave
     
-    Lógica:
-    1. Si lluvia_1h > 0.1 mm → LLUVIA EN PROGRESO
-       - Penaliza FUERTEMENTE todos los componentes
-       - Lluvia trae viento turbulento (peligroso para aves)
-       - Lluvia reduce visibilidad
-       - Lluvia reduce termales (no se forman)
-       - Lluvia mojía el barro (se pierde)
-       - Lluvia reduce confort de las aves
-       - Resultado: Día NO recomendado para cetrería (penalización exponencial)
-    
-    2. Si lluvia_1h ≤ 0.1 mm → SIN LLUVIA
-       - Evaluación normal: viento + visibilidad + termales + barro + confort
-       - Pesos: 25% viento, 25% visibilidad, 15% termales, 15% barro, 20% confort
+    Lluvia afecta DIRECTAMENTE a TODOS: reduce viento, visibilidad, termales, barro, confort.
     """
     
     if lluvia_1h is None:
@@ -278,13 +269,13 @@ def indice_cetreria_sintetico(
         barro_lluvia = _clamp_pct(barro * 0.3)  # 70% reducción fija
         confort_lluvia = _clamp_pct(confort * (1.0 - (lluvia_1h / 4.0)))
         
-        # Índice con todos los componentes penalizados
+        # SUMA PONDERADA de los 5 componentes penalizados
         indice_lluvia = _clamp_pct(
-            0.25 * viento_lluvia +
-            0.25 * visib_lluvia +
-            0.15 * termales_lluvia +
-            0.15 * barro_lluvia +
-            0.20 * confort_lluvia
+            0.25 * viento_lluvia +     # viento: 25%
+            0.25 * visib_lluvia +      # visibilidad: 25%
+            0.15 * termales_lluvia +   # termales: 15%
+            0.15 * barro_lluvia +      # barro: 15%
+            0.20 * confort_lluvia      # confort: 20%
         )
         
         # PENALIZACIÓN ADICIONAL EXPONENCIAL: Si llueve, es un mal día
@@ -299,14 +290,14 @@ def indice_cetreria_sintetico(
         
         return _clamp_pct(indice_final)
     
-    # ESCENARIO 2: SIN LLUVIA - Evaluación estándar
+    # ESCENARIO 2: SIN LLUVIA - SUMA PONDERADA estándar
     else:
         indice_normal = _clamp_pct(
-            0.25 * viento +
-            0.25 * visibilidad +
-            0.15 * termales +
-            0.15 * barro +
-            0.20 * confort
+            0.25 * viento +            # viento: 25%
+            0.25 * visibilidad +       # visibilidad: 25%
+            0.15 * termales +          # termales: 15%
+            0.15 * barro +             # barro: 15%
+            0.20 * confort             # confort: 20%
         )
         
         logger.debug(

@@ -176,25 +176,22 @@ def indice_confort_sintetico(
     lluvia_1h: Optional[float] = None
 ) -> float:
     """
-    Índice sintético confort 0-100 - VALORACIÓN INTEGRAL (v2.0).
+    Índice sintético confort 0-100 - SUMA PONDERADA DE 4 COMPONENTES.
     
-    **Cambio fundamental**: NO es un simple promedio ponderado.
-    Es una evaluación integral donde lluvia afecta DIRECTAMENTE al índice.
+    PESOS EXPLÍCITOS:
+    - temperatura_ideal: 35% - Confort térmico principal
+    - humedad_ideal: 25% - Sofocación/sequedad
+    - indice_uvi: 20% - Protección solar
+    - sensacion_termica: 20% - Percepción real del cuerpo
     
-    Lógica:
-    1. Si lluvia_1h > 0.1 mm → LLUVIA EN PROGRESO
-       - Reduce confort (mojado, incómodo) aunque temperatura sea ideal
-       - Efecto MENOR que en cetrería/deporte (confort es más térmico)
-       - Penalización moderada: 10-30% según intensidad lluvia
-    
-    2. Si lluvia_1h ≤ 0.1 mm → SIN LLUVIA
-       - Evaluación estándar: 35% temp + 25% hum + 20% UV + 20% sensación
+    Lluvia reduce confort MODERADAMENTE (menos que deporte/cetrería).
+    Con penalización exponencial muy suave si lluvia.
     """
     
     if lluvia_1h is None:
         lluvia_1h = 0.0
     
-    # ESCENARIO 1: LLUVIA EN PROGRESO
+    # ESCENARIO 1: LLUVIA EN PROGRESO (lluvia_1h > 0.1 mm)
     if lluvia_1h > 0.1:
         logger.debug(f"LLUVIA EN PROGRESO ({lluvia_1h:.2f}mm): Confort LIGERAMENTE REDUCIDO")
         
@@ -205,11 +202,12 @@ def indice_confort_sintetico(
         uv_lluvia = _clamp(indice_uvi * (1.0 - (lluvia_1h / 80.0)))          # UV protected by clouds
         sent_lluvia = _clamp(sensacion_termica * (1.0 - (lluvia_1h / 60.0))) # Sensación se reduce poco
         
+        # SUMA PONDERADA de los 4 componentes penalizados
         indice_lluvia = _clamp(
-            0.35 * temp_lluvia +
-            0.25 * hum_lluvia +
-            0.20 * uv_lluvia +
-            0.20 * sent_lluvia
+            0.35 * temp_lluvia +       # temperatura: 35%
+            0.25 * hum_lluvia +        # humedad: 25%
+            0.20 * uv_lluvia +         # UV: 20%
+            0.20 * sent_lluvia         # sensación: 20%
         )
         
         # Penalización MENOR que otros índices (confort es más robusto a lluvia)
@@ -223,13 +221,13 @@ def indice_confort_sintetico(
         
         return _clamp(indice_final)
     
-    # ESCENARIO 2: SIN LLUVIA
+    # ESCENARIO 2: SIN LLUVIA - SUMA PONDERADA estándar
     else:
         indice_normal = _clamp(
-            0.35 * temperatura_ideal +
-            0.25 * humedad_ideal +
-            0.20 * indice_uvi +
-            0.20 * sensacion_termica
+            0.35 * temperatura_ideal +   # temperatura: 35%
+            0.25 * humedad_ideal +       # humedad: 25%
+            0.20 * indice_uvi +          # UV: 20%
+            0.20 * sensacion_termica     # sensación: 20%
         )
         
         logger.debug(

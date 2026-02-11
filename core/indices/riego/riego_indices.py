@@ -249,25 +249,25 @@ def indice_riego_sintetico(
     lluvia_1h: Optional[float] = None
 ) -> float:
     """
-    Índice sintético de RIEGO (0-100).
+    Índice sintético de RIEGO (0-100) - SUMA PONDERADA DE 4 COMPONENTES.
+    
+    PESOS EXPLÍCITOS:
+    - disponibilidad: 40% - Lo más importante para el cultivo
+    - estres_hidrico: 30% - Estrés actual del cultivo
+    - balance_hidrico: 20% - Balance neto (lluvia - ET)
+    - eficiencia_infiltr: 10% - Capacidad suelo infiltrar agua
     
     100 = riego no necesario (agua abundante)
     0 = riego urgente (sequedad crítica)
     
-    Ponderación:
-    - 40% disponibilidad (lo más importante)
-    - 30% estrés cultivo
-    - 20% balance hídrico
-    - 10% eficiencia infiltración
-    
-    Con penalización por lluvia reciente (lluvia_1h).
+    Lluvia reciente (>0.5mm) penaliza: no es necesario riego ahora.
     """
-    # Ponderación base
+    # SUMA PONDERADA base
     score = (
-        disponibilidad * 0.40 +
-        estres_hidrico * 0.30 +
-        balance_hidrico * 0.20 +
-        eficiencia_infiltr * 0.10
+        disponibilidad * 0.40 +       # disponibilidad: 40%
+        estres_hidrico * 0.30 +       # estres: 30%
+        balance_hidrico * 0.20 +      # balance: 20%
+        eficiencia_infiltr * 0.10     # eficiencia: 10%
     )
     
     # Penalización si lluvia en última hora (riego no necesario ahora)

@@ -263,25 +263,27 @@ def indice_astronomia_sintetico(
     visibilidad_noche: float
 ) -> float:
     """
-    Índice sintético de ASTRONOMÍA (0-100).
+    Índice sintético de ASTRONOMÍA (0-100) - SUMA PONDERADA DE 5 COMPONENTES.
     
-    Diferentes interpretaciones según hora del día:
-    - De día: mide claridad para observación solar, eficiencia paneles
-    - De noche: mide oscuridad y visibilidad para observación estelar
+    PESOS EXPLÍCITOS:
+    - horas_luz: 15% - Duración del día (energía solar disponible)
+    - obs_nocturna: 25% - Oscuridad + fase lunar para observación estelar
+    - amplitud_termica: 20% - Variación térmica día-noche (calidad óptica)
+    - claridad_kt: 25% - Transparencia atmosférica (radiación clara)
+    - visibilidad_noche: 15% - Ausencia de contaminación lumínica/nubosidad nocturna
     
-    Ponderación:
-    - Si enfoque día (claridad): K_t (40%) + amplitud_térmica (40%) + horas_luz (20%)
-    - Si enfoque noche (obscuridad): obs_nocturna (50%) + visibilidad_noche (50%)
-    
-    Simplificado: promedio ponderado de todos los sub-índices.
+    Diferentes contextos:
+    - De día: prioriza K_t (40%) + amplitud (40%) + horas_luz (20%)
+    - De noche: prioriza obs_nocturna (50%) + visibilidad_noche (50%)
+    - Simplificado: promedio ponderado balanceado de todos 5.
     """
-    # Ponderación balanceada
+    # SUMA PONDERADA de los 5 componentes
     score = (
-        horas_luz * 0.15 +
-        obs_nocturna * 0.25 +
-        amplitud_termica * 0.20 +
-        claridad_kt * 0.25 +
-        visibilidad_noche * 0.15
+        horas_luz * 0.15 +              # horas_luz: 15%
+        obs_nocturna * 0.25 +           # obs_nocturna: 25%
+        amplitud_termica * 0.20 +       # amplitud: 20%
+        claridad_kt * 0.25 +            # claridad_kt: 25%
+        visibilidad_noche * 0.15        # visibilidad_noche: 15%
     )
     
     return _clamp(score, 0, 100)
