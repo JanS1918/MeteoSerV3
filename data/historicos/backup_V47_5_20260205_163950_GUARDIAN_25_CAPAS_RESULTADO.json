@@ -1,0 +1,378 @@
+{
+  "verificacion": {
+    "archivos_encontrados": [
+      {
+        "formula": "VDI_3787",
+        "archivo": "core/indices/temperatura_radiante_dinamica.py",
+        "estado": "EN_USO"
+      },
+      {
+        "formula": "PRATA_1996",
+        "archivo": "core/indices/radiacion_lw_prata.py",
+        "estado": "IMPLEMENTADO_V47"
+      },
+      {
+        "formula": "DILLEY_OBRIEN_1998",
+        "archivo": "core/indices/nubosidad_liu_jordan_kasten.py",
+        "estado": "EN_USO_V45"
+      },
+      {
+        "formula": "FAO56_PM_ESTANDAR",
+        "archivo": "core/indices/environmental_indices.py",
+        "estado": "EN_USO"
+      },
+      {
+        "formula": "WRIGHT_2005_NOCTURNAL",
+        "archivo": "core/indices/et_nocturna_wright.py",
+        "estado": "IMPLEMENTADO_V47"
+      },
+      {
+        "formula": "SHUTTLEWORTH_WALLACE",
+        "archivo": "core/indices/advanced_physics_models.py",
+        "estado": "EN_USO"
+      },
+      {
+        "formula": "UTCI_V1_FIALA_2012",
+        "archivo": "core/indices/utci_polynomial.py",
+        "estado": "EN_USO"
+      },
+      {
+        "formula": "UTCI_V2_BLAZEJCZYK_2013",
+        "archivo": "core/indices/utci_v2_blazejczyk.py",
+        "estado": "IMPLEMENTADO_V47"
+      },
+      {
+        "formula": "DEARDORFF_V46_5",
+        "archivo": "core/indices/deardorff_microclima_v46_5_argentona.py",
+        "estado": "EN_USO"
+      },
+      {
+        "formula": "DEARDORFF_V46_8_TERRAZA",
+        "archivo": "core/indices/deardorff_v46_7_terraza_final.py",
+        "estado": "DISPONIBLE"
+      },
+      {
+        "formula": "DEARDORFF_V47_0_PRATA",
+        "archivo": "core/indices/deardorff_v47_0_prata_integration.py",
+        "estado": "IMPLEMENTADO_V47"
+      },
+      {
+        "formula": "RC_FILTER_TAU_6H",
+        "archivo": "core/indices/deardorff_microclima_v46_5_argentona.py",
+        "estado": "EN_USO"
+      },
+      {
+        "formula": "KALMAN_SOIL_WH51",
+        "archivo": "core/indices/kalman_soil_wh51.py",
+        "estado": "IMPLEMENTADO_V47"
+      },
+      {
+        "formula": "LIU_JORDAN_KASTEN",
+        "archivo": "core/indices/nubosidad_liu_jordan_kasten.py",
+        "estado": "EN_USO"
+      },
+      {
+        "formula": "SUNDQVIST_LATENT_HEAT",
+        "archivo": "core/indices/nubosidad_liu_jordan_kasten.py",
+        "estado": "EN_USO"
+      }
+    ],
+    "archivos_faltantes": [],
+    "funciones_verificadas": [
+      {
+        "formula": "VDI_3787",
+        "funcion": "calcular_temperatura_radiante_media"
+      },
+      {
+        "formula": "PRATA_1996",
+        "funcion": "calcular_temperatura_cielo_efectiva_prata"
+      },
+      {
+        "formula": "FAO56_PM_ESTANDAR",
+        "funcion": "_penman_monteith_full"
+      },
+      {
+        "formula": "WRIGHT_2005_NOCTURNAL",
+        "funcion": "evapotranspiracion_penman_monteith_wright"
+      },
+      {
+        "formula": "UTCI_V1_FIALA_2012",
+        "funcion": "utci_polynomial"
+      },
+      {
+        "formula": "UTCI_V2_BLAZEJCZYK_2013",
+        "funcion": "utci_v2_blazejczyk"
+      },
+      {
+        "formula": "DEARDORFF_V46_5",
+        "funcion": "calcular_temperatura_minima_deardorff_v46_5"
+      },
+      {
+        "formula": "DEARDORFF_V46_8_TERRAZA",
+        "funcion": "calcular_temperatura_minima_v46_8_soberania"
+      },
+      {
+        "formula": "DEARDORFF_V47_0_PRATA",
+        "funcion": "get_temperatura_minima_v47_0"
+      },
+      {
+        "formula": "RC_FILTER_TAU_6H",
+        "funcion": "FiltroRCHumedad"
+      },
+      {
+        "formula": "KALMAN_SOIL_WH51",
+        "funcion": "KalmanSoilWH51"
+      },
+      {
+        "formula": "LIU_JORDAN_KASTEN",
+        "funcion": "calcular_nubosidad_liu_jordan_kasten"
+      }
+    ],
+    "funciones_faltantes": [
+      {
+        "formula": "DILLEY_OBRIEN_1998",
+        "funcion": "radiacion_lw_dilley_obrien",
+        "archivo": "core/indices/nubosidad_liu_jordan_kasten.py"
+      },
+      {
+        "formula": "SHUTTLEWORTH_WALLACE",
+        "funcion": "evapotranspiracion_shuttleworth_wallace",
+        "archivo": "core/indices/advanced_physics_models.py"
+      },
+      {
+        "formula": "SUNDQVIST_LATENT_HEAT",
+        "funcion": "calcular_nubosidad_sundqvist",
+        "archivo": "core/indices/nubosidad_liu_jordan_kasten.py"
+      }
+    ]
+  },
+  "uso_bus": {
+    "formulas_en_uso": [
+      {
+        "formula": "FAO56_PM_ESTANDAR",
+        "funcion": "_penman_monteith_full",
+        "categoria": "EVAPOTRANSPIRACION"
+      },
+      {
+        "formula": "SHUTTLEWORTH_WALLACE",
+        "funcion": "evapotranspiracion_shuttleworth_wallace",
+        "categoria": "EVAPOTRANSPIRACION"
+      },
+      {
+        "formula": "UTCI_V1_FIALA_2012",
+        "funcion": "utci_polynomial",
+        "categoria": "CONFORT_TERMICO"
+      }
+    ],
+    "formulas_disponibles_no_usadas": [
+      {
+        "formula": "PRATA_1996",
+        "funcion": "calcular_temperatura_cielo_efectiva_prata",
+        "categoria": "RADIACION_LW",
+        "estado": "IMPLEMENTADO_V47",
+        "mejora_esperada": "+25.7%"
+      },
+      {
+        "formula": "WRIGHT_2005_NOCTURNAL",
+        "funcion": "evapotranspiracion_penman_monteith_wright",
+        "categoria": "EVAPOTRANSPIRACION",
+        "estado": "IMPLEMENTADO_V47",
+        "mejora_esperada": "+18.7% nocturno"
+      },
+      {
+        "formula": "UTCI_V2_BLAZEJCZYK_2013",
+        "funcion": "utci_v2_blazejczyk",
+        "categoria": "CONFORT_TERMICO",
+        "estado": "IMPLEMENTADO_V47",
+        "mejora_esperada": "+5% (normal), +10.4°C (alta HR Maresme)"
+      },
+      {
+        "formula": "DEARDORFF_V46_8_TERRAZA",
+        "funcion": "calcular_temperatura_minima_v46_8_soberania",
+        "categoria": "TEMPERATURA_MINIMA",
+        "estado": "DISPONIBLE",
+        "mejora_esperada": "N/A"
+      },
+      {
+        "formula": "DEARDORFF_V47_0_PRATA",
+        "funcion": "get_temperatura_minima_v47_0",
+        "categoria": "TEMPERATURA_MINIMA",
+        "estado": "IMPLEMENTADO_V47",
+        "mejora_esperada": "+25.7% (usa Prata en lugar de VDI)"
+      },
+      {
+        "formula": "KALMAN_SOIL_WH51",
+        "funcion": "KalmanSoilWH51",
+        "categoria": "FILTROS_RUIDO",
+        "estado": "IMPLEMENTADO_V47",
+        "mejora_esperada": "+4.5% directo, +15% con cascada Sundqvist"
+      }
+    ],
+    "importaciones_encontradas": []
+  },
+  "duelos": {
+    "duelos": [],
+    "ganadoras": [
+      {
+        "categoria": "RADIACION_LW",
+        "formula": "VDI_3787",
+        "estado": "OPTIMO"
+      },
+      {
+        "categoria": "FILTROS_RUIDO",
+        "formula": "RC_FILTER_TAU_6H",
+        "estado": "OPTIMO"
+      },
+      {
+        "categoria": "NUBOSIDAD",
+        "formula": "LIU_JORDAN_KASTEN",
+        "estado": "OPTIMO"
+      }
+    ],
+    "cambios_recomendados": [
+      {
+        "categoria": "EVAPOTRANSPIRACION",
+        "actual": "FAO56_PM_ESTANDAR",
+        "recomendada": "WRIGHT_2005_NOCTURNAL",
+        "mejora": "+18.7% nocturno",
+        "archivo_nuevo": "core/indices/et_nocturna_wright.py",
+        "funcion_nueva": "evapotranspiracion_penman_monteith_wright"
+      },
+      {
+        "categoria": "CONFORT_TERMICO",
+        "actual": "UTCI_V1_FIALA_2012",
+        "recomendada": "UTCI_V2_BLAZEJCZYK_2013",
+        "mejora": "+5% (normal), +10.4°C (alta HR Maresme)",
+        "archivo_nuevo": "core/indices/utci_v2_blazejczyk.py",
+        "funcion_nueva": "utci_v2_blazejczyk"
+      },
+      {
+        "categoria": "TEMPERATURA_MINIMA",
+        "actual": "DEARDORFF_V46_5",
+        "recomendada": "DEARDORFF_V47_0_PRATA",
+        "mejora": "+25.7% (usa Prata en lugar de VDI)",
+        "archivo_nuevo": "core/indices/deardorff_v47_0_prata_integration.py",
+        "funcion_nueva": "get_temperatura_minima_v47_0"
+      }
+    ]
+  },
+  "fusiones": {
+    "fusiones": [
+      {
+        "fusion": "Prata_1996 + Deardorff_V46_8",
+        "resultado": "Deardorff_V47_0_PRATA",
+        "estado": "IMPLEMENTADO",
+        "archivo": "core/indices/deardorff_v47_0_prata_integration.py"
+      },
+      {
+        "fusion": "Wright_2005 + FAO56_PM",
+        "resultado": "ET_Wright_Nocturnal",
+        "estado": "WRAPPER_LISTO",
+        "archivo": "core/indices/et_wright_integration.py",
+        "accion_pendiente": "Integrar en environmental_indices.py"
+      },
+      {
+        "fusion": "UTCI_V1_Fiala + UTCI_V2_Blazejczyk",
+        "resultado": "UTCI_Hybrid_V47",
+        "estado": "PROPUESTA",
+        "razon": "Usar v1 como base, v2 para alta HR (>85%)",
+        "accion_pendiente": "Crear función híbrida en environmental_indices.py"
+      },
+      {
+        "fusion": "Kalman_Soil_WH51 + RC_Filter_Tau6h",
+        "resultado": "Double_Filter_Cascade",
+        "estado": "PROPUESTA",
+        "razon": "RC para suavizado rápido, Kalman para tendencias",
+        "accion_pendiente": "Aplicar RC primero, luego Kalman en pipeline"
+      }
+    ]
+  },
+  "plan": {
+    "acciones_criticas": [
+      {
+        "tipo": "INTEGRAR_FORMULA",
+        "formula": "PRATA_1996",
+        "funcion": "calcular_temperatura_cielo_efectiva_prata",
+        "mejora_esperada": "+25.7%",
+        "archivo_destino": "core/system/bus_expander.py o environmental_indices.py"
+      },
+      {
+        "tipo": "INTEGRAR_FORMULA",
+        "formula": "WRIGHT_2005_NOCTURNAL",
+        "funcion": "evapotranspiracion_penman_monteith_wright",
+        "mejora_esperada": "+18.7% nocturno",
+        "archivo_destino": "core/system/bus_expander.py o environmental_indices.py"
+      },
+      {
+        "tipo": "INTEGRAR_FORMULA",
+        "formula": "UTCI_V2_BLAZEJCZYK_2013",
+        "funcion": "utci_v2_blazejczyk",
+        "mejora_esperada": "+5% (normal), +10.4°C (alta HR Maresme)",
+        "archivo_destino": "core/system/bus_expander.py o environmental_indices.py"
+      },
+      {
+        "tipo": "INTEGRAR_FORMULA",
+        "formula": "DEARDORFF_V46_8_TERRAZA",
+        "funcion": "calcular_temperatura_minima_v46_8_soberania",
+        "mejora_esperada": "N/A",
+        "archivo_destino": "core/system/bus_expander.py o environmental_indices.py"
+      },
+      {
+        "tipo": "INTEGRAR_FORMULA",
+        "formula": "DEARDORFF_V47_0_PRATA",
+        "funcion": "get_temperatura_minima_v47_0",
+        "mejora_esperada": "+25.7% (usa Prata en lugar de VDI)",
+        "archivo_destino": "core/system/bus_expander.py o environmental_indices.py"
+      },
+      {
+        "tipo": "INTEGRAR_FORMULA",
+        "formula": "KALMAN_SOIL_WH51",
+        "funcion": "KalmanSoilWH51",
+        "mejora_esperada": "+4.5% directo, +15% con cascada Sundqvist",
+        "archivo_destino": "core/system/bus_expander.py o environmental_indices.py"
+      },
+      {
+        "tipo": "REEMPLAZAR_FORMULA",
+        "actual": "FAO56_PM_ESTANDAR",
+        "nueva": "WRIGHT_2005_NOCTURNAL",
+        "mejora": "+18.7% nocturno",
+        "archivo": "core/indices/et_nocturna_wright.py"
+      },
+      {
+        "tipo": "REEMPLAZAR_FORMULA",
+        "actual": "UTCI_V1_FIALA_2012",
+        "nueva": "UTCI_V2_BLAZEJCZYK_2013",
+        "mejora": "+5% (normal), +10.4°C (alta HR Maresme)",
+        "archivo": "core/indices/utci_v2_blazejczyk.py"
+      },
+      {
+        "tipo": "REEMPLAZAR_FORMULA",
+        "actual": "DEARDORFF_V46_5",
+        "nueva": "DEARDORFF_V47_0_PRATA",
+        "mejora": "+25.7% (usa Prata en lugar de VDI)",
+        "archivo": "core/indices/deardorff_v47_0_prata_integration.py"
+      },
+      {
+        "tipo": "ACTIVAR_WRAPPER",
+        "fusion": "Wright_2005 + FAO56_PM",
+        "archivo": "core/indices/et_wright_integration.py",
+        "accion": "Integrar en environmental_indices.py"
+      }
+    ],
+    "acciones_recomendadas": [
+      {
+        "tipo": "IMPLEMENTAR_FUSION",
+        "fusion": "UTCI_V1_Fiala + UTCI_V2_Blazejczyk",
+        "resultado": "UTCI_Hybrid_V47",
+        "razon": "Usar v1 como base, v2 para alta HR (>85%)"
+      },
+      {
+        "tipo": "IMPLEMENTAR_FUSION",
+        "fusion": "Kalman_Soil_WH51 + RC_Filter_Tau6h",
+        "resultado": "Double_Filter_Cascade",
+        "razon": "RC para suavizado rápido, Kalman para tendencias"
+      }
+    ],
+    "acciones_opcionales": []
+  }
+}

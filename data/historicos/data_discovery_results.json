@@ -1,0 +1,532 @@
+{
+  "resultados": [
+    {
+      "timestamp": 1770222884.677088,
+      "parametro": "sensacion_termica",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 0,
+      "ganadora": null,
+      "ganadora_score": 0.0,
+      "detalles": [
+        {
+          "id": "scipy_sensacion_termica_0",
+          "nombre": "scipy.optimize.curve_fit - Wind chill model",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "scipy_sensacion_termica_1",
+          "nombre": "scipy.stats.norm - Normal distribution",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_0",
+          "nombre": "sklearn.ensemble.GradientBoostingRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_1",
+          "nombre": "sklearn.linear_model.LinearRegression",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_sensacion_termica_0",
+          "nombre": "statsmodels.robust.mad_based_norm",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222884.694929,
+      "parametro": "sensacion_termica",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 0,
+      "ganadora": null,
+      "ganadora_score": 0.0,
+      "detalles": [
+        {
+          "id": "scipy_sensacion_termica_0",
+          "nombre": "scipy.optimize.curve_fit - Wind chill model",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "scipy_sensacion_termica_1",
+          "nombre": "scipy.stats.norm - Normal distribution",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_0",
+          "nombre": "sklearn.ensemble.GradientBoostingRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_1",
+          "nombre": "sklearn.linear_model.LinearRegression",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_sensacion_termica_0",
+          "nombre": "statsmodels.robust.mad_based_norm",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222884.69961,
+      "parametro": "humedad_relativa",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 0,
+      "ganadora": null,
+      "ganadora_score": 0.0,
+      "detalles": [
+        {
+          "id": "scipy_humedad_relativa_0",
+          "nombre": "scipy.special.erf - Error function",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "scipy_humedad_relativa_1",
+          "nombre": "scipy.interpolate.interp1d",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "sklearn_humedad_relativa_0",
+          "nombre": "sklearn.preprocessing.StandardScaler",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_humedad_relativa_1",
+          "nombre": "sklearn.ensemble.RandomForestRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_humedad_relativa_0",
+          "nombre": "statsmodels.tsa.seasonal.seasonal_decompose",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222945.084285,
+      "parametro": "sensacion_termica",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 0,
+      "ganadora": null,
+      "ganadora_score": 0.0,
+      "detalles": [
+        {
+          "id": "scipy_sensacion_termica_0",
+          "nombre": "scipy.optimize.curve_fit - Wind chill model",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "scipy_sensacion_termica_1",
+          "nombre": "scipy.stats.norm - Normal distribution",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_0",
+          "nombre": "sklearn.ensemble.GradientBoostingRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_1",
+          "nombre": "sklearn.linear_model.LinearRegression",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_sensacion_termica_0",
+          "nombre": "statsmodels.robust.mad_based_norm",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222945.105943,
+      "parametro": "sensacion_termica",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 0,
+      "ganadora": null,
+      "ganadora_score": 0.0,
+      "detalles": [
+        {
+          "id": "scipy_sensacion_termica_0",
+          "nombre": "scipy.optimize.curve_fit - Wind chill model",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "scipy_sensacion_termica_1",
+          "nombre": "scipy.stats.norm - Normal distribution",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_0",
+          "nombre": "sklearn.ensemble.GradientBoostingRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_1",
+          "nombre": "sklearn.linear_model.LinearRegression",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_sensacion_termica_0",
+          "nombre": "statsmodels.robust.mad_based_norm",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222945.113423,
+      "parametro": "humedad_relativa",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 0,
+      "ganadora": null,
+      "ganadora_score": 0.0,
+      "detalles": [
+        {
+          "id": "scipy_humedad_relativa_0",
+          "nombre": "scipy.special.erf - Error function",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "scipy_humedad_relativa_1",
+          "nombre": "scipy.interpolate.interp1d",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "sklearn_humedad_relativa_0",
+          "nombre": "sklearn.preprocessing.StandardScaler",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_humedad_relativa_1",
+          "nombre": "sklearn.ensemble.RandomForestRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_humedad_relativa_0",
+          "nombre": "statsmodels.tsa.seasonal.seasonal_decompose",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222964.407797,
+      "parametro": "sensacion_termica",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 0,
+      "ganadora": null,
+      "ganadora_score": 0.0,
+      "detalles": [
+        {
+          "id": "scipy_sensacion_termica_0",
+          "nombre": "scipy.optimize.curve_fit - Wind chill model",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "scipy_sensacion_termica_1",
+          "nombre": "scipy.stats.norm - Normal distribution",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_0",
+          "nombre": "sklearn.ensemble.GradientBoostingRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_1",
+          "nombre": "sklearn.linear_model.LinearRegression",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_sensacion_termica_0",
+          "nombre": "statsmodels.robust.mad_based_norm",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222964.435853,
+      "parametro": "sensacion_termica",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 0,
+      "ganadora": null,
+      "ganadora_score": 0.0,
+      "detalles": [
+        {
+          "id": "scipy_sensacion_termica_0",
+          "nombre": "scipy.optimize.curve_fit - Wind chill model",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "scipy_sensacion_termica_1",
+          "nombre": "scipy.stats.norm - Normal distribution",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_0",
+          "nombre": "sklearn.ensemble.GradientBoostingRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_1",
+          "nombre": "sklearn.linear_model.LinearRegression",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_sensacion_termica_0",
+          "nombre": "statsmodels.robust.mad_based_norm",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770222964.442438,
+      "parametro": "humedad_relativa",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 0,
+      "ganadora": null,
+      "ganadora_score": 0.0,
+      "detalles": [
+        {
+          "id": "scipy_humedad_relativa_0",
+          "nombre": "scipy.special.erf - Error function",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "scipy_humedad_relativa_1",
+          "nombre": "scipy.interpolate.interp1d",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'scipy'"
+        },
+        {
+          "id": "sklearn_humedad_relativa_0",
+          "nombre": "sklearn.preprocessing.StandardScaler",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_humedad_relativa_1",
+          "nombre": "sklearn.ensemble.RandomForestRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_humedad_relativa_0",
+          "nombre": "statsmodels.tsa.seasonal.seasonal_decompose",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770241201.52586,
+      "parametro": "sensacion_termica",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 2,
+      "ganadora": "scipy_sensacion_termica_0",
+      "ganadora_score": 92.0,
+      "detalles": [
+        {
+          "id": "scipy_sensacion_termica_0",
+          "nombre": "scipy.optimize.curve_fit - Wind chill model",
+          "score_validacion": 92.0,
+          "status": "valida"
+        },
+        {
+          "id": "scipy_sensacion_termica_1",
+          "nombre": "scipy.stats.norm - Normal distribution",
+          "score_validacion": 91.0,
+          "status": "valida"
+        },
+        {
+          "id": "sklearn_sensacion_termica_0",
+          "nombre": "sklearn.ensemble.GradientBoostingRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_1",
+          "nombre": "sklearn.linear_model.LinearRegression",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_sensacion_termica_0",
+          "nombre": "statsmodels.robust.mad_based_norm",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770241218.02881,
+      "parametro": "sensacion_termica",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 2,
+      "ganadora": "scipy_sensacion_termica_0",
+      "ganadora_score": 92.0,
+      "detalles": [
+        {
+          "id": "scipy_sensacion_termica_0",
+          "nombre": "scipy.optimize.curve_fit - Wind chill model",
+          "score_validacion": 92.0,
+          "status": "valida"
+        },
+        {
+          "id": "scipy_sensacion_termica_1",
+          "nombre": "scipy.stats.norm - Normal distribution",
+          "score_validacion": 91.0,
+          "status": "valida"
+        },
+        {
+          "id": "sklearn_sensacion_termica_0",
+          "nombre": "sklearn.ensemble.GradientBoostingRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_sensacion_termica_1",
+          "nombre": "sklearn.linear_model.LinearRegression",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_sensacion_termica_0",
+          "nombre": "statsmodels.robust.mad_based_norm",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770241220.645659,
+      "parametro": "humedad_relativa",
+      "candidatas_descubiertas": 5,
+      "candidatas_validas": 2,
+      "ganadora": "scipy_humedad_relativa_1",
+      "ganadora_score": 92.0,
+      "detalles": [
+        {
+          "id": "scipy_humedad_relativa_0",
+          "nombre": "scipy.special.erf - Error function",
+          "score_validacion": 91.0,
+          "status": "valida"
+        },
+        {
+          "id": "scipy_humedad_relativa_1",
+          "nombre": "scipy.interpolate.interp1d",
+          "score_validacion": 92.0,
+          "status": "valida"
+        },
+        {
+          "id": "sklearn_humedad_relativa_0",
+          "nombre": "sklearn.preprocessing.StandardScaler",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "sklearn_humedad_relativa_1",
+          "nombre": "sklearn.ensemble.RandomForestRegressor",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'sklearn'"
+        },
+        {
+          "id": "statsmodels_humedad_relativa_0",
+          "nombre": "statsmodels.tsa.seasonal.seasonal_decompose",
+          "status": "rechazada",
+          "razon": "Librería no disponible: No module named 'statsmodels'"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770241220.652398,
+      "parametro": "indice_uv",
+      "candidatas_descubiertas": 1,
+      "candidatas_validas": 1,
+      "ganadora": "scipy_indice_uv_0",
+      "ganadora_score": 92.0,
+      "detalles": [
+        {
+          "id": "scipy_indice_uv_0",
+          "nombre": "scipy.integrate.quad - UV index integration",
+          "score_validacion": 92.0,
+          "status": "valida"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770241220.65601,
+      "parametro": "velocidad_viento",
+      "candidatas_descubiertas": 1,
+      "candidatas_validas": 1,
+      "ganadora": "scipy_velocidad_viento_0",
+      "ganadora_score": 91.0,
+      "detalles": [
+        {
+          "id": "scipy_velocidad_viento_0",
+          "nombre": "scipy.stats.weibull_min - Wind speed distribution",
+          "score_validacion": 91.0,
+          "status": "valida"
+        }
+      ]
+    },
+    {
+      "timestamp": 1770241220.659653,
+      "parametro": "radiacion_solar",
+      "candidatas_descubiertas": 1,
+      "candidatas_validas": 1,
+      "ganadora": "scipy_radiacion_solar_0",
+      "ganadora_score": 91.0,
+      "detalles": [
+        {
+          "id": "scipy_radiacion_solar_0",
+          "nombre": "scipy.ndimage.gaussian_filter",
+          "score_validacion": 91.0,
+          "status": "valida"
+        }
+      ]
+    }
+  ]
+}

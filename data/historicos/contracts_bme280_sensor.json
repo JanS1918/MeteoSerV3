@@ -1,0 +1,96 @@
+{
+  "id": "bme280_sensor",
+  "name": "BME280 Environmental Sensor",
+  "type": "sensor",
+  "version": "1.0.0",
+  "description": "Sensor integrado de temperatura, humedad y presión atmosférica",
+  "manufacturer": "Bosch",
+  "datasheet": "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf",
+  
+  "fields": [
+    {
+      "name": "temperature",
+      "type": "float",
+      "unit": "celsius",
+      "range": [-40, 85],
+      "precision": 0.01,
+      "description": "Temperatura ambiente"
+    },
+    {
+      "name": "humidity",
+      "type": "float",
+      "unit": "percent",
+      "range": [0, 100],
+      "precision": 0.008,
+      "description": "Humedad relativa"
+    },
+    {
+      "name": "pressure",
+      "type": "float",
+      "unit": "hPa",
+      "range": [300, 1100],
+      "precision": 0.18,
+      "description": "Presión atmosférica"
+    }
+  ],
+  
+  "protocol": {
+    "type": "i2c",
+    "address": "0x76",
+    "alternate_address": "0x77",
+    "frequency": 100000,
+    "registers": {
+      "temp_msb": "0xFA",
+      "temp_lsb": "0xFB",
+      "temp_xlsb": "0xFC",
+      "press_msb": "0xF7",
+      "press_lsb": "0xF8",
+      "press_xlsb": "0xF9",
+      "hum_msb": "0xFD",
+      "hum_lsb": "0xFE",
+      "config": "0xF5",
+      "ctrl_meas": "0xF4",
+      "ctrl_hum": "0xF2"
+    }
+  },
+  
+  "power": {
+    "voltage": [1.71, 3.6],
+    "current_active": 0.0036,
+    "current_sleep": 0.0001
+  },
+  
+  "sampling": {
+    "default_interval": 60,
+    "min_interval": 1,
+    "max_interval": 3600
+  },
+  
+  "calibration": {
+    "required": true,
+    "factory_calibrated": true,
+    "coefficients": [
+      "dig_T1", "dig_T2", "dig_T3",
+      "dig_P1", "dig_P2", "dig_P3", "dig_P4", "dig_P5", "dig_P6", "dig_P7", "dig_P8", "dig_P9",
+      "dig_H1", "dig_H2", "dig_H3", "dig_H4", "dig_H5", "dig_H6"
+    ]
+  },
+  
+  "bus_keys": {
+    "temperature": "bme280_temperature",
+    "humidity": "bme280_humidity",
+    "pressure": "bme280_pressure"
+  },
+  
+  "dependencies": {
+    "python_packages": ["smbus2"],
+    "system_packages": ["i2c-tools"]
+  },
+  
+  "metadata": {
+    "integration_difficulty": "medium",
+    "documentation": "https://github.com/BoschSensortec/BME280_driver",
+    "community_support": "excellent",
+    "tested_on": ["Raspberry Pi", "Arduino"]
+  }
+}

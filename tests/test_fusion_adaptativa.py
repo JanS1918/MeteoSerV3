@@ -131,7 +131,7 @@ class TestConfiguracionDinamica:
         peso_wh65 = config.obtener_peso_temperatura('confort', 'wh65')
         peso_wh31 = config.obtener_peso_temperatura('confort', 'wh31')
         
-        assert weight_wh65 + peso_wh31 == pytest.approx(1.0, abs=0.001)
+        assert peso_wh65 + peso_wh31 == pytest.approx(1.0, abs=0.001)
         assert 0 <= peso_wh65 <= 1
         assert 0 <= peso_wh31 <= 1
     

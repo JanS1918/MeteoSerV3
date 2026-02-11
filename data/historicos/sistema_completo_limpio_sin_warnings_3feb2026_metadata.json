@@ -1,0 +1,58 @@
+{
+  "name": "sistema_completo_limpio_sin_warnings_3feb2026",
+  "timestamp": "2026-02-03T17:01:03.458520",
+  "files": {
+    "core/system/bus_expander.py": {
+      "hash": "1a96c371f40d6462e0d778fbcbcdc6b741c3fa28d95905a4bfc6ad6f1e103381",
+      "size": 334550,
+      "backed_up": true
+    },
+    "core/validation/anomaly_detector.py": {
+      "hash": "5e0f55d8d63cfea456aefc4432d53f538bbadc9c0db4f74255ea974d0ff3dd4d",
+      "size": 13120,
+      "backed_up": true
+    },
+    "meteoser_configuracion.txt": {
+      "hash": "dc4c445287b246b88cf7eb54a7e1bae34dc2da728369e5fe8b4d2b79f52708ca",
+      "size": 757,
+      "backed_up": true
+    },
+    "core/bus/__init__.py": {
+      "hash": "8a347894fb83a090205ee3291a68399e927e3fcc1cae48c5707816076625abdf",
+      "size": 1614,
+      "backed_up": true
+    },
+    "core/bus/bus_capas_informacion.py": {
+      "hash": "14eb9d0c342797b16b06f136db17c563af8aac4198b232fd3f16eb2a1c4fac4d",
+      "size": 15285,
+      "backed_up": true
+    },
+    "main.py": {
+      "hash": "20dc99b96f08a951c13835ff0a7253a3092816f363c81e21fe662e63a4b7c9f3",
+      "size": 652,
+      "backed_up": true
+    },
+    "main_asgi.py": {
+      "hash": "7e65c82068e0125561d9083ea0bde5c2065c2a17f25f0ebf540ef50ece4aca09",
+      "size": 170492,
+      "backed_up": true
+    }
+  },
+  "dirs": {
+    "core/validation": {
+      "backed_up": false,
+      "error": "[WinError 183] No se puede crear un archivo que ya existe: 'C:\\\\Users\\\\kioko\\\\Desktop\\\\MeteoSerV3\\\\backups\\\\system_checkpoints\\\\sistema_completo_limpio_sin_warnings_3feb2026\\\\core\\\\validation'"
+    },
+    "core/bus": {
+      "backed_up": false,
+      "error": "[WinError 183] No se puede crear un archivo que ya existe: 'C:\\\\Users\\\\kioko\\\\Desktop\\\\MeteoSerV3\\\\backups\\\\system_checkpoints\\\\sistema_completo_limpio_sin_warnings_3feb2026\\\\core\\\\bus'"
+    },
+    "core/indices": {
+      "backed_up": true
+    },
+    "config": {
+      "backed_up": true
+    }
+  },
+  "status": "complete"
+}

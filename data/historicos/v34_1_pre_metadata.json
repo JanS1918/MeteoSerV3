@@ -1,0 +1,58 @@
+{
+  "name": "v34_1_pre",
+  "timestamp": "2026-02-04T01:59:48.438034",
+  "files": {
+    "core/system/bus_expander.py": {
+      "hash": "ec9f0c3d2f018334c4874e3b1e65369a9da9c8733d5062fc099caa08d0438f6c",
+      "size": 377503,
+      "backed_up": true
+    },
+    "core/validation/anomaly_detector.py": {
+      "hash": "5e0f55d8d63cfea456aefc4432d53f538bbadc9c0db4f74255ea974d0ff3dd4d",
+      "size": 13120,
+      "backed_up": true
+    },
+    "meteoser_configuracion.txt": {
+      "hash": "dc4c445287b246b88cf7eb54a7e1bae34dc2da728369e5fe8b4d2b79f52708ca",
+      "size": 757,
+      "backed_up": true
+    },
+    "core/bus/__init__.py": {
+      "hash": "8a347894fb83a090205ee3291a68399e927e3fcc1cae48c5707816076625abdf",
+      "size": 1614,
+      "backed_up": true
+    },
+    "core/bus/bus_capas_informacion.py": {
+      "hash": "5bcc2c8e39da5472de6b9f3bb88b51a4f091c3c68c80e90ab976b953ade2b978",
+      "size": 22066,
+      "backed_up": true
+    },
+    "main.py": {
+      "hash": "20dc99b96f08a951c13835ff0a7253a3092816f363c81e21fe662e63a4b7c9f3",
+      "size": 652,
+      "backed_up": true
+    },
+    "main_asgi.py": {
+      "hash": "38d3a2a4a5a530e3d07619e956301926a61fd74be8fe26a1bb37c35f9ebee812",
+      "size": 171920,
+      "backed_up": true
+    }
+  },
+  "dirs": {
+    "core/validation": {
+      "backed_up": false,
+      "error": "[WinError 183] No se puede crear un archivo que ya existe: 'C:\\\\Users\\\\kioko\\\\Desktop\\\\MeteoSerV3\\\\backups\\\\system_checkpoints\\\\v34_1_pre\\\\core\\\\validation'"
+    },
+    "core/bus": {
+      "backed_up": false,
+      "error": "[WinError 183] No se puede crear un archivo que ya existe: 'C:\\\\Users\\\\kioko\\\\Desktop\\\\MeteoSerV3\\\\backups\\\\system_checkpoints\\\\v34_1_pre\\\\core\\\\bus'"
+    },
+    "core/indices": {
+      "backed_up": true
+    },
+    "config": {
+      "backed_up": true
+    }
+  },
+  "status": "complete"
+}

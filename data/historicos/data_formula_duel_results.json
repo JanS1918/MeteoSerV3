@@ -1,0 +1,47 @@
+[
+  {
+    "parametro": "punto_rocio",
+    "ganador": "hardy_temperatura_rocio_c",
+    "perdedor": "punto_rocio_wexler",
+    "score_actual": 0.9299999999999999,
+    "score_alt": 0.9199999999999999,
+    "escenarios": null,
+    "dry_run": true
+  },
+  {
+    "parametro": "presion_vapor",
+    "ganador": "presion_vapor_iapws",
+    "perdedor": "hardy_e_pa",
+    "score_actual": 0.32999999999999996,
+    "score_alt": 0.33999999999999997,
+    "escenarios": null,
+    "dry_run": true
+  },
+  {
+    "parametro": "sensacion_termica",
+    "ganador": "indice_utci",
+    "perdedor": "indice_steadman_apparent_temperature",
+    "score_actual": 0.98,
+    "score_alt": 0.9199999999999999,
+    "escenarios": null,
+    "dry_run": true
+  },
+  {
+    "parametro": "evapotranspiracion",
+    "ganador": "et0_asce_standardized",
+    "perdedor": "et0_penman_fao56",
+    "score_actual": 0.9699999999999999,
+    "score_alt": 0.96,
+    "escenarios": null,
+    "dry_run": true
+  },
+  {
+    "parametro": "densidad_aire",
+    "ganador": "omm_densidad_temperatura_virtual",
+    "perdedor": "densidad_aire_ideal",
+    "score_actual": 0.94,
+    "score_alt": 0.9099999999999999,
+    "escenarios": null,
+    "dry_run": true
+  }
+]

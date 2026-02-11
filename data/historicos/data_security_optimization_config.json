@@ -1,0 +1,6 @@
+{
+  "enabled": true,
+  "intervalo_segundos": 600,
+  "nivel_seguridad": "MAXIMO",
+  "max_ciclos_por_ejecucion": 5
+}

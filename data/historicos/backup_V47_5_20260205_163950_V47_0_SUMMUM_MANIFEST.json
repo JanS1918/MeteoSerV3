@@ -1,0 +1,75 @@
+{
+  "version": "V47.0 SUMMUM ABSOLUTO",
+  "timestamp": "2026-02-05T14:12:54.922689",
+  "componentes": {
+    "formulas": {
+      "core/indices/radiacion_lw_prata.py": {
+        "hash": "53778139954eb601ed8e1bc6155610dc9eb2ed1468e7b0f5cc28de4336b0a642",
+        "existe": true,
+        "tamaño_bytes": 13027
+      },
+      "core/indices/et_nocturna_wright.py": {
+        "hash": "cd7395315e24b3fe2a37424ae6721c167d878a0cf7be229b403d90574a605fb0",
+        "existe": true,
+        "tamaño_bytes": 13401
+      },
+      "core/indices/utci_v2_blazejczyk.py": {
+        "hash": "9c18596202d18152ff92fb9cb382a407b1458f044f954700b921a2804c9501b0",
+        "existe": true,
+        "tamaño_bytes": 11195
+      },
+      "core/indices/deardorff_v47_0_prata_integration.py": {
+        "hash": "8d6002af8ecf52332d6d61e1ba785c367407ff04fabe9cb36b6231ec99914dc7",
+        "existe": true,
+        "tamaño_bytes": 18686
+      },
+      "core/indices/kalman_soil_wh51.py": {
+        "hash": "56fbd10c959d099a8a31d9bd7bbec3ba10a76f8470e847de6e9ef47ccd5d1ff8",
+        "existe": true,
+        "tamaño_bytes": 9877
+      }
+    },
+    "wrappers": {
+      "core/indices/radiacion_lw_wrapper.py": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "existe": true,
+        "tamaño_bytes": 0
+      },
+      "core/indices/et_wright_integration.py": {
+        "hash": "947c64e96f075ff0fa1754cd8651b0f5cfe5f27ef97a64bdee498e1eaa61bc03",
+        "existe": true,
+        "tamaño_bytes": 10264
+      },
+      "core/indices/utci_v2_wrapper.py": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "existe": true,
+        "tamaño_bytes": 0
+      }
+    },
+    "integration_files": {
+      "core/indices/environmental_indices.py": {
+        "hash": "9b58b739423542e96f2e5ff914136ec2595ef3d3c86382dc1c63a035ff7daedc",
+        "existe": true,
+        "tamaño_bytes": 392111
+      },
+      "core/system/bus_expander.py": {
+        "hash": "3847f025af3d1ac084366972abc4dd16fbb43f4a314f3a8b6a9d4fdfba663944",
+        "existe": true,
+        "tamaño_bytes": 401851
+      }
+    },
+    "audit_tools": {
+      "GUARDIAN_25_CAPAS_AUDITORIA_V47.py": {
+        "hash": "c66a71c77aa875c455542f4f7134fe83402bd65eabb529b89d51878842c44064",
+        "existe": true,
+        "tamaño_bytes": 27603
+      },
+      "core/validation/mos_internal_validator.py": {
+        "hash": "51f00bcf8101117dab1f657e8a8c27fe1d8dc2633cb535af49c28868f4e98f28",
+        "existe": true,
+        "tamaño_bytes": 18854
+      }
+    }
+  },
+  "hash_global": "b0eb219eafad95cea780ee805b40acb9c59a904ff0006bafbf3b195c233ba033"
+}

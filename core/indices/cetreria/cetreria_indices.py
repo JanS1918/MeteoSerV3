@@ -323,11 +323,11 @@ def calcular_cetreria(data: Dict[str, Optional[float]]) -> Dict[str, Optional[fl
     lluvia_1h = data.get("lluvia_1h")
     sensacion = data.get("sensacion_termica")
 
-    viento = viento_cetreria(viento_med, rachas)
-    visibilidad = visibilidad_terreno(temp_c, dew_c, rh, nub)
-    termales = termales_probabilidad(radiacion, var_t_5min, nub, viento_med, rh)
-    barro = barro_campo(lluvia_24h, lluvia_1h, viento_med, temp_c, dew_c)
-    confort = confort_ave(temp_c, sensacion, radiacion, viento_med)
+    viento = viento_cetreria_robusto(viento_med, rachas)
+    visibilidad = visibilidad_terreno_robusto(temp_c, dew_c, rh, nub)
+    termales = termales_probabilidad_robusto(radiacion, var_t_5min, nub, viento_med, rh)
+    barro = barro_campo_robusto(lluvia_24h, lluvia_1h, viento_med, temp_c, dew_c)
+    confort = confort_ave_robusto(temp_c, sensacion, radiacion, viento_med)
     seguridad = indice_seguridad_vuelo(viento, visibilidad, barro, termales)
     indice_cetreria = indice_cetreria_final(seguridad, viento, visibilidad, confort)
 

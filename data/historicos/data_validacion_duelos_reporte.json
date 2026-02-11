@@ -1,0 +1,29 @@
+{
+  "total": 2,
+  "correctas": 0,
+  "incorrectas": 2,
+  "indeterminadas": 0,
+  "diferencia_promedio": 0.9999999999999991,
+  "detalles": [
+    {
+      "parametro": "sensacion_termica",
+      "validacion": {
+        "correcto": false,
+        "razon": "Score ganador (19.3000) <= Score perdedor (21.0000)",
+        "mae_ganador": 19.3,
+        "mae_perdedor": 21.0,
+        "diferencia": 1.6999999999999993
+      }
+    },
+    {
+      "parametro": "punto_rocio",
+      "validacion": {
+        "correcto": false,
+        "razon": "Score ganador (8.5500) <= Score perdedor (8.8500)",
+        "mae_ganador": 8.55,
+        "mae_perdedor": 8.85,
+        "diferencia": 0.29999999999999893
+      }
+    }
+  ]
+}

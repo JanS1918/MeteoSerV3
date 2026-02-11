@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "parametro": "sensacion_termica",
+    "estado": "provisional",
+    "muestras": 1,
+    "razon": "Insuficientes para validación completa"
+  }
+]

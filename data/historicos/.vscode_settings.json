@@ -1,0 +1,21 @@
+{
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/data/**": true,
+    "**/archive/**": true,
+    "**/backups/**": true,
+    "**/.git/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/data": true,
+    "**/archive": true,
+    "**/backups": true,
+    "**/.git": true
+  }
+}
+{
+    "chat.tools.terminal.autoApprove": {
+        "C:/Users/kioko/Desktop/MeteoSerV3/.venv/Scripts/python.exe": true
+    }
+}
