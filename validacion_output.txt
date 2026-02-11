@@ -1,0 +1,499 @@
+INFO:__main__:ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+INFO:__main__:INICIANDO VALIDADOR WH31 vs WH65
+INFO:__main__:ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+INFO:__main__:[1/3] Generando datos hist├│ricos...
+INFO:__main__:  Ô£ô 168 registros generados
+INFO:__main__:[2/3] Ejecutando validaci├│n...
+INFO:__main__:Iniciando validaci├│n de datos hist├│ricos...
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=25.5┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=24.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=25.7┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=24.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=25.9┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=24.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.1┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=24.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.3┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=24.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.4┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=24.2┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.6┬░C, rad=800W/m┬▓, calentamiento=2.4┬░C ÔåÆ temp_real=24.2┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.5┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=24.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.4┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=24.4┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.4┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=24.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.3┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=24.7┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.2┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=24.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.1┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=24.9┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.7┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=25.5┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=26.9┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=25.5┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.0┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=25.4┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.2┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=25.4┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.4┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=25.4┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.6┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=25.4┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.8┬░C, rad=800W/m┬▓, calentamiento=2.4┬░C ÔåÆ temp_real=25.4┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.7┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=25.5┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.6┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=25.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.5┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=25.7┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.4┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=25.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.3┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=25.9┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.2┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=26.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=27.8┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=26.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.0┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=26.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.2┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=26.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.4┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=26.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.6┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=26.5┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.7┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=26.5┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.9┬░C, rad=800W/m┬▓, calentamiento=2.4┬░C ÔåÆ temp_real=26.5┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.8┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=26.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.7┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=26.7┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.6┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=26.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.6┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=27.0┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.5┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=27.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=28.4┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=27.2┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.0┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=27.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.1┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=27.7┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.3┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=27.7┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.5┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=27.7┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.7┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=27.7┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.9┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=27.7┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.1┬░C, rad=800W/m┬▓, calentamiento=2.4┬░C ÔåÆ temp_real=27.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.0┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=27.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.9┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=27.9┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.8┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=28.0┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.7┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=28.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.6┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=28.2┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=29.5┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=28.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.1┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=28.9┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.3┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=28.9┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.5┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=28.9┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.6┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=28.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.8┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=28.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.0┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=28.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.2┬░C, rad=800W/m┬▓, calentamiento=2.4┬░C ÔåÆ temp_real=28.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.1┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=28.9┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.0┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=29.0┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.9┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=29.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.9┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=29.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.8┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=29.4┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=30.7┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=29.5┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.2┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=30.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.4┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=30.0┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.6┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=30.0┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.8┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=30.0┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.0┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=30.0┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.2┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=30.0┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.3┬░C, rad=800W/m┬▓, calentamiento=2.4┬░C ÔåÆ temp_real=29.9┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.2┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=30.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.2┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=30.2┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.1┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=30.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.0┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=30.4┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.9┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=30.5┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=31.8┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=30.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.4┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=31.2┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.6┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=31.2┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.8┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=31.2┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=32.9┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=31.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=33.1┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=31.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=33.3┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=31.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=33.5┬░C, rad=800W/m┬▓, calentamiento=2.4┬░C ÔåÆ temp_real=31.1┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=33.4┬░C, rad=733W/m┬▓, calentamiento=2.2┬░C ÔåÆ temp_real=31.2┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=33.3┬░C, rad=667W/m┬▓, calentamiento=2.0┬░C ÔåÆ temp_real=31.3┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=33.2┬░C, rad=600W/m┬▓, calentamiento=1.8┬░C ÔåÆ temp_real=31.4┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=33.1┬░C, rad=533W/m┬▓, calentamiento=1.6┬░C ÔåÆ temp_real=31.5┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=33.0┬░C, rad=467W/m┬▓, calentamiento=1.4┬░C ÔåÆ temp_real=31.6┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH31: temp_med=33.0┬░C, rad=400W/m┬▓, calentamiento=1.2┬░C ÔåÆ temp_real=31.8┬░C
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+DEBUG:core.indices.contexto_sensores:WH31: Sensor PROTEGIDO (factor_pared=0.92)
+DEBUG:core.indices.contexto_sensores:WH65: Sensor COMPLETAMENTE EXPUESTO
+INFO:__main__:  Ô£ô Validaci├│n completada
+INFO:__main__:[3/3] Generando reporte...
+INFO:__main__:Ô£ô Resultado JSON: validacion_wh31_resultado.json
+INFO:__main__:ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+INFO:__main__:VALIDACI├ôN COMPLETADA
+INFO:__main__:ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+INFORME DE VALIDACI├ôN: SENSORES WH31 vs WH65
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+Timestamp: 2026-02-11T01:57:08.581576
+Estado: COMPLETADA
+
+├ìNDICES CLAVE
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+Total de registros procesados: 168
+Per├¡odo de an├ílisis: 7.0 d├¡as
+
+DIFERENCIALES WH31 - WH65
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  Promedio: 1.93┬░C
+  Mediana:  2.1┬░C
+  Std Dev:  0.61┬░C
+  Rango:    1.3┬░C a 2.9┬░C
+  Nota: WH31 lee m├ís por efecto radiativo interno
+
+ERROR SISTEM├üTICO WH31
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  Promedio: 0.95┬░C
+  RMS:      1.32┬░C
+  M├íximo:   2.4┬░C
+  Nota: Error sistem├ítico corregible mediante ajuste
+
+AJUSTE POR RADIACI├ôN
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  Registros con radiaci├│n: 91
+  Ajuste promedio: 1.754┬░C
+  Correlaci├│n: Positiva (a m├ís radiaci├│n, m├ís sesgo)
+  Nota: Permite factor de correcci├│n din├ímico basado en GHI
+
+CONCLUSI├ôN
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  El sensor WH31 presenta un sesgo SIGNIFICATIVO de aprox. 1.93┬░C 
+  sobre WH65 debido a reflexiones radiativas internas. Este sesgo es:
+  
+  1. PREDECIBLE: Correlaciona fuertemente con radiaci├│n global
+  2. CORREGIBLE: Se aplica ajuste porcentual basado en radiaci├│n
+  3. ACUMULABLE: Afecta c├ílculos que usan temperatura (confort, salud, etc.)
+  
+  Error sistem├ítico medio: 0.950┬░C (correcci├│n aplicable)
+  
+  El ajuste mediante temperatura_ajustada_por_sensor() MITIGA pero NO ELIMINA
+  completamente el sesgo, debido a variaciones en configuraci├│n f├¡sica del sensor.
+
+RECOMENDACIONES
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  1. Usar temperature_ajustada_por_sensor() para WH31 en todos los c├ílculos
+  2. Monitorear en tiempo real el factor de correcci├│n por radiaci├│n
+  3. Comparar WH31 ajustado vs WH65 cada 7 d├¡as para drift
+  4. Si diferencial promedio > 3┬░C, revisar instalaci├│n f├¡sica sensor
+  5. Registrar errores de ajuste en logs para an├ílisis posterior
+  6. Usar WH65 como referencia en sistemas cr├¡ticos (salud, deporte)
+
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ

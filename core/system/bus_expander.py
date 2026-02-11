@@ -462,6 +462,14 @@ class BusExpander:
                     logger.warning(f"[WARNING] Error en rolling windows: {rolling_err}")
             
             logger.info("[OK] BUS V45.0 VECTORIZADO: 2000+ CONSTANTES - POTENCIA MATRICIAL ACTIVA - NUMPY ACELERADO [TARGET][FAST]")
+            
+            # ═══════════════════════════════════════════════════════════════════════
+            # AUDITORÍA POST-CICLO (STEP 2): Validar integridad de publicación
+            # ═══════════════════════════════════════════════════════════════════════
+            try:
+                await self._ejecutar_auditoria_post_ciclo()
+            except Exception as audit_err:
+                logger.warning(f"[WARNING] Auditoría post-ciclo no completada: {audit_err}")
         
         except Exception as e:
             logger.error(f"[ERROR] Error publicando subfactores: {e}")
@@ -8208,6 +8216,44 @@ class BusExpander:
         
         except Exception as e:
             logger.error(f"[ERROR] Error Auto-Discovery: {e}", exc_info=True)
+    
+    async def _ejecutar_auditoria_post_ciclo(self):
+        """
+        STEP 2: Ejecuta auditoría post-ciclo para validar integridad de publicación al bus.
+        Se ejecuta automáticamente después de publish_all_subfactors().
+        """
+        try:
+            from core.system.auditor_bus import auditar_publicacion_bus
+            
+            logger.debug("[AUDIT] Iniciando auditoría post-ciclo...")
+            
+            # Obtener todas las constantes publicadas en el bus
+            constantes_bus = self.bus.obtener_todas_constantes() if hasattr(self.bus, 'obtener_todas_constantes') else {}
+            
+            # Ejecutar auditoría
+            resultado_auditoria = auditar_publicacion_bus(constantes_bus, reporte_detallado=False)
+            
+            # Publicar resultado en el bus para acceso centralizado
+            estado = resultado_auditoria.get('estado_auditoria', 'UNKNOWN')
+            cobertura = resultado_auditoria.get('cobertura_porcentaje', 0)
+            
+            self.bus.publicar("auditoria_estado_post_ciclo", estado, "texto")
+            self.bus.publicar("auditoria_cobertura_post_ciclo", cobertura, "%")
+            self.bus.publicar("auditoria_timestamp_post_ciclo", datetime.now().isoformat(), "ISO8601")
+            
+            # Log con detalles
+            if estado == "PASS":
+                logger.info(f"[AUDIT] ✓ Post-ciclo PASS - Cobertura: {cobertura:.0f}%")
+            elif estado == "FAIL":
+                dominio_fallos = resultado_auditoria.get('dominios_fallidos', [])
+                logger.warning(f"[AUDIT] ⚠️  Post-ciclo FAIL - Fallos en: {dominio_fallos}")
+            else:
+                logger.warning(f"[AUDIT] Estado desconocido: {estado}")
+                
+        except ImportError:
+            logger.debug("[AUDIT] auditor_bus no disponible - saltando auditoría post-ciclo")
+        except Exception as e:
+            logger.warning(f"[AUDIT] Error ejecutando auditoría post-ciclo: {e}")
     
     def _publish_auto_value(self, const_name: str, value: Any):
         """

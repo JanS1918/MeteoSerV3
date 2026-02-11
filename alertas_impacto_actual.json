@@ -1,0 +1,80 @@
+{
+  "total_alertas": 6,
+  "criticas": 2,
+  "severas": 0,
+  "alertas": [
+    {
+      "nivel": "CRÍTICO",
+      "dominio": "cetreria",
+      "evento_causa": "lluvia(15.0), amplitud_termica(12.0), humedad_baja(25.0)",
+      "impacto_magnitud": -80.0,
+      "recomendacion": "Cancelar entrenamientos: condiciones adversas",
+      "timestamp": "2026-02-11T01:57:12.690906",
+      "afectacion_secundaria": null,
+      "nivel_numerico": 4
+    },
+    {
+      "nivel": "CRÍTICO",
+      "dominio": "lluvia",
+      "evento_causa": "lluvia(15.0), amplitud_termica(12.0), humedad_baja(25.0)",
+      "impacto_magnitud": 90.0,
+      "recomendacion": "Aprovechar para riego: probabilidad de lluvia alta",
+      "timestamp": "2026-02-11T01:57:12.690906",
+      "afectacion_secundaria": [
+        "hidrologia",
+        "riego",
+        "cetreria"
+      ],
+      "nivel_numerico": 4
+    },
+    {
+      "nivel": "LEVE",
+      "dominio": "deporte",
+      "evento_causa": "lluvia(15.0), amplitud_termica(12.0), humedad_baja(25.0)",
+      "impacto_magnitud": -30.0,
+      "recomendacion": "Riesgos de seguridad: suspender actividades",
+      "timestamp": "2026-02-11T01:57:12.690906",
+      "afectacion_secundaria": [
+        "salud",
+        "confort"
+      ],
+      "nivel_numerico": 1
+    },
+    {
+      "nivel": "LEVE",
+      "dominio": "confort",
+      "evento_causa": "lluvia(15.0), amplitud_termica(12.0), humedad_baja(25.0)",
+      "impacto_magnitud": -35.0,
+      "recomendacion": "Malestar esperado: activar sistemas de control",
+      "timestamp": "2026-02-11T01:57:12.690906",
+      "afectacion_secundaria": null,
+      "nivel_numerico": 1
+    },
+    {
+      "nivel": "LEVE",
+      "dominio": "astronomia",
+      "evento_causa": "lluvia(15.0), amplitud_termica(12.0), humedad_baja(25.0)",
+      "impacto_magnitud": 25.0,
+      "recomendacion": "Observabilidad excelente",
+      "timestamp": "2026-02-11T01:57:12.690906",
+      "afectacion_secundaria": [
+        "cetreria",
+        "deporte"
+      ],
+      "nivel_numerico": 1
+    },
+    {
+      "nivel": "LEVE",
+      "dominio": "salud",
+      "evento_causa": "lluvia(15.0), amplitud_termica(12.0), humedad_baja(25.0)",
+      "impacto_magnitud": 35.0,
+      "recomendacion": "Condiciones favorables para ejercicio",
+      "timestamp": "2026-02-11T01:57:12.690906",
+      "afectacion_secundaria": [
+        "confort",
+        "deporte"
+      ],
+      "nivel_numerico": 1
+    }
+  ]
+}

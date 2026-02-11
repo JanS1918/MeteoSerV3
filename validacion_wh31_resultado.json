@@ -1,0 +1,37 @@
+{
+  "validacion": "COMPLETADA",
+  "timestamp": "2026-02-11T01:57:08.581576",
+  "estadisticas": {
+    "total_registros": 168,
+    "periodo_dias": 7.0,
+    "diferencial_wh31_vs_wh65": {
+      "promedio": 1.93,
+      "mediana": 2.1,
+      "desv_std": 0.61,
+      "minimo": 1.3,
+      "maximo": 2.9,
+      "observacion": "WH31 lee m\u00e1s por efecto radiativo interno"
+    },
+    "error_sistematico_wh31": {
+      "promedio": 0.95,
+      "rms": 1.32,
+      "maximo_absoluto": 2.4,
+      "observacion": "Error sistem\u00e1tico corregible mediante ajuste"
+    },
+    "ajuste_por_radiacion": {
+      "registros_con_radiacion": 91,
+      "ajuste_promedio": 1.754,
+      "correlacion_estimada": "Positiva (a m\u00e1s radiaci\u00f3n, m\u00e1s sesgo)",
+      "observacion": "Permite factor de correcci\u00f3n din\u00e1mico basado en GHI"
+    }
+  },
+  "conclusion": "El sensor WH31 presenta un sesgo SIGNIFICATIVO de aprox. 1.93\u00b0C \nsobre WH65 debido a reflexiones radiativas internas. Este sesgo es:\n\n1. PREDECIBLE: Correlaciona fuertemente con radiaci\u00f3n global\n2. CORREGIBLE: Se aplica ajuste porcentual basado en radiaci\u00f3n\n3. ACUMULABLE: Afecta c\u00e1lculos que usan temperatura (confort, salud, etc.)\n\nError sistem\u00e1tico medio: 0.950\u00b0C (correcci\u00f3n aplicable)\n\nEl ajuste mediante temperatura_ajustada_por_sensor() MITIGA pero NO ELIMINA\ncompletamente el sesgo, debido a variaciones en configuraci\u00f3n f\u00edsica del sensor.",
+  "recomendaciones": [
+    "Usar temperature_ajustada_por_sensor() para WH31 en todos los c\u00e1lculos",
+    "Monitorear en tiempo real el factor de correcci\u00f3n por radiaci\u00f3n",
+    "Comparar WH31 ajustado vs WH65 cada 7 d\u00edas para drift",
+    "Si diferencial promedio > 3\u00b0C, revisar instalaci\u00f3n f\u00edsica sensor",
+    "Registrar errores de ajuste en logs para an\u00e1lisis posterior",
+    "Usar WH65 como referencia en sistemas cr\u00edticos (salud, deporte)"
+  ]
+}

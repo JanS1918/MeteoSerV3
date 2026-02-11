@@ -138,6 +138,35 @@ async def lifespan(app_instance: FastAPI):
         logger.warning(f"[WARNING] Scheduler V51 no disponible: {e}")
         app_instance.state.schedulador_indices_v51 = None
 
+    # [SCHEDULER WH31] VALIDADOR SEMANAL DE SENSORES WH31 vs WH65 (STEP 2)
+    # Ejecuta cada 7 días a las 03:00 AM - Detecta drift y cambios en calibración
+    try:
+        from core.scheduler.scheduler_wh31_validator import iniciar_scheduler_wh31
+        scheduler_wh31 = iniciar_scheduler_wh31()
+        logger.info("[SCHEDULER WH31] OK - Validador de sensores WH31 iniciado")
+        logger.info("[SCHEDULER WH31] - Compara: WH31 vs WH65 temperatura")
+        logger.info("[SCHEDULER WH31] - Intervalo: 7 días @ 03:00 AM")
+        logger.info("[SCHEDULER WH31] - Archivos: data/wh31_validations/")
+        app_instance.state.scheduler_wh31 = scheduler_wh31
+    except Exception as e:
+        logger.warning(f"[WARNING] Scheduler WH31 no disponible: {e}")
+        app_instance.state.scheduler_wh31 = None
+
+    # [SERVICIO ALERTAS] MONITOREO EN VIVO DE EVENTOS CON MATRIZ DE IMPACTO (STEP 3)
+    # Ejecuta cada 30 segundos - Genera alertas basadas en eventos meteorológicos
+    try:
+        from core.system.servicio_alertas_vivo import iniciar_servicio_alertas
+        servicio_alertas = iniciar_servicio_alertas()
+        logger.info("[ALERTAS-VIVO] OK - Servicio de alertas predictivas en vivo iniciado")
+        logger.info("[ALERTAS-VIVO] - Monitorea: todos los dominios (cetrería, lluvia, deporte, etc.)")
+        logger.info("[ALERTAS-VIVO] - Intervalo: 30 segundos")
+        logger.info("[ALERTAS-VIVO] - Archivos: data/alertas/")
+        logger.info("[ALERTAS-VIVO] - Historial: últimas 1000 alertas")
+        app_instance.state.servicio_alertas = servicio_alertas
+    except Exception as e:
+        logger.warning(f"[WARNING] Servicio de alertas no disponible: {e}")
+        app_instance.state.servicio_alertas = None
+
     mqtt_host = os.getenv("METEOSER_MQTT_HOST", "127.0.0.1")
     mqtt_tls_enabled = os.getenv("METEOSER_MQTT_TLS", "1") not in ("0", "false", "False")
     default_mqtt_port = "8883" if mqtt_tls_enabled else "1883"
@@ -499,6 +528,7 @@ async def lifespan(app_instance: FastAPI):
 # ═══════════════════════════════════════════════════════════════════════════
 app = FastAPI(lifespan=lifespan, title="MeteoSerV3", version="3.0.0")
 
+# ROUTER DE DIAGNÓSTICO DATOS PRIMARIOS
 # Importar routers de la nueva UI (legado)
 try:
     from app.ui.api_endpoints import router as ui_router, set_system_manager as set_ui_system_manager
@@ -507,6 +537,18 @@ try:
     app.include_router(panel_router)
 except Exception as e:
     print(f"No se pudo cargar los routers de UI: {e}")
+
+# ROUTER DE AUDITORÍAS Y ALERTAS (STEP 4)
+try:
+    from api.api_auditorias_alertas import router as auditorias_alertas_router
+    app.include_router(auditorias_alertas_router)
+    logger.info("[ROUTER] API Auditorías y Alertas cargada en /api/v1/")
+    logger.info("[ROUTER] - GET /api/v1/auditorias/actual")
+    logger.info("[ROUTER] - GET /api/v1/alertas/activas")
+    logger.info("[ROUTER] - GET /api/v1/validaciones/wh31")
+    logger.info("[ROUTER] - GET /api/v1/salud/sistema")
+except Exception as e:
+    logger.warning(f"[ROUTER] No se pudo cargar router de auditorías/alertas: {e}")
 
 # ROUTER DE FUSIÓN ADAPTATIVA WH65 + WH31 (incluye dashboard)
 try:
@@ -517,8 +559,6 @@ try:
     print("[ROUTER] Datos dashboard en /api/v1/fusion/dashboard-data")
 except Exception as e:
     print(f"[ROUTER] No se pudo cargar router de fusión: {e}")
-
-# ROUTER DE DIAGNÓSTICO DATOS PRIMARIOS
 try:
     from routers.diagnostico_datos_primarios import router as diagnostico_router
     app.include_router(diagnostico_router)
