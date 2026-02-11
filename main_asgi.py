@@ -209,7 +209,131 @@ async def lifespan(app_instance: FastAPI):
         logger.warning(f"[WARNING] Gestor de tenants no disponible: {e}")
         app_instance.state.gestor_tenants = None
 
+    # [WEBHOOKS] EVENTOS REACTIVOS Y INTEGRACIONES EXTERNAS (STEP 11)
+    # Pub/sub con webhooks HTTP y retry logic
+    try:
+        from core.integracion.gestor_webhooks import iniciar_gestor_webhooks
+        contexto_webhooks = iniciar_gestor_webhooks()
+        logger.info("[WEBHOOKS] OK - Gestor de webhooks iniciado")
+        logger.info("[WEBHOOKS] - Sistemas externos: alertas críticas, cambios de estado")
+        logger.info("[WEBHOOKS] - Retry: exponential backoff hasta 5 intentos")
+        logger.info("[WEBHOOKS] - Endpoints: GET/POST /api/v1/webhooks/*")
+        app_instance.state.gestor_webhooks = contexto_webhooks
+    except Exception as e:
+        logger.warning(f"[WARNING] Gestor de webhooks no disponible: {e}")
+        app_instance.state.gestor_webhooks = None
+
+    # [WEBSOCKET] ACTUALIZACIONES EN VIVO (STEP 12)
+    # Reemplazo de polling 30s → push en tiempo real
+    try:
+        from core.integracion.gestor_websocket import obtener_gestor_websocket
+        gestor_ws = obtener_gestor_websocket()
+        logger.info("[WEBSOCKET] OK - Gestor de WebSocket iniciado")
+        logger.info("[WEBSOCKET] - Canales: alertas, salud, auditoría, WH31")
+        logger.info("[WEBSOCKET] - Endpoint: WS /ws")
+        app_instance.state.gestor_websocket = gestor_ws
+    except Exception as e:
+        logger.warning(f"[WARNING] Gestor WebSocket no disponible: {e}")
+        app_instance.state.gestor_websocket = None
+
+    # [CONFIG DINÁMICA] FEATURE FLAGS Y HOT RELOAD (STEP 13)
+    # Cambios sin reiniciar servidor
+    try:
+        from core.config.config_dinamica import iniciar_gestor_config
+        contexto_config = iniciar_gestor_config()
+        logger.info("[CONFIG] OK - Configuración dinámica iniciada")
+        logger.info("[CONFIG] - Feature flags: rolling deployment, A/B testing")
+        logger.info("[CONFIG] - Hot reload: sin downtime")
+        logger.info("[CONFIG] - Endpoints: GET/PUT /api/v1/config/*")
+        app_instance.state.gestor_config = contexto_config
+    except Exception as e:
+        logger.warning(f"[WARNING] Configuración dinámica no disponible: {e}")
+        app_instance.state.gestor_config = None
+
+    # [RATE LIMITING] PROTECCIÓN DE API (STEP 14)
+    # Token bucket algorithm con throttling adaptativo
+    try:
+        from core.seguridad.limitador_tasa import iniciar_limitador_tasa
+        contexto_rate_limit = iniciar_limitador_tasa()
+        logger.info("[RATE-LIMIT] OK - Limitador de tasa iniciado")
+        logger.info("[RATE-LIMIT] - Protección: 100+ req/min por endpoint")
+        logger.info("[RATE-LIMIT] - Degradación: automática si carga alta")
+        app_instance.state.limitador_tasa = contexto_rate_limit
+    except Exception as e:
+        logger.warning(f"[WARNING] Limitador de tasa no disponible: {e}")
+        app_instance.state.limitador_tasa = None
+
+    # [CACHÉ DISTRIBUIDA] Redis + En-memoria (STEP 15)
+    # Cachear resultados costosos con fallback automático
+    try:
+        from core.cache.cache_distribuida import iniciar_cache
+        contexto_cache = iniciar_cache()
+        logger.info("[CACHE] OK - Sistema de caché iniciado")
+        logger.info(f"[CACHE] - Backend: {contexto_cache.get('redis', 'ERROR')}")
+        logger.info("[CACHE] - Fallback: en-memoria (hasta 1000 items)")
+        app_instance.state.cache_distribuida = contexto_cache
+    except Exception as e:
+        logger.warning(f"[WARNING] Caché distribuida no disponible: {e}")
+        app_instance.state.cache_distribuida = None
+
+    # [AUDIT TRAIL] REGISTRO DE ACCIONES CRÍTICAS (STEP 16)
+    # Cumplimiento normativo y trazabilidad total
+    try:
+        from core.seguridad.registrador_audit import iniciar_registrador_audit
+        contexto_audit = iniciar_registrador_audit()
+        logger.info("[AUDIT] OK - Registrador de auditoría iniciado")
+        logger.info("[AUDIT] - Eventos: config, webhooks, API, seguridad")
+        logger.info("[AUDIT] - Retención: 90 días")
+        logger.info("[AUDIT] - Endpoints: GET /api/v1/audit/*")
+        app_instance.state.registrador_audit = contexto_audit
+    except Exception as e:
+        logger.warning(f"[WARNING] Registrador de auditoría no disponible: {e}")
+        app_instance.state.registrador_audit = None
+
+    # [PROMETHEUS] MÉTRICAS PARA MONITOREO (STEP 17)
+    # Exportar hacia Prometheus/Grafana
+    try:
+        from core.monitoreo.metricas_prometheus import (
+            alertas_generadas, puntuacion_salud, requests_api
+        )
+        logger.info("[METRICS] OK - Métricas Prometheus iniciadas")
+        logger.info("[METRICS] - Endpoints: /metrics")
+        logger.info("[METRICS] - Contador: alertas, requests API")
+        logger.info("[METRICS] - Gauge: salud, servicios disponibles")
+        app_instance.state.metricas = True
+    except Exception as e:
+        logger.warning(f"[WARNING] Métricas Prometheus no disponibles: {e}")
+        app_instance.state.metricas = None
+
+    # [REPORTES] GENERACIÓN DE DOCUMENTOS (STEP 18)
+    # Exportar a HTML, CSV, con soporte para PDF
+    try:
+        from core.reportes.generador_reportes import GeneradorReportesExportacion
+        generador_reportes = GeneradorReportesExportacion()
+        logger.info("[REPORTES] OK - Generador de reportes iniciado")
+        logger.info("[REPORTES] - Formatos: HTML, CSV, JSON")
+        logger.info("[REPORTES] - Almacenamiento: data/reportes/")
+        app_instance.state.generador_reportes = generador_reportes
+    except Exception as e:
+        logger.warning(f"[WARNING] Generador de reportes no disponible: {e}")
+        app_instance.state.generador_reportes = None
+
+    # [SCHEDULED REPORTS] REPORTES AUTOMÁTICOS (STEP 19)
+    # Diarios, semanales, mensuales con envío por email
+    try:
+        from core.reportes.scheduler_reportes import iniciar_generador_reportes
+        contexto_reportes = iniciar_generador_reportes()
+        logger.info("[REPORTES-SCHEDULED] OK - Scheduler de reportes iniciado")
+        logger.info("[REPORTES-SCHEDULED] - Frecuencias: diario, semanal, mensual")
+        logger.info("[REPORTES-SCHEDULED] - Notificaciones: email automático")
+        logger.info("[REPORTES-SCHEDULED] - Endpoint: GET /api/v1/reportes/*")
+        app_instance.state.scheduler_reportes = contexto_reportes
+    except Exception as e:
+        logger.warning(f"[WARNING] Scheduler de reportes no disponible: {e}")
+        app_instance.state.scheduler_reportes = None
+
     mqtt_host = os.getenv("METEOSER_MQTT_HOST", "127.0.0.1")
+
     mqtt_tls_enabled = os.getenv("METEOSER_MQTT_TLS", "1") not in ("0", "false", "False")
     default_mqtt_port = "8883" if mqtt_tls_enabled else "1883"
     try:
