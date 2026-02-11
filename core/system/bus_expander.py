@@ -2836,24 +2836,31 @@ class BusExpander:
                 self.bus.publicar("indice_cetreria_sintetico", 0.0, "%")
             
             # ═══════════════════════════════════════════════════════════════════════
-            # 2. LLUVIA ROBUSTO (4 componentes + 1 sintético)
+            # 2. LLUVIA ROBUSTO (9 componentes + 1 sintético)
             # ═══════════════════════════════════════════════════════════════════════
             try:
                 from core.indices.lluvia.lluvia_indices import calcular_lluvia_completa
                 
                 lluvia = calcular_lluvia_completa(datos_sensores)
                 
-                # Publicar 4 índices componentes
+                # Publicar 4 índices componentes ANTIGUOS
                 self.bus.publicar("lluvia_riesgo_inundacion", lluvia.get("riesgo_inundacion", 0.0), "%")
                 self.bus.publicar("lluvia_visibilidad_carretera", lluvia.get("visibilidad_carretera", 0.0), "%")
                 self.bus.publicar("lluvia_adherencia_terreno", lluvia.get("adherencia_terreno", 0.0), "%")
                 self.bus.publicar("lluvia_probabilidad_rayos", lluvia.get("probabilidad_rayos", 0.0), "%")
                 
-                # Publicar índice sintético
+                # Publicar 5 índices componentes NUEVOS (derivadas)
+                self.bus.publicar("lluvia_derivada_ghi_w_m2_min", lluvia.get("derivada_ghi_w_m2_min", 0.0), "W/m²/min")
+                self.bus.publicar("lluvia_derivada_presion_hpa_min", lluvia.get("derivada_presion_hpa_min", 0.0), "hPa/min")
+                self.bus.publicar("lluvia_derivada_humedad_pct_min", lluvia.get("derivada_humedad_pct_min", 0.0), "%/min")
+                self.bus.publicar("lluvia_dt_solar_grados", lluvia.get("dt_solar_grados", 0.0), "°C")
+                self.bus.publicar("lluvia_probabilidad_sundqvist", lluvia.get("probabilidad_lluvia_sundqvist", 0.0), "%")
+                
+                # Publicar índice sintético (suma ponderada de 9)
                 indice_lluvia = lluvia.get("indice_lluvia_sintetico", 0.0)
                 self.bus.publicar("indice_lluvia_sintetico", indice_lluvia, "%")
                 
-                logger.info(f"  ✓ Lluvia: {indice_lluvia:.1f}% (riesgo={lluvia.get('riesgo_inundacion', 0.0):.0f}%, visib={lluvia.get('visibilidad_carretera', 0.0):.0f}%)")
+                logger.info(f"  ✓ Lluvia: {indice_lluvia:.1f}% (9 componentes ponderados: 4 antiguos + 5 derivadas)")
             
             except Exception as e_lluv:
                 logger.warning(f"[WARNING] Lluvia fallida: {e_lluv}")
