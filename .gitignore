@@ -5,3 +5,23 @@ archive/tests/
 archive/disabled_bats/
 archive/demo/
 .env
+
+# Large files (> 50 MB)
+*.zip
+output/implementaciones_identicas_examples.txt
+data/feedback_registros.jsonl
+data/feedback_registros.jsonl.gz
+backup_*.zip
+
+# Cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Data files
+data/*.json
+data/*.jsonl
+logs/*.log
+test_output.log
