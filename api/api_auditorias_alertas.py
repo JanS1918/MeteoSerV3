@@ -130,7 +130,7 @@ async def obtener_alertas_activas():
 @router.get("/alertas/historico")
 async def obtener_historico_alertas(
     limites: int = Query(100, ge=1, le=1000),
-    nivel: Optional[str] = Query(None, regex="^(CRÍTICO|SEVERO|MODERADO|LEVE)$")
+    nivel: Optional[str] = Query(None, pattern="^(CRÍTICO|SEVERO|MODERADO|LEVE)$")
 ):
     """Obtiene histórico de alertas (últimas N, opcionalmente filtrado por nivel)."""
     try:

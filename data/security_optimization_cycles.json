@@ -1655,6 +1655,14 @@
       "vulnerabilities_validated": 1,
       "security_duels_won": 1,
       "duration_seconds": 0.0019838809967041016
+    },
+    {
+      "timestamp": 1770801119.4345355,
+      "cycle_num": 208,
+      "vulnerabilities_discovered": 1,
+      "vulnerabilities_validated": 1,
+      "security_duels_won": 1,
+      "duration_seconds": 0.147996187210083
     }
   ]
 }

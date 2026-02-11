@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import logging
+
+# Configurar logger para este módulo
+logger = logging.getLogger(__name__)
+
 # [WARNING] MAIN ASGI - ROUTER SELLADO CON ESTÁNDARES DIAMANTE
 # ════════════════════════════════════════════════════════════════════════════
 # Router principal del servidor METEOSER V3.

@@ -1,0 +1,13 @@
+{
+  "clave": "umbral_alerta_critica_wh31",
+  "valor": 2.0,
+  "tipo": "float",
+  "descripcion": "",
+  "minimo": null,
+  "maximo": null,
+  "valores_permitidos": null,
+  "tenant_id": "default",
+  "timestamp_creacion": "2026-02-11T10:10:04.672325",
+  "timestamp_actualizacion": "2026-02-11T10:10:04.672336",
+  "version": 1
+}

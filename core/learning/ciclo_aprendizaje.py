@@ -272,7 +272,7 @@ class GestorCicloAprendizaje:
     
     def _limpiar_historicos_periodico(self):
         """Limpia históricos muy antiguos (> 30 días)."""
-        if self._debiera_ejecutar("limpieza", horas=self.intervalo_limpieza):
+        if self._deberia_ejecutar("limpieza", horas=self.intervalo_limpieza):
             try:
                 # Implementar limpieza si es necesario
                 # Por ahora, solo registrar

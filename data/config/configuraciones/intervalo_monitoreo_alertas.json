@@ -1,0 +1,13 @@
+{
+  "clave": "intervalo_monitoreo_alertas",
+  "valor": 30,
+  "tipo": "int",
+  "descripcion": "",
+  "minimo": null,
+  "maximo": null,
+  "valores_permitidos": null,
+  "tenant_id": "default",
+  "timestamp_creacion": "2026-02-11T10:10:04.804696",
+  "timestamp_actualizacion": "2026-02-11T10:10:04.804705",
+  "version": 1
+}

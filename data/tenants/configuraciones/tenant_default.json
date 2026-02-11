@@ -1,0 +1,18 @@
+{
+  "tenant_id": "default",
+  "nombre": "Sistema Principal",
+  "descripcion": "Tenant predeterminado del sistema",
+  "dominio_primario": "meteoser.principal",
+  "umbral_critico_wh31": 2.0,
+  "umbral_severo_wh31": 1.5,
+  "umbral_critico_cobertura": 70,
+  "email_contacto": "admin@meteoser.local",
+  "slack_webhook": null,
+  "notificaciones_habilitadas": true,
+  "dias_retencion_alertas": 90,
+  "dias_retencion_auditorias": 180,
+  "estado": "ACTIVO",
+  "timestamp_creacion": "2026-02-11T10:10:01.310541",
+  "timestamp_actualizacion": "2026-02-11T10:10:01.310552",
+  "custom_metadata": {}
+}
