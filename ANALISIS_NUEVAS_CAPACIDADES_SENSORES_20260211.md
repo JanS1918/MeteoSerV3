@@ -174,3 +174,74 @@ Este endpoint sirve para gobernar motores y para exponer métricas en dashboards
 ---
 
 _Actualizado: incorpora propuestas de gobernanza, energía disponible y métricas operativas para preparar la integración de los nuevos sensores y convertir MeteoSer en un núcleo meteorológico coherente._
+
+---
+
+## 12. Precedencia y limitadores físicos (formalización)
+
+Para evitar ambigüedad operacional, se define la precedencia absoluta entre capas y los limitadores físicos superiores (hard limits). Esta tabla es la referencia para cualquier motor:
+
+1. Seguridad física (hard thresholds) — no negociable: condiciones que fuerzan acciones (ej. T < punto de congelación en superficie → alerta helada inmediata).
+2. Coherencia física global — validez energética y balance radiativo; penaliza/impide decisiones incompatibles con la conservación física.
+3. Energía disponible (IEAD) — regula agresividad convectiva y límites máximos de efectos (ej. prob lluvia máxima permisible dada IEAD).
+4. Régimen atmosférico (Dominant Driver) — determina qué subsistemas tienen prioridad de influencia.
+5. Motores especializados (decisiones de dominio) — ejecutan lógicas específicas sujetas a lo anterior.
+
+Limitadores físicos (ejemplos concretos):
+- Probabilidad máxima lluvia 60min ≤ f(IEAD, compresión_atm) (no más del X% si IEAD<Y).
+- Evaporación máxima ≤ función de Rn positivo y viento (no generar ET irreales si Rn negativo).
+- Si sensores críticos offline o SRS < T_low → activar HARD FALLBACK MODE (solo reglas A).
+
+Todos los motores deben chequear la tabla de precedencia antes de aplicar ajustes.
+
+---
+
+## 13. Clasificación de decisiones A / B / C
+
+Definición obligatoria para cada regla/modelo: tipo de decisión
+
+- Tipo A — Físicas duras (non-negotiable): basadas en leyes físicas o umbrales absolutos (p. ej. punto de rocío > T => condensación). Siempre evaluadas primero.
+- Tipo B — Físicas probabilísticas: dependen de IEAD/Inercia/Régimen (p. ej. probabilidad lluvia 30–60min). Sujetos a precedencia y limitadores.
+- Tipo C — Heurísticas / ML: ajustes finos y recomendaciones (p. ej. sugerencias de riego optimizadas). Solo aplican si SRS y UNC lo permiten.
+
+Regla: Ninguna decisión Tipo C puede invalidar una Tipo A; Tipo B solo opera dentro de los límites marcados por A y precedida por checks de coherencia.
+
+---
+
+## 14. Modos operativos globales y transiciones
+
+El sistema debe declarar un `Modo Operativo Global` cada minuto (Estado Meta):
+
+- `Modo Conservador` — SRS bajo o UNC alta; ML desactivado; reglas A activas.
+- `Modo Normal` — operación estándar; ML con límites; ajustes moderados.
+- `Modo Convectivo` — IEAD alto y Dominant Driver = radiación con interacción convectiva; motores convectivos aumentan agresividad.
+- `Modo Radiativo` — Inercia nocturna dominante; prioridad a heladas/niebla/condensación.
+- `Modo Degradado` — sensores críticos offline; fallback rules-only.
+
+Transiciones:
+- Definir condiciones de entrada/salida (ej.: IEAD↑ por encima de umbral durante X min → modo Convectivo).
+- Hysteresis para evitar switching frecuente (persistencia mínima por modo).
+
+---
+
+## 15. Puntos sin consenso y propuesta para consensuar
+
+- Normalización vs valor físico: consenso: almacenar y exponer ambos; decisiones críticas requieren referencia física y umbral absoluto.
+- Forma no lineal de IEAD: consenso propuesto: usar combinación multiplicativa y sumatoria; validar con histórico y ajustar pesos.
+- Hard fallback: definir umbrales SRS y sensores críticos; acuerdo operativo necesario sobre qué sensores son críticos.
+
+Propuesta para cerrar consenso: crear un documento corto (1 página) por cada punto con ejemplos numéricos y pruebas históricas para validar elecciones (p.ej. IEAD variantes vs skill score 30–60min).
+
+---
+
+## 16. Ideas adicionales y refinamientos
+
+- Índice de Compresión Atmosférica (derivada presión + otros) para mejorar predicción corta.
+- Detector de Ruptura Energética (CUSUM) para prioridades inmediatas.
+- Coherencia Espacial Virtual y Score de Madurez del Día.
+- Regulador de Aprendizaje: A/B automáticos y rollback si SRS cae.
+- Explicabilidad: cada ajuste persiste con evidencia (últimos N registros) y motivo.
+
+---
+
+_Documento ampliado con formalización de precedencia, decisiones y modos operativos para facilitar consensos y evitar ambigüedad antes de codificar._
