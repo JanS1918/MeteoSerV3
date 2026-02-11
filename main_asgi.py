@@ -332,6 +332,126 @@ async def lifespan(app_instance: FastAPI):
         logger.warning(f"[WARNING] Scheduler de reportes no disponible: {e}")
         app_instance.state.scheduler_reportes = None
 
+    # [SINCRONIZACIÓN DE ESTADO] DISTRIBUIDO (STEP 22)
+    # Mantener estado consistente entre nodos con gossip protocol
+    try:
+        from core.distribucion.sincronizador_estado import iniciar_sincronizador_estado
+        contexto_sync = iniciar_sincronizador_estado()
+        logger.info("[SYNC] OK - Sincronización de estado iniciada")
+        logger.info(f"[SYNC] - Backend: {contexto_sync.get('backend', 'ERROR')}")
+        logger.info("[SYNC] - Gossip protocol: propagación rápida de cambios")
+        app_instance.state.sincronizador_estado = contexto_sync
+    except Exception as e:
+        logger.warning(f"[WARNING] Sincronización de estado no disponible: {e}")
+        app_instance.state.sincronizador_estado = None
+
+    # [CIRCUIT BREAKER] RESILIENCIA (STEP 23)
+    # Evitar cascadas de fallos con estados: cerrado, abierto, semiabierto
+    try:
+        from core.seguridad.circuit_breaker import iniciar_circuit_breakers
+        contexto_cb = iniciar_circuit_breakers()
+        logger.info("[CIRCUIT-BREAKER] OK - Protección de fallos iniciada")
+        logger.info("[CIRCUIT-BREAKER] - Servicios: api, BD, Redis, webhooks")
+        logger.info("[CIRCUIT-BREAKER] - Recuperación: automática")
+        app_instance.state.circuit_breakers = contexto_cb
+    except Exception as e:
+        logger.warning(f"[WARNING] Circuit breakers no disponible: {e}")
+        app_instance.state.circuit_breakers = None
+
+    # [DEDUPLICACIÓN] EVENTOS ÚNICOS (STEP 24)
+    # Fingerprinting + idempotencia para evitar procesamiento duplicado
+    try:
+        from core.procesamiento.deduplicador import iniciar_deduplicadores
+        contexto_dedup = iniciar_deduplicadores()
+        logger.info("[DEDUP] OK - Deduplicador de eventos iniciado")
+        logger.info("[DEDUP] - Ventana: 30 minutos")
+        logger.info("[DEDUP] - Idempotencia: garantizada")
+        app_instance.state.deduplicadores = contexto_dedup
+    except Exception as e:
+        logger.warning(f"[WARNING] Deduplicadores no disponible: {e}")
+        app_instance.state.deduplicadores = None
+
+    # [COMPRESIÓN DE DATOS] ARCHIVADO EFICIENTE (STEP 25)
+    # Gzip para archivos históricos, rotación automática
+    try:
+        from core.almacenamiento.compresor_datos import iniciar_gestor_archivado
+        contexto_compress = iniciar_gestor_archivado()
+        logger.info("[COMPRESS] OK - Gestor de archivado iniciado")
+        logger.info("[COMPRESS] - Compresión: datos >7 días")
+        logger.info("[COMPRESS] - Eliminación: datos >90 días")
+        app_instance.state.compresor_datos = contexto_compress
+    except Exception as e:
+        logger.warning(f"[WARNING] Gestor de archivado no disponible: {e}")
+        app_instance.state.compresor_datos = None
+
+    # [AUTO-ESCALADO] INTELIGENTE (STEP 26)
+    # Escalar up/down según CPU, memoria, latencia
+    try:
+        from core.distribucion.autoscale import iniciar_autoscale
+        contexto_autoscale = iniciar_autoscale()
+        logger.info("[AUTOSCALE] OK - Auto-escalado iniciado")
+        logger.info("[AUTOSCALE] - Monitor: CPU, memoria, latencia")
+        logger.info("[AUTOSCALE] - Decisiones: cada 30 segundos")
+        logger.info("[AUTOSCALE] - Cooldown: 60 segundos entre cambios")
+        app_instance.state.autoscale = contexto_autoscale
+    except Exception as e:
+        logger.warning(f"[WARNING] Auto-escalado no disponible: {e}")
+        app_instance.state.autoscale = None
+
+    # [BATCH PROCESSING] LOTES EFICIENTES (STEP 27)
+    # Procesar múltiples eventos juntos para mejor throughput
+    try:
+        from core.procesamiento.batch_processor import iniciar_procesadores_batch
+        contexto_batch = iniciar_procesadores_batch()
+        logger.info("[BATCH] OK - Procesadores batch iniciados")
+        logger.info("[BATCH] - Alertas: 100 items, timeout 10s")
+        logger.info("[BATCH] - Webhooks: 50 items, timeout 20s")
+        app_instance.state.batch_processors = contexto_batch
+    except Exception as e:
+        logger.warning(f"[WARNING] Batch processors no disponible: {e}")
+        app_instance.state.batch_processors = None
+
+    # [VALIDACIÓN DE DATOS] EN TIEMPO REAL (STEP 28)
+    # Esquemas, sanitización, prevención de inyecciones
+    try:
+        from core.validacion.validador_datos import iniciar_validadores
+        contexto_validator = iniciar_validadores()
+        logger.info("[VALIDATOR] OK - Validadores iniciados")
+        logger.info("[VALIDATOR] - Esquemas: predefinidos para datos")
+        logger.info("[VALIDATOR] - Sanitización: SQL, XSS, JSON injection")
+        app_instance.state.validadores = contexto_validator
+    except Exception as e:
+        logger.warning(f"[WARNING] Validadores no disponible: {e}")
+        app_instance.state.validadores = None
+
+    # [FAILOVER Y RECUPERACIÓN] AUTOMÁTICO (STEP 29)
+    # Health checks, failover a replicas, recuperación gradual
+    try:
+        from core.recuperacion.gestor_failover import iniciar_failover_recovery
+        contexto_failover = await iniciar_failover_recovery()
+        logger.info("[FAILOVER] OK - Sistema de failover iniciado")
+        logger.info("[FAILOVER] - Servicios monitoreados: 3")
+        logger.info("[FAILOVER] - Health check: cada 30 segundos")
+        logger.info("[FAILOVER] - Replicas: automáticas")
+        app_instance.state.failover_recovery = contexto_failover
+    except Exception as e:
+        logger.warning(f"[WARNING] Failover no disponible: {e}")
+        app_instance.state.failover_recovery = None
+
+    # [ENCRIPTACIÓN Y SECRETOS] SEGUROS (STEP 30)
+    # AES con Fernet, gestión centralizada de secretos
+    try:
+        from core.seguridad.encriptador import iniciar_encriptacion_y_secretos
+        contexto_crypto = iniciar_encriptacion_y_secretos()
+        logger.info("[SECURITY] OK - Encriptación iniciada")
+        logger.info(f"[SECURITY] - Encriptación: {contexto_crypto['encriptacion'].get('tipo', 'ERROR')}")
+        logger.info(f"[SECURITY] - Secretos cargados: {contexto_crypto['secretos'].get('total_cargados', 0)}")
+        logger.info("[SECURITY] - HTTPS requerido: sí")
+        app_instance.state.encriptador = contexto_crypto
+    except Exception as e:
+        logger.warning(f"[WARNING] Encriptación no disponible: {e}")
+        app_instance.state.encriptador = None
+
     mqtt_host = os.getenv("METEOSER_MQTT_HOST", "127.0.0.1")
 
     mqtt_tls_enabled = os.getenv("METEOSER_MQTT_TLS", "1") not in ("0", "false", "False")
