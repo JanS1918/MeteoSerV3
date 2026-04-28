@@ -18,7 +18,7 @@ tensorflow>=2.13.0
 keras>=2.13.0
 
 # SEMANA 2: Compilación Numba
-numba>=0.57.0
+numba>=0.65.1
 
 # SEMANA 3: Auto-calibración
 scikit-learn>=1.3.0
