@@ -6,7 +6,7 @@ jinja2
 bleak>=0.21.0
 pyserial>=3.5
 zeroconf>=0.132.0
-requests>=2.31.0
+requests>=2.33.1
 paho-mqtt
 feedparser
 pyttsx3
